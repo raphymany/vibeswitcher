@@ -19,17 +19,26 @@ public record SessionError(DateTime Timestamp, ErrorCode Code, string Title, str
 
 public static class SessionErrorTracker
 {
+    private static readonly object _lock = new();
     private static readonly List<SessionError> _errors = new();
 
-    public static IReadOnlyList<SessionError> Errors => _errors.AsReadOnly();
+    public static IReadOnlyList<SessionError> Errors
+    {
+        get { lock (_lock) { return _errors.ToList().AsReadOnly(); } }
+    }
 
-    public static bool HasErrors => _errors.Count > 0;
+    public static bool HasErrors { get { lock (_lock) { return _errors.Count > 0; } } }
+
+    public static int Count { get { lock (_lock) { return _errors.Count; } } }
 
     public static event EventHandler? ErrorAdded;
 
     public static void Record(ErrorCode code, string title, string message)
     {
-        _errors.Add(new SessionError(DateTime.Now, code, title, message));
+        lock (_lock)
+        {
+            _errors.Add(new SessionError(DateTime.Now, code, title, message));
+        }
         ErrorAdded?.Invoke(null, EventArgs.Empty);
     }
 }

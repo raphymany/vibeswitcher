@@ -16,6 +16,7 @@ public partial class SettingsWindow : Window
     private readonly SettingsViewModel _viewModel;
     private readonly TrayService _trayService;
     private readonly ConfigService _configService;
+    private readonly EventHandler _errorAddedHandler;
 
     public SettingsWindow(
         ConfigService configService,
@@ -51,12 +52,13 @@ public partial class SettingsWindow : Window
         RestoreWindowBounds();
 
         UpdateLogsButton();
-        SessionErrorTracker.ErrorAdded += (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
+        _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
+        SessionErrorTracker.ErrorAdded += _errorAddedHandler;
     }
 
     private void UpdateLogsButton()
     {
-        var count = SessionErrorTracker.Errors.Count;
+        var count = SessionErrorTracker.Count;
         if (count == 0)
         {
             LogsButtonText.Text = "No Errors";
@@ -108,6 +110,12 @@ public partial class SettingsWindow : Window
         cfg.WindowLeft   = Left;
         cfg.WindowTop    = Top;
         _configService.SaveImmediate();
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        SessionErrorTracker.ErrorAdded -= _errorAddedHandler;
+        base.OnClosed(e);
     }
 
     protected override void OnClosing(CancelEventArgs e)
