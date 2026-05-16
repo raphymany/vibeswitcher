@@ -37,7 +37,12 @@ public partial class SettingsWindow : Window
                 var active = configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == configService.Current.ActiveProfileId);
                 trayService.UpdateIcon(active);
-            });
+            },
+            onHotkeyConflict: ex =>
+                trayService.ShowBalloon(
+                    "Hotkey Conflict",
+                    $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.",
+                    H.NotifyIcon.Core.NotificationIcon.Warning));
 
         DataContext = _viewModel;
         RestoreWindowBounds();

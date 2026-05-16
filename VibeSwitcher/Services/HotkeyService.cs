@@ -15,9 +15,9 @@ public class HotkeyConflictException : Exception
 public class HotkeyService : IDisposable
 {
     // Maps atom ID → profile Guid
-    private readonly Dictionary<int, Guid> _atomToProfile = new();
+    private readonly Dictionary<ushort, Guid> _atomToProfile = new();
     // Maps profile Guid → (atom, hotkey) for re-registration during TestHotkey
-    private readonly Dictionary<Guid, (int Atom, HotkeyDefinition Hotkey)> _profileToAtom = new();
+    private readonly Dictionary<Guid, (ushort Atom, HotkeyDefinition Hotkey)> _profileToAtom = new();
     private readonly IntPtr _hwnd;
 
     public HotkeyService(IntPtr messageWindowHandle)
@@ -103,7 +103,7 @@ public class HotkeyService : IDisposable
         }
 
         // Re-register all our own hotkeys
-        var failedAtoms = new List<int>();
+        var failedAtoms = new List<ushort>();
         foreach (var (_, (atom, hkDef)) in _profileToAtom)
         {
             bool reOk = WinApi.RegisterHotKey(_hwnd, atom, hkDef.GetModifierFlags(), hkDef.VirtualKeyCode);
@@ -145,7 +145,7 @@ public class HotkeyService : IDisposable
         catch (HotkeyConflictException ex) { AppLogger.Error("HotkeyService.RegisterProfile", ex); }
     }
 
-    public Guid HandleHotkey(int atomId)
+    public Guid HandleHotkey(ushort atomId)
     {
         return _atomToProfile.TryGetValue(atomId, out var id) ? id : Guid.Empty;
     }

@@ -23,5 +23,5 @@ internal static class WinApi
     public static extern ushort GlobalAddAtom(string lpString);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern ushort GlobalDeleteAtom(int nAtom);
+    public static extern ushort GlobalDeleteAtom(ushort nAtom);
 }

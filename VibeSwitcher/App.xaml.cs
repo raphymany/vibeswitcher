@@ -95,7 +95,7 @@ public partial class App : Application
     {
         if (msg == WinApi.WM_HOTKEY)
         {
-            int atomId = wParam.ToInt32();
+            ushort atomId = (ushort)wParam.ToInt32();
             Guid profileId = _hotkeyService!.HandleHotkey(atomId);
             if (profileId != Guid.Empty)
             {
