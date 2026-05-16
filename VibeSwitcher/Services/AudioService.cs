@@ -48,9 +48,10 @@ public class AudioService
     private static IReadOnlyList<AudioDeviceInfo> EnumerateDevices(EDataFlow flow)
     {
         var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+        IMMDeviceCollection? collection = null;
         try
         {
-            enumerator.EnumAudioEndpoints(flow, AudioDeviceState.Active, out var collection);
+            enumerator.EnumAudioEndpoints(flow, AudioDeviceState.Active, out collection);
             collection.GetCount(out uint count);
 
             var results = new List<AudioDeviceInfo>((int)count);
@@ -60,28 +61,27 @@ public class AudioService
                 var info = GetDeviceInfo(device, flow == EDataFlow.Render);
                 if (info != null) results.Add(info);
             }
-            Marshal.ReleaseComObject(collection);
             return results.OrderBy(d => d.FriendlyName).ToList();
         }
         finally
         {
+            if (collection != null) Marshal.ReleaseComObject(collection);
             Marshal.ReleaseComObject(enumerator);
         }
     }
 
     private static AudioDeviceInfo? GetDeviceInfo(IMMDevice device, bool isPlayback)
     {
+        IPropertyStore? store = null;
         try
         {
             device.GetId(out string id);
-            device.OpenPropertyStore(0 /* STGM_READ */, out var store);
+            device.OpenPropertyStore(0 /* STGM_READ */, out store);
 
             var key = PROPERTYKEY.DeviceFriendlyName;
             store.GetValue(ref key, out var pv);
             string? name = pv.ToStringValue();
             PropVariant.PropVariantClear(ref pv);
-
-            Marshal.ReleaseComObject(store);
 
             if (name == null) return null;
             return new AudioDeviceInfo(id, name, isPlayback);
@@ -92,6 +92,7 @@ public class AudioService
         }
         finally
         {
+            if (store != null) Marshal.ReleaseComObject(store);
             Marshal.ReleaseComObject(device);
         }
     }

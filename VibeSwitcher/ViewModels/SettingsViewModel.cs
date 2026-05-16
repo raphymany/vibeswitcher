@@ -22,7 +22,11 @@ public class SettingsViewModel : ViewModelBase
     private bool _closeToTray;
     private bool _showNotifications;
 
-    public ObservableCollection<ProfileCardViewModel> Profiles { get; } = new();
+    // Device lists loaded once async and shared across all profile cards.
+    private IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
+    private IReadOnlyList<AudioDeviceInfo> _recordingDevices = [];
+
+    public ObservableCollection<ProfileCardViewModel> Profiles { get; }
 
     public bool HasNoProfiles => Profiles.Count == 0;
 
@@ -100,12 +104,36 @@ public class SettingsViewModel : ViewModelBase
         _closeToTray = configService.Current.CloseToTray;
         _showNotifications = configService.Current.ShowNotifications;
 
-        foreach (var profile in configService.Current.Profiles.OrderBy(p => p.SortOrder))
-            Profiles.Add(CreateCard(profile));
+        // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
+        Profiles = new ObservableCollection<ProfileCardViewModel>(
+            configService.Current.Profiles
+                .OrderBy(p => p.SortOrder)
+                .Select(p => CreateCard(p)));
 
         AddProfileCommand = new RelayCommand(AddProfile);
 
         Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
+
+        // Enumerate audio devices once on a background STA thread, then populate all cards.
+        // Cards start with empty device dropdowns and populate within a fraction of a second.
+        _ = LoadDevicesAsync();
+    }
+
+    private async Task LoadDevicesAsync()
+    {
+        var audioService = _audioService;
+        var (pb, rec) = await Task.Run(() =>
+            (audioService.GetPlaybackDevices(), audioService.GetRecordingDevices()));
+
+        _playbackDevices = pb;
+        _recordingDevices = rec;
+
+        // ObservableCollection is not thread-safe; must populate on the UI thread.
+        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            foreach (var card in Profiles)
+                card.LoadDevices(pb, rec);
+        });
     }
 
     private ProfileCardViewModel CreateCard(DeviceProfile profile)
@@ -113,8 +141,9 @@ public class SettingsViewModel : ViewModelBase
         return new ProfileCardViewModel(
             profile,
             _configService,
-            _audioService,
             _hotkeyService,
+            _playbackDevices,
+            _recordingDevices,
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card));
     }

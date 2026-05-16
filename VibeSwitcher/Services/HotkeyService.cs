@@ -18,6 +18,8 @@ public class HotkeyService : IDisposable
     private readonly Dictionary<ushort, Guid> _atomToProfile = new();
     // Maps profile Guid → (atom, hotkey) for re-registration during TestHotkey
     private readonly Dictionary<Guid, (ushort Atom, HotkeyDefinition Hotkey)> _profileToAtom = new();
+    // Maps profile Guid → profile — rebuilt on every RegisterAll so WM_HOTKEY dispatch is O(1)
+    private Dictionary<Guid, DeviceProfile> _profileById = new();
     private readonly IntPtr _hwnd;
 
     public HotkeyService(IntPtr messageWindowHandle)
@@ -29,10 +31,12 @@ public class HotkeyService : IDisposable
     public List<HotkeyConflictException> RegisterAll(IEnumerable<DeviceProfile> profiles)
     {
         UnregisterAll();
+        _profileById = new Dictionary<Guid, DeviceProfile>();
         var conflicts = new List<HotkeyConflictException>();
 
         foreach (var profile in profiles)
         {
+            _profileById[profile.Id] = profile;
             if (profile.Hotkey.IsEmpty || !profile.Hotkey.IsValid) continue;
             try
             {
@@ -76,6 +80,7 @@ public class HotkeyService : IDisposable
         }
         _atomToProfile.Clear();
         _profileToAtom.Clear();
+        _profileById.Clear();
     }
 
     /// <summary>
@@ -145,9 +150,10 @@ public class HotkeyService : IDisposable
         catch (HotkeyConflictException ex) { AppLogger.Error("HotkeyService.RegisterProfile", ex); }
     }
 
-    public Guid HandleHotkey(ushort atomId)
+    public DeviceProfile? HandleHotkey(ushort atomId)
     {
-        return _atomToProfile.TryGetValue(atomId, out var id) ? id : Guid.Empty;
+        if (!_atomToProfile.TryGetValue(atomId, out var id)) return null;
+        return _profileById.TryGetValue(id, out var profile) ? profile : null;
     }
 
     public void Dispose() => UnregisterAll();
