@@ -15,7 +15,8 @@ public partial class AboutWindow : Window
 
         var infoVer = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()
-            ?.InformationalVersion;
+            ?.InformationalVersion
+            ?.Split('+')[0]; // strip git commit hash suffix appended by MSBuild
         VersionText.Text = !string.IsNullOrEmpty(infoVer)
             ? $"Version {infoVer}"
             : $"Version {Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"}";
