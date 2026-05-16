@@ -1,4 +1,5 @@
 ﻿using System.Windows.Input;
+using VibeSwitcher.NativeMethods;
 
 namespace VibeSwitcher.Models;
 
@@ -12,13 +13,15 @@ public class HotkeyDefinition
 
     public bool IsEmpty => VirtualKeyCode == 0;
 
+    public bool IsValid => VirtualKeyCode > 0 && VirtualKeyCode <= 254;
+
     public int GetModifierFlags()
     {
         int flags = 0;
-        if (UseAlt) flags |= 0x0001;
-        if (UseCtrl) flags |= 0x0002;
-        if (UseShift) flags |= 0x0004;
-        if (UseWin) flags |= 0x0008;
+        if (UseAlt)   flags |= WinApi.MOD_ALT;
+        if (UseCtrl)  flags |= WinApi.MOD_CTRL;
+        if (UseShift) flags |= WinApi.MOD_SHIFT;
+        if (UseWin)   flags |= WinApi.MOD_WIN;
         return flags;
     }
 
@@ -27,20 +30,13 @@ public class HotkeyDefinition
         if (IsEmpty) return "(none)";
 
         var parts = new List<string>();
-        if (UseCtrl) parts.Add("Ctrl");
-        if (UseAlt) parts.Add("Alt");
+        if (UseCtrl)  parts.Add("Ctrl");
+        if (UseAlt)   parts.Add("Alt");
         if (UseShift) parts.Add("Shift");
-        if (UseWin) parts.Add("Win");
+        if (UseWin)   parts.Add("Win");
 
-        try
-        {
-            var key = KeyInterop.KeyFromVirtualKey(VirtualKeyCode);
-            parts.Add(key.ToString());
-        }
-        catch
-        {
-            parts.Add($"VK({VirtualKeyCode})");
-        }
+        var key = KeyInterop.KeyFromVirtualKey(VirtualKeyCode);
+        parts.Add(key != Key.None ? key.ToString() : $"VK({VirtualKeyCode})");
 
         return string.Join("+", parts);
     }

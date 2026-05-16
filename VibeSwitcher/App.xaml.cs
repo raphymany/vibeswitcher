@@ -81,11 +81,8 @@ public partial class App : Application
 
     private void RegisterHotkeys()
     {
-        try
-        {
-            _hotkeyService!.RegisterAll(_configService!.Current.Profiles);
-        }
-        catch (HotkeyConflictException ex)
+        var conflicts = _hotkeyService!.RegisterAll(_configService!.Current.Profiles);
+        foreach (var ex in conflicts)
         {
             _trayService!.ShowBalloon(
                 "Hotkey Conflict",

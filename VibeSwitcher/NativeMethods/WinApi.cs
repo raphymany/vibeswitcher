@@ -20,7 +20,7 @@ internal static class WinApi
     public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern int GlobalAddAtom(string lpString);
+    public static extern ushort GlobalAddAtom(string lpString);
 
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern ushort GlobalDeleteAtom(int nAtom);

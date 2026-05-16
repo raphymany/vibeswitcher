@@ -145,14 +145,14 @@ public class SettingsViewModel : ViewModelBase
         Profiles.Remove(card);
 
         // Re-register hotkeys after deletion
-        _hotkeyService.Refresh(_configService.Current.Profiles);
+        _hotkeyService.RegisterAll(_configService.Current.Profiles);
         _onProfilesChanged();
     }
 
     private void OnProfileChanged(ProfileCardViewModel card)
     {
         _configService.SaveImmediate();
-        _hotkeyService.Refresh(_configService.Current.Profiles);
+        _hotkeyService.RegisterAll(_configService.Current.Profiles);
         _onProfilesChanged();
     }
 }
