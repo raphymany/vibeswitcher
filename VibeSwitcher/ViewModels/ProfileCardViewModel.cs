@@ -7,7 +7,6 @@ using VibeSwitcher.Models;
 using VibeSwitcher.Services;
 using VibeSwitcher.Views;
 using Microsoft.Win32;
-using Visibility = System.Windows.Visibility;
 
 namespace VibeSwitcher.ViewModels;
 
@@ -117,8 +116,9 @@ public class ProfileCardViewModel : ViewModelBase
     public ProfileCardViewModel(
         DeviceProfile model,
         ConfigService configService,
-        AudioService audioService,
         HotkeyService hotkeyService,
+        IReadOnlyList<AudioDeviceInfo> playbackDevices,
+        IReadOnlyList<AudioDeviceInfo> recordingDevices,
         Action<ProfileCardViewModel> onChanged,
         Action<ProfileCardViewModel> onDelete)
     {
@@ -132,8 +132,8 @@ public class ProfileCardViewModel : ViewModelBase
         _hotkeyDisplay = model.Hotkey.ToDisplayString();
         _iconPath = model.IconPath;
 
-        PlaybackDevices = new ObservableCollection<AudioDeviceInfo>(audioService.GetPlaybackDevices());
-        RecordingDevices = new ObservableCollection<AudioDeviceInfo>(audioService.GetRecordingDevices());
+        PlaybackDevices = new ObservableCollection<AudioDeviceInfo>(playbackDevices);
+        RecordingDevices = new ObservableCollection<AudioDeviceInfo>(recordingDevices);
 
         _selectedPlaybackDevice = PlaybackDevices.FirstOrDefault(d => d.Id == model.PlaybackDeviceId);
         _selectedRecordingDevice = RecordingDevices.FirstOrDefault(d => d.Id == model.RecordingDeviceId);
@@ -143,6 +143,19 @@ public class ProfileCardViewModel : ViewModelBase
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
         BrowseIconCommand = new RelayCommand(BrowseIcon);
         DeleteCommand = new RelayCommand(DeleteProfile);
+    }
+
+    // Called by SettingsViewModel once async device enumeration completes.
+    public void LoadDevices(IReadOnlyList<AudioDeviceInfo> playback, IReadOnlyList<AudioDeviceInfo> recording)
+    {
+        PlaybackDevices.Clear();
+        foreach (var d in playback) PlaybackDevices.Add(d);
+        RecordingDevices.Clear();
+        foreach (var d in recording) RecordingDevices.Add(d);
+
+        // Restore selections now that the lists are populated.
+        SelectedPlaybackDevice  = PlaybackDevices.FirstOrDefault(d => d.Id == _model.PlaybackDeviceId);
+        SelectedRecordingDevice = RecordingDevices.FirstOrDefault(d => d.Id == _model.RecordingDeviceId);
     }
 
     private void CaptureHotkey()
