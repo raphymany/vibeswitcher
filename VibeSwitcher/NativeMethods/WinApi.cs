@@ -24,4 +24,7 @@ internal static class WinApi
 
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern ushort GlobalDeleteAtom(int nAtom);
+
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern int RegisterWindowMessage(string lpString);
 }
