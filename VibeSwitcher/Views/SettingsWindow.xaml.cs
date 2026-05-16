@@ -33,6 +33,7 @@ public partial class SettingsWindow : Window
             startupService,
             onProfilesChanged: () =>
             {
+                trayService.ClearIconCache();
                 trayService.RebuildMenu();
                 var active = configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == configService.Current.ActiveProfileId);
