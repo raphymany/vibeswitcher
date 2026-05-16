@@ -201,11 +201,24 @@ public class ProfileCardViewModel : ViewModelBase
                 System.IO.Directory.CreateDirectory(ConfigService.IconsDir);
                 System.IO.File.Copy(source, dest, overwrite: true);
             }
-            catch
+            catch (Exception ex)
             {
-                // Fall back to original path if copy fails
-                dest = source;
+                MessageBox.Show(
+                    $"Could not copy the icon file:\n{ex.Message}",
+                    "Icon Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return;
             }
+        }
+
+        // Delete the old icon from IconsDir if we're replacing it with a new copy
+        var previous = _iconPath;
+        if (!string.IsNullOrEmpty(previous) &&
+            previous.StartsWith(ConfigService.IconsDir, StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(previous, dest, StringComparison.OrdinalIgnoreCase))
+        {
+            try { System.IO.File.Delete(previous); } catch { }
         }
 
         IconPath = dest;

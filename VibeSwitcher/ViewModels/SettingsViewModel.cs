@@ -141,11 +141,20 @@ public class SettingsViewModel : ViewModelBase
 
     private void DeleteProfile(ProfileCardViewModel card)
     {
+        var iconPath = card.Model.IconPath;
         _configService.Current.Profiles.Remove(card.Model);
         _configService.SaveImmediate();
         Profiles.Remove(card);
+        DeleteOrphanedIcon(iconPath);
         ReregisterHotkeys();
         _onProfilesChanged();
+    }
+
+    private static void DeleteOrphanedIcon(string? iconPath)
+    {
+        if (string.IsNullOrEmpty(iconPath)) return;
+        if (!iconPath.StartsWith(ConfigService.IconsDir, StringComparison.OrdinalIgnoreCase)) return;
+        try { System.IO.File.Delete(iconPath); } catch { }
     }
 
     private void OnProfileChanged(ProfileCardViewModel card)

@@ -13,14 +13,19 @@ public static class IconHelper
 
     public static Icon LoadIcon(string? iconPath)
     {
-        if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
+        if (!string.IsNullOrEmpty(iconPath))
         {
             try
             {
-                // Load at 32×32 (not 16×16) so Windows tray has a higher-res source to
-                // downsample from at high DPI, making the icon look sharper.
-                using var fileIcon = new Icon(iconPath, new System.Drawing.Size(32, 32));
-                return CopyIcon(fileIcon);
+                // Canonicalize to resolve any ".." traversal before probing the filesystem.
+                var canonical = Path.GetFullPath(iconPath);
+                if (File.Exists(canonical))
+                {
+                    // Load at 32×32 (not 16×16) so Windows tray has a higher-res source to
+                    // downsample from at high DPI, making the icon look sharper.
+                    using var fileIcon = new Icon(canonical, new System.Drawing.Size(32, 32));
+                    return CopyIcon(fileIcon);
+                }
             }
             catch
             {
