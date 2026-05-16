@@ -24,7 +24,19 @@ public class ConfigService
 
     public void Load()
     {
-        Directory.CreateDirectory(ConfigDir);
+        try
+        {
+            Directory.CreateDirectory(ConfigDir);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("ConfigService.Load", ex);
+            SessionErrorTracker.Record(ErrorCode.ConfigDirCreateFailed, "Config Directory Error",
+                $"Could not create config directory at '{ConfigDir}': {ex.Message}");
+            IsFirstRun = true;
+            _config = new AppConfig();
+            return;
+        }
 
         if (!File.Exists(ConfigPath))
         {
@@ -68,6 +80,8 @@ public class ConfigService
         catch (Exception ex)
         {
             AppLogger.Error("ConfigService.TryLoad", ex);
+            SessionErrorTracker.Record(ErrorCode.ConfigLoadFailed, "Config Load Failed",
+                $"Failed to read {Path.GetFileName(path)}: {ex.Message}");
             config = null;
             return false;
         }
@@ -104,6 +118,7 @@ public class ConfigService
             catch (Exception ex)
             {
                 AppLogger.Error("ConfigService.Save", ex);
+                SessionErrorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using VibeSwitcher.Helpers;
 
 namespace VibeSwitcher.Services;
 
@@ -9,20 +10,59 @@ public class StartupService
 
     public bool IsStartupEnabled()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath);
-        return key?.GetValue(ValueName) != null;
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath);
+            return key?.GetValue(ValueName) != null;
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("StartupService.IsStartupEnabled", ex);
+            SessionErrorTracker.Record(ErrorCode.StartupRegistryReadFailed, "Startup Registry Read Failed",
+                $"Could not read the startup registry key: {ex.Message}");
+            return false;
+        }
     }
 
     public void Enable()
     {
-        var exePath = Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location;
-        using var key = Registry.CurrentUser.CreateSubKey(RegistryKeyPath, writable: true);
-        key.SetValue(ValueName, $"\"{exePath}\"");
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath))
+                exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            if (string.IsNullOrEmpty(exePath))
+            {
+                AppLogger.Error("StartupService.Enable", "Could not resolve executable path");
+                SessionErrorTracker.Record(ErrorCode.StartupPathResolutionFailed, "Startup Path Unavailable",
+                    "Could not determine the application path — 'Start with Windows' was not enabled.");
+                return;
+            }
+
+            using var key = Registry.CurrentUser.CreateSubKey(RegistryKeyPath, writable: true);
+            key.SetValue(ValueName, $"\"{exePath}\"");
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("StartupService.Enable", ex);
+            SessionErrorTracker.Record(ErrorCode.StartupRegistryFailed, "Startup Registry Failed",
+                $"Could not enable start with Windows: {ex.Message}");
+        }
     }
 
     public void Disable()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath, writable: true);
-        key?.DeleteValue(ValueName, throwOnMissingValue: false);
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath, writable: true);
+            key?.DeleteValue(ValueName, throwOnMissingValue: false);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("StartupService.Disable", ex);
+            SessionErrorTracker.Record(ErrorCode.StartupRegistryFailed, "Startup Registry Failed",
+                $"Could not disable start with Windows: {ex.Message}");
+        }
     }
 }

@@ -600,6 +600,14 @@
                                Foreground="#444444" Margin="0,0,0,6"/>
                     <CheckBox Content="Show device switch alerts"
                               IsChecked="{Binding ShowNotifications}" Margin="0,3"/>
+                    <Button x:Name="LogsButton"
+                            Style="{StaticResource ActionButton}"
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Left"
+                            Visibility="Collapsed"
+                            Click="LogsButton_Click">
+                        <TextBlock x:Name="LogsButtonText" FontSize="12"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>

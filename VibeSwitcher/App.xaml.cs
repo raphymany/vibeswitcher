@@ -108,6 +108,8 @@ public partial class App : Application
         var conflicts = _hotkeyService!.RegisterAll(_configService!.Current.Profiles);
         foreach (var ex in conflicts)
         {
+            SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             _trayService!.ShowBalloon(
                 "Hotkey Conflict",
                 $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.",
@@ -153,6 +155,19 @@ public partial class App : Application
                 _trayService!.UpdateIcon(profile);
                 _trayService.RebuildMenu();
 
+                if (result.MissingPlaybackId != null)
+                {
+                    var msg = $"Playback device for '{profile.Name}' is disconnected.";
+                    AppLogger.Warning("SwitchToProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
+                }
+                if (result.MissingRecordingId != null)
+                {
+                    var msg = $"Recording device for '{profile.Name}' is disconnected.";
+                    AppLogger.Warning("SwitchToProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
+                }
+
                 if (_configService.Current.ShowNotifications)
                 {
                     if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
@@ -174,8 +189,12 @@ public partial class App : Application
         catch (Exception ex)
         {
             AppLogger.Error("SwitchToProfile", ex);
+            var detail = ex.InnerException?.Message ?? ex.Message;
+            SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                $"Could not switch to '{profile.Name}': {detail}");
             await Dispatcher.InvokeAsync(() =>
-                _trayService?.ShowBalloon("Error", $"Could not switch profile: {ex.InnerException?.Message ?? ex.Message}", NotificationIcon.Error));
+                new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                    $"Could not switch to '{profile.Name}': {detail}").ShowDialog());
         }
     }
 

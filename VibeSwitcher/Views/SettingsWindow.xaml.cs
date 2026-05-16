@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Navigation;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Services;
 using VibeSwitcher.Tray;
 using VibeSwitcher.ViewModels;
@@ -14,6 +16,7 @@ public partial class SettingsWindow : Window
     private readonly SettingsViewModel _viewModel;
     private readonly TrayService _trayService;
     private readonly ConfigService _configService;
+    private readonly EventHandler _errorAddedHandler;
 
     public SettingsWindow(
         ConfigService configService,
@@ -40,13 +43,41 @@ public partial class SettingsWindow : Window
                 trayService.UpdateIcon(active);
             },
             onHotkeyConflict: ex =>
+            {
+                SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                    $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
                 trayService.ShowBalloon(
                     "Hotkey Conflict",
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.",
-                    H.NotifyIcon.Core.NotificationIcon.Warning));
+                    H.NotifyIcon.Core.NotificationIcon.Warning);
+            });
 
         DataContext = _viewModel;
         RestoreWindowBounds();
+
+        UpdateLogsButton();
+        _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
+        SessionErrorTracker.ErrorAdded += _errorAddedHandler;
+    }
+
+    private void UpdateLogsButton()
+    {
+        var count = SessionErrorTracker.Count;
+        if (count == 0)
+        {
+            LogsButton.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            LogsButtonText.Text = $"⚠ {count} Error{(count == 1 ? "" : "s")} This Session";
+            LogsButton.Foreground = new SolidColorBrush(Color.FromRgb(0xC0, 0x50, 0x00));
+            LogsButton.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void LogsButton_Click(object sender, RoutedEventArgs e)
+    {
+        new SessionLogWindow { Owner = this }.ShowDialog();
     }
 
     private void RestoreWindowBounds()
@@ -85,6 +116,12 @@ public partial class SettingsWindow : Window
         _configService.SaveImmediate();
     }
 
+    protected override void OnClosed(EventArgs e)
+    {
+        SessionErrorTracker.ErrorAdded -= _errorAddedHandler;
+        base.OnClosed(e);
+    }
+
     protected override void OnClosing(CancelEventArgs e)
     {
         SaveWindowBounds();
@@ -116,7 +153,16 @@ public partial class SettingsWindow : Window
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        try
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("SettingsWindow.Hyperlink", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+                $"Could not open '{e.Uri.AbsoluteUri}': {ex.Message}");
+        }
         e.Handled = true;
     }
 }

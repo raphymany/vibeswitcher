@@ -2,6 +2,7 @@
 
 namespace VibeSwitcher.Helpers;
 
+
 public class RelayCommand : ICommand
 {
     private readonly Action<object?> _execute;
@@ -25,7 +26,19 @@ public class RelayCommand : ICommand
 
     public bool CanExecute(object? parameter) => _canExecute == null || _canExecute(parameter);
 
-    public void Execute(object? parameter) => _execute(parameter);
+    public void Execute(object? parameter)
+    {
+        try
+        {
+            _execute(parameter);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("RelayCommand.Execute", ex);
+            SessionErrorTracker.Record(ErrorCode.CommandExecutionFailed, "Command Failed",
+                $"An unexpected error occurred: {ex.Message}");
+        }
+    }
 
     public void RaiseCanExecuteChanged() => CommandManager.InvalidateRequerySuggested();
 }

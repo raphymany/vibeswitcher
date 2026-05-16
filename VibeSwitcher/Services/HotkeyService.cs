@@ -2,6 +2,7 @@
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.NativeMethods;
+using static VibeSwitcher.Helpers.ErrorCode;
 
 namespace VibeSwitcher.Services;
 
@@ -10,6 +11,12 @@ public class HotkeyConflictException : Exception
     public HotkeyDefinition Hotkey { get; }
     public HotkeyConflictException(HotkeyDefinition hotkey)
         : base($"Hotkey conflict: {hotkey.ToDisplayString()}") => Hotkey = hotkey;
+}
+
+internal sealed class HotkeyAtomException : Exception
+{
+    public HotkeyAtomException(string profileName)
+        : base($"GlobalAddAtom returned 0 for '{profileName}' — atom table may be full.") { }
 }
 
 public class HotkeyService : IDisposable
@@ -46,6 +53,18 @@ public class HotkeyService : IDisposable
             {
                 conflicts.Add(ex);
             }
+            catch (HotkeyAtomException ex)
+            {
+                AppLogger.Error("HotkeyService.RegisterAll", ex);
+                SessionErrorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
+                    $"Could not create global atom for '{profile.Name}' — the system atom table may be full.");
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Error("HotkeyService.RegisterAll", ex);
+                SessionErrorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
+                    $"Could not register hotkey for '{profile.Name}': {ex.Message}");
+            }
         }
 
         return conflicts;
@@ -55,7 +74,7 @@ public class HotkeyService : IDisposable
     {
         string atomName = $"VibeSwitcher_{profile.Id}";
         ushort atom = WinApi.GlobalAddAtom(atomName);
-        if (atom == 0) throw new InvalidOperationException($"Failed to create atom for profile '{profile.Name}'");
+        if (atom == 0) throw new HotkeyAtomException(profile.Name);
 
         bool ok = WinApi.RegisterHotKey(_hwnd, atom, profile.Hotkey.GetModifierFlags(), profile.Hotkey.VirtualKeyCode);
         if (!ok)
@@ -99,7 +118,13 @@ public class HotkeyService : IDisposable
         ushort testAtom = WinApi.GlobalAddAtom(testAtomName);
         bool inUseByOther = false;
 
-        if (testAtom != 0)
+        if (testAtom == 0)
+        {
+            AppLogger.Warning("HotkeyService.TestHotkey", "GlobalAddAtom returned 0 — atom table may be full; conflict check skipped.");
+            SessionErrorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
+                "Could not probe for hotkey conflicts — the system atom table may be full.");
+        }
+        else
         {
             bool ok = WinApi.RegisterHotKey(_hwnd, testAtom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode);
             inUseByOther = !ok;
@@ -147,7 +172,24 @@ public class HotkeyService : IDisposable
     {
         if (profile.Hotkey.IsEmpty || !profile.Hotkey.IsValid || _profileToAtom.ContainsKey(profile.Id)) return;
         try { RegisterOne(profile); }
-        catch (HotkeyConflictException ex) { AppLogger.Error("HotkeyService.RegisterProfile", ex); }
+        catch (HotkeyConflictException ex)
+        {
+            AppLogger.Error("HotkeyService.RegisterProfile", ex);
+            SessionErrorTracker.Record(HotkeyConflict, "Hotkey Conflict",
+                $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
+        }
+        catch (HotkeyAtomException ex)
+        {
+            AppLogger.Error("HotkeyService.RegisterProfile", ex);
+            SessionErrorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
+                "Could not create atom for hotkey — the system atom table may be full.");
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("HotkeyService.RegisterProfile", ex);
+            SessionErrorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
+                $"Could not register hotkey: {ex.Message}");
+        }
     }
 
     public DeviceProfile? HandleHotkey(ushort atomId)

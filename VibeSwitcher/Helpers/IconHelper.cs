@@ -32,13 +32,25 @@ public static class IconHelper
                     return CopyIcon(fileIcon);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Fall through to default
+                AppLogger.Warning("IconHelper.LoadIcon", ex.Message);
+                SessionErrorTracker.Record(ErrorCode.IconLoadFailed, "Icon Load Failed",
+                    $"Could not load icon from '{iconPath}': {ex.Message}");
             }
         }
 
-        return CopyIcon(GetDefaultIcon());
+        try
+        {
+            return CopyIcon(GetDefaultIcon());
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("IconHelper.LoadIcon", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.GdiRenderFailed, "GDI Render Failed",
+                $"Could not create default icon: {ex.Message}");
+            throw;
+        }
     }
 
     public static Icon GetDefaultIcon()
@@ -81,12 +93,22 @@ public static class IconHelper
 
     public static ImageSource ToImageSource(Icon icon)
     {
-        var source = Imaging.CreateBitmapSourceFromHIcon(
-            icon.Handle,
-            Int32Rect.Empty,
-            BitmapSizeOptions.FromEmptyOptions());
-        source.Freeze();
-        return source;
+        try
+        {
+            var source = Imaging.CreateBitmapSourceFromHIcon(
+                icon.Handle,
+                Int32Rect.Empty,
+                BitmapSizeOptions.FromEmptyOptions());
+            source.Freeze();
+            return source;
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("IconHelper.ToImageSource", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.IconRenderFailed, "Icon Render Failed",
+                $"Could not convert icon to image: {ex.Message}");
+            throw;
+        }
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]

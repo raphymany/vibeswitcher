@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.NativeMethods;
 
@@ -86,8 +87,11 @@ public class AudioService
             if (name == null) return null;
             return new AudioDeviceInfo(id, name, isPlayback);
         }
-        catch
+        catch (Exception ex)
         {
+            AppLogger.Warning("AudioService.GetDeviceInfo", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.AudioDeviceInfoFailed, "Audio Device Info Unavailable",
+                $"Could not read info for an audio device: {ex.Message}");
             return null;
         }
         finally
@@ -107,22 +111,40 @@ public class AudioService
         {
             IPolicyConfig modern => id =>
             {
-                modern.SetDefaultEndpoint(id, ERole.Console);
-                modern.SetDefaultEndpoint(id, ERole.Multimedia);
-                modern.SetDefaultEndpoint(id, ERole.Communications);
+                int hr;
+                if ((hr = modern.SetDefaultEndpoint(id, ERole.Console)) != 0 ||
+                    (hr = modern.SetDefaultEndpoint(id, ERole.Multimedia)) != 0 ||
+                    (hr = modern.SetDefaultEndpoint(id, ERole.Communications)) != 0)
+                {
+                    var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
+                    AppLogger.Error("AudioService.ApplyProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.PolicySetDefaultFailed,
+                        "Set Default Audio Endpoint Failed", msg);
+                }
             },
             IPolicyConfigVista vista => id =>
             {
-                vista.SetDefaultEndpoint(id, ERole.Console);
-                vista.SetDefaultEndpoint(id, ERole.Multimedia);
-                vista.SetDefaultEndpoint(id, ERole.Communications);
+                int hr;
+                if ((hr = vista.SetDefaultEndpoint(id, ERole.Console)) != 0 ||
+                    (hr = vista.SetDefaultEndpoint(id, ERole.Multimedia)) != 0 ||
+                    (hr = vista.SetDefaultEndpoint(id, ERole.Communications)) != 0)
+                {
+                    var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
+                    AppLogger.Error("AudioService.ApplyProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.PolicySetDefaultFailed,
+                        "Set Default Audio Endpoint Failed", msg);
+                }
             },
             _ => null
         };
 
         if (setDefault == null)
-            throw new NotSupportedException(
-                "PolicyConfigClient does not support IPolicyConfig or IPolicyConfigVista on this Windows version.");
+        {
+            var msg = "PolicyConfig COM interface is not supported on this Windows version. Audio switching is unavailable.";
+            AppLogger.Error("AudioService.ApplyProfile", msg);
+            SessionErrorTracker.Record(ErrorCode.PolicyConfigUnsupported, "PolicyConfig Not Supported", msg);
+            throw new NotSupportedException(msg);
+        }
 
         try
         {
