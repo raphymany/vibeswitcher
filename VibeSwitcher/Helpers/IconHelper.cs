@@ -71,10 +71,12 @@ public static class IconHelper
 
     public static ImageSource ToImageSource(Icon icon)
     {
-        return Imaging.CreateBitmapSourceFromHIcon(
+        var source = Imaging.CreateBitmapSourceFromHIcon(
             icon.Handle,
             Int32Rect.Empty,
             BitmapSizeOptions.FromEmptyOptions());
+        source.Freeze();
+        return source;
     }
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]

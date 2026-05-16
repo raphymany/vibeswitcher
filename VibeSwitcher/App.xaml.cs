@@ -94,6 +94,8 @@ public partial class App : Application
         }
     }
 
+    private static readonly int WM_TASKBARCREATED = WinApi.RegisterWindowMessage("TaskbarCreated");
+
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == WinApi.WM_HOTKEY)
@@ -107,6 +109,11 @@ public partial class App : Application
                     SwitchToProfile(profile);
                 handled = true;
             }
+        }
+        else if (msg == WM_TASKBARCREATED)
+        {
+            // Explorer crashed and restarted — recreate the tray icon
+            _trayService?.RecreateIcon();
         }
         return IntPtr.Zero;
     }

@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System.IO;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using Newtonsoft.Json;
 
@@ -13,7 +14,6 @@ public class ConfigService
 
     private static readonly string ConfigPath = Path.Combine(ConfigDir, "config.json");
     private static readonly string ConfigTmpPath = ConfigPath + ".tmp";
-    private static readonly string LogPath = Path.Combine(ConfigDir, "error.log");
 
     private AppConfig _config = new();
     private readonly object _saveLock = new();
@@ -37,12 +37,13 @@ public class ConfigService
             var json = File.ReadAllText(ConfigPath);
             var loaded = JsonConvert.DeserializeObject<AppConfig>(json);
             _config = loaded ?? new AppConfig();
+            _config.Profiles ??= new();
         }
         catch (Exception ex)
         {
             IsFirstRun = true;
             _config = new AppConfig();
-            LogError($"Config load failed (reset to defaults): {ex.Message}");
+            AppLogger.Error("ConfigService.Load", ex);
         }
     }
 
@@ -60,23 +61,12 @@ public class ConfigService
                 Directory.CreateDirectory(ConfigDir);
                 var json = JsonConvert.SerializeObject(config, Formatting.Indented);
                 File.WriteAllText(ConfigTmpPath, json);
-                File.Copy(ConfigTmpPath, ConfigPath, overwrite: true);
-                File.Delete(ConfigTmpPath);
+                File.Move(ConfigTmpPath, ConfigPath, overwrite: true);
             }
             catch (Exception ex)
             {
-                LogError($"Config save failed: {ex.Message}");
+                AppLogger.Error("ConfigService.Save", ex);
             }
         }
-    }
-
-    private void LogError(string message)
-    {
-        try
-        {
-            Directory.CreateDirectory(ConfigDir);
-            File.AppendAllText(LogPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}");
-        }
-        catch { }
     }
 }
