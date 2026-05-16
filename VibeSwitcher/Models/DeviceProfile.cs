@@ -1,5 +1,9 @@
-﻿namespace VibeSwitcher.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
+namespace VibeSwitcher.Models;
+
+[JsonConverter(typeof(StringEnumConverter))]
 public enum ProfileMode { Playback, Recording, Both }
 
 public class DeviceProfile
