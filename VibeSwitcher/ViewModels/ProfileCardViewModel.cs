@@ -146,6 +146,7 @@ public class ProfileCardViewModel : ViewModelBase
     }
 
     // Called by SettingsViewModel once async device enumeration completes.
+    // Sets backing fields directly to avoid triggering _onChanged (no config save, no menu rebuild).
     public void LoadDevices(IReadOnlyList<AudioDeviceInfo> playback, IReadOnlyList<AudioDeviceInfo> recording)
     {
         PlaybackDevices.Clear();
@@ -153,9 +154,10 @@ public class ProfileCardViewModel : ViewModelBase
         RecordingDevices.Clear();
         foreach (var d in recording) RecordingDevices.Add(d);
 
-        // Restore selections now that the lists are populated.
-        SelectedPlaybackDevice  = PlaybackDevices.FirstOrDefault(d => d.Id == _model.PlaybackDeviceId);
-        SelectedRecordingDevice = RecordingDevices.FirstOrDefault(d => d.Id == _model.RecordingDeviceId);
+        _selectedPlaybackDevice  = PlaybackDevices.FirstOrDefault(d => d.Id == _model.PlaybackDeviceId);
+        _selectedRecordingDevice = RecordingDevices.FirstOrDefault(d => d.Id == _model.RecordingDeviceId);
+        OnPropertyChanged(nameof(SelectedPlaybackDevice));
+        OnPropertyChanged(nameof(SelectedRecordingDevice));
     }
 
     private void CaptureHotkey()
@@ -252,7 +254,7 @@ public class ProfileCardViewModel : ViewModelBase
     {
         try
         {
-            var icon = IconHelper.LoadIcon(_iconPath);
+            using var icon = IconHelper.LoadIcon(_iconPath);
             IconPreview = IconHelper.ToImageSource(icon);
         }
         catch

@@ -48,9 +48,10 @@ public class AudioService
     private static IReadOnlyList<AudioDeviceInfo> EnumerateDevices(EDataFlow flow)
     {
         var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+        IMMDeviceCollection? collection = null;
         try
         {
-            enumerator.EnumAudioEndpoints(flow, AudioDeviceState.Active, out var collection);
+            enumerator.EnumAudioEndpoints(flow, AudioDeviceState.Active, out collection);
             collection.GetCount(out uint count);
 
             var results = new List<AudioDeviceInfo>((int)count);
@@ -60,11 +61,11 @@ public class AudioService
                 var info = GetDeviceInfo(device, flow == EDataFlow.Render);
                 if (info != null) results.Add(info);
             }
-            Marshal.ReleaseComObject(collection);
             return results.OrderBy(d => d.FriendlyName).ToList();
         }
         finally
         {
+            if (collection != null) Marshal.ReleaseComObject(collection);
             Marshal.ReleaseComObject(enumerator);
         }
     }

@@ -80,6 +80,7 @@ public class HotkeyService : IDisposable
         }
         _atomToProfile.Clear();
         _profileToAtom.Clear();
+        _profileById.Clear();
     }
 
     /// <summary>

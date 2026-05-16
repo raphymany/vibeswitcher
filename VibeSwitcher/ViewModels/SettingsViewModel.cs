@@ -128,8 +128,12 @@ public class SettingsViewModel : ViewModelBase
         _playbackDevices = pb;
         _recordingDevices = rec;
 
-        foreach (var card in Profiles)
-            card.LoadDevices(pb, rec);
+        // ObservableCollection is not thread-safe; must populate on the UI thread.
+        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            foreach (var card in Profiles)
+                card.LoadDevices(pb, rec);
+        });
     }
 
     private ProfileCardViewModel CreateCard(DeviceProfile profile)
