@@ -8,7 +8,8 @@
         ShowInTaskbar="False"
         Background="#F3F3F3"
         Loaded="Window_Loaded"
-        KeyDown="Window_KeyDown">
+        KeyDown="Window_KeyDown"
+        KeyUp="Window_KeyUp">
 
     <Window.Resources>
         <ControlTemplate x:Key="RoundedBtn" TargetType="Button">
