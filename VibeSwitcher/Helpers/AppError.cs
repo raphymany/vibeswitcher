@@ -8,6 +8,11 @@ public enum ErrorCode
     HotkeyConflict             = 4,
     IconLoadFailed             = 5,
     IconCopyFailed             = 6,
+    ConfigLoadFailed           = 7,
+    ConfigSaveFailed           = 8,
+    HotkeyRegistrationFailed   = 9,
+    AudioEnumerationFailed     = 10,
+    StartupRegistryFailed      = 11,
 }
 
 public static class ErrorCodeExtensions

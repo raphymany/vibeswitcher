@@ -108,6 +108,8 @@ public partial class App : Application
         var conflicts = _hotkeyService!.RegisterAll(_configService!.Current.Profiles);
         foreach (var ex in conflicts)
         {
+            SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             _trayService!.ShowBalloon(
                 "Hotkey Conflict",
                 $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.",
@@ -154,11 +156,17 @@ public partial class App : Application
                 _trayService.RebuildMenu();
 
                 if (result.MissingPlaybackId != null)
-                    SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable",
-                        $"Playback device for '{profile.Name}' is disconnected.");
+                {
+                    var msg = $"Playback device for '{profile.Name}' is disconnected.";
+                    AppLogger.Warning("SwitchToProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
+                }
                 if (result.MissingRecordingId != null)
-                    SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable",
-                        $"Recording device for '{profile.Name}' is disconnected.");
+                {
+                    var msg = $"Recording device for '{profile.Name}' is disconnected.";
+                    AppLogger.Warning("SwitchToProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
+                }
 
                 if (_configService.Current.ShowNotifications)
                 {

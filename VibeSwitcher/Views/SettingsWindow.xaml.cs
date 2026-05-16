@@ -43,10 +43,14 @@ public partial class SettingsWindow : Window
                 trayService.UpdateIcon(active);
             },
             onHotkeyConflict: ex =>
+            {
+                SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                    $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
                 trayService.ShowBalloon(
                     "Hotkey Conflict",
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.",
-                    H.NotifyIcon.Core.NotificationIcon.Warning));
+                    H.NotifyIcon.Core.NotificationIcon.Warning);
+            });
 
         DataContext = _viewModel;
         RestoreWindowBounds();
@@ -61,13 +65,13 @@ public partial class SettingsWindow : Window
         var count = SessionErrorTracker.Count;
         if (count == 0)
         {
-            LogsButtonText.Text = "No Errors";
-            LogsButton.Foreground = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x55));
+            LogsButton.Visibility = Visibility.Collapsed;
         }
         else
         {
-            LogsButtonText.Text = $"⚠ Errors ({count})";
+            LogsButtonText.Text = $"⚠ {count} Error{(count == 1 ? "" : "s")} This Session";
             LogsButton.Foreground = new SolidColorBrush(Color.FromRgb(0xC0, 0x50, 0x00));
+            LogsButton.Visibility = Visibility.Visible;
         }
     }
 

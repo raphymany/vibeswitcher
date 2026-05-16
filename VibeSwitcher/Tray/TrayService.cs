@@ -127,11 +127,17 @@ public class TrayService : IDisposable
             RebuildMenu();
 
             if (result.MissingPlaybackId != null)
-                SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable",
-                    $"Playback device for '{profile.Name}' is disconnected.");
+            {
+                var msg = $"Playback device for '{profile.Name}' is disconnected.";
+                AppLogger.Warning("TrayMenuClick", msg);
+                SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
+            }
             if (result.MissingRecordingId != null)
-                SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable",
-                    $"Recording device for '{profile.Name}' is disconnected.");
+            {
+                var msg = $"Recording device for '{profile.Name}' is disconnected.";
+                AppLogger.Warning("TrayMenuClick", msg);
+                SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
+            }
 
             if (_configService.Current.ShowNotifications)
             {

@@ -122,18 +122,27 @@ public class SettingsViewModel : ViewModelBase
     private async Task LoadDevicesAsync()
     {
         var audioService = _audioService;
-        var (pb, rec) = await Task.Run(() =>
-            (audioService.GetPlaybackDevices(), audioService.GetRecordingDevices()));
-
-        _playbackDevices = pb;
-        _recordingDevices = rec;
-
-        // ObservableCollection is not thread-safe; must populate on the UI thread.
-        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+        try
         {
-            foreach (var card in Profiles)
-                card.LoadDevices(pb, rec);
-        });
+            var (pb, rec) = await Task.Run(() =>
+                (audioService.GetPlaybackDevices(), audioService.GetRecordingDevices()));
+
+            _playbackDevices = pb;
+            _recordingDevices = rec;
+
+            // ObservableCollection is not thread-safe; must populate on the UI thread.
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                foreach (var card in Profiles)
+                    card.LoadDevices(pb, rec);
+            });
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("SettingsViewModel.LoadDevicesAsync", ex);
+            SessionErrorTracker.Record(ErrorCode.AudioEnumerationFailed, "Audio Device Error",
+                $"Could not load audio devices: {ex.Message}");
+        }
     }
 
     private ProfileCardViewModel CreateCard(DeviceProfile profile)

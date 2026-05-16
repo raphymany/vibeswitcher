@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using VibeSwitcher.Helpers;
 
@@ -25,6 +26,12 @@ public partial class SessionLogWindow : Window
 
     private void OpenLog_Click(object sender, RoutedEventArgs e)
     {
+        if (!File.Exists(AppLogger.LogPath))
+        {
+            MessageBox.Show("No log file has been written yet.\nPersistent errors will appear here once they occur.",
+                "Log File", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
         try
         {
             Process.Start(new ProcessStartInfo(AppLogger.LogPath) { UseShellExecute = true });

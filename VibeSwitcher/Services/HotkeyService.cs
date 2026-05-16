@@ -2,6 +2,7 @@
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.NativeMethods;
+using static VibeSwitcher.Helpers.ErrorCode;
 
 namespace VibeSwitcher.Services;
 
@@ -45,6 +46,12 @@ public class HotkeyService : IDisposable
             catch (HotkeyConflictException ex)
             {
                 conflicts.Add(ex);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Error("HotkeyService.RegisterAll", ex);
+                SessionErrorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
+                    $"Could not register hotkey for '{profile.Name}': {ex.Message}");
             }
         }
 
@@ -147,7 +154,18 @@ public class HotkeyService : IDisposable
     {
         if (profile.Hotkey.IsEmpty || !profile.Hotkey.IsValid || _profileToAtom.ContainsKey(profile.Id)) return;
         try { RegisterOne(profile); }
-        catch (HotkeyConflictException ex) { AppLogger.Error("HotkeyService.RegisterProfile", ex); }
+        catch (HotkeyConflictException ex)
+        {
+            AppLogger.Error("HotkeyService.RegisterProfile", ex);
+            SessionErrorTracker.Record(HotkeyConflict, "Hotkey Conflict",
+                $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("HotkeyService.RegisterProfile", ex);
+            SessionErrorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
+                $"Could not register hotkey: {ex.Message}");
+        }
     }
 
     public DeviceProfile? HandleHotkey(ushort atomId)

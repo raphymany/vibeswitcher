@@ -68,6 +68,8 @@ public class ConfigService
         catch (Exception ex)
         {
             AppLogger.Error("ConfigService.TryLoad", ex);
+            SessionErrorTracker.Record(ErrorCode.ConfigLoadFailed, "Config Load Failed",
+                $"Failed to read {Path.GetFileName(path)}: {ex.Message}");
             config = null;
             return false;
         }
@@ -104,6 +106,7 @@ public class ConfigService
             catch (Exception ex)
             {
                 AppLogger.Error("ConfigService.Save", ex);
+                SessionErrorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
             }
         }
     }

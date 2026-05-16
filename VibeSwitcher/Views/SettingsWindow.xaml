@@ -600,28 +600,28 @@
                                Foreground="#444444" Margin="0,0,0,6"/>
                     <CheckBox Content="Show device switch alerts"
                               IsChecked="{Binding ShowNotifications}" Margin="0,3"/>
+                    <Button x:Name="LogsButton"
+                            Style="{StaticResource ActionButton}"
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Left"
+                            Visibility="Collapsed"
+                            Click="LogsButton_Click">
+                        <TextBlock x:Name="LogsButtonText" FontSize="12"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ── Footer: About (left) + Logs + Close (right) ── -->
+        <!-- ── Footer: About (left) + Close (right) ── -->
         <Grid Grid.Row="3">
             <Button Content="About"
                     Style="{StaticResource ActionButton}"
                     Width="80" HorizontalAlignment="Left"
                     Click="AboutButton_Click"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="LogsButton"
-                        Style="{StaticResource ActionButton}"
-                        Width="90" Margin="0,0,8,0"
-                        Click="LogsButton_Click">
-                    <TextBlock x:Name="LogsButtonText" Text="No Errors" FontSize="12"/>
-                </Button>
-                <Button Content="Close"
-                        Style="{StaticResource ActionButton}"
-                        Width="90"
-                        Click="CloseButton_Click"/>
-            </StackPanel>
+            <Button Content="Close"
+                    Style="{StaticResource ActionButton}"
+                    Width="90" HorizontalAlignment="Right"
+                    Click="CloseButton_Click"/>
         </Grid>
 
     </Grid>
