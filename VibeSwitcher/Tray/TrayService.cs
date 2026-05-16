@@ -68,37 +68,7 @@ public class TrayService : IDisposable
                 };
 
                 var capturedProfile = profile;
-                item.Click += async (_, _) =>
-                {
-                    try
-                    {
-                        var result = await _audioService.ApplyProfileAsync(capturedProfile);
-                        _configService.Current.ActiveProfileId = capturedProfile.Id;
-                        _configService.SaveImmediate();
-                        UpdateIcon(capturedProfile);
-                        RebuildMenu();
-
-                        if (_configService.Current.ShowNotifications)
-                        {
-                            if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
-                            {
-                                ShowBalloon("VibeSwitcher", $"Switched to {capturedProfile.Name}");
-                            }
-                            else
-                            {
-                                if (result.MissingPlaybackId != null)
-                                    ShowBalloon("Device Unavailable", $"Playback device for '{capturedProfile.Name}' is disconnected.", NotificationIcon.Warning);
-                                if (result.MissingRecordingId != null)
-                                    ShowBalloon("Device Unavailable", $"Recording device for '{capturedProfile.Name}' is disconnected.", NotificationIcon.Warning);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AppLogger.Error("TrayMenuClick", ex);
-                        ShowBalloon("Error", $"Could not switch profile: {ex.Message}", NotificationIcon.Error);
-                    }
-                };
+                item.Click += (_, _) => _ = SwitchToProfileAsync(capturedProfile);
 
                 menu.Items.Add(item);
             }
@@ -135,6 +105,43 @@ public class TrayService : IDisposable
         _taskbarIcon.ShowNotification(title, message, icon);
     }
 
+    public void RecreateIcon()
+    {
+        _taskbarIcon.ForceCreate(false);
+    }
+
+    private async Task SwitchToProfileAsync(DeviceProfile profile)
+    {
+        try
+        {
+            var result = await _audioService.ApplyProfileAsync(profile);
+            _configService.Current.ActiveProfileId = profile.Id;
+            _configService.SaveImmediate();
+            UpdateIcon(profile);
+            RebuildMenu();
+
+            if (_configService.Current.ShowNotifications)
+            {
+                if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
+                {
+                    ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
+                }
+                else
+                {
+                    if (result.MissingPlaybackId != null)
+                        ShowBalloon("Device Unavailable", $"Playback device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                    if (result.MissingRecordingId != null)
+                        ShowBalloon("Device Unavailable", $"Recording device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("TrayMenuClick", ex);
+            ShowBalloon("Error", $"Could not switch profile: {ex.Message}", NotificationIcon.Error);
+        }
+    }
+
     private static void OpenSettings()
     {
         if (Application.Current is App app)
@@ -146,17 +153,6 @@ public class TrayService : IDisposable
         if (Application.Current is App app)
             app.OpenAboutWindow();
     }
-
-    // Small ALL-CAPS section label (non-interactive, added directly as UIElement)
-    private static UIElement BuildSectionLabel(string text) =>
-        new TextBlock
-        {
-            Text = text,
-            FontSize = 10,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
-            Margin = new Thickness(16, 8, 0, 2),
-        };
 
     // Two-line profile item: [profile icon]  Name / Mode subtitle
     private static UIElement BuildProfileHeader(DeviceProfile profile)
