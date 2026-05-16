@@ -122,12 +122,10 @@ public partial class App : Application
         if (msg == WinApi.WM_HOTKEY)
         {
             ushort atomId = (ushort)wParam.ToInt32();
-            Guid profileId = _hotkeyService!.HandleHotkey(atomId);
-            if (profileId != Guid.Empty)
+            var profile = _hotkeyService!.HandleHotkey(atomId);
+            if (profile != null)
             {
-                var profile = _configService!.Current.Profiles.FirstOrDefault(p => p.Id == profileId);
-                if (profile != null)
-                    SwitchToProfile(profile);
+                SwitchToProfile(profile);
                 handled = true;
             }
         }
@@ -139,45 +137,46 @@ public partial class App : Application
         return IntPtr.Zero;
     }
 
-    private void SwitchToProfile(Models.DeviceProfile profile)
+    // async void is intentional: called as fire-and-forget from WndProc and PowerModeChanged.
+    // The try/catch ensures exceptions are always handled, so the async void is safe.
+    private async void SwitchToProfile(Models.DeviceProfile profile)
     {
-        _ = Task.Run(async () =>
+        try
         {
-            try
+            // ApplyProfileAsync already dispatches to an STA background thread internally —
+            // no outer Task.Run needed here.
+            var result = await _audioService!.ApplyProfileAsync(profile);
+            await Dispatcher.InvokeAsync(() =>
             {
-                var result = await _audioService!.ApplyProfileAsync(profile);
-                await Dispatcher.InvokeAsync(() =>
-                {
-                    _configService!.Current.ActiveProfileId = profile.Id;
-                    _configService.SaveImmediate();
-                    _trayService!.UpdateIcon(profile);
-                    _trayService.RebuildMenu();
+                _configService!.Current.ActiveProfileId = profile.Id;
+                _configService.SaveImmediate();
+                _trayService!.UpdateIcon(profile);
+                _trayService.RebuildMenu();
 
-                    if (_configService.Current.ShowNotifications)
+                if (_configService.Current.ShowNotifications)
+                {
+                    if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
                     {
-                        if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
-                        {
-                            _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
-                        }
-                        else
-                        {
-                            if (result.MissingPlaybackId != null)
-                                _trayService.ShowBalloon("Device Unavailable",
-                                    $"Playback device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
-                            if (result.MissingRecordingId != null)
-                                _trayService.ShowBalloon("Device Unavailable",
-                                    $"Recording device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
-                        }
+                        _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
                     }
-                });
-            }
-            catch (Exception ex)
-            {
-                AppLogger.Error("SwitchToProfile", ex);
-                await Dispatcher.InvokeAsync(() =>
-                    _trayService?.ShowBalloon("Error", $"Could not switch profile: {ex.InnerException?.Message ?? ex.Message}", NotificationIcon.Error));
-            }
-        });
+                    else
+                    {
+                        if (result.MissingPlaybackId != null)
+                            _trayService.ShowBalloon("Device Unavailable",
+                                $"Playback device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                        if (result.MissingRecordingId != null)
+                            _trayService.ShowBalloon("Device Unavailable",
+                                $"Recording device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("SwitchToProfile", ex);
+            await Dispatcher.InvokeAsync(() =>
+                _trayService?.ShowBalloon("Error", $"Could not switch profile: {ex.InnerException?.Message ?? ex.Message}", NotificationIcon.Error));
+        }
     }
 
     public void OpenSettingsWindow()
