@@ -330,7 +330,7 @@
                                         </Border>
                                     </StackPanel>
                                     <TextBox Grid.Row="0" Grid.Column="1"
-                                             Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
+                                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                              MaxLength="20"
                                              Margin="0,0,0,10"/>
                                     <Border Grid.Row="0" Grid.Column="2"
@@ -535,6 +535,22 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+
+                <!-- Empty state — shown when there are no profiles -->
+                <TextBlock HorizontalAlignment="Center" Foreground="#AAAAAA"
+                           FontSize="13" Margin="0,32,0,24"
+                           Text="No profiles yet — click Add New Profile to get started">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Profiles.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
 
                 <!-- Add New Profile -->
                 <Button Command="{Binding AddProfileCommand}"
