@@ -55,15 +55,21 @@ public partial class SettingsWindow : Window
         if (cfg.WindowWidth >= 200)  Width  = cfg.WindowWidth;
         if (cfg.WindowHeight >= 200) Height = cfg.WindowHeight;
 
-        // Only restore position if it's within the virtual screen (guards against disconnected monitors)
-        if (cfg.WindowLeft >= SystemParameters.VirtualScreenLeft &&
-            cfg.WindowLeft <  SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth &&
-            cfg.WindowTop  >= SystemParameters.VirtualScreenTop &&
-            cfg.WindowTop  <  SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight)
+        if (cfg.WindowLeft.HasValue && cfg.WindowTop.HasValue)
         {
+            var vsl = SystemParameters.VirtualScreenLeft;
+            var vst = SystemParameters.VirtualScreenTop;
+            var vsw = SystemParameters.VirtualScreenWidth;
+            var vsh = SystemParameters.VirtualScreenHeight;
+
+            // Clamp so the entire window stays within the virtual screen even if the
+            // monitor it was saved on is no longer connected or has a different resolution.
+            var left = Math.Clamp(cfg.WindowLeft.Value, vsl, Math.Max(vsl, vsl + vsw - Width));
+            var top  = Math.Clamp(cfg.WindowTop.Value,  vst, Math.Max(vst, vst + vsh - Height));
+
             WindowStartupLocation = WindowStartupLocation.Manual;
-            Left = cfg.WindowLeft;
-            Top  = cfg.WindowTop;
+            Left = left;
+            Top  = top;
         }
     }
 
