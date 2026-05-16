@@ -331,7 +331,7 @@
                                     </StackPanel>
                                     <TextBox Grid.Row="0" Grid.Column="1"
                                              Text="{Binding Name, UpdateSourceTrigger=LostFocus}"
-                                             MaxLength="50"
+                                             MaxLength="20"
                                              Margin="0,0,0,10"/>
                                     <Border Grid.Row="0" Grid.Column="2"
                                             Margin="8,0,0,10" VerticalAlignment="Center"
