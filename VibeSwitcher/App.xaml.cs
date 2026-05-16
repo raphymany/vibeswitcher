@@ -23,16 +23,27 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Catch any exception that escapes all other handlers
+        // Last-resort handler for exceptions that escape all other catch blocks on the UI thread.
+        // Marking Handled=true keeps the app alive for recoverable cases (e.g. a bad tray click).
+        // Truly unexpected exceptions are still logged so they appear in the error log.
         DispatcherUnhandledException += (_, args) =>
         {
             AppLogger.Error("DispatcherUnhandledException", args.Exception);
-            args.Handled = true; // prevent crash; balloon already shown where possible
+            args.Handled = true;
         };
+
+        // Logs fatal exceptions on non-UI threads. Cannot prevent process termination in .NET Core.
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
             if (args.ExceptionObject is Exception ex)
                 AppLogger.Error("UnhandledException", ex);
+        };
+
+        // Catches exceptions from fire-and-forget Tasks that were never awaited.
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            AppLogger.Error("UnobservedTaskException", args.Exception);
+            args.SetObserved();
         };
 
         // 1. Single-instance guard
@@ -151,7 +162,7 @@ public partial class App : Application
             {
                 AppLogger.Error("SwitchToProfile", ex);
                 await Dispatcher.InvokeAsync(() =>
-                    _trayService?.ShowBalloon("Error", $"Could not switch profile: {ex.Message}", NotificationIcon.Error));
+                    _trayService?.ShowBalloon("Error", $"Could not switch profile: {ex.InnerException?.Message ?? ex.Message}", NotificationIcon.Error));
             }
         });
     }

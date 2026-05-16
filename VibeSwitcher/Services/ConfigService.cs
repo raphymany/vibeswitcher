@@ -15,7 +15,7 @@ public class ConfigService
     private static readonly string ConfigPath = Path.Combine(ConfigDir, "config.json");
     private static readonly string ConfigTmpPath = ConfigPath + ".tmp";
 
-    private AppConfig _config = new();
+    private volatile AppConfig _config = new();
     private readonly object _saveLock = new();
 
     public AppConfig Current => _config;

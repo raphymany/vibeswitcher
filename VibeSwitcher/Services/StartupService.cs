@@ -16,8 +16,8 @@ public class StartupService
     public void Enable()
     {
         var exePath = Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location;
-        using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath, writable: true);
-        key?.SetValue(ValueName, $"\"{exePath}\"");
+        using var key = Registry.CurrentUser.CreateSubKey(RegistryKeyPath, writable: true);
+        key.SetValue(ValueName, $"\"{exePath}\"");
     }
 
     public void Disable()

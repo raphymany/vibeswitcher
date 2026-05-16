@@ -95,7 +95,7 @@ public class SettingsViewModel : ViewModelBase
         _onProfilesChanged = onProfilesChanged;
         _onHotkeyConflict = onHotkeyConflict;
 
-        _startWithWindows = configService.Current.StartWithWindows;
+        _startWithWindows = startupService.IsStartupEnabled();
         _startMinimized = configService.Current.StartMinimized;
         _closeToTray = configService.Current.CloseToTray;
         _showNotifications = configService.Current.ShowNotifications;
