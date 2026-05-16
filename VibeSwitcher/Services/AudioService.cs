@@ -71,17 +71,16 @@ public class AudioService
 
     private static AudioDeviceInfo? GetDeviceInfo(IMMDevice device, bool isPlayback)
     {
+        IPropertyStore? store = null;
         try
         {
             device.GetId(out string id);
-            device.OpenPropertyStore(0 /* STGM_READ */, out var store);
+            device.OpenPropertyStore(0 /* STGM_READ */, out store);
 
             var key = PROPERTYKEY.DeviceFriendlyName;
             store.GetValue(ref key, out var pv);
             string? name = pv.ToStringValue();
             PropVariant.PropVariantClear(ref pv);
-
-            Marshal.ReleaseComObject(store);
 
             if (name == null) return null;
             return new AudioDeviceInfo(id, name, isPlayback);
@@ -92,6 +91,7 @@ public class AudioService
         }
         finally
         {
+            if (store != null) Marshal.ReleaseComObject(store);
             Marshal.ReleaseComObject(device);
         }
     }
