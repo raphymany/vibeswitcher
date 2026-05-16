@@ -114,26 +114,11 @@
                 CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
             <StackPanel>
                 <TextBlock Text="DEVELOPMENT" Style="{StaticResource SectionLabel}"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Designed &amp; directed by" FontSize="11" Foreground="#888888"/>
-                        <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
-                                   Foreground="#1A1A1A" Margin="0,2,0,0"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Text="AI-assisted development" FontSize="11" Foreground="#888888"/>
-                        <TextBlock FontSize="13" FontWeight="SemiBold" Foreground="#1A1A1A" Margin="0,2,0,0">
-                            <Hyperlink NavigateUri="https://claude.ai"
-                                       RequestNavigate="Hyperlink_RequestNavigate">
-                                Claude (Anthropic)
-                            </Hyperlink>
-                        </TextBlock>
-                    </StackPanel>
-                </Grid>
+                <StackPanel>
+                    <TextBlock Text="Designed &amp; built by" FontSize="11" Foreground="#888888"/>
+                    <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
+                               Foreground="#1A1A1A" Margin="0,2,0,0"/>
+                </StackPanel>
             </StackPanel>
         </Border>
 

@@ -13,10 +13,13 @@ public partial class AboutWindow : Window
     {
         InitializeComponent();
 
-        var ver = Assembly.GetExecutingAssembly().GetName().Version;
-        VersionText.Text = ver != null
-            ? $"Version {ver.Major}.{ver.Minor}.{ver.Build}"
-            : "Version 1.0.0";
+        var infoVer = Assembly.GetExecutingAssembly()
+            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion
+            ?.Split('+')[0]; // strip git commit hash suffix appended by MSBuild
+        VersionText.Text = !string.IsNullOrEmpty(infoVer)
+            ? $"Version {infoVer}"
+            : $"Version {Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0"}";
 
         try
         {
