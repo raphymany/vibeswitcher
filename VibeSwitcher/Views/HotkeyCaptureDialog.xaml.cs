@@ -1,0 +1,84 @@
+﻿using System.Windows;
+using System.Windows.Input;
+using VibeSwitcher.Models;
+
+namespace VibeSwitcher.Views;
+
+public partial class HotkeyCaptureDialog : Window
+{
+    private HotkeyDefinition _captured;
+
+    public HotkeyDefinition? CapturedHotkey { get; private set; }
+
+    public HotkeyCaptureDialog(HotkeyDefinition current)
+    {
+        InitializeComponent();
+        _captured = CloneHotkey(current);
+        HotkeyPreviewText.Text = _captured.ToDisplayString();
+    }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        Focusable = true;
+        Focus();
+    }
+
+    private void Window_KeyDown(object sender, KeyEventArgs e)
+    {
+        Key key = e.Key == Key.System ? e.SystemKey : e.Key;
+
+        // Let Enter confirm (IsDefault button) and Escape cancel (IsCancel button)
+        if (key == Key.Enter || key == Key.Escape || IsModifierKey(key))
+            return;
+
+        e.Handled = true;
+
+        int vk = KeyInterop.VirtualKeyFromKey(key);
+        if (vk == 0) return;
+
+        var modifiers = Keyboard.Modifiers;
+        _captured = new HotkeyDefinition
+        {
+            VirtualKeyCode = vk,
+            UseAlt   = modifiers.HasFlag(ModifierKeys.Alt),
+            UseCtrl  = modifiers.HasFlag(ModifierKeys.Control),
+            UseShift = modifiers.HasFlag(ModifierKeys.Shift),
+            UseWin   = modifiers.HasFlag(ModifierKeys.Windows),
+        };
+
+        HotkeyPreviewText.Text = _captured.ToDisplayString();
+    }
+
+    private static bool IsModifierKey(Key key) =>
+        key is Key.LeftCtrl or Key.RightCtrl
+            or Key.LeftAlt or Key.RightAlt
+            or Key.LeftShift or Key.RightShift
+            or Key.LWin or Key.RWin
+            or Key.System;
+
+    private void OkButton_Click(object sender, RoutedEventArgs e)
+    {
+        CapturedHotkey = _captured;
+        DialogResult = true;
+    }
+
+    private void ClearButton_Click(object sender, RoutedEventArgs e)
+    {
+        _captured = new HotkeyDefinition(); // empty
+        HotkeyPreviewText.Text = _captured.ToDisplayString();
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        DialogResult = false;
+    }
+
+    private static HotkeyDefinition CloneHotkey(HotkeyDefinition src) => new()
+    {
+        VirtualKeyCode = src.VirtualKeyCode,
+        UseAlt   = src.UseAlt,
+        UseCtrl  = src.UseCtrl,
+        UseShift = src.UseShift,
+        UseWin   = src.UseWin,
+    };
+}

@@ -1,0 +1,37 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docview
+
+# Rider
+.idea/
+
+# NuGet
+*.nupkg
+packages/
+project.lock.json
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+error.log
+
+# Claude Code local config
+.claude/
+
+# Dev launcher scripts (machine-specific paths)
+launch-vibeswitcher.ps1
+launch-vibeswitcher.bat
+watch-vibeswitcher.ps1
+
+# Internal dev notes
+AUDIT.md
