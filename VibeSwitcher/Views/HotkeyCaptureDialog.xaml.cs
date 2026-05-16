@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using VibeSwitcher.Models;
 
@@ -27,9 +27,13 @@ public partial class HotkeyCaptureDialog : Window
     {
         Key key = e.Key == Key.System ? e.SystemKey : e.Key;
 
-        // Let Enter confirm (IsDefault button) and Escape cancel (IsCancel button)
-        if (key == Key.Enter || key == Key.Escape || IsModifierKey(key))
+        if (key == Key.Enter || key == Key.Escape) return;
+
+        if (IsModifierKey(key))
+        {
+            UpdateModifierPreview();
             return;
+        }
 
         e.Handled = true;
 
@@ -49,6 +53,29 @@ public partial class HotkeyCaptureDialog : Window
         HotkeyPreviewText.Text = _captured.ToDisplayString();
     }
 
+    private void Window_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (IsModifierKey(e.Key == Key.System ? e.SystemKey : e.Key))
+            UpdateModifierPreview();
+    }
+
+    private void UpdateModifierPreview()
+    {
+        var modifiers = Keyboard.Modifiers;
+        if (modifiers == ModifierKeys.None)
+        {
+            HotkeyPreviewText.Text = _captured.ToDisplayString();
+            return;
+        }
+
+        var parts = new List<string>();
+        if (modifiers.HasFlag(ModifierKeys.Control)) parts.Add("Ctrl");
+        if (modifiers.HasFlag(ModifierKeys.Alt))     parts.Add("Alt");
+        if (modifiers.HasFlag(ModifierKeys.Shift))   parts.Add("Shift");
+        if (modifiers.HasFlag(ModifierKeys.Windows)) parts.Add("Win");
+        HotkeyPreviewText.Text = string.Join("+", parts) + "+";
+    }
+
     private static bool IsModifierKey(Key key) =>
         key is Key.LeftCtrl or Key.RightCtrl
             or Key.LeftAlt or Key.RightAlt
@@ -64,7 +91,7 @@ public partial class HotkeyCaptureDialog : Window
 
     private void ClearButton_Click(object sender, RoutedEventArgs e)
     {
-        _captured = new HotkeyDefinition(); // empty
+        _captured = new HotkeyDefinition();
         HotkeyPreviewText.Text = _captured.ToDisplayString();
     }
 

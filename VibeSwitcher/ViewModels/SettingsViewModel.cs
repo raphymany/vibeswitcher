@@ -24,6 +24,8 @@ public class SettingsViewModel : ViewModelBase
 
     public ObservableCollection<ProfileCardViewModel> Profiles { get; } = new();
 
+    public bool HasNoProfiles => Profiles.Count == 0;
+
     public bool StartWithWindows
     {
         get => _startWithWindows;
@@ -102,6 +104,8 @@ public class SettingsViewModel : ViewModelBase
             Profiles.Add(CreateCard(profile));
 
         AddProfileCommand = new RelayCommand(AddProfile);
+
+        Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
     }
 
     private ProfileCardViewModel CreateCard(DeviceProfile profile)
