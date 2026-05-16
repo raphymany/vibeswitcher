@@ -75,9 +75,9 @@ public class ConfigService
 
     private static void Migrate(AppConfig config)
     {
-        // Scaffold for future version migrations.
-        // Pattern: if (config.ConfigVersion < 2) { /* apply v1→v2 changes */; config.ConfigVersion = 2; }
-        _ = config;
+        // v1 used -1 as a sentinel for "window position not yet saved"; v1.0.1+ uses null.
+        if (config.WindowLeft == -1) config.WindowLeft = null;
+        if (config.WindowTop  == -1) config.WindowTop  = null;
     }
 
     public void SaveImmediate()
