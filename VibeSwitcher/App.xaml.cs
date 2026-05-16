@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Interop;
+using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.NativeMethods;
 using VibeSwitcher.Services;
@@ -85,9 +86,21 @@ public partial class App : Application
         _trayService.UpdateIcon(activeProfile);
         _trayService.RebuildMenu();
 
-        // 8. Open settings on first run, or if the user has turned off start-minimized
+        // 8. Re-apply active profile when the PC wakes from sleep/hibernate
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+
+        // 9. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
+    }
+
+    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode != PowerModes.Resume) return;
+        var activeProfile = _configService!.Current.Profiles
+            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+        if (activeProfile != null)
+            SwitchToProfile(activeProfile);
     }
 
     private void RegisterHotkeys()
@@ -192,6 +205,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);
         _hwndSource?.Dispose();
