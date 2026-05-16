@@ -11,6 +11,11 @@ public static class IconHelper
 {
     private static Icon? _defaultIcon;
 
+    static IconHelper()
+    {
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => _defaultIcon?.Dispose();
+    }
+
     public static Icon LoadIcon(string? iconPath)
     {
         if (!string.IsNullOrEmpty(iconPath))
