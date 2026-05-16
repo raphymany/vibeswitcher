@@ -64,8 +64,8 @@ public partial class SettingsWindow : Window
 
             // Clamp so the entire window stays within the virtual screen even if the
             // monitor it was saved on is no longer connected or has a different resolution.
-            var left = Math.Clamp(cfg.WindowLeft.Value, vsl, vsl + vsw - Width);
-            var top  = Math.Clamp(cfg.WindowTop.Value,  vst, vst + vsh - Height);
+            var left = Math.Clamp(cfg.WindowLeft.Value, vsl, Math.Max(vsl, vsl + vsw - Width));
+            var top  = Math.Clamp(cfg.WindowTop.Value,  vst, Math.Max(vst, vst + vsh - Height));
 
             WindowStartupLocation = WindowStartupLocation.Manual;
             Left = left;
