@@ -84,7 +84,7 @@ public class HotkeyService : IDisposable
     /// </summary>
     public bool TestHotkey(HotkeyDefinition hotkey)
     {
-        if (hotkey.IsEmpty) return false;
+        if (hotkey.IsEmpty || !hotkey.IsValid) return false;
 
         // Unregister all our hotkeys temporarily so we don't detect our own registrations
         foreach (var (atom, _) in _atomToProfile)
