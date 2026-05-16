@@ -21,9 +21,9 @@ public static class IconHelper
                 var canonical = Path.GetFullPath(iconPath);
                 if (File.Exists(canonical))
                 {
-                    // Load at 32×32 (not 16×16) so Windows tray has a higher-res source to
-                    // downsample from at high DPI, making the icon look sharper.
-                    using var fileIcon = new Icon(canonical, new System.Drawing.Size(32, 32));
+                    // Load at 64×64 so Windows has a large source frame to downsample from
+                    // at high DPI (e.g. 200% scaling), keeping the tray icon sharp.
+                    using var fileIcon = new Icon(canonical, new System.Drawing.Size(64, 64));
                     return CopyIcon(fileIcon);
                 }
             }
@@ -53,7 +53,7 @@ public static class IconHelper
 
     private static Icon CreateColorIcon(System.Drawing.Color color)
     {
-        using var bitmap = new Bitmap(16, 16);
+        using var bitmap = new Bitmap(64, 64);
         using var g = Graphics.FromImage(bitmap);
         g.Clear(color);
 
