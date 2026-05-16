@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 
 namespace VibeSwitcher.NativeMethods;
 
@@ -20,10 +20,10 @@ internal static class WinApi
     public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern int GlobalAddAtom(string lpString);
+    public static extern ushort GlobalAddAtom(string lpString);
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    public static extern ushort GlobalDeleteAtom(int nAtom);
+    public static extern ushort GlobalDeleteAtom(ushort nAtom);
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     public static extern int RegisterWindowMessage(string lpString);

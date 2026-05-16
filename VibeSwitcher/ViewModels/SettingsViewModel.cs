@@ -15,6 +15,7 @@ public class SettingsViewModel : ViewModelBase
     private readonly HotkeyService _hotkeyService;
     private readonly StartupService _startupService;
     private readonly Action _onProfilesChanged;
+    private readonly Action<HotkeyConflictException> _onHotkeyConflict;
 
     private bool _startWithWindows;
     private bool _startMinimized;
@@ -84,13 +85,15 @@ public class SettingsViewModel : ViewModelBase
         AudioService audioService,
         HotkeyService hotkeyService,
         StartupService startupService,
-        Action onProfilesChanged)
+        Action onProfilesChanged,
+        Action<HotkeyConflictException> onHotkeyConflict)
     {
         _configService = configService;
         _audioService = audioService;
         _hotkeyService = hotkeyService;
         _startupService = startupService;
         _onProfilesChanged = onProfilesChanged;
+        _onHotkeyConflict = onHotkeyConflict;
 
         _startWithWindows = configService.Current.StartWithWindows;
         _startMinimized = configService.Current.StartMinimized;
@@ -143,16 +146,21 @@ public class SettingsViewModel : ViewModelBase
         _configService.Current.Profiles.Remove(card.Model);
         _configService.SaveImmediate();
         Profiles.Remove(card);
-
-        // Re-register hotkeys after deletion
-        _hotkeyService.Refresh(_configService.Current.Profiles);
+        ReregisterHotkeys();
         _onProfilesChanged();
     }
 
     private void OnProfileChanged(ProfileCardViewModel card)
     {
         _configService.SaveImmediate();
-        _hotkeyService.Refresh(_configService.Current.Profiles);
+        ReregisterHotkeys();
         _onProfilesChanged();
+    }
+
+    private void ReregisterHotkeys()
+    {
+        var conflicts = _hotkeyService.RegisterAll(_configService.Current.Profiles);
+        foreach (var ex in conflicts)
+            _onHotkeyConflict(ex);
     }
 }
