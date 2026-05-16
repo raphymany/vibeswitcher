@@ -153,6 +153,13 @@ public partial class App : Application
                 _trayService!.UpdateIcon(profile);
                 _trayService.RebuildMenu();
 
+                if (result.MissingPlaybackId != null)
+                    SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable",
+                        $"Playback device for '{profile.Name}' is disconnected.");
+                if (result.MissingRecordingId != null)
+                    SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable",
+                        $"Recording device for '{profile.Name}' is disconnected.");
+
                 if (_configService.Current.ShowNotifications)
                 {
                     if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
@@ -174,8 +181,12 @@ public partial class App : Application
         catch (Exception ex)
         {
             AppLogger.Error("SwitchToProfile", ex);
+            var detail = ex.InnerException?.Message ?? ex.Message;
+            SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                $"Could not switch to '{profile.Name}': {detail}");
             await Dispatcher.InvokeAsync(() =>
-                _trayService?.ShowBalloon("Error", $"Could not switch profile: {ex.InnerException?.Message ?? ex.Message}", NotificationIcon.Error));
+                new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                    $"Could not switch to '{profile.Name}': {detail}").ShowDialog());
         }
     }
 

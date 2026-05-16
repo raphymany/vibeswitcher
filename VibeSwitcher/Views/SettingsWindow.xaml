@@ -604,16 +604,24 @@
             </Grid>
         </Border>
 
-        <!-- ── Footer: About (left) + Close (right) ── -->
+        <!-- ── Footer: About (left) + Logs + Close (right) ── -->
         <Grid Grid.Row="3">
             <Button Content="About"
                     Style="{StaticResource ActionButton}"
                     Width="80" HorizontalAlignment="Left"
                     Click="AboutButton_Click"/>
-            <Button Content="Close"
-                    Style="{StaticResource ActionButton}"
-                    Width="90" HorizontalAlignment="Right"
-                    Click="CloseButton_Click"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="LogsButton"
+                        Style="{StaticResource ActionButton}"
+                        Width="90" Margin="0,0,8,0"
+                        Click="LogsButton_Click">
+                    <TextBlock x:Name="LogsButtonText" Text="No Errors" FontSize="12"/>
+                </Button>
+                <Button Content="Close"
+                        Style="{StaticResource ActionButton}"
+                        Width="90"
+                        Click="CloseButton_Click"/>
+            </StackPanel>
         </Grid>
 
     </Grid>

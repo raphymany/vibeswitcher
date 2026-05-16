@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Navigation;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Services;
 using VibeSwitcher.Tray;
 using VibeSwitcher.ViewModels;
@@ -47,6 +49,29 @@ public partial class SettingsWindow : Window
 
         DataContext = _viewModel;
         RestoreWindowBounds();
+
+        UpdateLogsButton();
+        SessionErrorTracker.ErrorAdded += (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
+    }
+
+    private void UpdateLogsButton()
+    {
+        var count = SessionErrorTracker.Errors.Count;
+        if (count == 0)
+        {
+            LogsButtonText.Text = "No Errors";
+            LogsButton.Foreground = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x55));
+        }
+        else
+        {
+            LogsButtonText.Text = $"⚠ Errors ({count})";
+            LogsButton.Foreground = new SolidColorBrush(Color.FromRgb(0xC0, 0x50, 0x00));
+        }
+    }
+
+    private void LogsButton_Click(object sender, RoutedEventArgs e)
+    {
+        new SessionLogWindow { Owner = this }.ShowDialog();
     }
 
     private void RestoreWindowBounds()

@@ -4,7 +4,7 @@ namespace VibeSwitcher.Helpers;
 
 public static class AppLogger
 {
-    private static readonly string LogPath = Path.Combine(
+    public static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "VibeSwitcher", "error.log");
 

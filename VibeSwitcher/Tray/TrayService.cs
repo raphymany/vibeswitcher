@@ -5,6 +5,7 @@ using System.Windows.Media;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
+using VibeSwitcher.Views;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
 
@@ -125,6 +126,13 @@ public class TrayService : IDisposable
             UpdateIcon(profile);
             RebuildMenu();
 
+            if (result.MissingPlaybackId != null)
+                SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable",
+                    $"Playback device for '{profile.Name}' is disconnected.");
+            if (result.MissingRecordingId != null)
+                SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable",
+                    $"Recording device for '{profile.Name}' is disconnected.");
+
             if (_configService.Current.ShowNotifications)
             {
                 if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
@@ -143,7 +151,11 @@ public class TrayService : IDisposable
         catch (Exception ex)
         {
             AppLogger.Error("TrayMenuClick", ex);
-            ShowBalloon("Error", $"Could not switch profile: {ex.Message}", NotificationIcon.Error);
+            var detail = ex.InnerException?.Message ?? ex.Message;
+            SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                $"Could not switch to '{profile.Name}': {detail}");
+            new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
         }
     }
 
