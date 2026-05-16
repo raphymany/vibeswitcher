@@ -87,11 +87,11 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Message" Width="290">
+                        <GridViewColumn Header="Message" Width="320">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Summary}"
-                                               FontSize="11" Foreground="#333333" TextTrimming="CharacterEllipsis"/>
+                                               FontSize="11" Foreground="#333333" TextWrapping="Wrap"/>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
