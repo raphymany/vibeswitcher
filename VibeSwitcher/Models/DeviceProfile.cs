@@ -3,7 +3,14 @@ using Newtonsoft.Json.Converters;
 
 namespace VibeSwitcher.Models;
 
-[JsonConverter(typeof(StringEnumConverter))]
+// Writes strings ("Playback"/"Recording"/"Both") but still accepts legacy integer values
+// from configs created before this change was applied.
+internal sealed class ProfileModeConverter : StringEnumConverter
+{
+    public ProfileModeConverter() { AllowIntegerValues = true; }
+}
+
+[JsonConverter(typeof(ProfileModeConverter))]
 public enum ProfileMode { Playback, Recording, Both }
 
 public class DeviceProfile

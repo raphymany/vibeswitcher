@@ -214,8 +214,9 @@ public class ProfileCardViewModel : ViewModelBase
 
         // Delete the old icon from IconsDir if we're replacing it with a new copy
         var previous = _iconPath;
+        var iconsPrefix = ConfigService.IconsDir + System.IO.Path.DirectorySeparatorChar;
         if (!string.IsNullOrEmpty(previous) &&
-            previous.StartsWith(ConfigService.IconsDir, StringComparison.OrdinalIgnoreCase) &&
+            previous.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(previous, dest, StringComparison.OrdinalIgnoreCase))
         {
             try { System.IO.File.Delete(previous); } catch { }

@@ -153,7 +153,8 @@ public class SettingsViewModel : ViewModelBase
     private static void DeleteOrphanedIcon(string? iconPath)
     {
         if (string.IsNullOrEmpty(iconPath)) return;
-        if (!iconPath.StartsWith(ConfigService.IconsDir, StringComparison.OrdinalIgnoreCase)) return;
+        var prefix = ConfigService.IconsDir + System.IO.Path.DirectorySeparatorChar;
+        if (!iconPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
         try { System.IO.File.Delete(iconPath); } catch { }
     }
 
