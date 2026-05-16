@@ -161,11 +161,12 @@ public class ProfileCardViewModel : ViewModelBase
         {
             if (!dialog.CapturedHotkey.IsEmpty && _hotkeyService.TestHotkey(dialog.CapturedHotkey))
             {
-                MessageBox.Show(
-                    $"The hotkey '{dialog.CapturedHotkey.ToDisplayString()}' is already in use by another application.",
+                new AlertDialog(
                     "Hotkey Conflict",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                    $"'{dialog.CapturedHotkey.ToDisplayString()}' is already in use by another application.")
+                {
+                    Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
+                }.ShowDialog();
             }
             else
             {
@@ -203,11 +204,10 @@ public class ProfileCardViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Could not copy the icon file:\n{ex.Message}",
-                    "Icon Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                new AlertDialog("Icon Error", $"Could not copy the icon file:\n{ex.Message}")
+                {
+                    Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
+                }.ShowDialog();
                 return;
             }
         }

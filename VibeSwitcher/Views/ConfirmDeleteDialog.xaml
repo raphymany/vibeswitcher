@@ -78,11 +78,12 @@
                    Foreground="#444444" LineHeight="18"
                    Margin="0,0,0,20"/>
 
-        <!-- Buttons — no IsDefault on Delete so Enter can't trigger it accidentally -->
+        <!-- Cancel is IsDefault so Enter safely dismisses instead of confirming the delete -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
             <Button x:Name="CancelBtn"
                     Content="Cancel"
                     Style="{StaticResource ActionBtn}"
+                    IsDefault="True"
                     IsCancel="True"
                     Margin="0,0,8,0"
                     Click="Cancel_Click"/>
