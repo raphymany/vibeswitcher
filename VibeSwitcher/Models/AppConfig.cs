@@ -5,8 +5,7 @@ public class AppConfig
     public int ConfigVersion { get; set; } = 1;
     public List<DeviceProfile> Profiles { get; set; } = new();
     public Guid? ActiveProfileId { get; set; }
-    public bool StartWithWindows { get; set; } = false;
-    public bool StartMinimized { get; set; } = true;
+public bool StartMinimized { get; set; } = true;
     public bool CloseToTray { get; set; } = true;
     public bool ShowNotifications { get; set; } = true;
 

@@ -31,10 +31,8 @@ public class SettingsViewModel : ViewModelBase
         {
             if (SetField(ref _startWithWindows, value))
             {
-                _configService.Current.StartWithWindows = value;
                 if (value) _startupService.Enable();
                 else _startupService.Disable();
-                _configService.SaveImmediate();
             }
         }
     }
