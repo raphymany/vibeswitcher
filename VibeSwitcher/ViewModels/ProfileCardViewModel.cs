@@ -219,6 +219,9 @@ public class ProfileCardViewModel : ViewModelBase
             }
             catch (Exception ex)
             {
+                AppLogger.Error("ProfileCardViewModel.BrowseIcon", ex);
+                SessionErrorTracker.Record(ErrorCode.IconCopyFailed, "Icon Copy Failed",
+                    $"Could not copy icon file to app storage: {ex.Message}");
                 new AlertDialog("Icon Error", $"Could not copy the icon file:\n{ex.Message}")
                 {
                     Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
@@ -234,7 +237,13 @@ public class ProfileCardViewModel : ViewModelBase
             previous.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(previous, dest, StringComparison.OrdinalIgnoreCase))
         {
-            try { System.IO.File.Delete(previous); } catch { }
+            try { System.IO.File.Delete(previous); }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("ProfileCardViewModel.BrowseIcon", ex.Message);
+                SessionErrorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
+                    $"Could not delete old icon file (it may still be on disk): {ex.Message}");
+            }
         }
 
         IconPath = dest;
@@ -257,8 +266,11 @@ public class ProfileCardViewModel : ViewModelBase
             using var icon = IconHelper.LoadIcon(_iconPath);
             IconPreview = IconHelper.ToImageSource(icon);
         }
-        catch
+        catch (Exception ex)
         {
+            AppLogger.Warning("ProfileCardViewModel.UpdateIconPreview", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.IconPreviewFailed, "Icon Preview Failed",
+                $"Could not load icon preview: {ex.Message}");
             IconPreview = null;
         }
     }

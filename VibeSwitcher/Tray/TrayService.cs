@@ -35,7 +35,16 @@ public class TrayService : IDisposable
 
         // Required when creating TaskbarIcon programmatically (not via XAML)
         // to trigger Shell_NotifyIcon registration with the system tray.
-        _taskbarIcon.ForceCreate(false);
+        try
+        {
+            _taskbarIcon.ForceCreate(false);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("TrayService", ex);
+            SessionErrorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
+                $"The system tray icon failed to register: {ex.Message}");
+        }
 
         _taskbarIcon.TrayMouseDoubleClick += (_, _) => OpenSettings();
 
@@ -91,7 +100,13 @@ public class TrayService : IDisposable
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
         {
-            try { Process.Start("control.exe", "/name Microsoft.Sound"); } catch { }
+            try { Process.Start("control.exe", "/name Microsoft.Sound"); }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("TrayService.SoundSettings", ex.Message);
+                SessionErrorTracker.Record(ErrorCode.SoundSettingsOpenFailed, "Sound Settings Could Not Open",
+                    $"Could not open Windows Sound settings: {ex.Message}");
+            }
         };
         _contextMenu.Items.Add(soundSettingsItem);
 
@@ -113,7 +128,16 @@ public class TrayService : IDisposable
 
     public void RecreateIcon()
     {
-        _taskbarIcon.ForceCreate(false);
+        try
+        {
+            _taskbarIcon.ForceCreate(false);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("TrayService.RecreateIcon", ex);
+            SessionErrorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Restored",
+                $"The tray icon failed to re-register after Explorer restarted: {ex.Message}");
+        }
     }
 
     private async Task SwitchToProfileAsync(DeviceProfile profile)

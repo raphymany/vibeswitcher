@@ -153,7 +153,16 @@ public partial class SettingsWindow : Window
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        try
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("SettingsWindow.Hyperlink", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+                $"Could not open '{e.Uri.AbsoluteUri}': {ex.Message}");
+        }
         e.Handled = true;
     }
 }

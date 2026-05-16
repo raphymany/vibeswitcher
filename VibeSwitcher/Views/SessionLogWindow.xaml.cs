@@ -36,7 +36,12 @@ public partial class SessionLogWindow : Window
         {
             Process.Start(new ProcessStartInfo(AppLogger.LogPath) { UseShellExecute = true });
         }
-        catch { }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("SessionLogWindow.OpenLog", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Log File Could Not Be Opened",
+                $"Could not open the error log: {ex.Message}");
+        }
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();

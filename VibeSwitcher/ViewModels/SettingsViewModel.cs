@@ -197,7 +197,13 @@ public class SettingsViewModel : ViewModelBase
         if (string.IsNullOrEmpty(iconPath)) return;
         var prefix = ConfigService.IconsDir + System.IO.Path.DirectorySeparatorChar;
         if (!iconPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
-        try { System.IO.File.Delete(iconPath); } catch { }
+        try { System.IO.File.Delete(iconPath); }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("SettingsViewModel.DeleteOrphanedIcon", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
+                $"Could not delete orphaned icon file (it may remain on disk): {ex.Message}");
+        }
     }
 
     private void OnProfileChanged(ProfileCardViewModel card)

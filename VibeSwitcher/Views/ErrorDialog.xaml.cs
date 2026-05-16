@@ -23,6 +23,11 @@ public partial class ErrorDialog : Window
         {
             Process.Start(new ProcessStartInfo(AppLogger.LogPath) { UseShellExecute = true });
         }
-        catch { }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("ErrorDialog.OpenLog", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Log File Could Not Be Opened",
+                $"Could not open the error log: {ex.Message}");
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Navigation;
 using VibeSwitcher.Helpers;
 
+
 namespace VibeSwitcher.Views;
 
 public partial class AboutWindow : Window
@@ -31,15 +32,40 @@ public partial class AboutWindow : Window
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        try
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("AboutWindow.Hyperlink", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+                $"Could not open link: {ex.Message}");
+        }
         e.Handled = true;
     }
 
-    private void ViewIssues_Click(object sender, RoutedEventArgs e) =>
-        Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues") { UseShellExecute = true });
+    private void ViewIssues_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues") { UseShellExecute = true }); }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("AboutWindow", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+                $"Could not open GitHub Issues: {ex.Message}");
+        }
+    }
 
-    private void SubmitIssue_Click(object sender, RoutedEventArgs e) =>
-        Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues/new") { UseShellExecute = true });
+    private void SubmitIssue_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues/new") { UseShellExecute = true }); }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("AboutWindow", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+                $"Could not open GitHub Issues form: {ex.Message}");
+        }
+    }
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 

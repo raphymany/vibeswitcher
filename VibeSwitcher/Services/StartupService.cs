@@ -10,15 +10,36 @@ public class StartupService
 
     public bool IsStartupEnabled()
     {
-        using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath);
-        return key?.GetValue(ValueName) != null;
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath);
+            return key?.GetValue(ValueName) != null;
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("StartupService.IsStartupEnabled", ex);
+            SessionErrorTracker.Record(ErrorCode.StartupRegistryReadFailed, "Startup Registry Read Failed",
+                $"Could not read the startup registry key: {ex.Message}");
+            return false;
+        }
     }
 
     public void Enable()
     {
         try
         {
-            var exePath = Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath))
+                exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            if (string.IsNullOrEmpty(exePath))
+            {
+                AppLogger.Error("StartupService.Enable", "Could not resolve executable path");
+                SessionErrorTracker.Record(ErrorCode.StartupPathResolutionFailed, "Startup Path Unavailable",
+                    "Could not determine the application path — 'Start with Windows' was not enabled.");
+                return;
+            }
+
             using var key = Registry.CurrentUser.CreateSubKey(RegistryKeyPath, writable: true);
             key.SetValue(ValueName, $"\"{exePath}\"");
         }
