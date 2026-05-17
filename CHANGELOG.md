@@ -4,6 +4,23 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Switching tooltip** — tray tooltip shows "Switching to {profile}..." while an async profile switch is in progress; restores to the correct profile name on both success and failure *(PR #28)*
+- **Keyboard navigation in Settings** — arrow keys move focus between profile cards; read-only fields (hotkey display, icon path) are excluded from the Tab order *(PR #28)*
+
+### Fixed
+- **Device selection persists across relaunches** — selected playback and recording devices no longer revert to "(None)" on the next app launch; a `_loadingDevices` guard prevents the TwoWay ComboBox binding from writing null into the model during the async device list refresh *(PR #28)*
+- **Switching tooltip correctly restored on failure** — if a profile switch fails, both the tray tooltip and icon are restored to the previously-active profile instead of staying on "Switching..." *(PR #28)*
+- **`PropVariant` struct size corrected** — expanded from 16 to 24 bytes to match the actual x64 `PROPVARIANT` layout; prevents incorrect device name reads on some hardware configurations *(PR #27)*
+- **`HotkeyService.TestHotkey` thread safety** — `Debug.Assert(Dispatcher.CheckAccess())` added to catch any future off-UI-thread calls *(PR #27)*
+- **`ProfileCardViewModel` implements `IDisposable`** — icon preview is released when a profile card is removed *(PR #27)*
+- **Config file opened with `FileShare.ReadWrite`** — antivirus and backup tools scanning `config.json` concurrently no longer corrupt the deserialization pass *(PR #27)*
+- **Tray menu profile switch no longer triggers a full rebuild** — `SetActiveProfile` flips `IsChecked` only; `RebuildMenu` is only called when profiles actually change *(PR #27)*
+
+---
+
 ## [1.1.0] - 2026-05-17
 
 All ten planned fix/polish branches merged since v1.0.0.
