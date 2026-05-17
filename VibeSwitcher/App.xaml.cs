@@ -156,7 +156,7 @@ public partial class App : Application
                 _configService!.Current.ActiveProfileId = profile.Id;
                 _configService.SaveImmediate();
                 _trayService!.UpdateIcon(profile);
-                _trayService.RebuildMenu();
+                _trayService.SetActiveProfile(profile.Id);
 
                 if (result.MissingPlaybackId != null)
                 {

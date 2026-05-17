@@ -202,6 +202,7 @@ public class SettingsViewModel : ViewModelBase
         _configService.Current.Profiles.Remove(card.Model);
         _configService.SaveImmediate();
         Profiles.Remove(card);
+        card.Dispose();
         DeleteOrphanedIcon(iconPath);
         ReregisterHotkeys();
         _onProfilesChanged();

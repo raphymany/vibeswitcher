@@ -82,6 +82,7 @@ public class TrayService : IDisposable
                     Header = BuildProfileHeader(profile),
                     IsChecked = profile.Id == activeId,
                     Padding = new Thickness(12, 8, 16, 8),
+                    Tag = profile.Id,
                 };
 
                 var capturedProfile = profile;
@@ -131,6 +132,16 @@ public class TrayService : IDisposable
         _contextMenu.Items.Add(exitItem);
     }
 
+    // Fast path: only flip IsChecked on profile items — no menu rebuild needed on a simple switch.
+    public void SetActiveProfile(Guid activeProfileId)
+    {
+        foreach (var item in _contextMenu.Items.OfType<MenuItem>())
+        {
+            if (item.Tag is Guid id)
+                item.IsChecked = id == activeProfileId;
+        }
+    }
+
     public void ShowBalloon(string title, string message, NotificationIcon icon = NotificationIcon.Info)
     {
         _taskbarIcon.ShowNotification(title, message, icon);
@@ -158,7 +169,7 @@ public class TrayService : IDisposable
             _configService.Current.ActiveProfileId = profile.Id;
             _configService.SaveImmediate();
             UpdateIcon(profile);
-            RebuildMenu();
+            SetActiveProfile(profile.Id);
 
             if (result.MissingPlaybackId != null)
             {
