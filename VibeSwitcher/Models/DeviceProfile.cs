@@ -1,13 +1,22 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace VibeSwitcher.Models;
 
 // Writes strings ("Playback"/"Recording"/"Both") but still accepts legacy integer values
-// from configs created before this change was applied.
-internal sealed class ProfileModeConverter : StringEnumConverter
+// from configs created before this converter was introduced.
+internal sealed class ProfileModeConverter : JsonConverter<ProfileMode>
 {
-    public ProfileModeConverter() { AllowIntegerValues = true; }
+    public override ProfileMode Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Number)
+            return (ProfileMode)reader.GetInt32();
+        var str = reader.GetString();
+        return Enum.TryParse<ProfileMode>(str, ignoreCase: true, out var result) ? result : ProfileMode.Both;
+    }
+
+    public override void Write(Utf8JsonWriter writer, ProfileMode value, JsonSerializerOptions options)
+        => writer.WriteStringValue(value.ToString());
 }
 
 [JsonConverter(typeof(ProfileModeConverter))]
@@ -25,7 +34,6 @@ public class DeviceProfile
     public ProfileMode Mode { get; set; } = ProfileMode.Both;
 
     public HotkeyDefinition Hotkey { get; set; } = new();
-    public bool ShouldSerializeHotkey() => Hotkey != null && !Hotkey.IsEmpty;
 
     // Absolute path to .ico file; null = use bundled default
     public string? IconPath { get; set; }
