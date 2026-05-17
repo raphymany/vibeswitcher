@@ -14,9 +14,9 @@ namespace VibeSwitcher;
 public partial class App : Application
 {
     private readonly SingleInstanceHelper _singleInstance = new();
-    private ConfigService? _configService;
-    private AudioService? _audioService;
-    private HotkeyService? _hotkeyService;
+    private IConfigService? _configService;
+    private IAudioService? _audioService;
+    private IHotkeyService? _hotkeyService;
     private TrayService? _trayService;
     private HwndSource? _hwndSource;
 

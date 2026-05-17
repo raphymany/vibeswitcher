@@ -16,7 +16,7 @@ public record ProfileSwitchResult(
     string? MissingPlaybackId,
     string? MissingRecordingId);
 
-public class AudioService : IDisposable
+public class AudioService : IAudioService
 {
     // Persistent enumerator kept alive solely to hold the notification registration.
     // All per-call audio operations create their own enumerator to avoid sharing state.

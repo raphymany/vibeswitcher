@@ -16,13 +16,13 @@ public partial class SettingsWindow : Window
 {
     private readonly SettingsViewModel _viewModel;
     private readonly TrayService _trayService;
-    private readonly ConfigService _configService;
+    private readonly IConfigService _configService;
     private readonly EventHandler _errorAddedHandler;
 
     public SettingsWindow(
-        ConfigService configService,
-        AudioService audioService,
-        HotkeyService hotkeyService,
+        IConfigService configService,
+        IAudioService audioService,
+        IHotkeyService hotkeyService,
         TrayService trayService)
     {
         InitializeComponent();
@@ -30,11 +30,13 @@ public partial class SettingsWindow : Window
         _configService = configService;
 
         var startupService = new StartupService();
+        var dialogService = new DialogService();
         _viewModel = new SettingsViewModel(
             configService,
             audioService,
             hotkeyService,
             startupService,
+            dialogService,
             onProfilesChanged: () =>
             {
                 trayService.ClearIconCache();

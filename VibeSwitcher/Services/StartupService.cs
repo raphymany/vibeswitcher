@@ -3,7 +3,7 @@ using VibeSwitcher.Helpers;
 
 namespace VibeSwitcher.Services;
 
-public class StartupService
+public class StartupService : IStartupService
 {
     private const string RegistryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string ValueName = "VibeSwitcher";

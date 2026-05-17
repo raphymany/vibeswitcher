@@ -15,13 +15,13 @@ public class TrayService : IDisposable
 {
     private readonly TaskbarIcon _taskbarIcon;
     private readonly ContextMenu _contextMenu = new();
-    private readonly ConfigService _configService;
-    private readonly AudioService _audioService;
-    private readonly HotkeyService _hotkeyService;
+    private readonly IConfigService _configService;
+    private readonly IAudioService _audioService;
+    private readonly IHotkeyService _hotkeyService;
     // Caches the ImageSource for each profile's icon so RebuildMenu never reads from disk.
     private readonly Dictionary<Guid, ImageSource> _iconCache = new();
 
-    public TrayService(ConfigService configService, AudioService audioService, HotkeyService hotkeyService)
+    public TrayService(IConfigService configService, IAudioService audioService, IHotkeyService hotkeyService)
     {
         _configService = configService;
         _audioService = audioService;
