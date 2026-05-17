@@ -26,6 +26,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private string _hotkeyDisplay;
     private string? _iconPath;
     private ImageSource? _iconPreview;
+    private bool _loadingDevices;
 
     public DeviceProfile Model => _model;
 
@@ -64,7 +65,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         get => _selectedPlaybackDevice;
         set
         {
-            if (SetField(ref _selectedPlaybackDevice, value))
+            if (SetField(ref _selectedPlaybackDevice, value) && !_loadingDevices)
             {
                 _model.PlaybackDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
                 _onChanged(this);
@@ -77,7 +78,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         get => _selectedRecordingDevice;
         set
         {
-            if (SetField(ref _selectedRecordingDevice, value))
+            if (SetField(ref _selectedRecordingDevice, value) && !_loadingDevices)
             {
                 _model.RecordingDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
                 _onChanged(this);
@@ -154,22 +155,32 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     }
 
     // Called by SettingsViewModel once async device enumeration completes.
-    // Sets backing fields directly to avoid triggering _onChanged (no config save, no menu rebuild).
+    // _loadingDevices prevents the TwoWay ComboBox binding from writing null back into the model
+    // when Clear() removes the previously selected item — without the guard, the saved device ID
+    // gets wiped and a config save fires before the real devices are even added back.
     public void LoadDevices(IReadOnlyList<AudioDeviceInfo> playback, IReadOnlyList<AudioDeviceInfo> recording)
     {
-        PlaybackDevices.Clear();
-        PlaybackDevices.Add(NoneDevice);
-        foreach (var d in playback) PlaybackDevices.Add(d);
-        RecordingDevices.Clear();
-        RecordingDevices.Add(NoneDevice);
-        foreach (var d in recording) RecordingDevices.Add(d);
+        _loadingDevices = true;
+        try
+        {
+            PlaybackDevices.Clear();
+            PlaybackDevices.Add(NoneDevice);
+            foreach (var d in playback) PlaybackDevices.Add(d);
+            RecordingDevices.Clear();
+            RecordingDevices.Add(NoneDevice);
+            foreach (var d in recording) RecordingDevices.Add(d);
 
-        _selectedPlaybackDevice = string.IsNullOrEmpty(_model.PlaybackDeviceId)
-            ? NoneDevice
-            : PlaybackDevices.FirstOrDefault(d => d.Id == _model.PlaybackDeviceId) ?? NoneDevice;
-        _selectedRecordingDevice = string.IsNullOrEmpty(_model.RecordingDeviceId)
-            ? NoneDevice
-            : RecordingDevices.FirstOrDefault(d => d.Id == _model.RecordingDeviceId) ?? NoneDevice;
+            _selectedPlaybackDevice = string.IsNullOrEmpty(_model.PlaybackDeviceId)
+                ? NoneDevice
+                : PlaybackDevices.FirstOrDefault(d => d.Id == _model.PlaybackDeviceId) ?? NoneDevice;
+            _selectedRecordingDevice = string.IsNullOrEmpty(_model.RecordingDeviceId)
+                ? NoneDevice
+                : RecordingDevices.FirstOrDefault(d => d.Id == _model.RecordingDeviceId) ?? NoneDevice;
+        }
+        finally
+        {
+            _loadingDevices = false;
+        }
         OnPropertyChanged(nameof(SelectedPlaybackDevice));
         OnPropertyChanged(nameof(SelectedRecordingDevice));
     }

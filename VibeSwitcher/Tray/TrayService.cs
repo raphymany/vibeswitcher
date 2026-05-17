@@ -161,8 +161,14 @@ public class TrayService : IDisposable
         }
     }
 
+    public void SetSwitchingTooltip(string profileName)
+    {
+        _taskbarIcon.ToolTipText = $"Switching to {profileName}...";
+    }
+
     private async Task SwitchToProfileAsync(DeviceProfile profile)
     {
+        SetSwitchingTooltip(profile.Name);
         try
         {
             var result = await _audioService.ApplyProfileAsync(profile);
@@ -205,6 +211,9 @@ public class TrayService : IDisposable
             var detail = ex.InnerException?.Message ?? ex.Message;
             SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
                 $"Could not switch to '{profile.Name}': {detail}");
+            // Restore tooltip to the still-active profile (switch did not complete)
+            var still = _configService.Current.Profiles.FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+            UpdateIcon(still);
             new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
                 $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
         }

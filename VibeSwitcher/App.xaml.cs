@@ -146,6 +146,9 @@ public partial class App : Application
     // The try/catch ensures exceptions are always handled, so the async void is safe.
     private async void SwitchToProfile(Models.DeviceProfile profile)
     {
+        // Dispatch to UI thread — SwitchToProfile can be called from the PowerModeChanged
+        // background thread (SystemEvents callbacks run off the UI thread).
+        await Dispatcher.InvokeAsync(() => _trayService!.SetSwitchingTooltip(profile.Name));
         try
         {
             // ApplyProfileAsync already dispatches to an STA background thread internally —
@@ -196,8 +199,13 @@ public partial class App : Application
             SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
                 $"Could not switch to '{profile.Name}': {detail}");
             await Dispatcher.InvokeAsync(() =>
+            {
+                // Restore tooltip — the switch failed so the previously active profile is still correct
+                var still = _configService!.Current.Profiles.FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+                _trayService!.UpdateIcon(still);
                 new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                    $"Could not switch to '{profile.Name}': {detail}").ShowDialog());
+                    $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
+            });
         }
     }
 
