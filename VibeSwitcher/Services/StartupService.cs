@@ -30,9 +30,6 @@ public class StartupService
         {
             var exePath = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exePath))
-                exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-
-            if (string.IsNullOrEmpty(exePath))
             {
                 AppLogger.Error("StartupService.Enable", "Could not resolve executable path");
                 SessionErrorTracker.Record(ErrorCode.StartupPathResolutionFailed, "Startup Path Unavailable",
@@ -75,7 +72,7 @@ public class StartupService
             using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath);
             if (key?.GetValue(ValueName) is not string stored) return;
 
-            var exePath = Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var exePath = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exePath)) return;
 
             var expected = $"\"{exePath}\"";
