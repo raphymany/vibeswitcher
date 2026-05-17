@@ -15,6 +15,8 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `ProfileModeConverter` rewritten to handle both string names and legacy integer values; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ### Fixed
+- **Tab key excluded from hotkey capture** — pressing Tab in the hotkey dialog now navigates between buttons instead of assigning Tab as a global hotkey; Apps, Pause, PrintScreen, and Scroll are also excluded from hotkey assignment *(PR #31)*
+- **Keyboard focus visible on all interactive controls** — pill toggles show a blue focus ring when tabbed to; action, danger, and primary buttons highlight their border in the matching accent colour on keyboard focus *(PR #31)*
 - **Windows Audio service down** — profile switches now record VS-027 and display a clear "Windows Audio service is not running" message when HRESULT 0x80070424 is detected, instead of an unhandled COM exception *(PR #30)*
 - **Device selection persists across relaunches** — selected playback and recording devices no longer revert to "(None)" on the next app launch; a `_loadingDevices` guard prevents the TwoWay ComboBox binding from writing null into the model during the async device list refresh *(PR #28)*
 - **Switching tooltip correctly restored on failure** — if a profile switch fails, both the tray tooltip and icon are restored to the previously-active profile instead of staying on "Switching..." *(PR #28)*

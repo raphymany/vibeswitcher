@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-17 — reflects all 14 merged branches (PR #30) + v1.1.0 release.
+**Last updated:** 2026-05-17 — reflects all 15 merged branches (PR #31) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -128,7 +128,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Issue |
 |---|-------|
-| M6 | MVVM violation — ViewModels directly instantiate View dialogs |
+| M6 | MVVM violation — ViewModels directly instantiate View dialogs *(Planned — Branch K)* |
 | M11 | No profile reorder UI — drag handles (Spotify-style) planned for future branch |
 
 ### LOW — Nice to fix before or after release
@@ -142,17 +142,17 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Item |
 |---|------|
-| TD1 | No test project — zero automated test coverage |
-| TD2 | No `IAudioService` / `IConfigService` interfaces preventing testability |
-| TD3 | `App.xaml.cs` has too many responsibilities (God Class) |
-| TD4 | No `IDialogService` abstraction — ViewModel/View tightly coupled |
-| TD7 | No CI/CD pipeline configured |
+| TD1 | No test project — zero automated test coverage *(Planned — Branch I)* |
+| TD2 | No `IAudioService` / `IConfigService` interfaces preventing testability *(Planned — Branch J)* |
+| TD3 | `App.xaml.cs` has too many responsibilities (God Class) *(Planned — Branch L)* |
+| TD4 | No `IDialogService` abstraction — ViewModel/View tightly coupled *(Planned — Branch K)* |
+| TD7 | No CI/CD pipeline configured *(Planned — Branch M)* |
 
 ### REFACTORING OPPORTUNITIES
 
 | # | Opportunity |
 |---|-------------|
-| R2 | Extract `ProfileSwitchOrchestrator` from `App.xaml.cs` |
+| R2 | Extract `ProfileSwitchOrchestrator` from `App.xaml.cs` *(Planned — Branch L)* |
 
 ### FEATURE ADDITIONS (post-v1.0.0)
 
@@ -182,4 +182,96 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 **Release process (not a branch — do at next release):**
 - L20 / 8.9: Generate and publish SHA256 checksums alongside the zip in the GitHub release
+
+---
+
+## SECTION 12 — BRANCH EXECUTION LOG
+
+| # | Branch | Status |
+|---|--------|--------|
+| ~~1~~ | ~~`fix/startup-registry`~~ | ✅ Merged |
+| ~~2~~ | ~~`fix/config-integrity`~~ | ✅ Merged |
+| ~~3~~ | ~~`fix/hotkey-registration`~~ | ✅ Merged |
+| ~~4~~ | ~~`fix/ui-polish`~~ | ✅ Merged |
+| ~~5~~ | ~~`fix/dpi-threading`~~ | ✅ Merged |
+| ~~6~~ | ~~`fix/settings-performance`~~ | ✅ Merged |
+| ~~7~~ | ~~`feat/error-codes-and-logs`~~ | ✅ Merged |
+| ~~8~~ | ~~`fix/security-hardening`~~ | ✅ Merged |
+| ~~9~~ | ~~`fix/about-diagnostics`~~ | ✅ Merged |
+| ~~10~~ | ~~`fix/startup-service`~~ | ✅ Merged |
+| ~~11~~ | ~~`fix/ux-polish-2`~~ | ✅ Merged |
+| ~~12~~ | ~~`fix/ux-polish-3`~~ | ✅ Merged |
+| ~~13~~ | ~~`fix/ux-polish-4`~~ | ✅ Merged |
+| ~~14~~ | ~~`feat/audio-reliability`~~ | ✅ Merged — PR #30 |
+| ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Merged — PR #31 |
+| 16 | `test/unit-tests` | Planned |
+| 17 | `refactor/interfaces` | Planned |
+| 18 | `refactor/viewmodel-dialogs` | Planned |
+| 19 | `refactor/god-class` | Planned |
+| 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
+
+---
+
+### ~~Branch H: `fix/keyboard-nav-focus`~~ ✅ Merged — PR #31
+**Theme:** Keyboard navigation visibility and hotkey dialog Tab capture.
+
+- `Key.Tab` (plus Apps, Pause, PrintScreen, Scroll) excluded from hotkey capture — Tab navigates between dialog buttons
+- `ToggleSwitchStyle`: `FocusRing` wrapper border + `IsKeyboardFocused` trigger shows blue ring when pill is Tab-focused
+- All button styles (`ActionButton`, `DangerButton`, `PrimaryButton`): `IsFocused` trigger highlights border in accent colour
+
+---
+
+### Branch I: `test/unit-tests` *(next)*
+**Theme:** Create the test project and write pure-logic unit tests — zero risk to the running app.
+
+- Create `VibeSwitcher.Tests` xUnit project; add project reference; confirm `dotnet test` passes (TD1)
+- `ConfigService`: load/save round-trip, corrupt+backup recovery, Migrate(), atomic `.tmp` write (7.2)
+- `HotkeyDefinition`: `GetModifierFlags()` bitmask, `ToDisplayString()`, `IsEmpty`, `IsValid` range (7.3)
+- `SessionErrorTracker`: 10-thread concurrent `Record()`, `ErrorAdded` fires once, snapshot immutability (7.13)
+- `ErrorCode`: `ToCode()` format for all 28 codes, integer uniqueness (7.14)
+- `AppLogger`: rotation at 1 MB, `.1`/`.2` backup chain, non-fatal on locked file, level prefixes (7.12)
+- `DeviceNotificationClient`: debounce coalesces rapid calls into 1 fire, cancels prior schedule (7.15)
+
+---
+
+### Branch J: `refactor/interfaces`
+**Theme:** Extract interfaces for every service — pure additive, no behavior change. Enables safe mocking in Branches K–L.
+
+- `IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, `IDialogService` + `DialogService` concrete class (TD2, 3.8)
+- All ViewModels and `App.xaml.cs` reference only interfaces (constructor injection)
+- `FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService` stubs in test project
+- `StartupService` tests (7.4) and `HotkeyService` tests (7.6) added now that interfaces exist
+
+---
+
+### Branch K: `refactor/viewmodel-dialogs`
+**Theme:** Replace direct dialog instantiation in ViewModels with `IDialogService` — resolves M6/TD4.
+
+- `ProfileCardViewModel`: inject `IDialogService`; replace `new HotkeyCaptureDialog(...)`, `new ConfirmDeleteDialog(...)`, `new OpenFileDialog()` with service calls (M6, TD4)
+- `SettingsViewModel`: inject `IDialogService`; replace `new ProfileTypeDialog()` with service call (M6, TD4)
+- `SettingsWindow.xaml.cs`: construct `DialogService` and pass through
+- `SettingsViewModel` and `ProfileCardViewModel` unit tests added using fake services (7.5, 7.6)
+
+---
+
+### Branch L: `refactor/god-class`
+**Theme:** Split `App.xaml.cs` — resolves TD3/R2. Do last; highest-risk refactor.
+
+- Extract `ProfileSwitchOrchestrator`: owns `SwitchToProfile()`, `OnPowerModeChanged()`, startup profile re-apply, tray feedback (TD3, R2)
+- Extract `AppWindowManager`: owns `OpenSettingsWindow()`, `OpenAboutWindow()` (TD3)
+- `App.xaml.cs` becomes a thin bootstrapper; manual regression checklist run after merge (7.9)
+
+---
+
+### Branch M: `ci/cd-pipeline` *(independent — any time after Branch I)*
+**Theme:** GitHub Actions build + test pipeline — resolves TD7.
+
+- `.github/workflows/ci.yml`: push/PR to `main` → `dotnet build -c Release` + `dotnet test` (TD7, 7.11)
+- `Microsoft.CodeAnalysis.NetAnalyzers` added to csproj for static analysis
+- Release workflow (on tag push): `dotnet publish --self-contained -r win-x64` + upload artifact
+
+---
+
+**Still deferred (no branch planned):**
+C2/C3 (installer, code signing), L17/L20 (high-contrast/SHA256), 2.7 (GC pressure), 5.9 (mixed-DPI), 7.8 (UI automation), Sections 8–10 remaining items.
 
