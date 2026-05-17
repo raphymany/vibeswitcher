@@ -5,7 +5,7 @@ using VibeSwitcher.Models;
 
 namespace VibeSwitcher.Services;
 
-public class ConfigService
+public class ConfigService : IConfigService
 {
     private static readonly string DefaultConfigDir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher");

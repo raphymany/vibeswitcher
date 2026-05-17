@@ -1,19 +1,18 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
-using VibeSwitcher.Views;
 
 namespace VibeSwitcher.ViewModels;
 
 public class SettingsViewModel : ViewModelBase
 {
-    private readonly ConfigService _configService;
-    private readonly AudioService _audioService;
-    private readonly HotkeyService _hotkeyService;
-    private readonly StartupService _startupService;
+    private readonly IConfigService _configService;
+    private readonly IAudioService _audioService;
+    private readonly IHotkeyService _hotkeyService;
+    private readonly IStartupService _startupService;
+    private readonly IDialogService _dialogService;
     private readonly Action _onProfilesChanged;
     private readonly Action<HotkeyConflictException> _onHotkeyConflict;
 
@@ -99,10 +98,11 @@ public class SettingsViewModel : ViewModelBase
     public ICommand AddProfileCommand { get; }
 
     public SettingsViewModel(
-        ConfigService configService,
-        AudioService audioService,
-        HotkeyService hotkeyService,
-        StartupService startupService,
+        IConfigService configService,
+        IAudioService audioService,
+        IHotkeyService hotkeyService,
+        IStartupService startupService,
+        IDialogService dialogService,
         Action onProfilesChanged,
         Action<HotkeyConflictException> onHotkeyConflict)
     {
@@ -110,6 +110,7 @@ public class SettingsViewModel : ViewModelBase
         _audioService = audioService;
         _hotkeyService = hotkeyService;
         _startupService = startupService;
+        _dialogService = dialogService;
         _onProfilesChanged = onProfilesChanged;
         _onHotkeyConflict = onHotkeyConflict;
 
@@ -176,6 +177,7 @@ public class SettingsViewModel : ViewModelBase
             profile,
             _configService,
             _hotkeyService,
+            _dialogService,
             _playbackDevices,
             _recordingDevices,
             onChanged: card => OnProfileChanged(card),
@@ -184,17 +186,13 @@ public class SettingsViewModel : ViewModelBase
 
     private void AddProfile()
     {
-        var dialog = new ProfileTypeDialog
-        {
-            Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
-        };
-        if (dialog.ShowDialog() != true || dialog.ChosenMode == null)
-            return;
+        var mode = _dialogService.ShowProfileTypeDialog();
+        if (mode == null) return;
 
         var profile = new DeviceProfile
         {
             Name = $"Profile {Profiles.Count + 1}",
-            Mode = dialog.ChosenMode.Value,
+            Mode = mode.Value,
             SortOrder = Profiles.Count
         };
 

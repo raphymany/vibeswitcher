@@ -1,12 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Input;
+using System.Collections.ObjectModel;
 using System.Windows.Media;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
-using VibeSwitcher.Views;
-using Microsoft.Win32;
+using System.Windows.Input;
 
 namespace VibeSwitcher.ViewModels;
 
@@ -15,8 +12,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private static readonly AudioDeviceInfo NoneDevice = new AudioDeviceInfo("", "(None)", false);
 
     private readonly DeviceProfile _model;
-    private readonly ConfigService _configService;
-    private readonly HotkeyService _hotkeyService;
+    private readonly IConfigService _configService;
+    private readonly IHotkeyService _hotkeyService;
+    private readonly IDialogService _dialogService;
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
 
@@ -43,11 +41,15 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public Visibility PlaybackVisible =>
-        _model.Mode is ProfileMode.Playback or ProfileMode.Both ? Visibility.Visible : Visibility.Collapsed;
+    public System.Windows.Visibility PlaybackVisible =>
+        _model.Mode is ProfileMode.Playback or ProfileMode.Both
+            ? System.Windows.Visibility.Visible
+            : System.Windows.Visibility.Collapsed;
 
-    public Visibility RecordingVisible =>
-        _model.Mode is ProfileMode.Recording or ProfileMode.Both ? Visibility.Visible : Visibility.Collapsed;
+    public System.Windows.Visibility RecordingVisible =>
+        _model.Mode is ProfileMode.Recording or ProfileMode.Both
+            ? System.Windows.Visibility.Visible
+            : System.Windows.Visibility.Collapsed;
 
     public string ModeLabel => _model.Mode switch
     {
@@ -118,8 +120,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public ProfileCardViewModel(
         DeviceProfile model,
-        ConfigService configService,
-        HotkeyService hotkeyService,
+        IConfigService configService,
+        IHotkeyService hotkeyService,
+        IDialogService dialogService,
         IReadOnlyList<AudioDeviceInfo> playbackDevices,
         IReadOnlyList<AudioDeviceInfo> recordingDevices,
         Action<ProfileCardViewModel> onChanged,
@@ -128,6 +131,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _model = model;
         _configService = configService;
         _hotkeyService = hotkeyService;
+        _dialogService = dialogService;
         _onChanged = onChanged;
         _onDelete = onDelete;
 
@@ -191,28 +195,21 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         // Without this, Windows intercepts the registered key before WPF sees it.
         _hotkeyService.UnregisterProfile(_model.Id);
 
-        var dialog = new HotkeyCaptureDialog(_model.Hotkey)
-        {
-            Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
-        };
+        var captured = _dialogService.ShowHotkeyCapture(_model.Hotkey);
         bool applied = false;
 
-        if (dialog.ShowDialog() == true && dialog.CapturedHotkey != null)
+        if (captured != null)
         {
-            if (!dialog.CapturedHotkey.IsEmpty && _hotkeyService.TestHotkey(dialog.CapturedHotkey))
+            if (!captured.IsEmpty && _hotkeyService.TestHotkey(captured))
             {
-                new AlertDialog(
-                    "Hotkey Conflict",
-                    $"'{dialog.CapturedHotkey.ToDisplayString()}' is already in use by another application.")
-                {
-                    Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
-                }.ShowDialog();
+                _dialogService.ShowAlert("Hotkey Conflict",
+                    $"'{captured.ToDisplayString()}' is already in use by another application.");
             }
             else
             {
-                _model.Hotkey = dialog.CapturedHotkey;
+                _model.Hotkey = captured;
                 HotkeyDisplay = _model.Hotkey.ToDisplayString();
-                _onChanged(this); // triggers Refresh → re-registers all hotkeys with new value
+                _onChanged(this); // triggers RegisterAll → re-registers all hotkeys with new value
                 applied = true;
             }
         }
@@ -223,16 +220,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void BrowseIcon()
     {
-        var dialog = new OpenFileDialog
-        {
-            Title = "Select Icon File",
-            Filter = "Icon Files (*.ico)|*.ico",
-            CheckFileExists = true
-        };
+        var source = _dialogService.ShowBrowseIconFile();
+        if (source == null) return;
 
-        if (dialog.ShowDialog() != true) return;
-
-        var source = dialog.FileName;
         var namePrefix = SanitizeName(_model.Name);
         var guidPrefix = _model.Id.ToString("N")[..8];
         var dest = System.IO.Path.Combine(_configService.IconsDir, $"{namePrefix}-{guidPrefix}.ico");
@@ -249,10 +239,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 AppLogger.Error("ProfileCardViewModel.BrowseIcon", ex);
                 SessionErrorTracker.Record(ErrorCode.IconCopyFailed, "Icon Copy Failed",
                     $"Could not copy icon file to app storage: {ex.Message}");
-                new AlertDialog("Icon Error", $"Could not copy the icon file:\n{ex.Message}")
-                {
-                    Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
-                }.ShowDialog();
+                _dialogService.ShowAlert("Icon Error", $"Could not copy the icon file:\n{ex.Message}");
                 return;
             }
         }
@@ -278,11 +265,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void DeleteProfile()
     {
-        var dialog = new ConfirmDeleteDialog(_model.Name)
-        {
-            Owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
-        };
-        if (dialog.ShowDialog() == true)
+        if (_dialogService.ShowConfirmDelete(_model.Name))
             _onDelete(this);
     }
 

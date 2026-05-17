@@ -19,7 +19,7 @@ internal sealed class HotkeyAtomException : Exception
         : base($"GlobalAddAtom returned 0 for '{profileName}' — atom table may be full.") { }
 }
 
-public class HotkeyService : IDisposable
+public class HotkeyService : IHotkeyService
 {
     // Maps atom ID → profile Guid
     private readonly Dictionary<ushort, Guid> _atomToProfile = new();
