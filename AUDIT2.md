@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-17 — reflects all 10 merged branches + v1.1.0 release.
+**Last updated:** 2026-05-17 — reflects all 12 merged branches (PR #28) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -36,16 +36,9 @@ All consumers hold concrete `ConfigService`. Prevents testability.
 
 ## SECTION 4 — USER EXPERIENCE
 
-**4.2 — No loading state during profile switch** *(Medium)*
-No visual feedback while switching. The tray icon stays the same until complete.
-Fix: add "Switching..." tooltip or brief animation.
-
-**4.6 — No keyboard navigation between profile cards** *(Medium)*
-`ItemsControl` has no arrow-key navigation. Tab order within cards is not explicitly set.
-
 **4.7 — No way to reorder profiles** *(Medium)*
 `SortOrder` is set at creation and never updated via UI.
-Fix: drag handles (Spotify-style, 3-line grip on left of card) — see memory entry `project_4_7_reorder`.
+Fix: drag handles (Spotify-style, 3-line grip on left of card).
 
 **4.8 — No "Test Sound" button** *(Low)*
 Users cannot verify the correct device is active without switching away.
@@ -161,7 +154,6 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Issue | Location |
 |---|-------|----------|
-| L15 | Tab order and keyboard navigation not explicitly set | All XAML |
 | L17 | No high-contrast mode support | All XAML |
 | L20 | No SHA256 checksums published with binaries | Release pipeline |
 
@@ -215,13 +207,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-**Branch E: `fix/ux-polish`**
-Small user-facing UX improvements.
-
-| Item | Fix |
-|------|-----|
-| 4.2 | Show `"Switching..."` as the tray tooltip during the async profile switch, restore profile name after |
-| L15 / 4.6 | Set explicit `TabIndex` on all controls in `SettingsWindow.xaml`; add arrow-key navigation to the profile cards `ItemsControl` |
+~~**Branch E: `fix/ux-polish`**~~ ✅ Merged — PR #28
 
 ---
 
