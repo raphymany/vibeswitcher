@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-17 — reflects all 15 merged branches (PR #31) + v1.1.0 release.
+**Last updated:** 2026-05-17 — reflects all 16 merged branches (PR #33) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -64,10 +64,7 @@ Convention: middle-click toggles between last two profiles.
 
 ## SECTION 7 — TESTING
 
-**7.1 — No test project exists** *(High)*
-Zero automated coverage.
-
-*(See AUDIT.md sections 7.2–7.11 for the full suggested test suite.)*
+*(All Section 7 open items resolved as of PR #33)*
 
 ---
 
@@ -142,7 +139,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Item |
 |---|------|
-| TD1 | No test project — zero automated test coverage *(Planned — Branch I)* |
+| ~~TD1~~ | ~~No test project — zero automated test coverage~~ ✅ Done — PR #33 |
 | TD2 | No `IAudioService` / `IConfigService` interfaces preventing testability *(Planned — Branch J)* |
 | TD3 | `App.xaml.cs` has too many responsibilities (God Class) *(Planned — Branch L)* |
 | TD4 | No `IDialogService` abstraction — ViewModel/View tightly coupled *(Planned — Branch K)* |
@@ -204,7 +201,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | ~~13~~ | ~~`fix/ux-polish-4`~~ | ✅ Merged |
 | ~~14~~ | ~~`feat/audio-reliability`~~ | ✅ Merged — PR #30 |
 | ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Merged — PR #31 |
-| 16 | `test/unit-tests` | Planned |
+| ~~16~~ | ~~`test/unit-tests`~~ | ✅ Merged — PR #33 |
 | 17 | `refactor/interfaces` | Planned |
 | 18 | `refactor/viewmodel-dialogs` | Planned |
 | 19 | `refactor/god-class` | Planned |
@@ -221,16 +218,10 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-### Branch I: `test/unit-tests` *(next)*
+### ~~Branch I: `test/unit-tests`~~ ✅ Merged — PR #33
 **Theme:** Create the test project and write pure-logic unit tests — zero risk to the running app.
 
-- Create `VibeSwitcher.Tests` xUnit project; add project reference; confirm `dotnet test` passes (TD1)
-- `ConfigService`: load/save round-trip, corrupt+backup recovery, Migrate(), atomic `.tmp` write (7.2)
-- `HotkeyDefinition`: `GetModifierFlags()` bitmask, `ToDisplayString()`, `IsEmpty`, `IsValid` range (7.3)
-- `SessionErrorTracker`: 10-thread concurrent `Record()`, `ErrorAdded` fires once, snapshot immutability (7.13)
-- `ErrorCode`: `ToCode()` format for all 28 codes, integer uniqueness (7.14)
-- `AppLogger`: rotation at 1 MB, `.1`/`.2` backup chain, non-fatal on locked file, level prefixes (7.12)
-- `DeviceNotificationClient`: debounce coalesces rapid calls into 1 fire, cancels prior schedule (7.15)
+69 tests across 7 test classes, all passing. Covers TD1, 7.2, 7.3, 7.7, 7.12, 7.13, 7.14, 7.15.
 
 ---
 

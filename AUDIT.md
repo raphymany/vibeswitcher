@@ -1,0 +1,922 @@
+# VibeSwitcher — Pre-Release Audit Report
+
+**Date:** 2026-05-16
+**Files reviewed:** 22 source files (all .cs and .xaml in the project)
+
+---
+
+## SECTION 1 — CODE REVIEW & SECURITY AUDIT
+
+**~~1.1 — No path traversal validation on icon paths~~** ✅ *Fixed — fix/polish-and-compat*
+`Helpers/IconHelper.cs` — Prefix assertion added: after `Path.GetFullPath` canonicalization, the result is asserted to start with `ConfigService.IconsDir`; if it doesn't, a warning is logged, VS-010 is recorded, and the default icon is returned.
+
+**~~1.2 — `StartupService.Enable` silently does nothing if registry key is null~~** ✅ *Fixed — issue #8*
+`Services/StartupService.cs` — Now uses `Registry.CurrentUser.CreateSubKey(...)` which creates the key if absent.
+
+**~~1.3 — `AppConfig.Profiles` can be null after JSON deserialization~~** ✅ *Fixed — issue #4*
+`Services/ConfigService.cs` — Added `_config.Profiles ??= new();` after deserialization.
+
+**~~1.4 — `AppDomain.UnhandledException` does not prevent crash, comment misleads~~** ✅ *Fixed — issue #8*
+`App.xaml.cs` — Comment corrected; `TaskScheduler.UnobservedTaskException` handler added for fire-and-forget Tasks.
+
+**~~1.5 — `SwitchToProfile` balloon shows generic exception message~~** ✅ *Fixed — issue #8*
+`App.xaml.cs` — Now uses `ex.InnerException?.Message ?? ex.Message`.
+
+**1.6 — `RegisterHotkeys` only catches the first conflict, then loses ALL hotkeys** — See ~~H7~~ ✅ Fixed — issue #13
+
+**~~1.7 — `HotkeyService.TestHotkey` multi-step unregister/re-register is not thread-safe~~** ✅ *Fixed — PR #27*
+`Services/HotkeyService.cs` — `Debug.Assert(Dispatcher.CheckAccess())` added; catches any future off-UI-thread call in debug builds.
+
+**~~1.8 — Device enumeration blocks the UI thread from the ViewModel constructor~~** ✅ *Fixed*
+`ViewModels/SettingsViewModel.cs` — `LoadDevicesAsync` enumerates once on a background thread; all cards share the single result. No UI thread blocking.
+
+**~~1.9 — `BrowseIcon` silently falls back to original path on copy failure~~** ✅ *Fixed — issue #5*
+`ViewModels/ProfileCardViewModel.cs` — Now records VS-006 error and shows alert dialog on copy failure.
+
+**~~1.10 — `BitmapSource` from HICON not frozen before icon is disposed~~** ✅ *Fixed*
+`Helpers/IconHelper.cs` — `source.Freeze()` now called before returning from `ToImageSource`.
+
+**~~1.11 — `_defaultIcon` static never disposed~~** ✅ *Fixed*
+`Helpers/IconHelper.cs` — `AppDomain.CurrentDomain.ProcessExit` registered in static constructor to dispose `_defaultIcon`.
+
+**~~1.12 — `TrayService.RebuildMenu` leaks old `ContextMenu` objects~~** ✅ *Fixed*
+`Tray/TrayService.cs` — Now calls `_contextMenu.Items.Clear()` and repopulates the existing `ContextMenu` instance rather than replacing it.
+
+**~~1.13 — `ConfigService.Save` atomic write is not truly atomic~~** ✅ *Fixed — issue #2*
+`Services/ConfigService.cs` — Replaced `File.Copy` + `File.Delete` with `File.Move(overwrite: true)`, which is atomic on NTFS.
+
+**~~1.14 — `ConfigService.LogError` duplicates `AppLogger.Error`~~** ✅ *Fixed*
+`Services/ConfigService.cs` — Removed `LogError`; all logging routes through `AppLogger`.
+
+**~~1.15 — `PropVariant` struct declared at 16 bytes but x64 PROPVARIANT is 24 bytes~~** ✅ *Fixed — PR #27*
+`NativeMethods/AudioInterop.cs` — Struct expanded to 24 bytes with an 8-byte padding field; no more potential COM write-past-boundary.
+
+**~~1.16 — `GlobalAddAtom`/`GlobalDeleteAtom` type mismatch (int vs ushort ATOM)~~** ✅ *Fixed — issue #13*
+`NativeMethods/WinApi.cs` — `GlobalAddAtom` and related methods now declared as `ushort`.
+
+**~~1.17 — Modifier flag constants duplicated between `WinApi` and `HotkeyDefinition`~~** ✅ *Fixed — issue #13*
+`Models/HotkeyDefinition.cs` — `GetModifierFlags()` now references `WinApi.MOD_ALT`, `WinApi.MOD_CTRL`, `WinApi.MOD_SHIFT`, `WinApi.MOD_WIN`.
+
+**~~1.18 — Single-instance mutex is global — blocks other users on multi-session machines~~** ✅ *Fixed — PR #18*
+`Helpers/SingleInstanceHelper.cs` — Mutex now uses a `Local\` prefix, scoping it per user session so Fast User Switching and Remote Desktop each get their own independent instance.
+
+**~~1.19 — `HotkeyService.RegisterProfile` swallows `HotkeyConflictException` silently~~** ✅ *Fixed — issue #13*
+`Services/HotkeyService.cs` — Now has three catch blocks: `HotkeyConflictException` → VS-004, `HotkeyAtomException` → VS-018, `Exception` → VS-009.
+
+**~~1.20 — No `VirtualKeyCode` range validation~~** ✅ *Fixed — issue #13*
+`Models/HotkeyDefinition.cs` — Added `IsValid => VirtualKeyCode > 0 && VirtualKeyCode <= 254`; checked before `RegisterHotKey`.
+
+**1.21 — Log file grows unboundedly** — See ~~M3~~ ✅ Fixed
+
+**1.22 — `DispatcherUnhandledException` swallows all exceptions unconditionally** — See ~~M15~~ ✅ Fixed
+
+---
+
+## SECTION 2 — PERFORMANCE
+
+**~~2.1 — UI thread blocked N x 2 times during settings open~~** ✅ *Fixed*
+Same as ~~1.8~~. `LoadDevicesAsync` in `SettingsViewModel` enumerates once on a background thread; all profile cards call `card.LoadDevices(pb, rec)` with the shared result.
+
+**2.2 — Device list enumerated independently per profile card** — See ~~2.1~~ ✅ Fixed
+
+**~~2.3 — `RebuildMenu` does disk I/O on every profile switch~~** ✅ *Fixed*
+`Tray/TrayService.cs` — `_iconCache` dictionary caches `ImageSource` per profile ID; `RebuildMenu` never reads from disk. Menu repopulates the existing `ContextMenu` instance.
+
+**~~2.4 — `RunOnSta` creates and destroys a new OS thread per audio call~~** ✅ *Fixed — fix/reliability*
+`Services/AudioService.cs` — `RunOnSta<T>` removed entirely. `GetPlaybackDevices`/`GetRecordingDevices` are called directly from within `Task.Run` in `SettingsViewModel.LoadDevicesAsync`; `ApplyProfileAsync` uses `Task.Run` at the call site. No redundant second thread created.
+
+**~~2.5 — Double `Task.Run` wrapping in `SwitchToProfile`~~** ✅ *Fixed — issue #8*
+`App.xaml.cs` — `SwitchToProfile` is `async void` and directly `await`s `ApplyProfileAsync` with no outer `Task.Run`.
+
+**~~2.6 — `ObservableCollection` fires `CollectionChanged` per item during load~~** ✅ *Fixed*
+`ViewModels/SettingsViewModel.cs` — `Profiles` initialized via the `ObservableCollection(IEnumerable<T>)` constructor, so no per-item `CollectionChanged` fires during load.
+
+**2.7 — Icon creation allocations on every load** *(Low)*
+Minor GC pressure from `MemoryStream` + `Icon` per user-icon load. `_defaultIcon` caching is correct.
+
+**~~2.8 — Linear LINQ scan in `WndProc` hotkey handler~~** ✅ *Fixed — issue #13*
+`Services/HotkeyService.cs` — `HandleHotkey` uses `_atomToProfile` and `_profileById` dictionaries for O(1) dispatch on every `WM_HOTKEY`.
+
+---
+
+## SECTION 3 — CODE QUALITY & ARCHITECTURE
+
+**3.1 — MVVM violation: ViewModels directly instantiate and open View classes** *(Medium)*
+`ViewModels/ProfileCardViewModel.cs:148-222`, `ViewModels/SettingsViewModel.cs:117-139` — ViewModels directly `new` up `HotkeyCaptureDialog`, `ConfirmDeleteDialog`, `ProfileTypeDialog`, `OpenFileDialog`. Untestable and couples ViewModels to Views.
+Fix: extract `IDialogService` interface.
+
+**~~3.2 — `StartWithWindows` initialized from config JSON, not actual registry state~~** ✅ *Fixed — issue #8*
+`ViewModels/SettingsViewModel.cs` — Constructor now sets `_startWithWindows = startupService.IsStartupEnabled()`, reading the actual registry state.
+
+**3.3 — `App.xaml.cs` is a God Class** *(Medium)*
+Owns services, handles `WndProc`, orchestrates profile switches, manages window lifecycle, drives startup.
+Fix: extract `ProfileSwitchOrchestrator` and `WindowManager`.
+
+**~~3.4 — Button/control styles not in `App.xaml`~~** ✅ *Fixed — fix/settings-ux-3*
+`App.xaml` — `RoundedButtonTemplate`, `ActionButton`, `DangerButton`, `PrimaryButton`, and new `ToggleSwitchStyle` moved to `Application.Resources`. Global `<Style TargetType="Window">` sets `FontFamily="Segoe UI"` for all windows. Local duplicates removed from `SettingsWindow` and `AboutWindow`.
+
+**~~3.5 — `ProfileCardViewModel` not `IDisposable`~~** ✅ *Fixed — PR #27*
+`ViewModels/ProfileCardViewModel.cs` — `IDisposable` implemented; `SettingsViewModel.DeleteProfile` calls `Dispose()` on the removed card.
+
+**~~3.6 — COM object release in `GetDeviceInfo` not in `finally`~~** ✅ *Fixed — PR #19*
+`AudioService.cs` — `IPropertyStore` and `IMMDeviceCollection` COM objects now released unconditionally in `finally` blocks.
+
+**3.7 — Magic numbers in `HotkeyDefinition.GetModifierFlags()`** — See ~~1.17~~ ✅ Fixed
+
+**3.8 — No `IConfigService` interface** *(Low)*
+All consumers hold concrete `ConfigService`. Prevents testability.
+
+**~~3.9 — `async void` tray click handler~~** ✅ *Fixed — issue #1*
+`Tray/TrayService.cs` — Click handler changed to `_ = SwitchToProfileAsync(profile)` with a proper `async Task` method that catches and shows errors as notifications.
+
+**~~3.10 — `BuildSectionLabel` is dead code~~** ✅ *Fixed*
+`Tray/TrayService.cs` — Dead method removed.
+
+**~~3.11 — `HotkeyService.Refresh` is a trivial alias for `RegisterAll`~~** ✅ *Fixed — issue #13*
+`Services/HotkeyService.cs` — `Refresh` method removed entirely.
+
+**~~3.12 — `WinApi.MOD_*` constants defined but never referenced~~** ✅ *Fixed — issue #13*
+`NativeMethods/WinApi.cs` / `Models/HotkeyDefinition.cs` — `GetModifierFlags` now references `WinApi.MOD_*` constants.
+
+**~~3.13 — `ConfigService._config` not `volatile`~~** ✅ *Fixed — issue #8*
+`Services/ConfigService.cs` — `_config` field declared `volatile`.
+
+**~~3.14 — `AboutWindow` version fallback is hardcoded~~** ✅ *Fixed*
+`Views/AboutWindow.xaml.cs` — Now reads `AssemblyInformationalVersionAttribute`, stripping the git hash suffix appended by MSBuild.
+
+**~~3.15 — Blanket `catch` in `HotkeyDefinition.ToDisplayString`~~** ✅ *Fixed — issue #13*
+`Models/HotkeyDefinition.cs` — `KeyInterop.KeyFromVirtualKey` does not throw; blanket catch removed.
+
+---
+
+## SECTION 4 — USER EXPERIENCE
+
+**~~4.1 — Settings window freezes proportional to profile count~~** ✅ *Fixed*
+See ~~1.8~~ / ~~2.1~~. Device enumeration is now fully async and shared.
+
+**~~4.2 — No loading state during profile switch~~** ✅ *Fixed — PR #28*
+`Tray/TrayService.cs`, `App.xaml.cs` — `SetSwitchingTooltip("Switching to {name}...")` called before the async switch begins; `UpdateIcon` restores the correct tooltip on both success and failure.
+
+**~~4.3 — Profile name only saves on LostFocus~~** ✅ *Fixed — PR #17*
+`SettingsWindow.xaml` — TextBox binding switched to `UpdateSourceTrigger=PropertyChanged`; name is saved immediately on every keystroke.
+
+**~~4.4 — No empty state UI when no profiles exist~~** ✅ *Fixed — PR #17*
+`SettingsWindow.xaml` — "No profiles yet — click Add New Profile to get started" message shown when list is empty; hides automatically when a profile is added.
+
+**~~4.5 — Hotkey conflict uses system `MessageBox` instead of styled dialog~~** ✅ *Fixed — PR #17*
+`ViewModels/ProfileCardViewModel.cs` — New `AlertDialog` (Warning / Info variants) replaces all `MessageBox.Show` calls; matches the app's visual style and closes on Enter or Escape.
+
+**~~4.6 — No keyboard navigation between profile cards~~** ✅ *Fixed — PR #28*
+`Views/SettingsWindow.xaml` — `KeyboardNavigation.DirectionalNavigation="Contained"` on the `ItemsControl`; read-only fields set `IsTabStop="False"`; explicit `TabIndex` on interactive controls.
+
+**4.7 — No way to reorder profiles** *(Medium)*
+`SortOrder` is set at creation and never updated via UI.
+Fix: add drag handles or up/down buttons.
+
+**4.8 — No "Test Sound" button** *(Low)*
+Users cannot verify the correct device is active without switching away.
+
+**~~4.9 — No hotkey summary visible without opening each card~~** ✅ *Fixed — fix/settings-ux-3*
+`Tray/TrayService.cs` — `BuildProfileHeader` now adds a third line below the mode label showing the hotkey (e.g. "Ctrl+Page Up") in 10 pt gray text when a hotkey is configured. The Settings card already shows the hotkey display field.
+
+**~~4.10 — Hotkey dialog does not show held modifiers before final key press~~** ✅ *Fixed — PR #17*
+`Views/HotkeyCaptureDialog.xaml.cs` — Holding any combination of Ctrl/Shift/Alt/Win now shows e.g. "Ctrl+Shift+" in real time before the final key is pressed.
+
+**4.11 — Dark mode not supported** *(Feature)*
+All colors hardcoded as light-mode hex values. On Windows dark mode, windows look out of place.
+Fix: use `SystemColors` brushes or a theme resource dictionary.
+
+**~~4.12 — Icon info popup not dismissable via Escape~~** ✅ *Fixed — fix/polish-and-compat*
+`SettingsWindow.xaml.cs` — `Window_KeyDown` now calls `CloseOpenIconPopups()` first; if any `IconInfoToggle` `ToggleButton` is checked it is unchecked and the Escape is consumed, so the window is only closed on a second Escape press.
+
+**4.13 — No config import/export** *(Low)*
+Users cannot back up or transfer their profiles.
+
+**4.14 — No middle-click tray handler** *(Low)*
+Convention: middle-click toggles between last two profiles.
+
+**4.15 — No high-contrast mode support** *(Low)*
+Custom-styled controls do not respond to Windows High Contrast mode.
+
+**~~4.16 — Delete dialog Cancel button not `IsDefault`~~** ✅ *Fixed — PR #17*
+`Views/ConfirmDeleteDialog.xaml` — Cancel button is now `IsDefault`; pressing Enter safely dismisses the dialog instead of triggering the delete.
+
+**~~4.17 — Window position restore may still partially overflow screen~~** ✅ *Fixed — PR #18*
+`Views/SettingsWindow.xaml.cs` — `Math.Clamp` now guards the upper bound so a saved window wider than the current screen is clamped on-screen rather than throwing an `ArgumentException`.
+
+---
+
+## SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY
+
+**~~5.1 — Explorer crash permanently loses tray icon~~** ✅ *Fixed — issue #3*
+`App.xaml.cs` / `Tray/TrayService.cs` — Added `WM_TASKBARCREATED` handler in `WndProc`; calls `RecreateIcon()` when Explorer restarts.
+
+**~~5.2 — Active profile not re-applied after sleep/hibernate~~** ✅ *Fixed*
+`App.xaml.cs` — `SystemEvents.PowerModeChanged` handler subscribed; re-applies the active profile on `PowerModes.Resume`.
+
+**~~5.3 — Device list in open Settings not refreshed on hotplug/unplug~~** ✅ *Fixed — PR #30*
+`Services/DeviceNotificationClient.cs`, `Services/AudioService.cs`, `ViewModels/SettingsViewModel.cs` — `IMMNotificationClient` debounces device add/remove/state-change events into a single `DevicesChanged` event after 500 ms; `SettingsViewModel` subscribes and refreshes all dropdowns via `LoadDevicesAsync()`.
+
+**~~5.4 — x64-only build excludes 32-bit environments~~** ✅ *Fixed — PR #18*
+`.csproj` — Switched to `AnyCPU` with `<Prefer32Bit>false</Prefer32Bit>` for broader compatibility.
+
+**~~5.5 — Tray icon loaded at 32x32 only — blurry at 192 DPI~~** ✅ *Fixed*
+`Helpers/IconHelper.cs` — Icons now loaded at 64×64, giving Windows a large source frame to downsample from at high DPI (e.g. 200% scaling).
+
+**~~5.6 — `control.exe /name Microsoft.Sound` deprecated on Windows 11~~** ✅ *Fixed — fix/polish-and-compat + fix/settings-ux-3*
+`Tray/TrayService.cs` / `SettingsWindow.xaml.cs` — Now tries `ms-settings:sound` first; falls back to `control.exe /name Microsoft.Sound`. A new "Use classic Sound control panel" toggle in Settings lets users who prefer the legacy panel get it consistently via tray and Settings footer button.
+
+**~~5.7 — No Windows Audio service restart recovery~~** ✅ *Fixed — PR #30*
+`Services/AudioService.cs` — `ApplyProfile` catches `COMException` with `HResult == 0x80070424` (Windows Audio service not running) and records VS-027 with a clear error message instead of an unhandled COM exception.
+
+**~~5.8 — RDP hotkey behavior not documented~~** ✅ *Fixed — PR #27*
+`README.md` — Known Limitations section added; documents that `RegisterHotKey` in an RDP session acts on the local machine, not the remote.
+
+**5.9 — Mixed-DPI multi-monitor window position inaccuracy** *(Low)*
+`Views/SettingsWindow.xaml.cs:50-62` — Known WPF limitation with mixed-DPI setups.
+
+**~~5.10 — Startup registry entry breaks on exe move or update~~** ✅ *Fixed — fix/reliability*
+`Services/StartupService.cs` — `RefreshRegistryPath()` added; called on every launch. Reads the stored registry value, compares it to `Environment.ProcessPath`, and silently calls `Enable()` to update the path if they differ. No user action required after moving the exe.
+
+**~~5.11 — No `app.manifest` with PerMonitorV2 DPI awareness~~** ✅ *Fixed*
+`app.manifest` added with `<dpiAwareness>PerMonitorV2</dpiAwareness>`; referenced from `.csproj`.
+
+---
+
+## SECTION 6 — CONFIG & DATA INTEGRITY
+
+**~~6.1 — `ConfigVersion` stored but never read or acted upon~~** ✅ *Fixed*
+`Services/ConfigService.cs` — `Migrate()` method added; currently migrates v1 `WindowLeft = -1` sentinel to `null`.
+
+**~~6.2 — `WindowLeft = -1` sentinel conflicts with valid off-screen coordinates~~** ✅ *Fixed*
+`Services/ConfigService.cs` — `Migrate()` converts `-1` to `null` on load; `AppConfig` now uses `double?` with `null` as the unset sentinel.
+
+**~~6.3 — `config.json` read without file lock~~** ✅ *Fixed — PR #27*
+`Services/ConfigService.cs` — Opened with `FileShare.ReadWrite`; antivirus/backup concurrent reads no longer cause a JSON parse failure or incorrect `IsFirstRun = true` reset.
+
+**~~6.4 — No config backup / last-known-good copy~~** ✅ *Fixed*
+`Services/ConfigService.cs` — `Save()` now writes `config.json.bak` before overwriting `config.json`. `Load()` falls back to the backup if the primary is corrupted.
+
+**~~6.5 — Orphaned icon files in `IconsDir` never cleaned up~~** ✅ *Fixed*
+`ViewModels/SettingsViewModel.cs` / `ViewModels/ProfileCardViewModel.cs` — `DeleteOrphanedIcon` called on profile delete and when a profile's icon is replaced; only deletes files within `IconsDir`.
+
+**~~6.6 — `ProfileMode` enum serialized as integer~~** ✅ *Fixed*
+`Models/DeviceProfile.cs` — `ProfileModeConverter : StringEnumConverter` added; `[JsonConverter(typeof(ProfileModeConverter))]` applied to the `ProfileMode` enum.
+
+**~~6.7 — `HotkeyDefinition` always serialized even when empty~~** ✅ *Fixed — fix/polish-and-compat*
+`Models/DeviceProfile.cs` — `ShouldSerializeHotkey()` added; Newtonsoft.Json suppresses the `Hotkey` block in JSON when `VirtualKeyCode == 0`.
+
+**~~6.8 — No maximum profile name length validation~~** ✅ *Fixed — PR #16*
+`SettingsWindow.xaml` — `MaxLength="20"` added to the Name TextBox (20 characters fits comfortably in the tray right-click menu).
+
+---
+
+## SECTION 7 — TESTING
+
+**~~7.1 — No test project exists~~** *(High)* ✅ Fixed — PR #33
+~~Zero automated coverage.~~
+
+**~~7.2 — Suggested unit tests for `ConfigService`~~** ✅ Done — PR #33
+- `Load()` with valid JSON returns correct `AppConfig`
+- `Load()` with invalid JSON sets `IsFirstRun = true` and returns defaults
+- `Load()` with missing file sets `IsFirstRun = true`
+- `Load()` with `"Profiles": null` does not crash
+- `Load()` with corrupted `.json` but valid `.bak` → recovers from backup, does not set `IsFirstRun`
+- `Save()` writes valid JSON that is re-readable by `Load()`
+- `Save()` atomic: simulate kill after `.tmp` write; verify config recoverable
+- `Migrate()` converts `WindowLeft == -1` to `null` and leaves other fields unchanged
+- `Load()` with a concurrent reader open (FileShare.ReadWrite) → does not throw
+
+**~~7.3 — Suggested unit tests for `HotkeyDefinition`~~** ✅ Done — PR #33
+- `GetModifierFlags()` returns correct bitmask for each modifier combination
+- `ToDisplayString()` returns "(none)" for empty definition
+- `IsEmpty` returns true when `VirtualKeyCode == 0`
+
+**7.4 — Suggested unit tests for `StartupService`**
+- Mock registry to verify `Enable()` writes the correct path
+- `IsStartupEnabled()` returns false when key absent
+- `Disable()` does not throw when value absent
+- `RefreshRegistryPath()` with a stale path in registry → calls `Enable()` with the current exe path
+- `RefreshRegistryPath()` when startup is not enabled → does nothing
+
+**7.5 — Suggested integration tests for `AudioService`**
+- `GetPlaybackDevices()` returns non-empty list on a machine with audio devices
+- `ApplyProfileAsync()` returns `MissingPlaybackId` when device ID does not exist
+- `ApplyProfileAsync()` with invalid device ID does not throw unhandled
+
+**7.6 — Suggested unit tests for `HotkeyService`**
+- `RegisterAll()` with empty profiles does nothing
+- `RegisterAll()` with two profiles having the same hotkey throws `HotkeyConflictException`
+- `UnregisterProfile()` removes a profile and its atom
+- `HandleHotkey()` returns correct profile using O(1) dictionary dispatch
+- `HandleHotkey()` returns null for an unknown atom (not a linear scan fallback)
+- `RegisterAll()` with `VirtualKeyCode == 0` → profile skipped (IsValid false)
+- `RegisterAll()` with `VirtualKeyCode == 255` → profile skipped (IsValid false, out of range)
+- `TestHotkey()` re-registers all remaining profiles after testing one (none lost)
+
+**~~7.7 — Suggested unit tests for `IconHelper`~~** ✅ Done — PR #33
+- `LoadIcon(null)` returns the default icon (non-null)
+- `LoadIcon("nonexistent.ico")` returns the default icon without throwing
+- `GetDefaultIcon()` is idempotent
+- `ToImageSource()` returns a non-null `ImageSource`
+
+**7.8 — Suggested UI automation tests**
+- Open Settings window — verify all profile cards render without freeze
+- Add a profile — verify it appears in list and tray menu
+- Delete a profile — verify it disappears and confirmation dialog appeared
+- Set a hotkey — verify it displays in the profile card
+- Change hotkey to a conflicting one — verify warning is shown
+- Toggle "Start with Windows" — verify registry entry changes
+
+**7.9 — Manual test checklist**
+- Launch with no config file (first run)
+- Launch with corrupted `config.json`
+- Launch with another instance already running (single-instance guard)
+- Switch profile via tray menu with all devices present
+- Switch profile via tray menu with playback device disconnected
+- Switch profile via hotkey with device disconnected
+- Close settings with "Close to tray" enabled — app stays in tray
+- Close settings with "Close to tray" disabled — app exits
+- Move window to secondary monitor, save, reopen — position restored
+- Resize window, save, reopen — size restored
+- Toggle all settings checkboxes and verify persistence after relaunch
+
+**7.10 — Mock strategy**
+Extract `IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, and `IDialogService` interfaces (Branch 17). Each ViewModel receives its dependencies via constructor injection. Fake implementations (`FakeAudioService`, `FakeConfigService`, `FakeDialogService`) are defined in the test project and returned canned data. COM and registry layers are entirely outside the fake boundary — never mocked at the P/Invoke level.
+
+**7.11 — CI/CD pipeline** *(Branch 20)*
+- GitHub Actions workflow on push/PR to `main`: `dotnet build --configuration Release`, `dotnet test`
+- Add `Microsoft.CodeAnalysis.NetAnalyzers` to csproj
+- `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` for clean compiler output
+- `dotnet publish -r win-x64 --self-contained` as a release artifact step (triggered on tag)
+
+**~~7.12 — Suggested unit tests for `AppLogger`~~** ✅ Done — PR #33
+- Rotation: after writing past 1 MB, `.log` is renamed to `.log.1`, previous `.log.1` to `.log.2`, oldest `.log.2` deleted; new `.log` starts fresh
+- Non-fatal: if the log file cannot be opened (locked/missing directory), no exception escapes to the caller
+- All three levels (`Info`, `Warning`, `Error`) write the correct level prefix in the output line
+- `Error(Exception)` overload captures the exception message and type
+
+**~~7.13 — Suggested unit tests for `SessionErrorTracker`~~** ✅ Done — PR #33
+- `Record()` from 10 concurrent threads → `Count == 10` with no corruption or lost entries
+- `ErrorAdded` fires exactly once per `Record()` call (not zero, not twice)
+- `Errors` property returns an immutable snapshot — modifications to the returned list do not affect the tracker
+- `HasErrors` returns false on a fresh tracker; true after first `Record()`
+
+**~~7.14 — Suggested unit tests for `ErrorCode`~~** ✅ Done — PR #33
+- `ToCode()` returns `"VS-001"` format for every defined enum value (no gaps in format)
+- No two `ErrorCode` values share the same underlying integer (uniqueness assertion across all 28 codes)
+
+**~~7.15 — Suggested unit tests for `DeviceNotificationClient`~~** ✅ Done — PR #33
+- Five `Schedule()` calls within 100 ms → `DevicesChanged` fires exactly once after ~500 ms
+- A second `Schedule()` call before the 500 ms elapses cancels the first pending task (no double-fire)
+- `OnDefaultDeviceChanged` and `OnPropertyValueChanged` are no-ops — calling them does not trigger `DevicesChanged`
+
+---
+
+## SECTION 8 — DEPLOYMENT & DISTRIBUTION
+
+**8.1 — No installer** *(High / pre-release blocker)*
+No installer project exists. Users must run the exe directly from any directory.
+Recommendation: Inno Setup (free, simple, excellent for single-dev projects) or WiX v4 (MSI, handles registry/shortcuts/uninstaller properly).
+
+**8.2 — No code signing** *(High / pre-release blocker)*
+Without Authenticode, Windows SmartScreen blocks the app on every first run for every user.
+Recommendation: Obtain an OV or EV certificate from Sectigo/DigiCert, or distribute via GitHub Releases to build SmartScreen reputation over time.
+
+**8.3 — No auto-updater** *(Medium)*
+No mechanism to notify users of or deliver new versions.
+Fix: add a GitHub Releases version check on startup (fetch latest release JSON, compare semantic version, show balloon if newer).
+
+**~~8.4 — .NET runtime bundling not configured~~** ✅ *Fixed — v1.1.0 release*
+Release published with `--self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true` — single 163 MB exe, no .NET install required.
+
+**~~8.5 — No `ApplicationIcon` in csproj~~** ✅ *Fixed — fix/polish-and-compat*
+`.csproj` / `Resources/Icons/app.ico` — `<ApplicationIcon>Resources\Icons\app.ico</ApplicationIcon>` added; `app.ico` embedded as a Resource. The exe now shows the VibeSwitcher icon in Explorer, the taskbar, and the Alt+Tab switcher.
+
+**~~8.6 — Version format inconsistency in csproj~~** ✅ *Fixed — PR #16*
+`.csproj` — Redundant `<AssemblyVersion>` and `<FileVersion>` removed; MSBuild derives both from `<Version>` automatically.
+
+**8.7 — No winget or Chocolatey package** *(Low / post-release)*
+Submit to `winget-pkgs` and Chocolatey community for discoverability.
+
+**8.8 — Microsoft Store is not feasible** *(Info)*
+Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
+
+**8.9 — No SHA256 checksums** *(Low)*
+Publish `sha256sums.txt` with each release for integrity verification.
+
+---
+
+## SECTION 9 — LOGGING & DIAGNOSTICS
+
+**~~9.1 — Log file grows without bound~~** ✅ *Fixed — issue #5*
+`Helpers/AppLogger.cs` — Rotation implemented: rotates at 1 MB, keeps 2 backups (`.1`, `.2`).
+
+**~~9.2 — Only `Error` level exists~~** ✅ *Fixed — issue #5*
+`Helpers/AppLogger.cs` — `Info`, `Warning`, and `Error` overloads all present.
+
+**~~9.3 — Duplicate log implementation~~** ✅ *Fixed*
+`Services/ConfigService.cs` — `ConfigService.LogError` removed; all logging routes through `AppLogger`.
+
+**9.4 — No structured (machine-parseable) logging** *(Low)*
+Consider Serilog with a rolling file sink which handles rotation automatically.
+
+**9.5 — No Windows Event Viewer integration** *(Low)*
+Critical startup failures not visible in Event Viewer.
+Fix: `EventLog.WriteEntry` for unhandled exceptions.
+
+**9.6 — No crash dump generation** *(Low)*
+Unhandled exceptions logged as text only. COM crashes may not capture the full call stack.
+Fix: call `MiniDumpWriteDump` in `UnhandledException` handler.
+
+**9.7 — No opt-in crash reporting** *(Low / business decision)*
+Consider Sentry.io (free for open-source) with user consent.
+
+**~~9.8 — No diagnostic report feature~~** ✅ *Fixed — fix/polish-and-compat*
+`Views/AboutWindow.xaml.cs` — "Copy Diagnostic Info" button added to About window footer. Copies OS version, .NET version, profile count, session error count, and log file path to clipboard; shows "Copied!" feedback for 2 seconds.
+
+---
+
+## SECTION 10 — DOCUMENTATION
+
+**10.1 — No README.md** — ✅ *Done*
+
+**~~10.2 — No CHANGELOG.md~~** ✅ *Done — 2026-05-17*
+`CHANGELOG.md` created covering all changes from v1.0.0 through current fixes.
+
+**10.3 — No in-app help** *(Feature — moved to F19)*
+No F1 help, no "?" button, no getting-started walkthrough.
+
+**~~10.4 — No developer docs / CONTRIBUTING.md~~** ✅ *Fixed — fix/polish-and-compat*
+`CONTRIBUTING.md` created at repo root: prerequisites (.NET 8 SDK, Visual Studio or Rider), getting started steps, project layout table, coding conventions, PR process, and bug reporting guidance.
+
+**10.5 — No LICENSE file** — ✅ *Done*
+
+**10.6 — GitHub URLs in About window are placeholders** — ✅ *Done*
+
+**~~10.7 — No build instructions documented~~** ✅ *Fixed — fix/polish-and-compat*
+`README.md` expanded with "Building from source" section: `dotnet restore`, `dotnet run`, and `dotnet publish --self-contained` commands documented; link added to `CONTRIBUTING.md`.
+
+**10.8 — Website labeled "coming soon"** *(Low)*
+Fine as placeholder; update when site launches.
+
+---
+
+## SECTION 11 — FINAL PRIORITIZED LIST
+
+### CRITICAL — Must fix before any release
+
+| # | Issue | Location |
+|---|-------|----------|
+| ~~C1~~ | UI thread freeze during Settings open — **fixed** | ✅ Done |
+| C2 | No installer / distribution mechanism | Build pipeline |
+| C3 | No code signing (SmartScreen blocks app on every first run) | Build pipeline |
+| ~~C4~~ | ~~No LICENSE file~~ | ✅ Done |
+| ~~C5~~ | ~~No README.md~~ | ✅ Done |
+| ~~C6~~ | ~~`async void` tray click handler crashes process on unhandled exception~~ | ✅ Done — issue #1 |
+| ~~C7~~ | ~~`ConfigService.Save` not atomic — use `File.Move`~~ | ✅ Done — issue #2 |
+| ~~C8~~ | ~~GitHub URLs in About window are dead~~ | ✅ Done |
+| ~~C9~~ | ~~Explorer crash permanently removes tray icon~~ | ✅ Done — issue #3 |
+
+### HIGH — Important before v1.0.0
+
+| # | Issue | Location |
+|---|-------|----------|
+| ~~H1~~ | ~~Device lists enumerated N x 2 times per Settings open (no caching)~~ | ✅ Done |
+| ~~H2~~ | ~~`StartupService.Enable` silently fails when registry key is null~~ | ✅ Done — issue #8 |
+| ~~H3~~ | ~~`AppConfig.Profiles` null-guard missing after deserialization~~ | ✅ Done — issue #4 |
+| ~~H4~~ | ~~Tray icon blurry at high DPI (loaded at 32x32 only)~~ | ✅ Done |
+| ~~H5~~ | ~~`BitmapSource` from HICON not frozen before icon disposal~~ | ✅ Done |
+| ~~H6~~ | ~~No `app.manifest` with PerMonitorV2 DPI awareness~~ | ✅ Done |
+| ~~H7~~ | ~~Only first hotkey conflict reported; all hotkeys lost after conflict~~ | ✅ Done — issue #13 |
+| ~~H8~~ | ~~Device hotplug/unplug not reflected in open Settings~~ | ✅ Done — PR #30 |
+| ~~H9~~ | ~~No `ApplicationIcon` in csproj — exe has no icon in Explorer~~ | ✅ Done — fix/polish-and-compat |
+| ~~H10~~ | ~~`RunOnSta` creates/destroys a new OS thread per audio call~~ | ✅ Done — fix/reliability |
+
+### MEDIUM — Should fix for a quality release
+
+| # | Issue |
+|---|-------|
+| ~~M1~~ | ~~Dark mode not supported~~ | Moved to Feature Additions (F16) |
+| ~~M2~~ | ~~`RebuildMenu` does disk I/O (icon file read) on every profile switch~~ | ✅ Done |
+| ~~M3~~ | ~~Log file has no rotation — grows indefinitely~~ | ✅ Done — PR #16 |
+| ~~M4~~ | ~~Only Error log level — no Info/Warning~~ | ✅ Done — PR #16 |
+| M5 | `PropVariant` struct size declared at 16 bytes; x64 PROPVARIANT is 24 |
+| M6 | MVVM violation — ViewModels directly instantiate View dialogs |
+| ~~M7~~ | ~~Button/control styles not in `App.xaml`~~ | ✅ Done — fix/settings-ux-3 |
+| ~~M8~~ | ~~Double `Task.Run` wrapping in `SwitchToProfile`~~ | ✅ Done — PR #19 |
+| ~~M9~~ | ~~Active profile not re-applied after system sleep/resume~~ | ✅ Done — PR #18 |
+| ~~M10~~ | ~~Single-instance mutex is global — blocks other users on multi-session machines~~ | ✅ Done — PR #18 |
+| M11 | No profile reorder UI (SortOrder never updated via UI) |
+| ~~M12~~ | ~~`control.exe` Sound panel deprecated on Windows 11~~ | ✅ Done — fix/polish-and-compat + fix/settings-ux-3 |
+| ~~M13~~ | ~~`ProfileMode` enum serialized as integer (fragile to reordering)~~ | ✅ Done — PR #16 |
+| ~~M14~~ | ~~`ConfigVersion` stored but no migration code exists~~ | ✅ Done — PR #16 |
+| ~~M15~~ | ~~`DispatcherUnhandledException` swallows all exceptions unconditionally~~ | ✅ Done — PR #14 |
+
+### LOW — Nice to fix before or after release
+
+| # | Issue | Location |
+|---|-------|----------|
+| ~~L1~~ | ~~`HotkeyDefinition` uses inline modifier literals instead of `WinApi.MOD_*`~~ | ✅ Done — PR #13 |
+| ~~L2~~ | ~~`BuildSectionLabel` dead code method~~ | ✅ Done |
+| ~~L3~~ | ~~`HotkeyService.Refresh` trivial alias adds no value~~ | ✅ Done — PR #13 |
+| ~~L4~~ | ~~`ConfigService.LogError` duplicates `AppLogger`~~ | ✅ Done |
+| ~~L5~~ | ~~`WindowLeft = -1` sentinel conflicts with valid off-screen coordinates~~ | ✅ Done — PR #18 |
+| ~~L6~~ | ~~Icon files in IconsDir never cleaned up on profile delete~~ | ✅ Done — PR #16 |
+| ~~L7~~ | ~~No max profile name length validation~~ | ✅ Done — PR #16 |
+| ~~L8~~ | ~~Hotkey capture dialog does not show held modifiers before key press~~ | ✅ Done — PR #17 |
+| ~~L9~~ | ~~No empty-state UI when profile list is empty~~ | ✅ Done — PR #17 |
+| ~~L10~~ | ~~`MessageBox.Show` for hotkey conflict is visually inconsistent~~ | ✅ Done — PR #17 |
+| ~~L11~~ | ~~COM `store` object not released in `finally` in `GetDeviceInfo`~~ | ✅ Done — PR #19 |
+| ~~L12~~ | ~~`_defaultIcon` static never disposed~~ | ✅ Done — PR #19 |
+| ~~L13~~ | ~~Misleading comment on `UnhandledException` handler~~ | ✅ Done — PR #14 |
+| ~~L14~~ | ~~Profile name TextBox uses LostFocus — name lost if window closed immediately~~ | ✅ Done — PR #17 |
+| ~~L15~~ | ~~Tab order and keyboard navigation not explicitly set~~ | ✅ Done — PR #28 |
+| ~~L16~~ | ~~`WinApi.GlobalAddAtom` type mismatch (int vs ushort ATOM)~~ | ✅ Done — PR #13 |
+| L17 | Dark mode / high-contrast mode not supported — see F16 (same feature) | All XAML |
+| ~~L18~~ | ~~`AboutWindow` version falls back to hardcoded "1.0.0"~~ | ✅ Done — PR #16 |
+| ~~L19~~ | ~~`StartupService.Enable` uses `OpenSubKey` instead of `CreateSubKey`~~ | ✅ Done — PR #14 |
+| L20 | No SHA256 checksums published with binaries | Release pipeline |
+
+### TECHNICAL DEBT
+
+| # | Item |
+|---|------|
+| ~~TD1~~ | ~~No test project — zero automated test coverage~~ | ✅ Done — PR #33 |
+| TD2 | No `IAudioService` / `IConfigService` interfaces preventing testability |
+| TD3 | `App.xaml.cs` has too many responsibilities (God Class) |
+| TD4 | No `IDialogService` abstraction — ViewModel/View tightly coupled |
+| ~~TD5~~ | ~~Two separate duplicate log implementations~~ | ✅ Done — Branch 3 (ConfigService.LogError removed; items 1.14 + 9.3) |
+| ~~TD6~~ | ~~`RunOnSta` pattern creates/destroys OS threads per operation~~ | ✅ Done — fix/reliability (RunOnSta removed; calls use Task.Run at call sites) |
+| TD7 | No CI/CD pipeline configured |
+
+### REFACTORING OPPORTUNITIES
+
+| # | Opportunity |
+|---|-------------|
+| ~~R1~~ | ~~Move all button/control styles to `App.xaml`~~ | ✅ Done — fix/settings-ux-3 |
+| R2 | Extract `ProfileSwitchOrchestrator` from `App.xaml.cs` |
+| ~~R3~~ | ~~Replace `RunOnSta` with a persistent STA pump thread in `AudioService`~~ | ✅ Done (partially — RunOnSta removed; using Task.Run at call sites) — fix/reliability |
+| ~~R4~~ | ~~Share one device enumeration result across all profile cards~~ | ✅ Done — Branch 5 (LoadDevicesAsync enumerates once, passes result to all cards) |
+| ~~R5~~ | ~~Incremental `ContextMenu` update instead of full rebuild on every switch~~ | ✅ Done — PR #27 (SetActiveProfile flips IsChecked only; RebuildMenu called only on config changes) |
+| ~~R6~~ | ~~Replace Newtonsoft.Json with `System.Text.Json` (built-in, faster, no NuGet dependency)~~ | ✅ Done — PR #29 |
+
+### FEATURE ADDITIONS (post-v1.0.0)
+
+| # | Feature |
+|---|---------|
+| F1 | Import/export `config.json` via Settings for backup and sharing |
+| F2 | Drag-and-drop profile reorder |
+| F3 | "Test sound" button to verify active device plays audio |
+| F4 | Middle-click tray to toggle between last two profiles |
+| F5 | Hotkey cheat sheet in tray tooltip |
+| ~~F6~~ | ~~Re-apply active profile on system resume from sleep/hibernate~~ | ✅ Done — PR #18 |
+| ~~F7~~ | ~~`IMMNotificationClient` for real-time device plug/unplug in Settings~~ | ✅ Done — PR #30 |
+| F8 | Auto-updater with GitHub Releases version check |
+| F9 | Windows 11 Action Center rich notifications |
+| F10 | Per-profile volume level (set device default volume when switching) |
+| F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
+| F12 | Command-line interface: `AudioSwitcherCustom.exe --switch "Profile Name"` |
+| F13 | Portable mode (`--portable` flag storing config next to exe) |
+| F14 | System tray scroll wheel for volume control |
+| ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
+| F16 | Dark mode + high-contrast mode (L17) — use `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting; no separate high-contrast branch needed |
+| F17 | Built-in profile icons — GDI+-generated icons (speaker, headset, microphone, etc.) with an in-app gallery picker; Browse button stays alongside "Choose Built-in" |
+| F18 | Field feedback — green border flash when a field change is saved; inline validation message for invalid input |
+| F19 | In-app help — F1 key handler and "?" button opening a help panel with getting-started walkthrough |
+| F20 | Pre-made profile names — quick-pick name suggestions ("Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", "Speakers", etc.) shown as chips or a dropdown below the name field; pairs with F17 built-in icons for a zero-typing onboarding path |
+| F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
+| F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
+
+---
+
+## SUMMARY COUNT
+
+| Category | Total | Fixed | Remaining |
+|----------|-------|-------|-----------|
+| Critical | 9 | 7 | 2 (C2, C3) |
+| High | 10 | 10 | 0 |
+| Medium | 14 | 12 | 2 (M6, M11) |
+| Low | 20 | 18 | 2 (L17, L20) |
+| Technical Debt | 7 | 3 | 4 |
+| Refactoring Opportunities | 6 | 5 | 1 |
+| Feature Additions | 22 | 3 | 19 |
+| **Total** | **88** | **58** | **30** |
+
+---
+
+*The most impactful remaining items before any public release: C2/C3 (installer + code signing), H8 (device hotplug), M5 (PropVariant struct size), M6 (MVVM / IDialogService), M11 (profile drag-to-reorder).*
+
+---
+
+## SECTION 12 — BRANCH EXECUTION PLAN
+
+This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
+
+**Explicitly deferred (not in any branch):**
+C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), TD2–TD4/TD7 (planned in Branches 17–20), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
+
+---
+
+### ~~Branch 1: `fix/hotkey-reliability`~~ ✅ Merged — PR #13
+**Theme:** Hotkeys silently failing, conflict dropping all registrations, inconsistent constant definitions.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| H7 | First conflict drops ALL hotkeys including non-conflicting ones | ✅ Done |
+| 1.19 | Empty catch in `RegisterProfile` swallows `HotkeyConflictException` silently | ✅ Done |
+| 1.20 | No `VirtualKeyCode` range validation before `RegisterHotKey` | ✅ Done |
+| L1 / 3.7 | `HotkeyDefinition` hardcodes modifier literals — reference `WinApi.MOD_*` | ✅ Done |
+| L3 | `HotkeyService.Refresh` is a trivial alias for `RegisterAll` — remove | ✅ Done |
+| L16 | `GlobalAddAtom` declared as `int` instead of correct `ushort` ATOM | ✅ Done |
+| 3.15 | Blanket `catch` in `HotkeyDefinition.ToDisplayString` — method never throws, remove catch | ✅ Done |
+
+---
+
+### ~~Branch 2: `fix/startup-and-exceptions`~~ ✅ Merged — PR #14
+**Theme:** Silent failures at startup, swallowed exceptions, misleading error messages.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| H2 / L19 | `StartupService.Enable` uses `OpenSubKey` (null if absent) — "Start with Windows" silently never writes | ✅ Done |
+| 3.2 | `StartWithWindows` checkbox reads from JSON not actual registry — can show wrong state | ✅ Done |
+| M15 / 1.22 | `DispatcherUnhandledException` swallows everything — only recover what is recoverable | ✅ Done |
+| 1.4 | Add `TaskScheduler.UnobservedTaskException` handler; fix misleading comment | ✅ Done |
+| 1.5 | Error balloon shows outer exception message — prefer `InnerException?.Message` | ✅ Done |
+| L13 | Misleading comment on `UnhandledException` handler | ✅ Done |
+| 3.13 | `ConfigService._config` not `volatile` | ✅ Done |
+
+*Also completed in this branch: M9 (sleep/resume re-apply), M8 (double Task.Run), 2.8 (O(1) hotkey dispatch).*
+
+---
+
+### ~~Branch 3: `fix/config-data-integrity`~~ ✅ Merged — PR #16
+**Theme:** How config is read, written, stored and validated — serialization, orphaned files, log hygiene.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| M13 / 6.6 | `ProfileMode` enum serializes as integer — add `StringEnumConverter` | ✅ Done |
+| M14 / 6.1 | `ConfigVersion` stored but no migration code — add v1 scaffold | ✅ Done |
+| 6.3 | Config read without file lock — antivirus/backup can cause partial read → wrong `IsFirstRun` | Open (deferred) |
+| 6.4 | No backup copy before overwrite — write `config.json.bak` | ✅ Done |
+| L6 / 6.5 | Orphaned icon files never deleted when profile is deleted or icon changed | ✅ Done |
+| L7 / 6.8 | No max profile name length — `MaxLength="20"` in TextBox | ✅ Done |
+| 1.9 | `BrowseIcon` silently falls back on `File.Copy` failure — log via `AppLogger` | ✅ Done |
+| 1.1 | Icon path not validated against `IconsDir` — canonicalize and assert prefix | Partial (canonicalize done; prefix assertion deferred) |
+| M3 / 9.1 | Log file has no rotation — rotate at 1 MB, keep 2 backups | ✅ Done |
+| M4 / 9.2 | Only `Error` log level — add `Info` and `Warning` overloads | ✅ Done |
+| L18 | `AboutWindow` version fallback hardcoded — use `AssemblyInformationalVersionAttribute` | ✅ Done |
+| 8.6 | `Version` and `AssemblyVersion` in csproj differ — derive both from one property | ✅ Done |
+
+---
+
+### ~~Branch 4: `fix/dpi-and-windows`~~ ✅ Merged — PR #18
+**Theme:** How the app looks and behaves at high DPI, multi-monitor, multi-session, and after sleep.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| H6 | No `app.manifest` with PerMonitorV2 — WPF blurry on secondary monitors | ✅ Done |
+| H4 | Tray icon loaded at 32×32 only — blurry at 192 DPI | ✅ Done |
+| M9 | Active profile not re-applied after sleep/hibernate | ✅ Done |
+| M10 | Single-instance mutex is global — blocks other users on multi-session machines | ✅ Done |
+| L5 / 6.2 | `WindowLeft = -1` sentinel conflicts with valid off-screen coordinates | ✅ Done |
+| 4.17 | Window restore position not clamped to screen boundary | ✅ Done |
+| 5.4 | x64-only build — switch to `AnyCPU` with `Prefer32Bit=false` | ✅ Done |
+
+---
+
+### ~~Branch 5: `fix/tray-and-performance`~~ ✅ Merged — PR #19
+**Theme:** Performance and memory correctness of the tray menu and Settings window.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| H1 / 2.1 / 4.1 | Device enumeration blocks UI thread — enumerate once async in `SettingsViewModel`, share across cards | ✅ Done |
+| M2 / 2.3 | `RebuildMenu` reads icon file from disk on every profile switch — cache `ImageSource` per profile | ✅ Done |
+| 1.12 | Old `ContextMenu` objects abandoned on every rebuild — repopulate existing instead | ✅ Done |
+| M8 / 2.5 | Double `Task.Run` wrapping in `SwitchToProfile` | ✅ Done |
+| 2.6 | `ObservableCollection` fires `CollectionChanged` per item during load | ✅ Done |
+| 2.8 | Linear LINQ scan on every `WM_HOTKEY` — use `Dictionary<Guid, DeviceProfile>` | ✅ Done |
+| L11 / 3.6 | COM `store` object not released in `finally` in `GetDeviceInfo` | ✅ Done |
+| L12 / 1.11 | `_defaultIcon` static never disposed — register `AppDomain.ProcessExit` cleanup | ✅ Done |
+| M5 / 1.15 | `PropVariant` struct declared at 16 bytes; x64 PROPVARIANT is 24 — add padding | Open (deferred) |
+
+---
+
+### ~~Branch 6: `fix/settings-ux`~~ ✅ Merged — PR #17
+**Theme:** Small UX improvements to the Settings window — all visible to the user on daily use.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| L14 / 4.3 | Profile name lost if window closed immediately after typing — use `PropertyChanged` | ✅ Done |
+| L9 / 4.4 | No "no profiles yet" message when list is empty | ✅ Done |
+| L8 / 4.10 | Hotkey capture dialog doesn't show held modifiers before final key press | ✅ Done |
+| L10 / 4.5 | Hotkey conflict uses plain Windows `MessageBox` — visually inconsistent | ✅ Done |
+| 4.16 | Delete dialog Cancel button should be `IsDefault` so Enter = cancel, not delete | ✅ Done |
+
+---
+
+### Recommended Execution Order
+
+| # | Branch | Status |
+|---|--------|--------|
+| ~~1~~ | ~~`fix/hotkey-reliability`~~ | ✅ Done — PR #13 |
+| ~~2~~ | ~~`fix/startup-and-exceptions`~~ | ✅ Done — PR #14 |
+| ~~3~~ | ~~`fix/config-data-integrity`~~ | ✅ Done — PR #16 |
+| ~~4~~ | ~~`fix/settings-ux`~~ | ✅ Done — PR #17 |
+| ~~5~~ | ~~`fix/dpi-and-windows`~~ | ✅ Done — PR #18 |
+| ~~6~~ | ~~`fix/tray-and-performance`~~ | ✅ Done — PR #19 |
+| ~~7~~ | ~~`feat/error-codes-and-logs`~~ | ✅ Done — PR #20 |
+| ~~8~~ | ~~`fix/polish-and-compat`~~ | ✅ Done — icon path safety, popup Escape, sound link, JSON cleanup, exe icon, diagnostics, docs |
+| ~~9~~ | ~~`fix/reliability`~~ | ✅ Done — RunOnSta removed, startup registry self-repair |
+| ~~10~~ | ~~`fix/settings-ux-3`~~ | ✅ Done — toggle switches, sound panel toggle, (None) device, hotkey in tray, styles in App.xaml, font consistency |
+| ~~11~~ | ~~`fix/code-quality`~~ | ✅ Done — PR #27 |
+| ~~12~~ | ~~`fix/ux-polish`~~ | ✅ Done — PR #28 |
+| ~~13~~ | ~~`refactor/system-text-json`~~ | ✅ Done — PR #29 |
+| ~~14~~ | ~~`feat/audio-reliability`~~ | ✅ Done — PR #30 |
+| ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Done — PR #31 |
+| ~~16~~ | ~~`test/unit-tests`~~ | ✅ Done — PR #33 |
+| 17 | `refactor/interfaces` | Planned |
+| 18 | `refactor/viewmodel-dialogs` | Planned |
+| 19 | `refactor/god-class` | Planned |
+| 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
+
+---
+
+### ~~Branch 8: `fix/polish-and-compat`~~ ✅ Merged
+**Theme:** Small isolated fixes, diagnostics, and docs — all low-risk and self-contained.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| 1.1 | Assert icon path starts with `ConfigService.IconsDir` after canonicalization | ✅ Done |
+| 4.12 | Escape key closes the icon info popup in Settings | ✅ Done |
+| 5.6 | Try `ms-settings:sound` before falling back to `control.exe` | ✅ Done |
+| 6.7 | Skip serializing `HotkeyDefinition` when `VirtualKeyCode == 0` | ✅ Done |
+| H9 / 8.5 | Add `<ApplicationIcon>` to csproj so exe shows app icon in Explorer | ✅ Done |
+| 9.8 | "Copy Diagnostic Info" button in About window (OS, .NET, device count, log path) | ✅ Done |
+| 10.4 | Create `CONTRIBUTING.md` with architecture overview and build instructions | ✅ Done |
+| 10.7 | Add build prerequisites and `dotnet publish` command to `README.md` | ✅ Done |
+
+---
+
+### ~~Branch 9: `fix/reliability`~~ ✅ Merged
+**Theme:** Correctness fixes — addresses real failure paths.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| 2.4 | Remove `RunOnSta` — `EnumerateDevices` called directly from `Task.Run`; `ApplyProfileAsync` uses `Task.Run` at call site | ✅ Done |
+| 5.10 | `RefreshRegistryPath()` in `StartupService` — silently corrects startup registry path on every launch | ✅ Done |
+
+*Deferred from original plan: 6.3 (config file lock), 1.15 (PropVariant 24 bytes), 1.7 (hotkey thread assertion) — all resolved in PR #27.*
+
+---
+
+### ~~Branch 10: `fix/settings-ux-3`~~ ✅ Merged (PR #26)
+**Theme:** Settings visual polish and UX improvements.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| 3.4 | Move `ActionButton`, `DangerButton`, `PrimaryButton`, `RoundedButtonTemplate` to `Application.Resources` | ✅ Done |
+| 3.4+ | Add `ToggleSwitchStyle` for `CheckBox`; global `Window FontFamily="Segoe UI"` | ✅ Done |
+| 4.9 | Show hotkey in tray profile header (small gray third line below mode label) | ✅ Done |
+| 5.6+ | "Use classic Sound control panel" toggle — tray and Settings button both honour it | ✅ Done |
+| New | "Open Sound Settings" button in Settings footer | ✅ Done |
+| New | "(None)" sentinel as first option in every device dropdown; fallback for disconnected devices | ✅ Done |
+| New | Icon filename: `{sanitized-name}-{8-char-guid}.ico` instead of `{full-guid}.ico` | ✅ Done |
+| New | `ErrorDialog` title corrected from 14 pt to 15 pt | ✅ Done |
+
+*Deferred from original plan: 4.2 (switch loading state), 4.6 (keyboard navigation between cards).*
+
+---
+
+### ~~Branch 11: `fix/code-quality`~~ ✅ Merged — PR #27
+**Theme:** Small correctness fixes — none touch any visible feature.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| 1.7 | `Debug.Assert(Dispatcher.CheckAccess())` in `HotkeyService.TestHotkey` | ✅ Done |
+| 1.15 / M5 | `PropVariant` struct expanded from 16 → 24 bytes (padding field added) | ✅ Done |
+| 3.5 | `ProfileCardViewModel` implements `IDisposable`; `DeleteProfile` calls `Dispose` | ✅ Done |
+| 6.3 | `config.json` opened with `FileShare.ReadWrite` — antivirus/backup reads no longer corrupt parse | ✅ Done |
+| R5 | `SetActiveProfile` flips `IsChecked` only; `RebuildMenu` no longer called on plain switch | ✅ Done |
+| 5.8 | README: Known Limitations section documents RDP hotkey behaviour | ✅ Done |
+
+---
+
+### ~~Branch 12: `fix/ux-polish`~~ ✅ Merged — PR #28
+**Theme:** Switching feedback and keyboard navigation improvements.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| 4.2 | `"Switching to {name}..."` tooltip during async switch; restores correctly on failure | ✅ Done |
+| L15 / 4.6 | `DirectionalNavigation="Contained"` on profile `ItemsControl`; `IsTabStop="False"` on read-only fields | ✅ Done |
+| — | Device selection reverting to (None) after relaunch — `_loadingDevices` guard in `ProfileCardViewModel` | ✅ Done |
+
+---
+
+### ~~Branch 13: `refactor/system-text-json`~~ ✅ Merged — PR #29
+**Theme:** Remove the Newtonsoft.Json NuGet dependency; replace with the built-in System.Text.Json.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| R6 | Replace `JsonConvert.DeserializeObject`/`SerializeObject` with `JsonSerializer`; rewrite `ProfileModeConverter` as `JsonConverter<ProfileMode>`; remove `ShouldSerializeHotkey()` (Newtonsoft-only convention); add `PropertyNameCaseInsensitive = true` to match Newtonsoft defaults; remove package reference | ✅ Done |
+
+---
+
+### ~~Branch 14: `feat/audio-reliability`~~ ✅ Merged — PR #30
+**Theme:** Live device refresh on plug/unplug and Windows Audio service failure detection.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| H8 / 5.3 | `IMMNotificationClient` — debounces device add/remove/state-change events into a single `DevicesChanged` event after 500 ms; `SettingsViewModel` subscribes and refreshes dropdowns without requiring a Settings restart | ✅ Done |
+| 5.7 | Detect `HRESULT 0x80070424` (Windows Audio service stopped) and record VS-027 with a clear error message instead of an unhandled COM exception | ✅ Done |
+
+---
+
+### ~~Branch 15: `fix/keyboard-nav-focus`~~ ✅ Merged — PR #31
+**Theme:** Keyboard navigation visibility and hotkey dialog Tab capture.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| — | `Key.Tab` (plus Apps, Pause, PrintScreen, Scroll) excluded from hotkey capture — no longer assignable as a global hotkey; Tab now navigates between dialog buttons | ✅ Done |
+| — | `ToggleSwitchStyle`: `FocusRing` wrapper border + `IsKeyboardFocused` trigger shows a blue ring around the pill when focused via Tab | ✅ Done |
+| — | `ActionButton`, `DangerButton`, `PrimaryButton`: `IsFocused` trigger highlights the border in the matching accent colour so Tab focus is visible on all buttons | ✅ Done |
+
+---
+
+### ~~Branch 16: `test/unit-tests`~~ ✅ Merged — PR #33
+**Theme:** Create the test project and write pure-logic unit tests — zero risk to the running app.
+
+| Item | Tests | Status |
+|------|-------|--------|
+| TD1 | Create `VibeSwitcher.Tests` xUnit project; add project reference; 69 tests pass | ✅ Done |
+| 7.2 | `ConfigService`: load/save round-trip, corrupt+backup recovery, Migrate(), FileShare.ReadWrite concurrent read, atomic `.tmp` write (9 tests) | ✅ Done |
+| 7.3 | `HotkeyDefinition`: `GetModifierFlags()` bitmask, `ToDisplayString()` "(none)", `IsEmpty`, `IsValid` range (16 tests) | ✅ Done |
+| 7.7 | `IconHelper`: null/empty path returns default, outside-dir rejected, traversal canonicalized (5 tests) | ✅ Done |
+| 7.12 | `AppLogger`: rotation trigger at 1 MB, `.1`/`.2` backup chain, non-fatal on locked file, level prefixes (8 tests) | ✅ Done |
+| 7.13 | `SessionErrorTracker`: 10-thread concurrent `Record()`, `ErrorAdded` fires once, `Errors` snapshot immutability, `HasErrors` (8 tests) | ✅ Done |
+| 7.14 | `ErrorCode`: `ToCode()` format for all 28 codes, integer uniqueness across all values (7 tests) | ✅ Done |
+| 7.15 | `DeviceNotificationClient`: debounce coalesces 5 rapid calls into 1 fire, second schedule cancels first, no-op callbacks (7 tests) | ✅ Done |
+
+Production enablers (no behavior change): ConfigService baseDir injection, AppLogger `_logPathOverride`, SessionErrorTracker `Reset()`, DeviceNotificationClient debounce injectable, `InternalsVisibleTo`, IconHelper.LoadIcon takes explicit iconsDir param.
+
+*StartupService (7.4), HotkeyService (7.6), and ViewModel tests (7.5) deferred to Branches 17–18 (require interfaces first).*
+
+---
+
+### Branch 17: `refactor/interfaces`
+**Theme:** Extract interfaces for every service — pure additive, no behavior change. Enables safe mocking in Branches 18–19.
+
+| Interface | Methods / Events | Implemented by |
+|-----------|-----------------|---------------|
+| `IAudioService` | `GetPlaybackDevices()`, `GetRecordingDevices()`, `ApplyProfileAsync()`, `DevicesChanged`, `Dispose()` | `AudioService` |
+| `IConfigService` | `Load()`, `SaveImmediate()`, `Current`, `IsFirstRun`, `IconsDir` | `ConfigService` |
+| `IStartupService` | `Enable()`, `Disable()`, `IsStartupEnabled()`, `RefreshRegistryPath()` | `StartupService` |
+| `IHotkeyService` | `RegisterAll()`, `UnregisterAll()`, `HandleHotkey()`, `TestHotkey()` | `HotkeyService` |
+| `IDialogService` | `ShowHotkeyCaptureDialog(current)`, `ShowConfirmDeleteDialog(name)`, `ShowProfileTypeDialog()`, `BrowseIconDialog()` | New `DialogService` class |
+
+After this branch: `SettingsViewModel`, `ProfileCardViewModel`, `App.xaml.cs` all reference only interfaces. A new `DialogService` concrete class wraps the actual WPF dialog calls that currently live inline in the ViewModels.
+
+Add to test project:
+- `FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService` stubs
+- `StartupService` tests (7.4) now possible via `IStartupService`
+- `HotkeyService` tests (7.6) now possible via `IHotkeyService`
+
+---
+
+### Branch 18: `refactor/viewmodel-dialogs`
+**Theme:** Replace direct dialog instantiation in ViewModels with `IDialogService` — resolves M6/TD4.
+
+| Item | Change |
+|------|--------|
+| M6 / TD4 | `ProfileCardViewModel`: inject `IDialogService`; replace `new HotkeyCaptureDialog(...)`, `new ConfirmDeleteDialog(...)`, `new OpenFileDialog()` with service calls |
+| M6 / TD4 | `SettingsViewModel`: inject `IDialogService`; replace `new ProfileTypeDialog()` with service call |
+| — | `SettingsWindow.xaml.cs`: construct `DialogService` and pass it through |
+| 7.5 / 7.6 | Add `SettingsViewModel` and `ProfileCardViewModel` unit tests using fake services |
+
+---
+
+### Branch 19: `refactor/god-class`
+**Theme:** Split `App.xaml.cs` — resolves TD3/R2. Do last; has the most wiring to preserve.
+
+| Item | Change |
+|------|--------|
+| TD3 / R2 | Extract `ProfileSwitchOrchestrator`: owns `SwitchToProfile()`, `OnPowerModeChanged()`, startup profile re-apply, tray feedback on switch |
+| TD3 | Extract `AppWindowManager`: owns `OpenSettingsWindow()`, `OpenAboutWindow()` |
+| — | `App.xaml.cs` becomes a thin bootstrapper: constructs services, wires orchestrator and window manager, handles `OnStartup`/`OnExit` |
+| — | Regression test: run full manual checklist (7.9) after this branch — highest-risk refactor |
+
+---
+
+### Branch 20: `ci/cd-pipeline` *(independent — can run any time after Branch 16)*
+**Theme:** GitHub Actions build + test pipeline — resolves TD7.
+
+| Item | Change |
+|------|--------|
+| TD7 | `.github/workflows/ci.yml`: triggers on push/PR to `main`; runs `dotnet build -c Release` and `dotnet test` |
+| — | Add `Microsoft.CodeAnalysis.NetAnalyzers` to csproj for static analysis warnings |
+| — | Release workflow (on tag push): `dotnet publish --self-contained -r win-x64` and upload artifact |
+
+---
+
+**Still deferred (no branch planned):**
+C2/C3 (installer, code signing — external tooling/money), L17/L20 (high-contrast/SHA256 — low priority), 2.7 (GC pressure — minor), 5.9 (mixed-DPI — WPF limitation), 7.8 (UI automation — requires WinAppDriver, out of scope), Sections 8–10 remaining deployment/logging/docs items.

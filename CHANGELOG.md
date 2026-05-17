@@ -7,6 +7,9 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Unit test project** — `VibeSwitcher.Tests` added with 69 tests covering ConfigService (load/save/recovery/migration), HotkeyDefinition (bitmask, display string, validation), SessionErrorTracker (thread-safe concurrent recording, event isolation), ErrorCode (format, uniqueness), AppLogger (rotation, backup chain, non-fatal on locked file), DeviceNotificationClient (debounce coalescing, cancellation), and IconHelper (path rejection, traversal guard); `dotnet test` runs in ~2 seconds *(PR #33)*
+
+### Added
 - **Live device refresh** — Settings device dropdowns update automatically when audio devices are plugged in or removed, without needing to close and reopen the Settings window *(PR #30)*
 - **Switching tooltip** — tray tooltip shows "Switching to {profile}..." while an async profile switch is in progress; restores to the correct profile name on both success and failure *(PR #28)*
 - **Keyboard navigation in Settings** — arrow keys move focus between profile cards; read-only fields (hotkey display, icon path) are excluded from the Tab order *(PR #28)*
