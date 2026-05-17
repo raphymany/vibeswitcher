@@ -216,7 +216,8 @@ public partial class App : Application
     public void OpenAboutWindow()
     {
         var owner = Windows.OfType<SettingsWindow>().FirstOrDefault();
-        var about = new AboutWindow();
+        var profileCount = _configService?.Current.Profiles.Count ?? 0;
+        var about = new AboutWindow(profileCount);
         if (owner != null) about.Owner = owner;
         about.ShowDialog();
     }

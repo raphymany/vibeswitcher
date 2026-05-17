@@ -11,7 +11,12 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Resources\Icons\app.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Icons\app.ico"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="H.NotifyIcon" Version="2.0.*" />

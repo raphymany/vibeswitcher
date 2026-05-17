@@ -25,6 +25,7 @@ public class DeviceProfile
     public ProfileMode Mode { get; set; } = ProfileMode.Both;
 
     public HotkeyDefinition Hotkey { get; set; } = new();
+    public bool ShouldSerializeHotkey() => Hotkey != null && !Hotkey.IsEmpty;
 
     // Absolute path to .ico file; null = use bundled default
     public string? IconPath { get; set; }

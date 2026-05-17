@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
@@ -148,7 +149,41 @@ public partial class SettingsWindow : Window
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape) Close();
+        if (e.Key == Key.Escape)
+        {
+            // Close any open icon-info popup first; only close the window if none were open.
+            if (CloseOpenIconPopups())
+            {
+                e.Handled = true;
+                return;
+            }
+            Close();
+        }
+    }
+
+    private bool CloseOpenIconPopups()
+    {
+        var closed = false;
+        foreach (var toggle in FindVisualChildren<ToggleButton>(this))
+        {
+            if (toggle.Name == "IconInfoToggle" && toggle.IsChecked == true)
+            {
+                toggle.IsChecked = false;
+                closed = true;
+            }
+        }
+        return closed;
+    }
+
+    private static IEnumerable<T> FindVisualChildren<T>(System.Windows.DependencyObject parent) where T : System.Windows.DependencyObject
+    {
+        for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = System.Windows.Media.VisualTreeHelper.GetChild(parent, i);
+            if (child is T t) yield return t;
+            foreach (var grandchild in FindVisualChildren<T>(child))
+                yield return grandchild;
+        }
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
