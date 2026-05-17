@@ -43,18 +43,11 @@ Fix: drag handles (Spotify-style, 3-line grip on left of card).
 **4.8 — No "Test Sound" button** *(Low)*
 Users cannot verify the correct device is active without switching away.
 
-**4.11 — Dark mode not supported** *(Feature)*
-All colors hardcoded as light-mode hex values. On Windows dark mode, windows look out of place.
-Fix: use `SystemColors` brushes or a theme resource dictionary.
-
 **4.13 — No config import/export** *(Low)*
 Users cannot back up or transfer their profiles.
 
 **4.14 — No middle-click tray handler** *(Low)*
 Convention: middle-click toggles between last two profiles.
-
-**4.15 — No high-contrast mode support** *(Low)*
-Custom-styled controls do not respond to Windows High Contrast mode.
 
 ---
 
@@ -142,7 +135,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Issue | Location |
 |---|-------|----------|
-| L17 | No high-contrast mode support | All XAML |
+| L17 | Dark mode + high-contrast mode — see F16 (same feature) | All XAML |
 | L20 | No SHA256 checksums published with binaries | Release pipeline |
 
 ### TECHNICAL DEBT
@@ -177,7 +170,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | F12 | Command-line interface: `VibeSwitcher.exe --switch "Profile Name"` |
 | F13 | Portable mode (`--portable` flag storing config next to exe) |
 | F14 | System tray scroll wheel for volume control |
-| F16 | Dark mode / Windows theme support |
+| F16 | Dark mode + high-contrast mode (covers L17) — `SystemColors` brushes to follow OS light/dark/high-contrast setting |
 | F17 | Built-in profile icons gallery picker |
 | F18 | Field feedback — green border flash when a field change is saved |
 | F19 | In-app help — F1 key handler and "?" button with getting-started walkthrough |
