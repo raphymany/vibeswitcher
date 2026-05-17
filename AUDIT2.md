@@ -60,9 +60,6 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 
 ## SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY
 
-**5.8 — RDP hotkey behavior not documented** *(Low)*
-`RegisterHotKey` in an RDP session acts on the local machine, not the remote. Document this limitation.
-
 **5.9 — Mixed-DPI multi-monitor window position inaccuracy** *(Low)*
 `Views/SettingsWindow.xaml.cs` — Known WPF limitation with mixed-DPI setups.
 
@@ -187,24 +184,6 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | F20 | Pre-made profile name suggestions — chips or dropdown with "Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", etc.; pairs with F17 for a zero-typing onboarding path |
 | F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
-
----
-
-## SECTION 12 — BRANCH PLAN
-
-### Planned branches (not yet started)
-
----
-
-~~**Branch E: `fix/ux-polish`**~~ ✅ Merged — PR #28
-
----
-
-~~**Branch F: `refactor/system-text-json`**~~ ✅ Merged — PR #29
-
----
-
-~~**Branch G: `feat/audio-reliability`**~~ ✅ Merged — PR #30
 
 ---
 
