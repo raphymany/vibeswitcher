@@ -12,6 +12,8 @@ namespace VibeSwitcher.ViewModels;
 
 public class ProfileCardViewModel : ViewModelBase
 {
+    private static readonly AudioDeviceInfo NoneDevice = new AudioDeviceInfo("", "(None)", false);
+
     private readonly DeviceProfile _model;
     private readonly ConfigService _configService;
     private readonly HotkeyService _hotkeyService;
@@ -64,7 +66,7 @@ public class ProfileCardViewModel : ViewModelBase
         {
             if (SetField(ref _selectedPlaybackDevice, value))
             {
-                _model.PlaybackDeviceId = value?.Id;
+                _model.PlaybackDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
                 _onChanged(this);
             }
         }
@@ -77,7 +79,7 @@ public class ProfileCardViewModel : ViewModelBase
         {
             if (SetField(ref _selectedRecordingDevice, value))
             {
-                _model.RecordingDeviceId = value?.Id;
+                _model.RecordingDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
                 _onChanged(this);
             }
         }
@@ -132,11 +134,17 @@ public class ProfileCardViewModel : ViewModelBase
         _hotkeyDisplay = model.Hotkey.ToDisplayString();
         _iconPath = model.IconPath;
 
-        PlaybackDevices = new ObservableCollection<AudioDeviceInfo>(playbackDevices);
-        RecordingDevices = new ObservableCollection<AudioDeviceInfo>(recordingDevices);
+        PlaybackDevices = new ObservableCollection<AudioDeviceInfo> { NoneDevice };
+        foreach (var d in playbackDevices) PlaybackDevices.Add(d);
+        RecordingDevices = new ObservableCollection<AudioDeviceInfo> { NoneDevice };
+        foreach (var d in recordingDevices) RecordingDevices.Add(d);
 
-        _selectedPlaybackDevice = PlaybackDevices.FirstOrDefault(d => d.Id == model.PlaybackDeviceId);
-        _selectedRecordingDevice = RecordingDevices.FirstOrDefault(d => d.Id == model.RecordingDeviceId);
+        _selectedPlaybackDevice = string.IsNullOrEmpty(model.PlaybackDeviceId)
+            ? NoneDevice
+            : PlaybackDevices.FirstOrDefault(d => d.Id == model.PlaybackDeviceId) ?? NoneDevice;
+        _selectedRecordingDevice = string.IsNullOrEmpty(model.RecordingDeviceId)
+            ? NoneDevice
+            : RecordingDevices.FirstOrDefault(d => d.Id == model.RecordingDeviceId) ?? NoneDevice;
 
         UpdateIconPreview();
 
@@ -150,12 +158,18 @@ public class ProfileCardViewModel : ViewModelBase
     public void LoadDevices(IReadOnlyList<AudioDeviceInfo> playback, IReadOnlyList<AudioDeviceInfo> recording)
     {
         PlaybackDevices.Clear();
+        PlaybackDevices.Add(NoneDevice);
         foreach (var d in playback) PlaybackDevices.Add(d);
         RecordingDevices.Clear();
+        RecordingDevices.Add(NoneDevice);
         foreach (var d in recording) RecordingDevices.Add(d);
 
-        _selectedPlaybackDevice  = PlaybackDevices.FirstOrDefault(d => d.Id == _model.PlaybackDeviceId);
-        _selectedRecordingDevice = RecordingDevices.FirstOrDefault(d => d.Id == _model.RecordingDeviceId);
+        _selectedPlaybackDevice = string.IsNullOrEmpty(_model.PlaybackDeviceId)
+            ? NoneDevice
+            : PlaybackDevices.FirstOrDefault(d => d.Id == _model.PlaybackDeviceId) ?? NoneDevice;
+        _selectedRecordingDevice = string.IsNullOrEmpty(_model.RecordingDeviceId)
+            ? NoneDevice
+            : RecordingDevices.FirstOrDefault(d => d.Id == _model.RecordingDeviceId) ?? NoneDevice;
         OnPropertyChanged(nameof(SelectedPlaybackDevice));
         OnPropertyChanged(nameof(SelectedRecordingDevice));
     }
@@ -208,7 +222,9 @@ public class ProfileCardViewModel : ViewModelBase
         if (dialog.ShowDialog() != true) return;
 
         var source = dialog.FileName;
-        var dest = System.IO.Path.Combine(ConfigService.IconsDir, $"{_model.Id}.ico");
+        var namePrefix = SanitizeName(_model.Name);
+        var guidPrefix = _model.Id.ToString("N")[..8];
+        var dest = System.IO.Path.Combine(ConfigService.IconsDir, $"{namePrefix}-{guidPrefix}.ico");
 
         if (!string.Equals(source, dest, StringComparison.OrdinalIgnoreCase))
         {
@@ -257,6 +273,13 @@ public class ProfileCardViewModel : ViewModelBase
         };
         if (dialog.ShowDialog() == true)
             _onDelete(this);
+    }
+
+    private static string SanitizeName(string name)
+    {
+        var invalid = System.IO.Path.GetInvalidFileNameChars();
+        var sanitized = string.Concat(name.Select(c => Array.IndexOf(invalid, c) >= 0 ? '_' : c));
+        return sanitized.Length > 20 ? sanitized[..20] : sanitized;
     }
 
     private void UpdateIconPreview()
