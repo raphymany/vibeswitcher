@@ -295,10 +295,8 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 **~~7.4 — Suggested unit tests for `StartupService`~~** ✅ Done — PR #35
 4 integration tests (Enable/Disable round-trip, idempotency) with safe HKCU registry save/restore in IDisposable.
 
-**7.5 — Suggested integration tests for `AudioService`**
-- `GetPlaybackDevices()` returns non-empty list on a machine with audio devices
-- `ApplyProfileAsync()` returns `MissingPlaybackId` when device ID does not exist
-- `ApplyProfileAsync()` with invalid device ID does not throw unhandled
+**~~7.5 — SettingsViewModel and ProfileCardViewModel unit tests~~** ✅ Done — PR #36
+18 tests using fake service stubs: `SettingsViewModelTests` (7 tests — AddProfile, DeleteProfile, StartWithWindows toggle, hotkey re-registration, each with `_profilesChangedCount` assertion) and `ProfileCardViewModelTests` (11 tests — CaptureHotkey cancel/clear/conflict/success/replace-existing, BrowseIcon cancel/copy-success/copy-failure/same-path-skip, DeleteProfile confirm/cancel). `SettingsViewModel.LoadDevicesAsync` null-guarded for headless test environments. AudioService integration tests against real hardware remain genuinely deferred — no planned branch.
 
 **~~7.6 — Suggested unit tests for `HotkeyService`~~** ✅ Done (partial) — PR #35
 7 tests covering early-return paths (empty/invalid hotkeys, unknown atom lookup, idempotent unregister). Full registration tests require a real Win32 HWND and are deferred.
@@ -725,7 +723,7 @@ C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intention
 | ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Done — PR #31 |
 | ~~16~~ | ~~`test/unit-tests`~~ | ✅ Done — PR #33 |
 | ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Done — PR #35 |
-| 18 | `refactor/viewmodel-dialogs` | Planned |
+| ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Done — PR #36 |
 | 19 | `refactor/god-class` | Planned |
 | 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
 
@@ -848,7 +846,7 @@ C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intention
 
 Production enablers (no behavior change): ConfigService baseDir injection, AppLogger `_logPathOverride`, SessionErrorTracker `Reset()`, DeviceNotificationClient debounce injectable, `InternalsVisibleTo`, IconHelper.LoadIcon takes explicit iconsDir param.
 
-*StartupService (7.4), HotkeyService (7.6), and ViewModel tests (7.5) deferred to Branches 17–18 (require interfaces first).*
+*StartupService (7.4) and HotkeyService (7.6) resolved in PR #35. ViewModel tests (7.5) resolved in PR #36.*
 
 ---
 
@@ -859,15 +857,10 @@ Production enablers (no behavior change): ConfigService baseDir injection, AppLo
 
 ---
 
-### Branch 18: `refactor/viewmodel-dialogs`
+### ~~Branch 18: `refactor/viewmodel-dialogs`~~ ✅ Merged — PR #36
 **Theme:** Add `SettingsViewModel` and `ProfileCardViewModel` unit tests using fake services — resolves 7.5.
 
-M6/TD4 were resolved in Branch 17. This branch is now purely about ViewModel unit tests.
-
-| Item | Change |
-|------|--------|
-| 7.5 | `SettingsViewModel` unit tests: AddProfile, DeleteProfile, StartWithWindows toggle, hotkey re-registration |
-| 7.5 | `ProfileCardViewModel` unit tests: CaptureHotkey (cancel, clear, conflict, success), BrowseIcon (cancel, copy success, copy failure), DeleteProfile (confirm, cancel) |
+18 new tests (80 → 98 total). `SettingsViewModelTests`: AddProfile confirm/cancel, DeleteProfile confirm/cancel, StartWithWindows enable/disable, profile change triggers hotkey re-registration — each mutation test asserts `_profilesChangedCount` fires exactly once. `ProfileCardViewModelTests`: CaptureHotkey cancel/clear/conflict/success/replace-existing, BrowseIcon cancel/copy-success/copy-failure/same-path-skip, DeleteProfile confirm/cancel. Also null-guards `Application.Current?.Dispatcher` in `LoadDevicesAsync` for headless test environments.
 
 ---
 

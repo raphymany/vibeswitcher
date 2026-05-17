@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-17 — reflects all 17 merged branches (PR #35) + v1.1.0 release.
+**Last updated:** 2026-05-18 — reflects all 18 merged branches (PR #36) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -196,7 +196,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Merged — PR #31 |
 | ~~16~~ | ~~`test/unit-tests`~~ | ✅ Merged — PR #33 |
 | ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Merged — PR #35 |
-| 18 | `refactor/viewmodel-dialogs` | Planned |
+| ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Merged — PR #36 |
 | 19 | `refactor/god-class` | Planned |
 | 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
 
@@ -225,13 +225,10 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-### Branch K: `refactor/viewmodel-dialogs`
+### ~~Branch K: `refactor/viewmodel-dialogs`~~ ✅ Merged — PR #36
 **Theme:** Add SettingsViewModel and ProfileCardViewModel unit tests using fake services — resolves 7.5.
 
-M6/TD4 were resolved in Branch J. This branch is now purely about ViewModel unit tests.
-
-- `SettingsViewModel` tests: AddProfile, DeleteProfile, StartWithWindows toggle, hotkey re-registration
-- `ProfileCardViewModel` tests: CaptureHotkey (cancel, clear, conflict, success), BrowseIcon (cancel, copy success, copy failure), DeleteProfile (confirm, cancel)
+18 new tests (80 → 98 total). `SettingsViewModelTests`: AddProfile, DeleteProfile, StartWithWindows, hotkey re-registration, each mutation asserts `_profilesChangedCount` fires once. `ProfileCardViewModelTests`: CaptureHotkey cancel/clear/conflict/success/replace-existing, BrowseIcon cancel/success/failure/same-path-skip, DeleteProfile confirm/cancel. Also null-guards `Application.Current?.Dispatcher` in `LoadDevicesAsync` for headless environments.
 
 ---
 
