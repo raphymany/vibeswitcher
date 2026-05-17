@@ -10,6 +10,9 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Switching tooltip** — tray tooltip shows "Switching to {profile}..." while an async profile switch is in progress; restores to the correct profile name on both success and failure *(PR #28)*
 - **Keyboard navigation in Settings** — arrow keys move focus between profile cards; read-only fields (hotkey display, icon path) are excluded from the Tab order *(PR #28)*
 
+### Changed
+- **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `ProfileModeConverter` rewritten to handle both string names and legacy integer values; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
+
 ### Fixed
 - **Device selection persists across relaunches** — selected playback and recording devices no longer revert to "(None)" on the next app launch; a `_loadingDevices` guard prevents the TwoWay ComboBox binding from writing null into the model during the async device list refresh *(PR #28)*
 - **Switching tooltip correctly restored on failure** — if a profile switch fails, both the tray tooltip and icon are restored to the previously-active profile instead of staying on "Switching..." *(PR #28)*

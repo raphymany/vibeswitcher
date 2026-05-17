@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-17 — reflects all 12 merged branches (PR #28) + v1.1.0 release.
+**Last updated:** 2026-05-17 — reflects all 13 merged branches (PR #29) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -172,7 +172,6 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | # | Opportunity |
 |---|-------------|
 | R2 | Extract `ProfileSwitchOrchestrator` from `App.xaml.cs` |
-| R6 | Replace Newtonsoft.Json with `System.Text.Json` (built-in, faster, no NuGet dependency) |
 
 ### FEATURE ADDITIONS (post-v1.0.0)
 
@@ -211,12 +210,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-**Branch F: `refactor/system-text-json`**
-Remove the Newtonsoft.Json NuGet dependency and replace with the built-in `System.Text.Json`.
-
-| Item | Fix |
-|------|-----|
-| R6 | Replace all `JsonConvert` calls with `System.Text.Json` equivalents; remove `Newtonsoft.Json` package reference; ensure enum/custom converters are rewritten |
+~~**Branch F: `refactor/system-text-json`**~~ ✅ Merged — PR #29
 
 ---
 
