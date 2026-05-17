@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using VibeSwitcher.Services;
 
 namespace VibeSwitcher.Helpers;
 
@@ -17,7 +16,7 @@ public static class IconHelper
         AppDomain.CurrentDomain.ProcessExit += (_, _) => _defaultIcon?.Dispose();
     }
 
-    public static Icon LoadIcon(string? iconPath)
+    public static Icon LoadIcon(string? iconPath, string iconsDir)
     {
         if (!string.IsNullOrEmpty(iconPath))
         {
@@ -27,7 +26,7 @@ public static class IconHelper
                 var canonical = Path.GetFullPath(iconPath);
 
                 // Reject paths outside the managed icons directory — prevents path traversal.
-                if (!canonical.StartsWith(ConfigService.IconsDir, StringComparison.OrdinalIgnoreCase))
+                if (!canonical.StartsWith(iconsDir, StringComparison.OrdinalIgnoreCase))
                 {
                     AppLogger.Warning("IconHelper.LoadIcon", $"Rejected icon path outside icons directory: '{canonical}'");
                     SessionErrorTracker.Record(ErrorCode.IconLoadFailed, "Icon Path Rejected",

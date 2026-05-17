@@ -7,14 +7,15 @@ namespace VibeSwitcher.Services;
 
 public class ConfigService
 {
-    private static readonly string ConfigDir =
+    private static readonly string DefaultConfigDir =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher");
 
-    public static readonly string IconsDir = Path.Combine(ConfigDir, "Icons");
+    private readonly string _configDir;
+    private readonly string _configPath;
+    private readonly string _configBakPath;
+    private readonly string _configTmpPath;
 
-    private static readonly string ConfigPath    = Path.Combine(ConfigDir, "config.json");
-    private static readonly string ConfigBakPath = Path.Combine(ConfigDir, "config.json.bak");
-    private static readonly string ConfigTmpPath = Path.Combine(ConfigDir, "config.json.tmp");
+    public string IconsDir { get; }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -25,6 +26,15 @@ public class ConfigService
     private volatile AppConfig _config = new();
     private readonly object _saveLock = new();
 
+    public ConfigService(string? baseDir = null)
+    {
+        _configDir    = baseDir ?? DefaultConfigDir;
+        IconsDir      = Path.Combine(_configDir, "Icons");
+        _configPath   = Path.Combine(_configDir, "config.json");
+        _configBakPath = Path.Combine(_configDir, "config.json.bak");
+        _configTmpPath = Path.Combine(_configDir, "config.json.tmp");
+    }
+
     public AppConfig Current => _config;
     public bool IsFirstRun { get; private set; }
 
@@ -32,26 +42,26 @@ public class ConfigService
     {
         try
         {
-            Directory.CreateDirectory(ConfigDir);
+            Directory.CreateDirectory(_configDir);
         }
         catch (Exception ex)
         {
             AppLogger.Error("ConfigService.Load", ex);
             SessionErrorTracker.Record(ErrorCode.ConfigDirCreateFailed, "Config Directory Error",
-                $"Could not create config directory at '{ConfigDir}': {ex.Message}");
+                $"Could not create config directory at '{_configDir}': {ex.Message}");
             IsFirstRun = true;
             _config = new AppConfig();
             return;
         }
 
-        if (!File.Exists(ConfigPath))
+        if (!File.Exists(_configPath))
         {
             IsFirstRun = true;
             _config = new AppConfig();
             return;
         }
 
-        if (TryLoad(ConfigPath, out var loaded))
+        if (TryLoad(_configPath, out var loaded))
         {
             _config = loaded!;
             _config.Profiles ??= new();
@@ -61,7 +71,7 @@ public class ConfigService
 
         AppLogger.Warning("ConfigService.Load", "Primary config corrupted, trying backup");
 
-        if (File.Exists(ConfigBakPath) && TryLoad(ConfigBakPath, out loaded))
+        if (File.Exists(_configBakPath) && TryLoad(_configBakPath, out loaded))
         {
             _config = loaded!;
             _config.Profiles ??= new();
@@ -114,15 +124,14 @@ public class ConfigService
         {
             try
             {
-                Directory.CreateDirectory(ConfigDir);
+                Directory.CreateDirectory(_configDir);
 
-                // Back up the current good config before overwriting
-                if (File.Exists(ConfigPath))
-                    File.Copy(ConfigPath, ConfigBakPath, overwrite: true);
+                if (File.Exists(_configPath))
+                    File.Copy(_configPath, _configBakPath, overwrite: true);
 
                 var json = JsonSerializer.Serialize(config, JsonOptions);
-                File.WriteAllText(ConfigTmpPath, json);
-                File.Move(ConfigTmpPath, ConfigPath, overwrite: true);
+                File.WriteAllText(_configTmpPath, json);
+                File.Move(_configTmpPath, _configPath, overwrite: true);
             }
             catch (Exception ex)
             {

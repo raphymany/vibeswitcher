@@ -9,9 +9,15 @@ namespace VibeSwitcher.Services;
 internal sealed class DeviceNotificationClient : IMMNotificationClient
 {
     private readonly object _lock = new();
+    private readonly TimeSpan _debounceInterval;
     private CancellationTokenSource? _debounce;
 
     public event Action? DevicesChanged;
+
+    public DeviceNotificationClient(TimeSpan? debounceInterval = null)
+    {
+        _debounceInterval = debounceInterval ?? TimeSpan.FromMilliseconds(500);
+    }
 
     public void OnDeviceStateChanged(string deviceId, AudioDeviceState newState) => Schedule();
     public void OnDeviceAdded(string deviceId) => Schedule();
@@ -28,7 +34,7 @@ internal sealed class DeviceNotificationClient : IMMNotificationClient
             _debounce?.Dispose();
             _debounce = cts = new CancellationTokenSource();
         }
-        _ = Task.Delay(500, cts.Token).ContinueWith(
+        _ = Task.Delay(_debounceInterval, cts.Token).ContinueWith(
             t => { if (!t.IsCanceled) DevicesChanged?.Invoke(); },
             TaskContinuationOptions.ExecuteSynchronously);
     }

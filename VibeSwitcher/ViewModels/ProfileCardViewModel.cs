@@ -235,13 +235,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var source = dialog.FileName;
         var namePrefix = SanitizeName(_model.Name);
         var guidPrefix = _model.Id.ToString("N")[..8];
-        var dest = System.IO.Path.Combine(ConfigService.IconsDir, $"{namePrefix}-{guidPrefix}.ico");
+        var dest = System.IO.Path.Combine(_configService.IconsDir, $"{namePrefix}-{guidPrefix}.ico");
 
         if (!string.Equals(source, dest, StringComparison.OrdinalIgnoreCase))
         {
             try
             {
-                System.IO.Directory.CreateDirectory(ConfigService.IconsDir);
+                System.IO.Directory.CreateDirectory(_configService.IconsDir);
                 System.IO.File.Copy(source, dest, overwrite: true);
             }
             catch (Exception ex)
@@ -259,7 +259,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         // Delete the old icon from IconsDir if we're replacing it with a new copy
         var previous = _iconPath;
-        var iconsPrefix = ConfigService.IconsDir + System.IO.Path.DirectorySeparatorChar;
+        var iconsPrefix = _configService.IconsDir + System.IO.Path.DirectorySeparatorChar;
         if (!string.IsNullOrEmpty(previous) &&
             previous.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(previous, dest, StringComparison.OrdinalIgnoreCase))
@@ -302,7 +302,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            using var icon = IconHelper.LoadIcon(_iconPath);
+            using var icon = IconHelper.LoadIcon(_iconPath, _configService.IconsDir);
             IconPreview = IconHelper.ToImageSource(icon);
         }
         catch (Exception ex)

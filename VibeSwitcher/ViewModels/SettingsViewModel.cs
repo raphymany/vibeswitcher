@@ -213,15 +213,15 @@ public class SettingsViewModel : ViewModelBase
         _configService.SaveImmediate();
         Profiles.Remove(card);
         card.Dispose();
-        DeleteOrphanedIcon(iconPath);
+        DeleteOrphanedIcon(iconPath, _configService.IconsDir);
         ReregisterHotkeys();
         _onProfilesChanged();
     }
 
-    private static void DeleteOrphanedIcon(string? iconPath)
+    private static void DeleteOrphanedIcon(string? iconPath, string iconsDir)
     {
         if (string.IsNullOrEmpty(iconPath)) return;
-        var prefix = ConfigService.IconsDir + System.IO.Path.DirectorySeparatorChar;
+        var prefix = iconsDir + System.IO.Path.DirectorySeparatorChar;
         if (!iconPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
         try { System.IO.File.Delete(iconPath); }
         catch (Exception ex)

@@ -57,7 +57,7 @@ public class TrayService : IDisposable
     public void UpdateIcon(DeviceProfile? activeProfile)
     {
         var iconPath = activeProfile?.IconPath;
-        var icon = IconHelper.LoadIcon(iconPath);
+        var icon = IconHelper.LoadIcon(iconPath, _configService.IconsDir);
         _taskbarIcon.Icon = icon;
 
         var tooltip = activeProfile != null
@@ -252,7 +252,7 @@ public class TrayService : IDisposable
         {
             if (!_iconCache.TryGetValue(profile.Id, out var src))
             {
-                var ico = IconHelper.LoadIcon(profile.IconPath);
+                var ico = IconHelper.LoadIcon(profile.IconPath, _configService.IconsDir);
                 src = IconHelper.ToImageSource(ico);
                 ico.Dispose();
                 _iconCache[profile.Id] = src;

@@ -8,6 +8,11 @@ public static class AppLogger
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "VibeSwitcher", "error.log");
 
+    // Set by tests only — overrides LogPath for all writes in this process.
+    internal static volatile string? _logPathOverride;
+
+    private static string EffectivePath => _logPathOverride ?? LogPath;
+
     private const long MaxLogBytes = 1 * 1024 * 1024; // 1 MB
     private const int BackupCount = 2;
 
@@ -24,23 +29,24 @@ public static class AppLogger
 
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(LogPath)!);
+            Directory.CreateDirectory(Path.GetDirectoryName(EffectivePath)!);
             RotateIfNeeded();
-            File.AppendAllText(LogPath, line + Environment.NewLine);
+            File.AppendAllText(EffectivePath, line + Environment.NewLine);
         }
         catch { /* log write failure is non-fatal */ }
     }
 
     private static void RotateIfNeeded()
     {
-        if (!File.Exists(LogPath)) return;
-        if (new FileInfo(LogPath).Length < MaxLogBytes) return;
+        var path = EffectivePath;
+        if (!File.Exists(path)) return;
+        if (new FileInfo(path).Length < MaxLogBytes) return;
 
         // Shift backups: .2 → delete, .1 → .2, error.log → .1
         for (int i = BackupCount; i >= 1; i--)
         {
-            var older = $"{LogPath}.{i}";
-            var newer = i == 1 ? LogPath : $"{LogPath}.{i - 1}";
+            var older = $"{path}.{i}";
+            var newer = i == 1 ? path : $"{path}.{i - 1}";
             if (File.Exists(older)) File.Delete(older);
             if (File.Exists(newer)) File.Move(newer, older);
         }
