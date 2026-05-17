@@ -233,7 +233,9 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
             <StackPanel>
 
-                <ItemsControl ItemsSource="{Binding Profiles}">
+                <ItemsControl ItemsSource="{Binding Profiles}"
+                              KeyboardNavigation.DirectionalNavigation="Cycle"
+                              KeyboardNavigation.TabNavigation="Cycle">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:ProfileCardViewModel}">
                             <Border Style="{StaticResource CardBorder}">
@@ -363,6 +365,7 @@
                                     <TextBox Grid.Row="3" Grid.Column="1"
                                              Text="{Binding HotkeyDisplay, Mode=OneWay}"
                                              IsReadOnly="True"
+                                             IsTabStop="False"
                                              Margin="0,0,0,8"/>
                                     <Button Grid.Row="3" Grid.Column="2"
                                             Content="Set Hotkey"
@@ -440,6 +443,7 @@
                                     <TextBox Grid.Row="4" Grid.Column="1"
                                              Text="{Binding IconPath, Mode=OneWay, FallbackValue='(default)'}"
                                              IsReadOnly="True"
+                                             IsTabStop="False"
                                              Margin="0,0,0,12"/>
                                     <StackPanel Grid.Row="4" Grid.Column="2"
                                                 Orientation="Horizontal"

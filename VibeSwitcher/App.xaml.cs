@@ -146,6 +146,7 @@ public partial class App : Application
     // The try/catch ensures exceptions are always handled, so the async void is safe.
     private async void SwitchToProfile(Models.DeviceProfile profile)
     {
+        _trayService!.SetSwitchingTooltip(profile.Name);
         try
         {
             // ApplyProfileAsync already dispatches to an STA background thread internally —

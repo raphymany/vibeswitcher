@@ -161,8 +161,14 @@ public class TrayService : IDisposable
         }
     }
 
+    public void SetSwitchingTooltip(string profileName)
+    {
+        _taskbarIcon.ToolTipText = $"Switching to {profileName}...";
+    }
+
     private async Task SwitchToProfileAsync(DeviceProfile profile)
     {
+        _taskbarIcon.ToolTipText = $"Switching to {profile.Name}...";
         try
         {
             var result = await _audioService.ApplyProfileAsync(profile);
