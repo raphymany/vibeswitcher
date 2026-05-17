@@ -65,4 +65,30 @@ public class StartupService
                 $"Could not disable start with Windows: {ex.Message}");
         }
     }
+
+    // Called on every app launch. If the startup entry exists but points to the old path
+    // (e.g. user moved VibeSwitcher.exe), silently update it to the current location.
+    public void RefreshRegistryPath()
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(RegistryKeyPath);
+            if (key?.GetValue(ValueName) is not string stored) return;
+
+            var exePath = Environment.ProcessPath ?? System.Reflection.Assembly.GetExecutingAssembly().Location;
+            if (string.IsNullOrEmpty(exePath)) return;
+
+            var expected = $"\"{exePath}\"";
+            if (!string.Equals(stored, expected, StringComparison.OrdinalIgnoreCase))
+            {
+                AppLogger.Info("StartupService.RefreshRegistryPath",
+                    $"Startup registry path outdated; updating to current exe location.");
+                Enable();
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("StartupService.RefreshRegistryPath", ex.Message);
+        }
+    }
 }
