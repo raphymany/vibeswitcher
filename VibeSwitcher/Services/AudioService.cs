@@ -16,13 +16,62 @@ public record ProfileSwitchResult(
     string? MissingPlaybackId,
     string? MissingRecordingId);
 
-public class AudioService
+public class AudioService : IDisposable
 {
+    // Persistent enumerator kept alive solely to hold the notification registration.
+    // All per-call audio operations create their own enumerator to avoid sharing state.
+    private readonly IMMDeviceEnumerator _notifEnumerator;
+    private readonly DeviceNotificationClient _notifClient;
+    private IntPtr _notifClientPtr;
+    private volatile bool _disposed;
+
+    public event Action? DevicesChanged;
+
+    public AudioService()
+    {
+        _notifEnumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+        _notifClient = new DeviceNotificationClient();
+        _notifClient.DevicesChanged += () => DevicesChanged?.Invoke();
+
+        try
+        {
+            _notifClientPtr = Marshal.GetComInterfaceForObject(_notifClient, typeof(IMMNotificationClient));
+            int hr = _notifEnumerator.RegisterEndpointNotificationCallback(_notifClientPtr);
+            if (hr != 0)
+            {
+                AppLogger.Warning("AudioService", $"RegisterEndpointNotificationCallback returned 0x{hr:X8} — device list will not refresh automatically on plug/unplug");
+                SessionErrorTracker.Record(ErrorCode.DeviceNotificationFailed, "Device Notification Setup Failed",
+                    $"Could not subscribe to device change events (HRESULT 0x{hr:X8}). The device list will not refresh automatically.");
+                Marshal.Release(_notifClientPtr);
+                _notifClientPtr = IntPtr.Zero;
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("AudioService", $"Could not register device notification callback: {ex.Message}");
+            SessionErrorTracker.Record(ErrorCode.DeviceNotificationFailed, "Device Notification Setup Failed",
+                $"Could not subscribe to device change events: {ex.Message}");
+            _notifClientPtr = IntPtr.Zero;
+        }
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+        if (_notifClientPtr != IntPtr.Zero)
+        {
+            _notifEnumerator.UnregisterEndpointNotificationCallback(_notifClientPtr);
+            Marshal.Release(_notifClientPtr);
+            _notifClientPtr = IntPtr.Zero;
+        }
+        Marshal.ReleaseComObject(_notifEnumerator);
+    }
+
     public IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices() =>
-        EnumerateDevices(EDataFlow.Render);
+        _disposed ? [] : EnumerateDevices(EDataFlow.Render);
 
     public IReadOnlyList<AudioDeviceInfo> GetRecordingDevices() =>
-        EnumerateDevices(EDataFlow.Capture);
+        _disposed ? [] : EnumerateDevices(EDataFlow.Capture);
 
     public Task<ProfileSwitchResult> ApplyProfileAsync(DeviceProfile profile) =>
         Task.Run(() => ApplyProfile(profile));
@@ -161,6 +210,13 @@ public class AudioService
             }
 
             return new ProfileSwitchResult(playbackApplied, recordingApplied, missingPlayback, missingRecording);
+        }
+        catch (COMException ex) when (ex.HResult == unchecked((int)0x80070424))
+        {
+            var msg = "Windows Audio service is not running. Start the Audio service and try again.";
+            AppLogger.Error("AudioService.ApplyProfile", msg);
+            SessionErrorTracker.Record(ErrorCode.AudioServiceUnavailable, "Audio Service Unavailable", msg);
+            throw new InvalidOperationException(msg, ex);
         }
         finally
         {

@@ -129,8 +129,18 @@ public class SettingsViewModel : ViewModelBase
 
         Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
 
+        // Refresh device dropdowns whenever a device is plugged in or removed.
+        _audioService.DevicesChanged += OnDevicesChanged;
+
         // Enumerate audio devices once on a background STA thread, then populate all cards.
         // Cards start with empty device dropdowns and populate within a fraction of a second.
+        _ = LoadDevicesAsync();
+    }
+
+    private void OnDevicesChanged()
+    {
+        // Called from a thread-pool thread via DeviceNotificationClient's debounce.
+        // LoadDevicesAsync handles its own UI-thread dispatch.
         _ = LoadDevicesAsync();
     }
 

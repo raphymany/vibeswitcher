@@ -45,6 +45,10 @@ public enum ErrorCode
 
     // Tray
     TrayIconCreateFailed       = 25,  // Shell_NotifyIcon registration failed
+
+    // Audio service / notifications
+    AudioServiceUnavailable    = 27,  // HRESULT 0x80070424 — Windows Audio service not running
+    DeviceNotificationFailed   = 28,  // RegisterEndpointNotificationCallback failed
 }
 
 public static class ErrorCodeExtensions
