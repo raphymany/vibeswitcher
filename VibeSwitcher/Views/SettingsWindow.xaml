@@ -12,61 +12,6 @@
 
     <Window.Resources>
 
-        <!-- ── Shared rounded button template ── -->
-        <ControlTemplate x:Key="RoundedButtonTemplate" TargetType="Button">
-            <Border Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="6"
-                    Padding="{TemplateBinding Padding}">
-                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                  VerticalAlignment="Center"/>
-            </Border>
-        </ControlTemplate>
-
-        <Style x:Key="ActionButton" TargetType="Button">
-            <Setter Property="Template"   Value="{StaticResource RoundedButtonTemplate}"/>
-            <Setter Property="Cursor"     Value="Hand"/>
-            <Setter Property="Height"     Value="30"/>
-            <Setter Property="Padding"    Value="12,0"/>
-            <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush"     Value="#DDDDDD"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background"  Value="#F0F6FF"/>
-                    <Setter Property="BorderBrush" Value="#0078D4"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#DDEEFF"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Template"   Value="{StaticResource RoundedButtonTemplate}"/>
-            <Setter Property="Cursor"     Value="Hand"/>
-            <Setter Property="Height"     Value="30"/>
-            <Setter Property="Padding"    Value="12,0"/>
-            <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Foreground" Value="#C00000"/>
-            <Setter Property="Background" Value="#FFF0F0"/>
-            <Setter Property="BorderBrush"     Value="#FFBBBB"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background"  Value="#FFE0E0"/>
-                    <Setter Property="BorderBrush" Value="#C00000"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#FFCCCC"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
         <!-- ── Card ── -->
         <Style x:Key="CardBorder" TargetType="Border">
             <Setter Property="Background"      Value="White"/>
@@ -587,19 +532,21 @@
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="Startup" FontWeight="SemiBold" FontSize="12"
                                Foreground="#444444" Margin="0,0,0,6"/>
-                    <CheckBox Content="Start with Windows"
+                    <CheckBox Content="Start with Windows" Style="{StaticResource ToggleSwitchStyle}"
                               IsChecked="{Binding StartWithWindows}" Margin="0,3"/>
-                    <CheckBox Content="Start minimized to tray"
+                    <CheckBox Content="Start minimized to tray" Style="{StaticResource ToggleSwitchStyle}"
                               IsChecked="{Binding StartMinimized}" Margin="0,3"/>
-                    <CheckBox Content="Close to tray"
+                    <CheckBox Content="Close to tray" Style="{StaticResource ToggleSwitchStyle}"
                               IsChecked="{Binding CloseToTray}" Margin="0,3"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="Notifications" FontWeight="SemiBold" FontSize="12"
                                Foreground="#444444" Margin="0,0,0,6"/>
-                    <CheckBox Content="Show device switch alerts"
+                    <CheckBox Content="Show device switch alerts" Style="{StaticResource ToggleSwitchStyle}"
                               IsChecked="{Binding ShowNotifications}" Margin="0,3"/>
+                    <CheckBox Content="Use classic Sound control panel" Style="{StaticResource ToggleSwitchStyle}"
+                              IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3"/>
                     <Button x:Name="LogsButton"
                             Style="{StaticResource ActionButton}"
                             Margin="0,8,0,0"
@@ -612,12 +559,16 @@
             </Grid>
         </Border>
 
-        <!-- ── Footer: About (left) + Close (right) ── -->
+        <!-- ── Footer: About (left) + Sound Settings (center) + Close (right) ── -->
         <Grid Grid.Row="3">
             <Button Content="About"
                     Style="{StaticResource ActionButton}"
                     Width="80" HorizontalAlignment="Left"
                     Click="AboutButton_Click"/>
+            <Button Content="Open Sound Settings"
+                    Style="{StaticResource ActionButton}"
+                    HorizontalAlignment="Center"
+                    Click="OpenSoundSettings_Click"/>
             <Button Content="Close"
                     Style="{StaticResource ActionButton}"
                     Width="90" HorizontalAlignment="Right"

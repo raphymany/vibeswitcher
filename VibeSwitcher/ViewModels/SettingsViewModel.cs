@@ -21,6 +21,7 @@ public class SettingsViewModel : ViewModelBase
     private bool _startMinimized;
     private bool _closeToTray;
     private bool _showNotifications;
+    private bool _useLegacySoundPanel;
 
     // Device lists loaded once async and shared across all profile cards.
     private IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
@@ -82,6 +83,19 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public bool UseLegacySoundPanel
+    {
+        get => _useLegacySoundPanel;
+        set
+        {
+            if (SetField(ref _useLegacySoundPanel, value))
+            {
+                _configService.Current.UseLegacySoundPanel = value;
+                _configService.SaveImmediate();
+            }
+        }
+    }
+
     public ICommand AddProfileCommand { get; }
 
     public SettingsViewModel(
@@ -103,6 +117,7 @@ public class SettingsViewModel : ViewModelBase
         _startMinimized = configService.Current.StartMinimized;
         _closeToTray = configService.Current.CloseToTray;
         _showNotifications = configService.Current.ShowNotifications;
+        _useLegacySoundPanel = configService.Current.UseLegacySoundPanel;
 
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(

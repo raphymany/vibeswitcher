@@ -100,13 +100,16 @@ public class TrayService : IDisposable
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
         {
-            try
+            var useLegacy = _configService.Current.UseLegacySoundPanel;
+            if (!useLegacy)
             {
-                // Windows 11 Settings app — preferred; falls back to legacy Sound control panel.
-                Process.Start(new ProcessStartInfo("ms-settings:sound") { UseShellExecute = true });
-                return;
+                try
+                {
+                    Process.Start(new ProcessStartInfo("ms-settings:sound") { UseShellExecute = true });
+                    return;
+                }
+                catch { }
             }
-            catch { }
             try { Process.Start("control.exe", "/name Microsoft.Sound"); }
             catch (Exception ex)
             {
@@ -273,6 +276,16 @@ public class TrayService : IDisposable
         var stack = new StackPanel { Margin = new Thickness(12, 0, 0, 0) };
         stack.Children.Add(nameBlock);
         stack.Children.Add(subBlock);
+        if (!profile.Hotkey.IsEmpty)
+        {
+            stack.Children.Add(new TextBlock
+            {
+                Text = profile.Hotkey.ToDisplayString(),
+                FontSize = 10,
+                Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
+                Margin = new Thickness(0, 1, 0, 0),
+            });
+        }
         Grid.SetColumn(stack, 1);
 
         grid.Children.Add(iconElement);

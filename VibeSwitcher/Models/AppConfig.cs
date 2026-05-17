@@ -8,6 +8,7 @@ public class AppConfig
     public bool StartMinimized { get; set; } = true;
     public bool CloseToTray { get; set; } = true;
     public bool ShowNotifications { get; set; } = true;
+    public bool UseLegacySoundPanel { get; set; } = false;
 
     // Persisted window geometry — null means "not yet saved, use defaults"
     public double WindowWidth  { get; set; } = 0;

@@ -186,6 +186,27 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void OpenSoundSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var useLegacy = _configService.Current.UseLegacySoundPanel;
+        if (!useLegacy)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("ms-settings:sound") { UseShellExecute = true });
+                return;
+            }
+            catch { }
+        }
+        try { Process.Start("control.exe", "/name Microsoft.Sound"); }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("SettingsWindow.OpenSoundSettings", ex.Message);
+            SessionErrorTracker.Record(ErrorCode.SoundSettingsOpenFailed, "Sound Settings Could Not Open",
+                $"Could not open Windows Sound settings: {ex.Message}");
+        }
+    }
+
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
         try
