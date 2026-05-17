@@ -82,4 +82,10 @@ public static class SessionErrorTracker
         }
         ErrorAdded?.Invoke(null, EventArgs.Empty);
     }
+
+    internal static void Reset()
+    {
+        lock (_lock) { _errors.Clear(); }
+        ErrorAdded = null;
+    }
 }
