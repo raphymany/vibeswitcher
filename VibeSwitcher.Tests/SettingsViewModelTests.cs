@@ -28,6 +28,7 @@ public class SettingsViewModelTests
 
         Assert.Single(vm.Profiles);
         Assert.False(vm.HasNoProfiles);
+        Assert.Equal(1, _profilesChangedCount);
     }
 
     [Fact]
@@ -53,6 +54,7 @@ public class SettingsViewModelTests
 
         Assert.Empty(vm.Profiles);
         Assert.True(vm.HasNoProfiles);
+        Assert.Equal(1, _profilesChangedCount);
     }
 
     [Fact]
@@ -103,5 +105,6 @@ public class SettingsViewModelTests
 
         Assert.Single(_fakeHotkey.RegisteredProfiles);
         Assert.Equal(profile.Id, _fakeHotkey.RegisteredProfiles[0].Id);
+        Assert.Equal(1, _profilesChangedCount);
     }
 }

@@ -93,6 +93,28 @@ public class ProfileCardViewModelTests
     // ── BrowseIcon ───────────────────────────────────────────────────────────
 
     [Fact]
+    public void CaptureHotkey_ReplacesExistingHotkey()
+    {
+        var profile = new DeviceProfile
+        {
+            Name = "Test",
+            Hotkey = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true } // Ctrl+PageUp
+        };
+        _fakeHotkey.RegisteredProfiles.Add(profile); // simulate it was previously registered
+        _fakeDialog.HotkeyCaptureResult = new HotkeyDefinition { VirtualKeyCode = 34, UseCtrl = true }; // Ctrl+PageDown
+        _fakeHotkey.TestHotkeyResult = false; // no conflict
+        using var card = MakeCard(profile);
+
+        card.CaptureHotkeyCommand.Execute(null);
+
+        Assert.Equal(34, profile.Hotkey.VirtualKeyCode); // new hotkey applied
+        Assert.Empty(_fakeHotkey.RegisteredProfiles); // old registration freed; card doesn't re-register (SettingsViewModel's job)
+        Assert.Equal(1, _changedCount);
+    }
+
+    // ── BrowseIcon ───────────────────────────────────────────────────────────
+
+    [Fact]
     public void BrowseIcon_Cancel_NoChange()
     {
         _fakeDialog.BrowseIconFileResult = null; // user cancelled the file dialog
@@ -135,6 +157,32 @@ public class ProfileCardViewModelTests
 
         Assert.Single(_fakeDialog.AlertsShown);
         Assert.Null(card.IconPath);
+    }
+
+    // ── DeleteProfile ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void BrowseIcon_SamePath_SkipsCopyAndUpdatesPath()
+    {
+        // If the user selects the file that is already in the icons dir, no File.Copy runs.
+        var profile = new DeviceProfile { Name = "Test" };
+        var dest = Path.Combine(_fakeConfig.IconsDir, $"Test-{profile.Id.ToString("N")[..8]}.ico");
+        Directory.CreateDirectory(_fakeConfig.IconsDir);
+        File.WriteAllBytes(dest, [0x00]); // file already exists at the destination
+        try
+        {
+            _fakeDialog.BrowseIconFileResult = dest; // source == dest → copy skipped
+            using var card = MakeCard(profile);
+
+            card.BrowseIconCommand.Execute(null);
+
+            Assert.Equal(dest, card.IconPath, StringComparer.OrdinalIgnoreCase);
+            Assert.Empty(_fakeDialog.AlertsShown); // no error shown
+        }
+        finally
+        {
+            try { File.Delete(dest); } catch { }
+        }
     }
 
     // ── DeleteProfile ────────────────────────────────────────────────────────
