@@ -157,7 +157,10 @@ public class SettingsViewModel : ViewModelBase
             _recordingDevices = rec;
 
             // ObservableCollection is not thread-safe; must populate on the UI thread.
-            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            // Application.Current is null in headless test environments; skip dispatch there.
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher == null) return;
+            await dispatcher.InvokeAsync(() =>
             {
                 foreach (var card in Profiles)
                     card.LoadDevices(pb, rec);
