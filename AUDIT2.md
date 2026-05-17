@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-17 — reflects all 13 merged branches (PR #29) + v1.1.0 release.
+**Last updated:** 2026-05-17 — reflects all 14 merged branches (PR #30) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -59,14 +59,6 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 ---
 
 ## SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY
-
-**5.3 — Device list in open Settings not refreshed on hotplug/unplug** *(Medium)*
-No `IMMNotificationClient` implementation. Bluetooth headsets connecting mid-session do not appear in dropdowns.
-Fix: implement `OnDeviceAdded`/`OnDeviceRemoved` and fire a `DevicesChanged` event.
-
-**5.7 — No Windows Audio service restart recovery** *(Low)*
-If the Audio service stops and restarts mid-session, all COM audio objects become invalid.
-Fix: detect `HRESULT 0x80070424` and reinitialise.
 
 **5.8 — RDP hotkey behavior not documented** *(Low)*
 `RegisterHotKey` in an RDP session acts on the local machine, not the remote. Document this limitation.
@@ -141,7 +133,6 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Issue | Location |
 |---|-------|----------|
-| H8 | Device hotplug/unplug not reflected in open Settings | `AudioService.cs` |
 
 ### MEDIUM — Should fix for a quality release
 
@@ -182,7 +173,6 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | F3 | "Test sound" button to verify active device plays audio |
 | F4 | Middle-click tray to toggle between last two profiles |
 | F5 | Hotkey cheat sheet in tray tooltip |
-| F7 | `IMMNotificationClient` for real-time device plug/unplug in Settings |
 | F8 | Auto-updater with GitHub Releases version check |
 | F9 | Windows 11 Action Center rich notifications |
 | F10 | Per-profile volume level (set device default volume when switching) |
@@ -214,13 +204,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-**Branch G: `feat/audio-reliability`**
-Audio device and reliability improvements.
-
-| Item | Fix |
-|------|-----|
-| H8 / 5.3 | Implement `IMMNotificationClient` — subscribe to device add/remove/state-change events and fire a `DevicesChanged` event that refreshes the open Settings dropdowns |
-| 5.7 | Detect `HRESULT 0x80070424` (Audio service stopped) and reinitialise COM audio objects automatically |
+~~**Branch G: `feat/audio-reliability`**~~ ✅ Merged — PR #30
 
 ---
 
