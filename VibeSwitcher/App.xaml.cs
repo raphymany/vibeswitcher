@@ -240,6 +240,7 @@ public partial class App : Application
         _hwndSource?.RemoveHook(WndProc);
         _hwndSource?.Dispose();
         _trayService?.Dispose();
+        _audioService?.Dispose();
 
         _singleInstance.Dispose();
         base.OnExit(e);

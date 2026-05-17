@@ -88,6 +88,19 @@ public interface IPropertyStore
     [PreserveSig] int Commit();
 }
 
+// COM callback interface — implemented in managed code; Windows Audio calls these methods on an MTA thread.
+// No [ComImport] here — this is a CCW (COM Callable Wrapper) target, not an import.
+[Guid("7991EEC9-7E89-4D85-8390-6C703CEC60C0")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IMMNotificationClient
+{
+    void OnDeviceStateChanged([MarshalAs(UnmanagedType.LPWStr)] string deviceId, AudioDeviceState newState);
+    void OnDeviceAdded([MarshalAs(UnmanagedType.LPWStr)] string deviceId);
+    void OnDeviceRemoved([MarshalAs(UnmanagedType.LPWStr)] string deviceId);
+    void OnDefaultDeviceChanged(EDataFlow flow, ERole role, [MarshalAs(UnmanagedType.LPWStr)] string? defaultDeviceId);
+    void OnPropertyValueChanged([MarshalAs(UnmanagedType.LPWStr)] string deviceId, PROPERTYKEY key);
+}
+
 // CPolicyConfigVistaClient — undocumented COM class in AudioSes.dll for setting default endpoints.
 // CLSID is stable across Vista through Windows 11.
 [ComImport, Guid("870AF99C-171D-4F9E-AF0D-E63DF40C2BC9")]
