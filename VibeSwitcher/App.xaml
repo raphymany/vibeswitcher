@@ -87,7 +87,7 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Toggle switch style for CheckBox — pill track + sliding thumb -->
+        <!-- Toggle switch style for CheckBox — pill track + animated sliding thumb -->
         <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -99,9 +99,13 @@
                             <Border x:Name="Track"
                                     Width="34" Height="18"
                                     CornerRadius="9"
-                                    Background="#CCCCCC"
                                     VerticalAlignment="Center"
                                     Margin="0,0,8,0">
+                                <!-- Named brush so ColorAnimation can target it -->
+                                <Border.Background>
+                                    <SolidColorBrush x:Name="TrackBrush" Color="#CCCCCC"/>
+                                </Border.Background>
+                                <!-- HorizontalAlignment stays Left always; Margin drives position -->
                                 <Border x:Name="Thumb"
                                         Width="12" Height="12"
                                         CornerRadius="6"
@@ -114,9 +118,47 @@
                         </StackPanel>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Track" Property="Background" Value="#0078D4"/>
-                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
-                                <Setter TargetName="Thumb" Property="Margin" Value="0,0,3,0"/>
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <!-- Slide thumb right: track(34) - thumb(12) - right-pad(3) = 19 -->
+                                            <ThicknessAnimation
+                                                Storyboard.TargetName="Thumb"
+                                                Storyboard.TargetProperty="Margin"
+                                                To="19,0,0,0"
+                                                Duration="0:0:0.18">
+                                                <ThicknessAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </ThicknessAnimation.EasingFunction>
+                                            </ThicknessAnimation>
+                                            <ColorAnimation
+                                                Storyboard.TargetName="TrackBrush"
+                                                Storyboard.TargetProperty="Color"
+                                                To="#0078D4"
+                                                Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ThicknessAnimation
+                                                Storyboard.TargetName="Thumb"
+                                                Storyboard.TargetProperty="Margin"
+                                                To="3,0,0,0"
+                                                Duration="0:0:0.18">
+                                                <ThicknessAnimation.EasingFunction>
+                                                    <CubicEase EasingMode="EaseOut"/>
+                                                </ThicknessAnimation.EasingFunction>
+                                            </ThicknessAnimation>
+                                            <ColorAnimation
+                                                Storyboard.TargetName="TrackBrush"
+                                                Storyboard.TargetProperty="Color"
+                                                To="#CCCCCC"
+                                                Duration="0:0:0.18"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Track" Property="Opacity" Value="0.85"/>
