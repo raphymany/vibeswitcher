@@ -1,7 +1,7 @@
 using System.IO;
+using System.Text.Json;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
-using Newtonsoft.Json;
 
 namespace VibeSwitcher.Services;
 
@@ -15,6 +15,12 @@ public class ConfigService
     private static readonly string ConfigPath    = Path.Combine(ConfigDir, "config.json");
     private static readonly string ConfigBakPath = Path.Combine(ConfigDir, "config.json.bak");
     private static readonly string ConfigTmpPath = Path.Combine(ConfigDir, "config.json.tmp");
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNameCaseInsensitive = true,
+    };
 
     private volatile AppConfig _config = new();
     private readonly object _saveLock = new();
@@ -77,7 +83,7 @@ public class ConfigService
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var reader = new StreamReader(stream))
                 json = reader.ReadToEnd();
-            config = JsonConvert.DeserializeObject<AppConfig>(json);
+            config = JsonSerializer.Deserialize<AppConfig>(json, JsonOptions);
             return config != null;
         }
         catch (Exception ex)
@@ -114,7 +120,7 @@ public class ConfigService
                 if (File.Exists(ConfigPath))
                     File.Copy(ConfigPath, ConfigBakPath, overwrite: true);
 
-                var json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                var json = JsonSerializer.Serialize(config, JsonOptions);
                 File.WriteAllText(ConfigTmpPath, json);
                 File.Move(ConfigTmpPath, ConfigPath, overwrite: true);
             }
