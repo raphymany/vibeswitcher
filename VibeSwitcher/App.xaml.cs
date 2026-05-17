@@ -58,6 +58,9 @@ public partial class App : Application
         _configService = new ConfigService();
         _configService.Load();
 
+        // 2b. Self-correct the startup registry path if the exe was moved since last enable
+        new StartupService().RefreshRegistryPath();
+
         // 3. Dedicated message-only HwndSource for WM_HOTKEY (never shown)
         _hwndSource = new HwndSource(new HwndSourceParameters("AudioSwitcherHotkeys")
         {

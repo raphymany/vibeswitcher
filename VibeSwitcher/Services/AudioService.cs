@@ -19,32 +19,13 @@ public record ProfileSwitchResult(
 public class AudioService
 {
     public IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices() =>
-        RunOnSta(() => EnumerateDevices(EDataFlow.Render));
+        EnumerateDevices(EDataFlow.Render);
 
     public IReadOnlyList<AudioDeviceInfo> GetRecordingDevices() =>
-        RunOnSta(() => EnumerateDevices(EDataFlow.Capture));
+        EnumerateDevices(EDataFlow.Capture);
 
     public Task<ProfileSwitchResult> ApplyProfileAsync(DeviceProfile profile) =>
-        Task.Run(() => RunOnSta(() => ApplyProfile(profile)));
-
-    // COM audio objects are apartment-neutral but work most reliably on STA threads.
-    private static T RunOnSta<T>(Func<T> work)
-    {
-        T result = default!;
-        Exception? error = null;
-
-        var thread = new Thread(() =>
-        {
-            try { result = work(); }
-            catch (Exception ex) { error = ex; }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-
-        if (error != null) throw new Exception(error.Message, error);
-        return result;
-    }
+        Task.Run(() => ApplyProfile(profile));
 
     private static IReadOnlyList<AudioDeviceInfo> EnumerateDevices(EDataFlow flow)
     {
