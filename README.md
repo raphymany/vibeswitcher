@@ -18,11 +18,11 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 ## Requirements
 
 - Windows 10 or 11 (x64)
-- [.NET 8 Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
+- No additional runtime required — the release build is self-contained
 
 ## Installation
 
-No installer yet — download the latest release, extract, and run `VibeSwitcher.exe`.
+No installer yet — download `VibeSwitcher-vX.X.X-win-x64.zip` from the [latest release](https://github.com/raphymany/vibeswitcher/releases/latest), extract, and run `VibeSwitcher.exe`.
 
 > **Note:** Windows SmartScreen may warn on first run since the app is not yet code-signed. Click "More info" → "Run anyway" to proceed.
 
@@ -60,6 +60,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for IDE setup and project structure.
 3. For each profile, choose a playback device and/or microphone
 4. Optionally assign a global hotkey and a custom icon
 5. Switch profiles via the tray menu or your hotkey
+
+## Known Limitations
+
+- **Remote Desktop (RDP):** Global hotkeys registered with `RegisterHotKey` act on the *local* machine, not the remote session. Hotkeys will not switch audio devices on the remote end while connected via RDP.
 
 ## License
 

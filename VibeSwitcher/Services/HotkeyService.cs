@@ -108,6 +108,10 @@ public class HotkeyService : IDisposable
     /// </summary>
     public bool TestHotkey(HotkeyDefinition hotkey)
     {
+        System.Diagnostics.Debug.Assert(
+            System.Windows.Application.Current.Dispatcher.CheckAccess(),
+            "TestHotkey must run on the UI thread — concurrent calls during unregister/re-register will lose hotkeys.");
+
         if (hotkey.IsEmpty || !hotkey.IsValid) return false;
 
         // Unregister all our hotkeys temporarily so we don't detect our own registrations

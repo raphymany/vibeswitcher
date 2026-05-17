@@ -10,7 +10,7 @@ using Microsoft.Win32;
 
 namespace VibeSwitcher.ViewModels;
 
-public class ProfileCardViewModel : ViewModelBase
+public class ProfileCardViewModel : ViewModelBase, IDisposable
 {
     private static readonly AudioDeviceInfo NoneDevice = new AudioDeviceInfo("", "(None)", false);
 
@@ -273,6 +273,11 @@ public class ProfileCardViewModel : ViewModelBase
         };
         if (dialog.ShowDialog() == true)
             _onDelete(this);
+    }
+
+    public void Dispose()
+    {
+        _iconPreview = null;
     }
 
     private static string SanitizeName(string name)

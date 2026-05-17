@@ -73,7 +73,10 @@ public class ConfigService
     {
         try
         {
-            var json = File.ReadAllText(path);
+            string json;
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var reader = new StreamReader(stream))
+                json = reader.ReadToEnd();
             config = JsonConvert.DeserializeObject<AppConfig>(json);
             return config != null;
         }

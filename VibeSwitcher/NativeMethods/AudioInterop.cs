@@ -26,12 +26,14 @@ public struct PROPERTYKEY
     };
 }
 
-// Minimal PROPVARIANT — only handles the VT_LPWSTR case we need for device names
-[StructLayout(LayoutKind.Explicit, Size = 16)]
+// Minimal PROPVARIANT — only handles the VT_LPWSTR case we need for device names.
+// x64 PROPVARIANT is 24 bytes; Size=16 would let COM write past the struct boundary in PropVariantClear.
+[StructLayout(LayoutKind.Explicit, Size = 24)]
 public struct PropVariant
 {
-    [FieldOffset(0)] public short vt;
-    [FieldOffset(8)] public IntPtr ptr;
+    [FieldOffset(0)]  public short vt;
+    [FieldOffset(8)]  public IntPtr ptr;
+    [FieldOffset(16)] private long _padding;
 
     private const short VT_LPWSTR = 31;
 
