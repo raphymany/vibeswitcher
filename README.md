@@ -28,13 +28,30 @@ No installer yet — download the latest release, extract, and run `VibeSwitcher
 
 ## Building from source
 
+**Requirements:** Windows 10/11, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+
 ```bash
 git clone https://github.com/raphymany/vibeswitcher.git
 cd vibeswitcher
+dotnet restore VibeSwitcher/VibeSwitcher.csproj
 dotnet build VibeSwitcher/VibeSwitcher.csproj -c Release
 ```
 
-The output will be in `VibeSwitcher/bin/Release/net8.0-windows/`.
+The compiled output lands in `VibeSwitcher/bin/Release/net8.0-windows/`.
+
+**Run directly (framework-dependent):**
+```bash
+dotnet run --project VibeSwitcher/VibeSwitcher.csproj
+```
+
+**Publish a self-contained single-file build:**
+```bash
+dotnet publish VibeSwitcher/VibeSwitcher.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish/
+```
+
+The `publish/` folder contains a single `VibeSwitcher.exe` with no external dependencies.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for IDE setup and project structure.
 
 ## Usage
 

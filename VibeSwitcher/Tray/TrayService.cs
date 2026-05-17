@@ -100,6 +100,13 @@ public class TrayService : IDisposable
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
         {
+            try
+            {
+                // Windows 11 Settings app — preferred; falls back to legacy Sound control panel.
+                Process.Start(new ProcessStartInfo("ms-settings:sound") { UseShellExecute = true });
+                return;
+            }
+            catch { }
             try { Process.Start("control.exe", "/name Microsoft.Sound"); }
             catch (Exception ex)
             {

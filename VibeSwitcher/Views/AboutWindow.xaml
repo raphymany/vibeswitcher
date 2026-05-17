@@ -147,15 +147,20 @@
             </StackPanel>
         </Border>
 
-        <!-- Copyright + Close -->
+        <!-- Copyright + actions -->
         <StackPanel Margin="0,6,0,0" HorizontalAlignment="Center">
             <TextBlock Text="© 2026 Raphael Mansour. All rights reserved."
                        FontSize="11" Foreground="#AAAAAA"
                        HorizontalAlignment="Center" Margin="0,0,0,10"/>
-            <Button Content="Close"
-                    Style="{StaticResource PrimaryButton}"
-                    HorizontalAlignment="Center"
-                    IsCancel="True" Click="Close_Click"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Copy Diagnostic Info"
+                        Style="{StaticResource ActionButton}"
+                        Margin="0,0,8,0"
+                        Click="CopyDiagnostics_Click"/>
+                <Button Content="Close"
+                        Style="{StaticResource PrimaryButton}"
+                        IsCancel="True" Click="Close_Click"/>
+            </StackPanel>
         </StackPanel>
 
     </StackPanel>
