@@ -39,6 +39,9 @@
                 <Trigger Property="IsPressed" Value="True">
                     <Setter Property="Background" Value="#DDEEFF"/>
                 </Trigger>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#0078D4"/>
+                </Trigger>
             </Style.Triggers>
         </Style>
 
@@ -60,6 +63,9 @@
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
                     <Setter Property="Background" Value="#FFCCCC"/>
+                </Trigger>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#C00000"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -84,6 +90,10 @@
                 <Trigger Property="IsPressed" Value="True">
                     <Setter Property="Background" Value="#005AA3"/>
                 </Trigger>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="White"/>
+                    <Setter Property="Background"  Value="#006CBF"/>
+                </Trigger>
             </Style.Triggers>
         </Style>
 
@@ -96,23 +106,28 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border x:Name="Track"
-                                    Width="34" Height="18"
-                                    CornerRadius="9"
-                                    VerticalAlignment="Center"
-                                    Margin="0,0,8,0">
-                                <!-- Named brush so ColorAnimation can target it -->
-                                <Border.Background>
-                                    <SolidColorBrush x:Name="TrackBrush" Color="#CCCCCC"/>
-                                </Border.Background>
-                                <!-- HorizontalAlignment stays Left always; Margin drives position -->
-                                <Border x:Name="Thumb"
-                                        Width="12" Height="12"
-                                        CornerRadius="6"
-                                        Background="White"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Center"
-                                        Margin="3,0,0,0"/>
+                            <Border x:Name="FocusRing"
+                                    CornerRadius="11"
+                                    BorderThickness="2"
+                                    BorderBrush="Transparent"
+                                    Margin="0,0,6,0"
+                                    VerticalAlignment="Center">
+                                <Border x:Name="Track"
+                                        Width="34" Height="18"
+                                        CornerRadius="9">
+                                    <!-- Named brush so ColorAnimation can target it -->
+                                    <Border.Background>
+                                        <SolidColorBrush x:Name="TrackBrush" Color="#CCCCCC"/>
+                                    </Border.Background>
+                                    <!-- HorizontalAlignment stays Left always; Margin drives position -->
+                                    <Border x:Name="Thumb"
+                                            Width="12" Height="12"
+                                            CornerRadius="6"
+                                            Background="White"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center"
+                                            Margin="3,0,0,0"/>
+                                </Border>
                             </Border>
                             <ContentPresenter VerticalAlignment="Center"/>
                         </StackPanel>
@@ -162,6 +177,9 @@
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="Track" Property="Opacity" Value="0.85"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="FocusRing" Property="BorderBrush" Value="#0078D4"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
