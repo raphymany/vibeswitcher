@@ -123,8 +123,8 @@ Fix: extract `ProfileSwitchOrchestrator` and `WindowManager`.
 
 **3.7 — Magic numbers in `HotkeyDefinition.GetModifierFlags()`** — See ~~1.17~~ ✅ Fixed
 
-**3.8 — No `IConfigService` interface** *(Low)*
-All consumers hold concrete `ConfigService`. Prevents testability.
+**~~3.8 — No `IConfigService` interface~~** ✅ Done — PR #35
+`IConfigService` extracted; all consumers updated to reference the interface.
 
 **~~3.9 — `async void` tray click handler~~** ✅ *Fixed — issue #1*
 `Tray/TrayService.cs` — Click handler changed to `_ = SwitchToProfileAsync(profile)` with a proper `async Task` method that catches and shows errors as notifications.
@@ -292,27 +292,16 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 - `ToDisplayString()` returns "(none)" for empty definition
 - `IsEmpty` returns true when `VirtualKeyCode == 0`
 
-**7.4 — Suggested unit tests for `StartupService`**
-- Mock registry to verify `Enable()` writes the correct path
-- `IsStartupEnabled()` returns false when key absent
-- `Disable()` does not throw when value absent
-- `RefreshRegistryPath()` with a stale path in registry → calls `Enable()` with the current exe path
-- `RefreshRegistryPath()` when startup is not enabled → does nothing
+**~~7.4 — Suggested unit tests for `StartupService`~~** ✅ Done — PR #35
+4 integration tests (Enable/Disable round-trip, idempotency) with safe HKCU registry save/restore in IDisposable.
 
 **7.5 — Suggested integration tests for `AudioService`**
 - `GetPlaybackDevices()` returns non-empty list on a machine with audio devices
 - `ApplyProfileAsync()` returns `MissingPlaybackId` when device ID does not exist
 - `ApplyProfileAsync()` with invalid device ID does not throw unhandled
 
-**7.6 — Suggested unit tests for `HotkeyService`**
-- `RegisterAll()` with empty profiles does nothing
-- `RegisterAll()` with two profiles having the same hotkey throws `HotkeyConflictException`
-- `UnregisterProfile()` removes a profile and its atom
-- `HandleHotkey()` returns correct profile using O(1) dictionary dispatch
-- `HandleHotkey()` returns null for an unknown atom (not a linear scan fallback)
-- `RegisterAll()` with `VirtualKeyCode == 0` → profile skipped (IsValid false)
-- `RegisterAll()` with `VirtualKeyCode == 255` → profile skipped (IsValid false, out of range)
-- `TestHotkey()` re-registers all remaining profiles after testing one (none lost)
+**~~7.6 — Suggested unit tests for `HotkeyService`~~** ✅ Done (partial) — PR #35
+7 tests covering early-return paths (empty/invalid hotkeys, unknown atom lookup, idempotent unregister). Full registration tests require a real Win32 HWND and are deferred.
 
 **~~7.7 — Suggested unit tests for `IconHelper`~~** ✅ Done — PR #33
 - `LoadIcon(null)` returns the default icon (non-null)
@@ -502,7 +491,7 @@ Fine as placeholder; update when site launches.
 | ~~M3~~ | ~~Log file has no rotation — grows indefinitely~~ | ✅ Done — PR #16 |
 | ~~M4~~ | ~~Only Error log level — no Info/Warning~~ | ✅ Done — PR #16 |
 | M5 | `PropVariant` struct size declared at 16 bytes; x64 PROPVARIANT is 24 |
-| M6 | MVVM violation — ViewModels directly instantiate View dialogs |
+| ~~M6~~ | ~~MVVM violation — ViewModels directly instantiate View dialogs~~ | ✅ Done — PR #35 |
 | ~~M7~~ | ~~Button/control styles not in `App.xaml`~~ | ✅ Done — fix/settings-ux-3 |
 | ~~M8~~ | ~~Double `Task.Run` wrapping in `SwitchToProfile`~~ | ✅ Done — PR #19 |
 | ~~M9~~ | ~~Active profile not re-applied after system sleep/resume~~ | ✅ Done — PR #18 |
@@ -543,9 +532,9 @@ Fine as placeholder; update when site launches.
 | # | Item |
 |---|------|
 | ~~TD1~~ | ~~No test project — zero automated test coverage~~ | ✅ Done — PR #33 |
-| TD2 | No `IAudioService` / `IConfigService` interfaces preventing testability |
+| ~~TD2~~ | ~~No `IAudioService` / `IConfigService` interfaces preventing testability~~ | ✅ Done — PR #35 |
 | TD3 | `App.xaml.cs` has too many responsibilities (God Class) |
-| TD4 | No `IDialogService` abstraction — ViewModel/View tightly coupled |
+| ~~TD4~~ | ~~No `IDialogService` abstraction — ViewModel/View tightly coupled~~ | ✅ Done — PR #35 |
 | ~~TD5~~ | ~~Two separate duplicate log implementations~~ | ✅ Done — Branch 3 (ConfigService.LogError removed; items 1.14 + 9.3) |
 | ~~TD6~~ | ~~`RunOnSta` pattern creates/destroys OS threads per operation~~ | ✅ Done — fix/reliability (RunOnSta removed; calls use Task.Run at call sites) |
 | TD7 | No CI/CD pipeline configured |
@@ -596,16 +585,16 @@ Fine as placeholder; update when site launches.
 |----------|-------|-------|-----------|
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
-| Medium | 14 | 12 | 2 (M6, M11) |
+| Medium | 14 | 13 | 1 (M11) |
 | Low | 20 | 18 | 2 (L17, L20) |
-| Technical Debt | 7 | 3 | 4 |
+| Technical Debt | 7 | 5 | 2 (TD3, TD7) |
 | Refactoring Opportunities | 6 | 5 | 1 |
 | Feature Additions | 22 | 3 | 19 |
-| **Total** | **88** | **58** | **30** |
+| **Total** | **88** | **61** | **27** |
 
 ---
 
-*The most impactful remaining items before any public release: C2/C3 (installer + code signing), H8 (device hotplug), M5 (PropVariant struct size), M6 (MVVM / IDialogService), M11 (profile drag-to-reorder).*
+*The most impactful remaining items before any public release: C2/C3 (installer + code signing), H8 (device hotplug), M5 (PropVariant struct size), M11 (profile drag-to-reorder).*
 
 ---
 
@@ -614,7 +603,7 @@ Fine as placeholder; update when site launches.
 This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
 
 **Explicitly deferred (not in any branch):**
-C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), TD2–TD4/TD7 (planned in Branches 17–20), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
+C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), TD3/TD7 (planned in Branches 19–20), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
 
 ---
 
@@ -735,7 +724,7 @@ C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intention
 | ~~14~~ | ~~`feat/audio-reliability`~~ | ✅ Done — PR #30 |
 | ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Done — PR #31 |
 | ~~16~~ | ~~`test/unit-tests`~~ | ✅ Done — PR #33 |
-| 17 | `refactor/interfaces` | Planned |
+| ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Done — PR #35 |
 | 18 | `refactor/viewmodel-dialogs` | Planned |
 | 19 | `refactor/god-class` | Planned |
 | 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
@@ -863,35 +852,22 @@ Production enablers (no behavior change): ConfigService baseDir injection, AppLo
 
 ---
 
-### Branch 17: `refactor/interfaces`
+### ~~Branch 17: `refactor/interfaces`~~ ✅ Merged — PR #35
 **Theme:** Extract interfaces for every service — pure additive, no behavior change. Enables safe mocking in Branches 18–19.
 
-| Interface | Methods / Events | Implemented by |
-|-----------|-----------------|---------------|
-| `IAudioService` | `GetPlaybackDevices()`, `GetRecordingDevices()`, `ApplyProfileAsync()`, `DevicesChanged`, `Dispose()` | `AudioService` |
-| `IConfigService` | `Load()`, `SaveImmediate()`, `Current`, `IsFirstRun`, `IconsDir` | `ConfigService` |
-| `IStartupService` | `Enable()`, `Disable()`, `IsStartupEnabled()`, `RefreshRegistryPath()` | `StartupService` |
-| `IHotkeyService` | `RegisterAll()`, `UnregisterAll()`, `HandleHotkey()`, `TestHotkey()` | `HotkeyService` |
-| `IDialogService` | `ShowHotkeyCaptureDialog(current)`, `ShowConfirmDeleteDialog(name)`, `ShowProfileTypeDialog()`, `BrowseIconDialog()` | New `DialogService` class |
-
-After this branch: `SettingsViewModel`, `ProfileCardViewModel`, `App.xaml.cs` all reference only interfaces. A new `DialogService` concrete class wraps the actual WPF dialog calls that currently live inline in the ViewModels.
-
-Add to test project:
-- `FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService` stubs
-- `StartupService` tests (7.4) now possible via `IStartupService`
-- `HotkeyService` tests (7.6) now possible via `IHotkeyService`
+5 interfaces extracted (`IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, `IDialogService`) + `DialogService` concrete class. All ViewModels, TrayService, and App.xaml.cs updated to use interface types. M6, TD2, TD4, 3.8 resolved as part of this branch. 11 new tests (80 total): `StartupServiceTests` (7.4, 4 tests) and `HotkeyServiceTests` (7.6, 7 tests). Fake stubs (`FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService`, `FakeStartupService`) added to unblock Branch 18.
 
 ---
 
 ### Branch 18: `refactor/viewmodel-dialogs`
-**Theme:** Replace direct dialog instantiation in ViewModels with `IDialogService` — resolves M6/TD4.
+**Theme:** Add `SettingsViewModel` and `ProfileCardViewModel` unit tests using fake services — resolves 7.5.
+
+M6/TD4 were resolved in Branch 17. This branch is now purely about ViewModel unit tests.
 
 | Item | Change |
 |------|--------|
-| M6 / TD4 | `ProfileCardViewModel`: inject `IDialogService`; replace `new HotkeyCaptureDialog(...)`, `new ConfirmDeleteDialog(...)`, `new OpenFileDialog()` with service calls |
-| M6 / TD4 | `SettingsViewModel`: inject `IDialogService`; replace `new ProfileTypeDialog()` with service call |
-| — | `SettingsWindow.xaml.cs`: construct `DialogService` and pass it through |
-| 7.5 / 7.6 | Add `SettingsViewModel` and `ProfileCardViewModel` unit tests using fake services |
+| 7.5 | `SettingsViewModel` unit tests: AddProfile, DeleteProfile, StartWithWindows toggle, hotkey re-registration |
+| 7.5 | `ProfileCardViewModel` unit tests: CaptureHotkey (cancel, clear, conflict, success), BrowseIcon (cancel, copy success, copy failure), DeleteProfile (confirm, cancel) |
 
 ---
 

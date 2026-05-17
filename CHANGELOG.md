@@ -7,7 +7,12 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Service interfaces** — `IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, and `IDialogService` extracted alongside a `DialogService` concrete class; all ViewModels and `App.xaml.cs` now depend on interfaces rather than concrete types, enabling safe fake substitution in tests; five `Fake*` stubs added to the test project *(PR #35)*
+- **ViewModel unit test groundwork** — `StartupServiceTests` (4 integration tests with safe HKCU registry save/restore) and `HotkeyServiceTests` (7 tests covering early-return paths) added; 80 tests total *(PR #35)*
 - **Unit test project** — `VibeSwitcher.Tests` added with 69 tests covering ConfigService (load/save/recovery/migration), HotkeyDefinition (bitmask, display string, validation), SessionErrorTracker (thread-safe concurrent recording, event isolation), ErrorCode (format, uniqueness), AppLogger (rotation, backup chain, non-fatal on locked file), DeviceNotificationClient (debounce coalescing, cancellation), and IconHelper (path rejection, traversal guard); `dotnet test` runs in ~2 seconds *(PR #33)*
+
+### Fixed
+- **Clearing a hotkey now applies correctly** — previously, clicking "Clear" in the hotkey capture dialog silently restored the previous hotkey instead of removing it *(PR #35)*
 
 ### Added
 - **Live device refresh** — Settings device dropdowns update automatically when audio devices are plugged in or removed, without needing to close and reopen the Settings window *(PR #30)*

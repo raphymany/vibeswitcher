@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-17 — reflects all 16 merged branches (PR #33) + v1.1.0 release.
+**Last updated:** 2026-05-17 — reflects all 17 merged branches (PR #35) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -21,16 +21,10 @@ Minor GC pressure from `MemoryStream` + `Icon` per user-icon load. `_defaultIcon
 
 ## SECTION 3 — CODE QUALITY & ARCHITECTURE
 
-**3.1 — MVVM violation: ViewModels directly instantiate and open View classes** *(Medium)*
-`ViewModels/ProfileCardViewModel.cs`, `ViewModels/SettingsViewModel.cs` — ViewModels directly `new` up `HotkeyCaptureDialog`, `ConfirmDeleteDialog`, `ProfileTypeDialog`, `OpenFileDialog`. Untestable and couples ViewModels to Views.
-Fix: extract `IDialogService` interface.
-
 **3.3 — `App.xaml.cs` is a God Class** *(Medium)*
 Owns services, handles `WndProc`, orchestrates profile switches, manages window lifecycle, drives startup.
 Fix: extract `ProfileSwitchOrchestrator` and `WindowManager`.
 
-**3.8 — No `IConfigService` interface** *(Low)*
-All consumers hold concrete `ConfigService`. Prevents testability.
 
 ---
 
@@ -125,7 +119,6 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Issue |
 |---|-------|
-| M6 | MVVM violation — ViewModels directly instantiate View dialogs *(Planned — Branch K)* |
 | M11 | No profile reorder UI — drag handles (Spotify-style) planned for future branch |
 
 ### LOW — Nice to fix before or after release
@@ -140,9 +133,9 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | # | Item |
 |---|------|
 | ~~TD1~~ | ~~No test project — zero automated test coverage~~ ✅ Done — PR #33 |
-| TD2 | No `IAudioService` / `IConfigService` interfaces preventing testability *(Planned — Branch J)* |
+| ~~TD2~~ | ~~No `IAudioService` / `IConfigService` interfaces preventing testability~~ ✅ Done — PR #35 |
 | TD3 | `App.xaml.cs` has too many responsibilities (God Class) *(Planned — Branch L)* |
-| TD4 | No `IDialogService` abstraction — ViewModel/View tightly coupled *(Planned — Branch K)* |
+| ~~TD4~~ | ~~No `IDialogService` abstraction — ViewModel/View tightly coupled~~ ✅ Done — PR #35 |
 | TD7 | No CI/CD pipeline configured *(Planned — Branch M)* |
 
 ### REFACTORING OPPORTUNITIES
@@ -202,7 +195,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | ~~14~~ | ~~`feat/audio-reliability`~~ | ✅ Merged — PR #30 |
 | ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Merged — PR #31 |
 | ~~16~~ | ~~`test/unit-tests`~~ | ✅ Merged — PR #33 |
-| 17 | `refactor/interfaces` | Planned |
+| ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Merged — PR #35 |
 | 18 | `refactor/viewmodel-dialogs` | Planned |
 | 19 | `refactor/god-class` | Planned |
 | 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
@@ -225,23 +218,20 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-### Branch J: `refactor/interfaces`
-**Theme:** Extract interfaces for every service — pure additive, no behavior change. Enables safe mocking in Branches K–L.
+### ~~Branch J: `refactor/interfaces`~~ ✅ Merged — PR #35
+**Theme:** Extract interfaces for every service. Resolves TD2, TD4, M6, 3.8.
 
-- `IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, `IDialogService` + `DialogService` concrete class (TD2, 3.8)
-- All ViewModels and `App.xaml.cs` reference only interfaces (constructor injection)
-- `FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService` stubs in test project
-- `StartupService` tests (7.4) and `HotkeyService` tests (7.6) added now that interfaces exist
+5 interfaces + `DialogService` added. All ViewModels, TrayService, App.xaml.cs updated to use interface types. Dialog calls extracted from ViewModels into `DialogService`. `FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService`, `FakeStartupService` stubs added. 11 new tests: `StartupServiceTests` (7.4) and `HotkeyServiceTests` (7.6, partial). 80 tests total.
 
 ---
 
 ### Branch K: `refactor/viewmodel-dialogs`
-**Theme:** Replace direct dialog instantiation in ViewModels with `IDialogService` — resolves M6/TD4.
+**Theme:** Add SettingsViewModel and ProfileCardViewModel unit tests using fake services — resolves 7.5.
 
-- `ProfileCardViewModel`: inject `IDialogService`; replace `new HotkeyCaptureDialog(...)`, `new ConfirmDeleteDialog(...)`, `new OpenFileDialog()` with service calls (M6, TD4)
-- `SettingsViewModel`: inject `IDialogService`; replace `new ProfileTypeDialog()` with service call (M6, TD4)
-- `SettingsWindow.xaml.cs`: construct `DialogService` and pass through
-- `SettingsViewModel` and `ProfileCardViewModel` unit tests added using fake services (7.5, 7.6)
+M6/TD4 were resolved in Branch J. This branch is now purely about ViewModel unit tests.
+
+- `SettingsViewModel` tests: AddProfile, DeleteProfile, StartWithWindows toggle, hotkey re-registration
+- `ProfileCardViewModel` tests: CaptureHotkey (cancel, clear, conflict, success), BrowseIcon (cancel, copy success, copy failure), DeleteProfile (confirm, cancel)
 
 ---
 
