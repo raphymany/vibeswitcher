@@ -27,7 +27,9 @@ public partial class HotkeyCaptureDialog : Window
     {
         Key key = e.Key == Key.System ? e.SystemKey : e.Key;
 
-        if (key == Key.Enter || key == Key.Escape) return;
+        // Navigation/system keys that must not be assignable as hotkeys
+        if (key is Key.Enter or Key.Escape or Key.Tab
+                or Key.Apps or Key.Pause or Key.PrintScreen or Key.Scroll) return;
 
         if (IsModifierKey(key))
         {
