@@ -9,12 +9,13 @@ using VibeSwitcher.Views;
 
 namespace VibeSwitcher;
 
-public class ProfileSwitchOrchestrator
+public class ProfileSwitchOrchestrator : IDisposable
 {
     private readonly IConfigService _configService;
     private readonly IAudioService _audioService;
     private readonly TrayService _trayService;
     private readonly Dispatcher _dispatcher;
+    private readonly SemaphoreSlim _switchLock = new(1, 1);
 
     public ProfileSwitchOrchestrator(
         IConfigService configService,
@@ -35,12 +36,24 @@ public class ProfileSwitchOrchestrator
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         if (activeProfile != null)
             SwitchToProfile(activeProfile);
+        // Note: if a switch is already in progress when the PC resumes, SwitchToProfile will drop
+        // the resume request (switchLock.Wait(0) returns false). This is extremely unlikely in
+        // practice — the lock is held for the duration of one audio API call only.
     }
 
-    // async void is intentional: called as fire-and-forget from WndProc and PowerModeChanged.
+    // async void is intentional: called as fire-and-forget from WndProc, PowerModeChanged, and tray click.
     // The try/catch ensures exceptions are always handled, so the async void is safe.
     public async void SwitchToProfile(DeviceProfile profile)
     {
+        // Drop concurrent switch requests — spamming the hotkey or tray menu cannot queue overlapping
+        // ApplyProfileAsync calls, which would leave audio devices in an undefined state.
+        if (!_switchLock.Wait(0))
+        {
+            AppLogger.Warning("SwitchToProfile", $"Switch to '{profile.Name}' dropped — another switch is already in progress.");
+            return;
+        }
+        try
+        {
         // Dispatch to UI thread — SwitchToProfile can be called from the PowerModeChanged
         // background thread (SystemEvents callbacks run off the UI thread).
         await _dispatcher.InvokeAsync(() => _trayService.SetSwitchingTooltip(profile.Name));
@@ -100,5 +113,12 @@ public class ProfileSwitchOrchestrator
                     $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
             });
         }
+        }
+        finally
+        {
+            _switchLock.Release();
+        }
     }
+
+    public void Dispose() => _switchLock.Dispose();
 }
