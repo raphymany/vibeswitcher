@@ -22,7 +22,7 @@
 **~~1.5 — `SwitchToProfile` balloon shows generic exception message~~** ✅ *Fixed — issue #8*
 `App.xaml.cs` — Now uses `ex.InnerException?.Message ?? ex.Message`.
 
-**1.6 — `RegisterHotkeys` only catches the first conflict, then loses ALL hotkeys** — See ~~H7~~ ✅ Fixed — issue #13
+**~~1.6 — `RegisterHotkeys` only catches the first conflict, then loses ALL hotkeys~~** — See ~~H7~~ ✅ Fixed — issue #13
 
 **~~1.7 — `HotkeyService.TestHotkey` multi-step unregister/re-register is not thread-safe~~** ✅ *Fixed — PR #27*
 `Services/HotkeyService.cs` — `Debug.Assert(Dispatcher.CheckAccess())` added; catches any future off-UI-thread call in debug builds.
@@ -66,9 +66,9 @@
 **~~1.20 — No `VirtualKeyCode` range validation~~** ✅ *Fixed — issue #13*
 `Models/HotkeyDefinition.cs` — Added `IsValid => VirtualKeyCode > 0 && VirtualKeyCode <= 254`; checked before `RegisterHotKey`.
 
-**1.21 — Log file grows unboundedly** — See ~~M3~~ ✅ Fixed
+**~~1.21 — Log file grows unboundedly~~** — See ~~M3~~ ✅ Fixed
 
-**1.22 — `DispatcherUnhandledException` swallows all exceptions unconditionally** — See ~~M15~~ ✅ Fixed
+**~~1.22 — `DispatcherUnhandledException` swallows all exceptions unconditionally~~** — See ~~M15~~ ✅ Fixed
 
 ---
 
@@ -77,7 +77,7 @@
 **~~2.1 — UI thread blocked N x 2 times during settings open~~** ✅ *Fixed*
 Same as ~~1.8~~. `LoadDevicesAsync` in `SettingsViewModel` enumerates once on a background thread; all profile cards call `card.LoadDevices(pb, rec)` with the shared result.
 
-**2.2 — Device list enumerated independently per profile card** — See ~~2.1~~ ✅ Fixed
+**~~2.2 — Device list enumerated independently per profile card~~** — See ~~2.1~~ ✅ Fixed
 
 **~~2.3 — `RebuildMenu` does disk I/O on every profile switch~~** ✅ *Fixed*
 `Tray/TrayService.cs` — `_iconCache` dictionary caches `ImageSource` per profile ID; `RebuildMenu` never reads from disk. Menu repopulates the existing `ContextMenu` instance.
@@ -120,7 +120,7 @@ Fix: extract `IDialogService` interface.
 **~~3.6 — COM object release in `GetDeviceInfo` not in `finally`~~** ✅ *Fixed — PR #19*
 `AudioService.cs` — `IPropertyStore` and `IMMDeviceCollection` COM objects now released unconditionally in `finally` blocks.
 
-**3.7 — Magic numbers in `HotkeyDefinition.GetModifierFlags()`** — See ~~1.17~~ ✅ Fixed
+**~~3.7 — Magic numbers in `HotkeyDefinition.GetModifierFlags()`~~** — See ~~1.17~~ ✅ Fixed
 
 **~~3.8 — No `IConfigService` interface~~** ✅ Done — PR #35
 `IConfigService` extracted; all consumers updated to reference the interface.
@@ -422,7 +422,7 @@ Consider Sentry.io (free for open-source) with user consent.
 
 ## SECTION 10 — DOCUMENTATION
 
-**10.1 — No README.md** — ✅ *Done*
+**~~10.1 — No README.md~~** — ✅ *Done*
 
 **~~10.2 — No CHANGELOG.md~~** ✅ *Done — 2026-05-17*
 `CHANGELOG.md` created covering all changes from v1.0.0 through current fixes.
@@ -433,9 +433,9 @@ No F1 help, no "?" button, no getting-started walkthrough.
 **~~10.4 — No developer docs / CONTRIBUTING.md~~** ✅ *Fixed — fix/polish-and-compat*
 `CONTRIBUTING.md` created at repo root: prerequisites (.NET 8 SDK, Visual Studio or Rider), getting started steps, project layout table, coding conventions, PR process, and bug reporting guidance.
 
-**10.5 — No LICENSE file** — ✅ *Done*
+**~~10.5 — No LICENSE file~~** — ✅ *Done*
 
-**10.6 — GitHub URLs in About window are placeholders** — ✅ *Done*
+**~~10.6 — GitHub URLs in About window are placeholders~~** — ✅ *Done*
 
 **~~10.7 — No build instructions documented~~** ✅ *Fixed — fix/polish-and-compat*
 `README.md` expanded with "Building from source" section: `dotnet restore`, `dotnet run`, and `dotnet publish --self-contained` commands documented; link added to `CONTRIBUTING.md`.

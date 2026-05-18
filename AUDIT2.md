@@ -6,9 +6,9 @@ Only items **not yet marked ✅ Done** are listed here. Section numbers, letters
 
 ---
 
-## SECTION 1 — CODE REVIEW & SECURITY AUDIT
+## ~~SECTION 1 — CODE REVIEW & SECURITY AUDIT~~
 
-*(All Section 1 open items resolved as of PR #27)*
+*(All items resolved as of PR #27)*
 
 ---
 
@@ -19,9 +19,9 @@ Minor GC pressure from `MemoryStream` + `Icon` per user-icon load. `_defaultIcon
 
 ---
 
-## SECTION 3 — CODE QUALITY & ARCHITECTURE
+## ~~SECTION 3 — CODE QUALITY & ARCHITECTURE~~
 
-*(All Section 3 open items resolved as of PR #37)*
+*(All items resolved as of PR #37)*
 
 ---
 
@@ -49,15 +49,15 @@ Convention: middle-click toggles between last two profiles.
 
 ---
 
-## SECTION 6 — CONFIG & DATA INTEGRITY
+## ~~SECTION 6 — CONFIG & DATA INTEGRITY~~
 
-*(All Section 6 open items resolved as of PR #27)*
+*(All items resolved as of PR #27)*
 
 ---
 
-## SECTION 7 — TESTING
+## ~~SECTION 7 — TESTING~~
 
-*(All Section 7 open items resolved as of PR #38)*
+*(All items resolved as of PR #38)*
 
 ---
 
