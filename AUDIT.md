@@ -572,11 +572,11 @@ Fine as placeholder; update when site launches.
 | ~~F6~~ | ~~Re-apply active profile on system resume from sleep/hibernate~~ | ✅ Done — PR #18 |
 | ~~F7~~ | ~~`IMMNotificationClient` for real-time device plug/unplug in Settings~~ | ✅ Done — PR #30 |
 | F8 | Auto-updater with GitHub Releases version check |
-| ~~F9~~ | ~~Windows 11 Action Center rich notifications~~ | Removed — current balloon tips already appear as Windows notifications |
+| F9 | Windows 11 Toast notifications — replace the current balloon tip with the modern Windows 10/11 Toast API so notifications persist in Action Center, support richer formatting, and stack/dismiss properly |
 | F10 | Per-profile volume level (set device default volume when switching) |
 | F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
 | ~~F12~~ | ~~Command-line interface: `VibeSwitcher.exe --switch "Profile Name"`~~ | Removed |
-| F13 | Portable mode — launch with `--portable` flag and config is stored next to the exe instead of `%APPDATA%`; no in-app toggle, it's either always portable (flag present) or always normal (flag absent) |
+| F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
 | ~~F14~~ | ~~System tray scroll wheel for volume control~~ | Removed |
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
 | F16 | Dark mode + high-contrast mode — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting |
@@ -604,8 +604,8 @@ Fine as placeholder; update when site launches.
 | Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 27 | 7 | 20 |
-| **Total** | **100** | **76** | **24** |
+| Feature Additions | 27 | 6 | 21 |
+| **Total** | **100** | **75** | **25** |
 
 ---
 

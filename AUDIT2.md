@@ -128,9 +128,10 @@ No mechanism to notify users of or deliver new versions.
 | F3 | "Test sound" button to verify active device plays audio |
 | F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys (e.g. "Desktop Setup: Ctrl+PgUp / Gaming: Ctrl+PgDn") so you can see the full list without opening any window |
 | F8 | Auto-updater with GitHub Releases version check |
+| F9 | Windows 11 Toast notifications — replace the current balloon tip with the modern Windows 10/11 Toast API so notifications persist in Action Center, support richer formatting, and stack/stack-dismiss properly |
 | F10 | Per-profile volume level (set device default volume when switching) |
 | F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
-| F13 | Portable mode — launch with `--portable` flag and config is stored next to the exe instead of `%APPDATA%`; useful for USB/portable installs; no in-app toggle, it's either always portable (flag present) or always normal (flag absent) |
+| F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
 | F16 | Dark mode + high-contrast mode — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting |
 | F17 | Built-in profile icons gallery picker |
 | F18 | Field feedback — green border flash when a field change is saved |
