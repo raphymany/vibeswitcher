@@ -137,6 +137,22 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void Migrate_WindowLeft_NegativeOne_Nulled_WindowTop_NonSentinel_Preserved()
+    {
+        // -1 is the v1 sentinel for "not yet saved". Only WindowLeft = -1 should become null;
+        // a real WindowTop value like 200.0 must pass through unchanged.
+        File.WriteAllText(
+            Path.Combine(_dir, "config.json"),
+            """{"WindowLeft":-1,"WindowTop":200.0,"Profiles":[]}""");
+
+        var svc = new ConfigService(_dir);
+        svc.Load();
+
+        Assert.Null(svc.Current.WindowLeft);
+        Assert.Equal(200.0, svc.Current.WindowTop);
+    }
+
+    [Fact]
     public void IconsDir_IsSubdirectoryOfBaseDir()
     {
         var svc = new ConfigService(_dir);

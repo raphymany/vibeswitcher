@@ -187,6 +187,43 @@ public class ProfileCardViewModelTests
 
     // ── DeleteProfile ────────────────────────────────────────────────────────
 
+    // ── LoadDevices guard ────────────────────────────────────────────────────
+
+    [Fact]
+    public void LoadDevices_DoesNotFireOnChanged()
+    {
+        // _loadingDevices flag is true inside LoadDevices; the TwoWay ComboBox rebind
+        // must not trigger _onChanged (which would save and re-register hotkeys mid-load).
+        var profile = new DeviceProfile { Name = "Test" };
+        var changedCount = 0;
+        using var card = new ProfileCardViewModel(
+            profile, _fakeConfig, _fakeHotkey, _fakeDialog,
+            [], [],
+            _ => changedCount++, _ => { });
+
+        var pb = new AudioDeviceInfo[] { new("id1", "Speakers", true) };
+        card.LoadDevices(pb, []);
+
+        Assert.Equal(0, changedCount);
+    }
+
+    [Fact]
+    public void SelectedPlaybackDevice_SetDirectly_FiresOnChanged()
+    {
+        // Baseline: setting the device outside of LoadDevices DOES fire _onChanged.
+        var profile = new DeviceProfile { Name = "Test" };
+        var changedCount = 0;
+        var pb = new AudioDeviceInfo[] { new("id1", "Speakers", true) };
+        using var card = new ProfileCardViewModel(
+            profile, _fakeConfig, _fakeHotkey, _fakeDialog,
+            pb, [],
+            _ => changedCount++, _ => { });
+
+        card.SelectedPlaybackDevice = card.PlaybackDevices[1]; // index 0 is (None)
+
+        Assert.Equal(1, changedCount);
+    }
+
     [Fact]
     public void DeleteProfile_ConfirmTrue_InvokesCallback()
     {

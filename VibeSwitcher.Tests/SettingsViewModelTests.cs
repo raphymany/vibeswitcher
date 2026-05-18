@@ -1,4 +1,5 @@
 using VibeSwitcher.Models;
+using VibeSwitcher.Services;
 using VibeSwitcher.ViewModels;
 using Xunit;
 
@@ -88,6 +89,37 @@ public class SettingsViewModelTests
         vm.StartWithWindows = false;
 
         Assert.False(_fakeStartup.StartupEnabled);
+    }
+
+    [Fact]
+    public async Task LoadDevicesAsync_ConcurrentCalls_DoNotThrow()
+    {
+        // Simulates rapid plug/unplug events firing DevicesChanged concurrently.
+        // The Interlocked.Exchange CancellationTokenSource swap must not race or throw.
+        _fakeAudio.PlaybackResult = [new AudioDeviceInfo("id1", "Speakers", true)];
+        var vm = MakeViewModel();
+
+        var tasks = Enumerable.Range(0, 10)
+            .Select(_ => Task.Run(() => _fakeAudio.RaiseDevicesChanged()))
+            .ToArray();
+        await Task.WhenAll(tasks);
+    }
+
+    [Fact]
+    public async Task OnDevicesChanged_CalledFromBackgroundThread_DoesNotThrow()
+    {
+        // DeviceNotificationClient fires DevicesChanged from a thread-pool thread;
+        // SettingsViewModel.OnDevicesChanged must be safe to call off the UI thread.
+        var vm = MakeViewModel();
+        Exception? caught = null;
+
+        await Task.Run(() =>
+        {
+            try { _fakeAudio.RaiseDevicesChanged(); }
+            catch (Exception ex) { caught = ex; }
+        });
+
+        Assert.Null(caught);
     }
 
     [Fact]
