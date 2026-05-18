@@ -92,12 +92,9 @@ No mechanism to notify users of or deliver new versions.
 
 ## SECTION 11 — OPEN ITEMS BY PRIORITY
 
-### CRITICAL — Must fix before any release
+### ~~CRITICAL — Must fix before any release~~
 
-| # | Issue | Location |
-|---|-------|----------|
-| C2 | No installer / distribution mechanism | Build pipeline |
-| C3 | No code signing (SmartScreen blocks app on every first run) | Build pipeline |
+*(C2 and C3 deferred — installer and code signing saved for last)*
 
 ### ~~HIGH — Important before v1.0.0~~
 
@@ -201,6 +198,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling |
 | F16 | Dark mode + high-contrast — `SystemColors` brushes to follow the OS theme |
 | F1 / 4.13 | Config import/export — backup and transfer profiles via Settings |
+| F19 / 10.3 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
 
 ---
 
@@ -215,26 +213,31 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 33: `feat/installer`
-**Theme:** Pre-release distribution blockers — must be done before a public v1.0 release.
+### Branch 33: `feat/portable-mode`
+**Theme:** Portable install support — config stored next to the exe when `portable.txt` is present.
 
 | # | Feature |
 |---|---------|
-| C2 / 8.1 | Installer — Inno Setup or WiX; handles install path, Start Menu shortcut, uninstall |
-| C3 / 8.2 | Code signing — Authenticode certificate to prevent SmartScreen warnings |
 | F13 | Portable mode — auto-detected via `portable.txt` next to the exe; stores config locally |
+
+---
+
+### Branch 34: `feat/profile-scheduler`
+**Theme:** Time-based automatic profile switching.
+
+| # | Feature |
+|---|---------|
+| F11 | Profile scheduler — per-profile schedule (time + days of week); background timer checks current time and switches automatically; integrates with the existing power-mode wake handler |
 
 ---
 
 ### Deferred — No branch planned yet
 
-Complex, blocked, or clearly post-v1.0. Revisit after Branch 33.
-
 | # | Feature | Why deferred |
 |---|---------|--------------|
-| F8 / 8.3 | Auto-updater (GitHub Releases check) | Needs installer/signing first |
+| C2 / 8.1 | Installer (Inno Setup or WiX) | Saving for last |
+| C3 / 8.2 | Code signing (Authenticode) | No certificate yet |
+| F8 / 8.3 | Auto-updater (GitHub Releases check) | Needs installer first |
 | 8.7 | winget / Chocolatey package | Post-v1.0 distribution |
-| F9 | Full WinRT toast notifications (persist in Action Center) | Blocked by VS tooling requirement for Windows App SDK |
-| F11 | Profile scheduler (time-based switching) | Complex, low demand |
-| F19 / 10.3 | In-app help / getting-started walkthrough | Post-v1.0 polish |
+| F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
 | 10.8 | Website ("coming soon") | External, not in this repo |
