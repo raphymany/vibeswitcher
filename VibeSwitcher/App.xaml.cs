@@ -1,12 +1,10 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Interop;
 using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.NativeMethods;
 using VibeSwitcher.Services;
 using VibeSwitcher.Tray;
-using VibeSwitcher.Views;
-using H.NotifyIcon;
 using H.NotifyIcon.Core;
 
 namespace VibeSwitcher;
@@ -19,6 +17,8 @@ public partial class App : Application
     private IHotkeyService? _hotkeyService;
     private TrayService? _trayService;
     private HwndSource? _hwndSource;
+    private ProfileSwitchOrchestrator? _orchestrator;
+    private AppWindowManager? _windowManager;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -76,34 +76,29 @@ public partial class App : Application
         _hotkeyService = new HotkeyService(_hwndSource.Handle);
         _trayService = new TrayService(_configService, _audioService, _hotkeyService);
 
-        // 5. Register hotkeys
+        // 5. Initialise orchestrators
+        _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, Dispatcher);
+        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService);
+
+        // 6. Register hotkeys
         RegisterHotkeys();
 
-        // 6. Restore last active profile (fire-and-forget, non-blocking)
+        // 7. Restore last active profile (fire-and-forget, non-blocking)
         var activeProfile = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         if (activeProfile != null)
-            _ = _audioService.ApplyProfileAsync(activeProfile); // already async, no Task.Run needed
+            _ = _audioService.ApplyProfileAsync(activeProfile);
 
-        // 7. Refresh tray
+        // 8. Refresh tray
         _trayService.UpdateIcon(activeProfile);
         _trayService.RebuildMenu();
 
-        // 8. Re-apply active profile when the PC wakes from sleep/hibernate
-        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+        // 9. Re-apply active profile when the PC wakes from sleep/hibernate
+        SystemEvents.PowerModeChanged += _orchestrator.OnPowerModeChanged;
 
-        // 9. Open settings on first run, or if the user has turned off start-minimized
+        // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
-    }
-
-    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
-    {
-        if (e.Mode != PowerModes.Resume) return;
-        var activeProfile = _configService!.Current.Profiles
-            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        if (activeProfile != null)
-            SwitchToProfile(activeProfile);
     }
 
     private void RegisterHotkeys()
@@ -130,7 +125,7 @@ public partial class App : Application
             var profile = _hotkeyService!.HandleHotkey(atomId);
             if (profile != null)
             {
-                SwitchToProfile(profile);
+                _orchestrator!.SwitchToProfile(profile);
                 handled = true;
             }
         }
@@ -142,100 +137,15 @@ public partial class App : Application
         return IntPtr.Zero;
     }
 
-    // async void is intentional: called as fire-and-forget from WndProc and PowerModeChanged.
-    // The try/catch ensures exceptions are always handled, so the async void is safe.
-    private async void SwitchToProfile(Models.DeviceProfile profile)
-    {
-        // Dispatch to UI thread — SwitchToProfile can be called from the PowerModeChanged
-        // background thread (SystemEvents callbacks run off the UI thread).
-        await Dispatcher.InvokeAsync(() => _trayService!.SetSwitchingTooltip(profile.Name));
-        try
-        {
-            // ApplyProfileAsync already dispatches to an STA background thread internally —
-            // no outer Task.Run needed here.
-            var result = await _audioService!.ApplyProfileAsync(profile);
-            await Dispatcher.InvokeAsync(() =>
-            {
-                _configService!.Current.ActiveProfileId = profile.Id;
-                _configService.SaveImmediate();
-                _trayService!.UpdateIcon(profile);
-                _trayService.SetActiveProfile(profile.Id);
+    public void OpenSettingsWindow() => _windowManager?.OpenSettingsWindow();
 
-                if (result.MissingPlaybackId != null)
-                {
-                    var msg = $"Playback device for '{profile.Name}' is disconnected.";
-                    AppLogger.Warning("SwitchToProfile", msg);
-                    SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
-                }
-                if (result.MissingRecordingId != null)
-                {
-                    var msg = $"Recording device for '{profile.Name}' is disconnected.";
-                    AppLogger.Warning("SwitchToProfile", msg);
-                    SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
-                }
-
-                if (_configService.Current.ShowNotifications)
-                {
-                    if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
-                    {
-                        _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
-                    }
-                    else
-                    {
-                        if (result.MissingPlaybackId != null)
-                            _trayService.ShowBalloon("Device Unavailable",
-                                $"Playback device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
-                        if (result.MissingRecordingId != null)
-                            _trayService.ShowBalloon("Device Unavailable",
-                                $"Recording device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
-                    }
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            AppLogger.Error("SwitchToProfile", ex);
-            var detail = ex.InnerException?.Message ?? ex.Message;
-            SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                $"Could not switch to '{profile.Name}': {detail}");
-            await Dispatcher.InvokeAsync(() =>
-            {
-                // Restore tooltip — the switch failed so the previously active profile is still correct
-                var still = _configService!.Current.Profiles.FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-                _trayService!.UpdateIcon(still);
-                new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                    $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
-            });
-        }
-    }
-
-    public void OpenSettingsWindow()
-    {
-        var existing = Windows.OfType<SettingsWindow>().FirstOrDefault();
-        if (existing != null)
-        {
-            existing.Show();
-            existing.WindowState = WindowState.Normal;
-            existing.Activate();
-            return;
-        }
-
-        var window = new SettingsWindow(_configService!, _audioService!, _hotkeyService!, _trayService!);
-        window.Show();
-    }
-
-    public void OpenAboutWindow()
-    {
-        var owner = Windows.OfType<SettingsWindow>().FirstOrDefault();
-        var profileCount = _configService?.Current.Profiles.Count ?? 0;
-        var about = new AboutWindow(profileCount);
-        if (owner != null) about.Owner = owner;
-        about.ShowDialog();
-    }
+    public void OpenAboutWindow() => _windowManager?.OpenAboutWindow();
 
     protected override void OnExit(ExitEventArgs e)
     {
-        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+        // _orchestrator is null when a second instance exits early via Shutdown() before OnStartup completes.
+        if (_orchestrator != null)
+            SystemEvents.PowerModeChanged -= _orchestrator.OnPowerModeChanged;
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);
         _hwndSource?.Dispose();
