@@ -91,8 +91,7 @@ Same as ~~1.8~~. `LoadDevicesAsync` in `SettingsViewModel` enumerates once on a 
 **~~2.6 — `ObservableCollection` fires `CollectionChanged` per item during load~~** ✅ *Fixed*
 `ViewModels/SettingsViewModel.cs` — `Profiles` initialized via the `ObservableCollection(IEnumerable<T>)` constructor, so no per-item `CollectionChanged` fires during load.
 
-**2.7 — Icon creation allocations on every load** *(Low)*
-Minor GC pressure from `MemoryStream` + `Icon` per user-icon load. `_defaultIcon` caching is correct.
+**~~2.7 — Icon creation allocations on every load~~** *(Won't fix — GC impact is negligible for a tray app that loads icons infrequently)*
 
 **~~2.8 — Linear LINQ scan in `WndProc` hotkey handler~~** ✅ *Fixed — issue #13*
 `Services/HotkeyService.cs` — `HandleHotkey` uses `_atomToProfile` and `_profileById` dictionaries for O(1) dispatch on every `WM_HOTKEY`.
@@ -230,8 +229,7 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 **~~5.8 — RDP hotkey behavior not documented~~** ✅ *Fixed — PR #27*
 `README.md` — Known Limitations section added; documents that `RegisterHotKey` in an RDP session acts on the local machine, not the remote.
 
-**5.9 — Mixed-DPI multi-monitor window position inaccuracy** *(Low)*
-`Views/SettingsWindow.xaml.cs:50-62` — Known WPF limitation with mixed-DPI setups.
+**~~5.9 — Mixed-DPI multi-monitor window position inaccuracy~~** *(Won't fix — known WPF platform limitation; not something we can solve in app code)*
 
 **~~5.10 — Startup registry entry breaks on exe move or update~~** ✅ *Fixed — fix/reliability*
 `Services/StartupService.cs` — `RefreshRegistryPath()` added; called on every launch. Reads the stored registry value, compares it to `Environment.ProcessPath`, and silently calls `Enable()` to update the path if they differ. No user action required after moving the exe.
@@ -305,13 +303,7 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 - `GetDefaultIcon()` is idempotent
 - `ToImageSource()` returns a non-null `ImageSource`
 
-**7.8 — Suggested UI automation tests**
-- Open Settings window — verify all profile cards render without freeze
-- Add a profile — verify it appears in list and tray menu
-- Delete a profile — verify it disappears and confirmation dialog appeared
-- Set a hotkey — verify it displays in the profile card
-- Change hotkey to a conflicting one — verify warning is shown
-- Toggle "Start with Windows" — verify registry entry changes
+**~~7.8 — Suggested UI automation tests~~** *(Won't fix — requires WinAppDriver infrastructure; 98 unit tests already cover all logic; overkill for a personal tray app)*
 
 **7.9 — Manual test checklist**
 - Launch with no config file (first run)
@@ -400,19 +392,13 @@ Publish `sha256sums.txt` with each release for integrity verification.
 **~~9.3 — Duplicate log implementation~~** ✅ *Fixed*
 `Services/ConfigService.cs` — `ConfigService.LogError` removed; all logging routes through `AppLogger`.
 
-**9.4 — No structured (machine-parseable) logging** *(Low)*
-Consider Serilog with a rolling file sink which handles rotation automatically.
+**~~9.4 — No structured (machine-parseable) logging~~** *(Won't fix — existing AppLogger with rotation and levels is sufficient; Serilog adds dependency complexity for negligible gain)*
 
-**9.5 — No Windows Event Viewer integration** *(Low)*
-Critical startup failures not visible in Event Viewer.
-Fix: `EventLog.WriteEntry` for unhandled exceptions.
+**~~9.5 — No Windows Event Viewer integration~~** *(Won't fix — enterprise-grade tooling; not relevant for a personal tray app)*
 
-**9.6 — No crash dump generation** *(Low)*
-Unhandled exceptions logged as text only. COM crashes may not capture the full call stack.
-Fix: call `MiniDumpWriteDump` in `UnhandledException` handler.
+**~~9.6 — No crash dump generation~~** *(Won't fix — existing logging captures call stacks; MiniDumpWriteDump is complex P/Invoke for marginal benefit)*
 
-**9.7 — No opt-in crash reporting** *(Low / business decision)*
-Consider Sentry.io (free for open-source) with user consent.
+**~~9.7 — No opt-in crash reporting~~** *(Won't fix — requires third-party service and user consent infrastructure; out of scope)*
 
 **~~9.8 — No diagnostic report feature~~** ✅ *Fixed — fix/polish-and-compat*
 `Views/AboutWindow.xaml.cs` — "Copy Diagnostic Info" button added to About window footer. Copies OS version, .NET version, profile count, session error count, and log file path to clipboard; shows "Copied!" feedback for 2 seconds.

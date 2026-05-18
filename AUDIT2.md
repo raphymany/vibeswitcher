@@ -12,10 +12,9 @@ Only items **not yet marked ✅ Done** are listed here. Section numbers, letters
 
 ---
 
-## SECTION 2 — PERFORMANCE
+## ~~SECTION 2 — PERFORMANCE~~
 
-**2.7 — Icon creation allocations on every load** *(Low / deferred)*
-Minor GC pressure from `MemoryStream` + `Icon` per user-icon load. `_defaultIcon` caching is correct but browsed icons still allocate per-load.
+*(All items resolved or dropped — 2.7 won't fix)*
 
 ---
 
@@ -42,10 +41,9 @@ Convention: middle-click toggles between last two profiles.
 
 ---
 
-## SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY
+## ~~SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY~~
 
-**5.9 — Mixed-DPI multi-monitor window position inaccuracy** *(Low)*
-`Views/SettingsWindow.xaml.cs` — Known WPF limitation with mixed-DPI setups.
+*(All items resolved or dropped — 5.9 won't fix)*
 
 ---
 
@@ -57,10 +55,7 @@ Convention: middle-click toggles between last two profiles.
 
 ## SECTION 7 — TESTING
 
-*(7.1–7.7, 7.10–7.15 resolved. Open items below.)*
-
-**7.8 — UI automation tests** *(Low / deferred)*
-Requires WinAppDriver or similar tooling. No planned branch.
+*(7.1–7.7, 7.10–7.15 resolved. 7.8 dropped. Open item below.)*
 
 **7.9 — Manual regression checklist** *(Ongoing)*
 Run before each release: first-run flow, corrupted config recovery, single-instance guard, profile switch with device present/disconnected, hotkey switch, close-to-tray, window position/size persistence, settings toggles.
@@ -85,16 +80,9 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-## SECTION 9 — LOGGING & DIAGNOSTICS
+## ~~SECTION 9 — LOGGING & DIAGNOSTICS~~
 
-**9.4 — No structured (machine-parseable) logging** *(Low)*
-Consider Serilog with a rolling file sink which handles rotation automatically.
-
-**9.5 — No Windows Event Viewer integration** *(Low)*
-
-**9.6 — No crash dump generation** *(Low)*
-
-**9.7 — No opt-in crash reporting** *(Low / business decision)*
+*(All items resolved or dropped — 9.4–9.7 won't fix)*
 
 ---
 
@@ -198,5 +186,5 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-**Still deferred (no branch planned):**
-C2/C3 (installer, code signing), L17/L20 (high-contrast/SHA256), M11 (profile reorder), 2.7 (GC pressure), 5.9 (mixed-DPI), 7.8 (UI automation), Sections 8–10 remaining deployment/logging/docs items, and all feature additions (F1–F22 minus F6, F7, F15).
+**Still pending (no branch planned yet):**
+C2 (installer — after new design), C3 (code signing — needs certificate purchase), L17/F16 (dark mode — after new design), L20/8.9 (SHA256 checksums — next release), M11/F2 (profile reorder — future feature), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions.
