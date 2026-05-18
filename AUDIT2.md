@@ -1,23 +1,14 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-18 — reflects all 20 merged branches (PR #38) + v1.1.0 release + deep-dive review.
+**Last updated:** 2026-05-18 — reflects PR #44 (fix/null-safety).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
 ---
 
-## SECTION 1 — CODE REVIEW & SECURITY AUDIT
+## ~~SECTION 1 — CODE REVIEW & SECURITY AUDIT~~
 
-*(1.1–1.22 resolved. Open items below from deep-dive review.)*
-
-**1.23 — `AudioService.IsDeviceActive()` uses a bare `catch` that swallows all exceptions** *(Low)*
-`Services/AudioService.cs` — Catches all exceptions including `OutOfMemoryException`; a device that threw a real error is indistinguishable from a genuinely inactive device. Should catch only COM-related exceptions.
-
-**1.24 — `ErrorDialog` shown without an `Owner` window in `TrayService`** *(Low)*
-`Tray/TrayService.cs` — `new ErrorDialog(...).ShowDialog()` called with no `Owner` set. On multi-monitor setups the dialog can appear on the wrong screen or behind other windows.
-
-**1.25 — `TrayService` accesses `ActiveProfileId` without null guard** *(Low)*
-`Tray/TrayService.cs` — On fresh install before any profile exists, `_config.ActiveProfileId` is null. Lookups against the profiles list silently return null rather than failing visibly, leaving the tray icon and menu in an inconsistent state.
+*(All items resolved as of PR #44)*
 
 ---
 
@@ -162,27 +153,27 @@ No mechanism to notify users of or deliver new versions.
 | F1 | Import/export `config.json` via Settings for backup and sharing |
 | F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) |
 | F3 | "Test sound" button to verify active device plays audio |
-| F4 | Middle-click tray to toggle between last two profiles |
-| F5 | Hotkey cheat sheet in tray tooltip |
+| F4 | Middle-click tray to toggle between last two profiles | REMOVE
+| F5 | Hotkey cheat sheet in tray tooltip | WHAT EXACTLY IS THIS?
 | F8 | Auto-updater with GitHub Releases version check |
-| F9 | Windows 11 Action Center rich notifications |
+| F9 | Windows 11 Action Center rich notifications | WHAT EXACTLY IS THIS?
 | F10 | Per-profile volume level (set device default volume when switching) |
 | F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
-| F12 | Command-line interface: `VibeSwitcher.exe --switch "Profile Name"` |
-| F13 | Portable mode (`--portable` flag storing config next to exe) |
-| F14 | System tray scroll wheel for volume control |
+| F12 | Command-line interface: `VibeSwitcher.exe --switch "Profile Name"` | WHAT EXACTLY IS THIS? IS IT REALLY NEEDED?
+| F13 | Portable mode (`--portable` flag storing config next to exe) | WHAT EXACTLY IS THIS?
+| F14 | System tray scroll wheel for volume control | WHAT EXACTLY IS THIS?
 | F16 | Dark mode + high-contrast mode (covers L17) — `SystemColors` brushes to follow OS light/dark/high-contrast setting |
 | F17 | Built-in profile icons gallery picker |
 | F18 | Field feedback — green border flash when a field change is saved |
-| F19 | In-app help — F1 key handler and "?" button with getting-started walkthrough |
+| F19 | In-app help — F1 key handler and "?" button with getting-started walkthrough | WHAT IS F1 KEY HANDLER DO?
 | F20 | Pre-made profile name suggestions — chips or dropdown with "Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", etc.; pairs with F17 for a zero-typing onboarding path |
 | F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
 | F23 | Profile clone button — a duplicate icon next to each profile card's delete button; clones name, device selections, hotkey, and icon path into a new profile |
-| F24 | Global hotkey to open Settings — a fixed non-configurable key combo (e.g. Ctrl+Alt+V) that focuses the Settings window from anywhere |
+| F24 | Global hotkey to open Settings — a fixed non-configurable key combo (e.g. Ctrl+Alt+V) that focuses the Settings window from anywhere | MAKE IT SO THE USER CAN SET THIS AND HAVE AN OPTION FOR THE USER TO DISABLE THIS FEATURE
 | F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification") to skip the balloon tip when switching to that profile |
-| F26 | Device connectivity indicator — a small red dot or strikethrough on disconnected device dropdown items in Settings |
-| F27 | Profile color tag — a small colored circle (6 preset colors) on each profile card and tray menu entry for visual distinction |
+| F26 | Device connectivity indicator — a small red dot or strikethrough on disconnected device dropdown items in Settings | WHAT EXACTLY IS THIS?
+| F27 | Profile color tag — a small colored circle (6 preset colors) on each profile card and tray menu entry for visual distinction | CAN THEY ONLY HAVE 6 PRESET COLORS OR THEY CAN CHOOSE ANY COLOR? ALSO WHATS "TRAY MENU ENTRY"?
 
 ---
 
@@ -217,7 +208,7 @@ No mechanism to notify users of or deliver new versions.
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Merged — PR #38 |
 | ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Merged — PR #40 |
 | ~~22~~ | ~~`fix/settings-async`~~ | ✅ Merged — PR #42 |
-| 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
+| ~~23~~ | ~~`fix/null-safety`~~ | ✅ Merged — PR #44 |
 | 24 | `ci/sha256-checksums` | L20/8.9 — not started |
 | 25 | `test/additional-coverage` | 7.16 — not started |
 
@@ -243,14 +234,14 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-### Branch 23: `fix/null-safety`
+### ~~Branch 23: `fix/null-safety`~~ ✅ Merged — PR #44
 **Theme:** Three small robustness fixes found in deep-dive review.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| L21 / 1.23 | `AudioService.IsDeviceActive()` bare `catch` swallows all exceptions — narrow to COM exceptions only | Not started |
-| L22 / 1.24 | `ErrorDialog` shown without `Owner` in `TrayService` — set `Owner` to avoid wrong-screen placement | Not started |
-| L23 / 1.25 | `TrayService` reads `ActiveProfileId` without null guard — add null/empty check before profile lookup | Not started |
+| L21 / 1.23 | `AudioService.IsDeviceActive()` bare `catch` narrowed to COM exceptions; device COM object leak and unchecked `GetState` HRESULT also fixed | ✅ Done |
+| L22 / 1.24 | `ErrorDialog` in `ProfileSwitchOrchestrator` now sets `Owner` to the first visible window with `CenterOwner` placement | ✅ Done |
+| L23 / 1.25 | Stale `ActiveProfileId` reset at startup with a warning log; `IsChecked` in `RebuildMenu` uses explicit `HasValue && .Value` | ✅ Done |
 
 ---
 

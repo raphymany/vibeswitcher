@@ -7,6 +7,11 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Fixed
+- **`IsDeviceActive` bare catch narrowed** — the catch block that covered all exception types (including `OutOfMemoryException`) is now scoped to `COMException` and `InvalidComObjectException` only; non-COM failures propagate to the caller's existing catch blocks. Also fixed: the device COM object was leaked when `GetState` returned a non-zero HRESULT, and the HRESULT itself was not checked (a failed call would falsely report the device as active) *(PR #44)*
+- **Error dialog appears on the correct monitor** — the `ErrorDialog` shown after a failed profile switch now sets its `Owner` to the first visible window and uses `CenterOwner` placement; on multi-monitor setups it follows the Settings window rather than always appearing on the primary monitor *(PR #44)*
+- **Stale `ActiveProfileId` reset at startup** — if the persisted active profile ID in `config.json` does not match any loaded profile (e.g. the profile was deleted by hand-editing the file), the app now logs a warning and resets the ID to null, keeping the tray menu in a consistent state *(PR #44)*
+
+### Fixed
 - **Event handler leak when closing to tray** — `SettingsWindow` previously accumulated a new `SessionErrorTracker.ErrorAdded` subscription on every show-and-hide cycle when "Close to Tray" is enabled; now managed via `IsVisibleChanged` so exactly one subscription is active while the window is visible *(PR #42)*
 - **Stale device list after rapid plug/unplug** — `LoadDevicesAsync` now cancels any in-progress enumeration before starting a new one; the previous call is cancelled and disposed atomically so only the most recent result can reach the UI *(PR #42)*
 

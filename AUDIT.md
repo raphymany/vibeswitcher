@@ -70,15 +70,14 @@
 
 **~~1.22 — `DispatcherUnhandledException` swallows all exceptions unconditionally~~** — See ~~M15~~ ✅ Fixed
 
-**1.23 — `AudioService.IsDeviceActive()` uses a bare `catch` that swallows all exceptions** *(Low)*
-`Services/AudioService.cs` — The method catches all exceptions including `OutOfMemoryException` and returns `false`, making a device that threw a real error indistinguishable from a genuinely inactive device. Should catch only COM-related exceptions.
+**~~1.23 — `AudioService.IsDeviceActive()` uses a bare `catch` that swallows all exceptions~~** ✅ *Fixed — PR #44*
+`Services/AudioService.cs` — Narrowed to `COMException` and `InvalidComObjectException` only; also fixed a device COM object leak when `GetState` returned a non-zero HRESULT, and added HRESULT checking so a failed `GetState` call no longer falsely reports a device as active.
 
-**1.24 — `ErrorDialog` shown without an `Owner` window in `TrayService`** *(Low)*
-`Tray/TrayService.cs` — When a profile switch fails, `new ErrorDialog(...).ShowDialog()` is called with no `Owner` set. On multi-monitor setups this can cause the dialog to appear on the wrong screen or behind other windows.
+**~~1.24 — `ErrorDialog` shown without an `Owner` window in `TrayService`~~** ✅ *Fixed — PR #44*
+`ProfileSwitchOrchestrator.cs` — Now finds the first visible window and sets it as `Owner` with `WindowStartupLocation.CenterOwner`; falls back to the XAML `CenterScreen` default when no window is open.
 
-**1.25 — `TrayService` accesses `ActiveProfileId` without null guard** *(Low)*
-`Tray/TrayService.cs` — On a fresh install before any profile exists, `_config.ActiveProfileId` is null. Code paths that read this value and look it up in the profiles list (e.g. `FirstOrDefault(p => p.Id == activeId)`) will silently return null rather than failing visibly, which can leave the tray icon and menu in an inconsistent state.
-Fix: add a null/empty guard before the lookup and fall back to "no active profile" state.
+**~~1.25 — `TrayService` accesses `ActiveProfileId` without null guard~~** ✅ *Fixed — PR #44*
+`App.xaml.cs` / `Tray/TrayService.cs` — At startup, if `ActiveProfileId` has a value but no matching profile exists, a warning is logged and the ID is reset to null. `IsChecked` comparison in `RebuildMenu` updated to use the explicit `HasValue && .Value` form.
 
 ---
 
@@ -541,9 +540,9 @@ Fine as placeholder; update when site launches.
 | ~~L18~~ | ~~`AboutWindow` version falls back to hardcoded "1.0.0"~~ | ✅ Done — PR #16 |
 | ~~L19~~ | ~~`StartupService.Enable` uses `OpenSubKey` instead of `CreateSubKey`~~ | ✅ Done — PR #14 |
 | L20 | No SHA256 checksums published with binaries | Release pipeline |
-| L21 | `AudioService.IsDeviceActive()` bare `catch` swallows all exceptions — see 1.23 | `Services/AudioService.cs` |
-| L22 | `ErrorDialog` shown without `Owner` in `TrayService` — see 1.24 | `Tray/TrayService.cs` |
-| L23 | `TrayService` reads `ActiveProfileId` without null guard — see 1.25 | `Tray/TrayService.cs` |
+| ~~L21~~ | ~~`AudioService.IsDeviceActive()` bare `catch` swallows all exceptions — see 1.23~~ | ✅ Done — PR #44 |
+| ~~L22~~ | ~~`ErrorDialog` shown without `Owner` in `TrayService` — see 1.24~~ | ✅ Done — PR #44 |
+| ~~L23~~ | ~~`TrayService` reads `ActiveProfileId` without null guard — see 1.25~~ | ✅ Done — PR #44 |
 
 ### TECHNICAL DEBT
 
@@ -609,11 +608,11 @@ Fine as placeholder; update when site launches.
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
 | Medium | 18 | 17 | 1 (M11) |
-| Low | 23 | 18 | 5 (L17, L20, L21, L22, L23) |
+| Low | 23 | 21 | 2 (L17, L20) |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 27 | 3 | 24 |
-| **Total** | **100** | **66** | **34** |
+| **Total** | **100** | **69** | **31** |
 
 ---
 
@@ -753,7 +752,7 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Done — PR #38 |
 | ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Done — PR #40 |
 | ~~22~~ | ~~`fix/settings-async`~~ | ✅ Done — PR #42 |
-| 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
+| ~~23~~ | ~~`fix/null-safety`~~ | ✅ Done — PR #44 |
 | 24 | `ci/sha256-checksums` | L20/8.9 — not started |
 | 25 | `test/additional-coverage` | 7.16 — not started |
 
