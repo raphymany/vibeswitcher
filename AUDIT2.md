@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-18 — reflects all 18 merged branches (PR #36) + v1.1.0 release.
+**Last updated:** 2026-05-18 — reflects all 19 merged branches (PR #37) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -134,7 +134,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 |---|------|
 | ~~TD1~~ | ~~No test project — zero automated test coverage~~ ✅ Done — PR #33 |
 | ~~TD2~~ | ~~No `IAudioService` / `IConfigService` interfaces preventing testability~~ ✅ Done — PR #35 |
-| TD3 | `App.xaml.cs` has too many responsibilities (God Class) *(Planned — Branch L)* |
+| ~~TD3~~ | ~~`App.xaml.cs` has too many responsibilities (God Class)~~ ✅ Done — PR #37 |
 | ~~TD4~~ | ~~No `IDialogService` abstraction — ViewModel/View tightly coupled~~ ✅ Done — PR #35 |
 | TD7 | No CI/CD pipeline configured *(Planned — Branch M)* |
 
@@ -142,7 +142,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 | # | Opportunity |
 |---|-------------|
-| R2 | Extract `ProfileSwitchOrchestrator` from `App.xaml.cs` *(Planned — Branch L)* |
+| ~~R2~~ | ~~Extract `ProfileSwitchOrchestrator` from `App.xaml.cs`~~ ✅ Done — PR #37 |
 
 ### FEATURE ADDITIONS (post-v1.0.0)
 
@@ -197,7 +197,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | ~~16~~ | ~~`test/unit-tests`~~ | ✅ Merged — PR #33 |
 | ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Merged — PR #35 |
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Merged — PR #36 |
-| 19 | `refactor/god-class` | Planned |
+| ~~19~~ | ~~`refactor/god-class`~~ | ✅ Merged — PR #37 |
 | 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
 
 ---

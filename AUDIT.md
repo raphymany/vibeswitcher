@@ -531,7 +531,7 @@ Fine as placeholder; update when site launches.
 |---|------|
 | ~~TD1~~ | ~~No test project — zero automated test coverage~~ | ✅ Done — PR #33 |
 | ~~TD2~~ | ~~No `IAudioService` / `IConfigService` interfaces preventing testability~~ | ✅ Done — PR #35 |
-| TD3 | `App.xaml.cs` has too many responsibilities (God Class) |
+| ~~TD3~~ | ~~`App.xaml.cs` has too many responsibilities (God Class)~~ | ✅ Done — PR #37 |
 | ~~TD4~~ | ~~No `IDialogService` abstraction — ViewModel/View tightly coupled~~ | ✅ Done — PR #35 |
 | ~~TD5~~ | ~~Two separate duplicate log implementations~~ | ✅ Done — Branch 3 (ConfigService.LogError removed; items 1.14 + 9.3) |
 | ~~TD6~~ | ~~`RunOnSta` pattern creates/destroys OS threads per operation~~ | ✅ Done — fix/reliability (RunOnSta removed; calls use Task.Run at call sites) |
@@ -542,7 +542,7 @@ Fine as placeholder; update when site launches.
 | # | Opportunity |
 |---|-------------|
 | ~~R1~~ | ~~Move all button/control styles to `App.xaml`~~ | ✅ Done — fix/settings-ux-3 |
-| R2 | Extract `ProfileSwitchOrchestrator` from `App.xaml.cs` |
+| ~~R2~~ | ~~Extract `ProfileSwitchOrchestrator` from `App.xaml.cs`~~ | ✅ Done — PR #37 |
 | ~~R3~~ | ~~Replace `RunOnSta` with a persistent STA pump thread in `AudioService`~~ | ✅ Done (partially — RunOnSta removed; using Task.Run at call sites) — fix/reliability |
 | ~~R4~~ | ~~Share one device enumeration result across all profile cards~~ | ✅ Done — Branch 5 (LoadDevicesAsync enumerates once, passes result to all cards) |
 | ~~R5~~ | ~~Incremental `ContextMenu` update instead of full rebuild on every switch~~ | ✅ Done — PR #27 (SetActiveProfile flips IsChecked only; RebuildMenu called only on config changes) |
@@ -585,8 +585,8 @@ Fine as placeholder; update when site launches.
 | High | 10 | 10 | 0 |
 | Medium | 14 | 13 | 1 (M11) |
 | Low | 20 | 18 | 2 (L17, L20) |
-| Technical Debt | 7 | 5 | 2 (TD3, TD7) |
-| Refactoring Opportunities | 6 | 5 | 1 |
+| Technical Debt | 7 | 6 | 1 (TD7) |
+| Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 22 | 3 | 19 |
 | **Total** | **88** | **61** | **27** |
 
@@ -601,7 +601,7 @@ Fine as placeholder; update when site launches.
 This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
 
 **Explicitly deferred (not in any branch):**
-C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), TD3/TD7 (planned in Branches 19–20), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
+C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), TD7 (planned in Branch 20), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
 
 ---
 
@@ -724,7 +724,7 @@ C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intention
 | ~~16~~ | ~~`test/unit-tests`~~ | ✅ Done — PR #33 |
 | ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Done — PR #35 |
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Done — PR #36 |
-| 19 | `refactor/god-class` | Planned |
+| ~~19~~ | ~~`refactor/god-class`~~ | ✅ Done — PR #37 |
 | 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
 
 ---
@@ -864,15 +864,10 @@ Production enablers (no behavior change): ConfigService baseDir injection, AppLo
 
 ---
 
-### Branch 19: `refactor/god-class`
-**Theme:** Split `App.xaml.cs` — resolves TD3/R2. Do last; has the most wiring to preserve.
+### ~~Branch 19: `refactor/god-class`~~ ✅ Done — PR #37
+**Theme:** Split `App.xaml.cs` — resolves TD3/R2.
 
-| Item | Change |
-|------|--------|
-| TD3 / R2 | Extract `ProfileSwitchOrchestrator`: owns `SwitchToProfile()`, `OnPowerModeChanged()`, startup profile re-apply, tray feedback on switch |
-| TD3 | Extract `AppWindowManager`: owns `OpenSettingsWindow()`, `OpenAboutWindow()` |
-| — | `App.xaml.cs` becomes a thin bootstrapper: constructs services, wires orchestrator and window manager, handles `OnStartup`/`OnExit` |
-| — | Regression test: run full manual checklist (7.9) after this branch — highest-risk refactor |
+`ProfileSwitchOrchestrator` extracted: owns `SwitchToProfile()`, `OnPowerModeChanged()`, and the full async switch flow. `AppWindowManager` extracted: owns `OpenSettingsWindow()` and `OpenAboutWindow()`. `App.xaml.cs` reduced from 248 to ~120 lines as a thin bootstrapper. Bug fix: `OnExit` null-guards `_orchestrator` for the second-instance early-exit path. `TrayService` and `SettingsWindow` untouched. 98 tests, 0 failures.
 
 ---
 

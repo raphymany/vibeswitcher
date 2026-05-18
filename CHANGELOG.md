@@ -6,6 +6,12 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Changed
+- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` now owns `SwitchToProfile()`, `OnPowerModeChanged()`, and the full async switch flow (tooltip, config save, tray update, notifications, error dialog); `AppWindowManager` owns `OpenSettingsWindow()` and `OpenAboutWindow()`; `App.xaml.cs` reduced from 248 to ~120 lines and is now a thin bootstrapper; resolves TD3 and R2 *(PR #37)*
+
+### Fixed
+- **Second-instance crash on exit** — `OnExit` now null-guards `_orchestrator` before unsubscribing from `SystemEvents.PowerModeChanged`; previously a second instance calling `Shutdown()` before `OnStartup` completed would throw `NullReferenceException` *(PR #37)*
+
 ### Added
 - **SettingsViewModel and ProfileCardViewModel unit tests** — 18 new tests using fake service stubs: `SettingsViewModelTests` (AddProfile, DeleteProfile, StartWithWindows toggle, hotkey re-registration) and `ProfileCardViewModelTests` (CaptureHotkey cancel/clear/conflict/success/replace-existing, BrowseIcon cancel/copy-success/copy-failure/same-path-skip, DeleteProfile confirm/cancel); 98 tests total *(PR #36)*
 - **Service interfaces** — `IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, and `IDialogService` extracted alongside a `DialogService` concrete class; all ViewModels and `App.xaml.cs` now depend on interfaces rather than concrete types, enabling safe fake substitution in tests; five `Fake*` stubs added to the test project *(PR #35)*
