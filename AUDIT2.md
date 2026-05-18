@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-18 — reflects all 19 merged branches (PR #37) + v1.1.0 release.
+**Last updated:** 2026-05-18 — reflects all 20 merged branches (PR #38) + v1.1.0 release.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -136,7 +136,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | ~~TD2~~ | ~~No `IAudioService` / `IConfigService` interfaces preventing testability~~ ✅ Done — PR #35 |
 | ~~TD3~~ | ~~`App.xaml.cs` has too many responsibilities (God Class)~~ ✅ Done — PR #37 |
 | ~~TD4~~ | ~~No `IDialogService` abstraction — ViewModel/View tightly coupled~~ ✅ Done — PR #35 |
-| TD7 | No CI/CD pipeline configured *(Planned — Branch M)* |
+| ~~TD7~~ | ~~No CI/CD pipeline configured~~ ✅ Done — PR #38 |
 
 ### REFACTORING OPPORTUNITIES
 
@@ -198,7 +198,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 | ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Merged — PR #35 |
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Merged — PR #36 |
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Merged — PR #37 |
-| 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
+| ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Merged — PR #38 |
 
 ---
 
@@ -241,12 +241,12 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-### Branch M: `ci/cd-pipeline` *(independent — any time after Branch I)*
-**Theme:** GitHub Actions build + test pipeline — resolves TD7.
+### ~~Branch M: `ci/cd-pipeline`~~ ✅ Merged — PR #38
+**Theme:** GitHub Actions build + test pipeline.
 
-- `.github/workflows/ci.yml`: push/PR to `main` → `dotnet build -c Release` + `dotnet test` (TD7, 7.11)
-- `Microsoft.CodeAnalysis.NetAnalyzers` added to csproj for static analysis
-- Release workflow (on tag push): `dotnet publish --self-contained -r win-x64` + upload artifact
+- `.github/workflows/ci.yml` added: triggers on push/PR to `main`; runs `dotnet build -c Release` then `dotnet test` on `windows-latest`
+- `.github/workflows/release.yml` added: triggers on `v*` tag push; publishes a self-contained win-x64 single-file exe, zips it, and uploads to GitHub Releases
+- `Microsoft.CodeAnalysis.NetAnalyzers` NuGet package removed — SDK bundles a newer version, the explicit package caused a version-conflict warning
 
 ---
 
