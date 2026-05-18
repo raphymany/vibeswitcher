@@ -567,30 +567,30 @@ Fine as placeholder; update when site launches.
 | F1 | Import/export `config.json` via Settings for backup and sharing |
 | F2 | Drag-and-drop profile reorder |
 | F3 | "Test sound" button to verify active device plays audio |
-| F4 | Middle-click tray to toggle between last two profiles |
-| F5 | Hotkey cheat sheet in tray tooltip |
+| ~~F4~~ | ~~Middle-click tray to toggle between last two profiles~~ | Removed |
+| F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys (e.g. "Desktop Setup: Ctrl+PgUp / Gaming: Ctrl+PgDn") so you can see the full list without opening any window |
 | ~~F6~~ | ~~Re-apply active profile on system resume from sleep/hibernate~~ | ✅ Done — PR #18 |
 | ~~F7~~ | ~~`IMMNotificationClient` for real-time device plug/unplug in Settings~~ | ✅ Done — PR #30 |
 | F8 | Auto-updater with GitHub Releases version check |
-| F9 | Windows 11 Action Center rich notifications |
+| ~~F9~~ | ~~Windows 11 Action Center rich notifications~~ | Removed — current balloon tips already appear as Windows notifications |
 | F10 | Per-profile volume level (set device default volume when switching) |
 | F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
-| F12 | Command-line interface: `VibeSwitcher.exe --switch "Profile Name"` |
-| F13 | Portable mode (`--portable` flag storing config next to exe) |
-| F14 | System tray scroll wheel for volume control |
+| ~~F12~~ | ~~Command-line interface: `VibeSwitcher.exe --switch "Profile Name"`~~ | Removed |
+| F13 | Portable mode — launch with `--portable` flag and config is stored next to the exe instead of `%APPDATA%`; no in-app toggle, it's either always portable (flag present) or always normal (flag absent) |
+| ~~F14~~ | ~~System tray scroll wheel for volume control~~ | Removed |
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
-| F16 | Dark mode + high-contrast mode (L17) — use `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting; no separate high-contrast branch needed |
+| F16 | Dark mode + high-contrast mode — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting |
 | F17 | Built-in profile icons — GDI+-generated icons (speaker, headset, microphone, etc.) with an in-app gallery picker; Browse button stays alongside "Choose Built-in" |
 | F18 | Field feedback — green border flash when a field change is saved; inline validation message for invalid input |
-| F19 | In-app help — F1 key handler and "?" button opening a help panel with getting-started walkthrough |
+| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
 | F20 | Pre-made profile names — quick-pick name suggestions ("Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", "Speakers", etc.) shown as chips or a dropdown below the name field; pairs with F17 built-in icons for a zero-typing onboarding path |
 | F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
 | F23 | Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list |
-| F24 | Global hotkey to open Settings — a fixed, non-configurable key combo (e.g. Ctrl+Alt+V) registered at startup that focuses the Settings window from anywhere; shown in the tray tooltip |
-| F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely; useful for profiles switched on a schedule or via hotkey spam |
-| F26 | Device connectivity indicator — a small red dot or strikethrough on device dropdown items in Settings for devices that are currently disconnected; uses the existing `IsDeviceActive()` check already present in `AudioService` |
-| F27 | Profile color tag — a small colored circle (6 preset colors) on each profile card set via a compact picker; color appears on the tray menu entry and the card border, helping users visually distinguish profiles at a glance |
+| F24 | Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere |
+| F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely |
+| F26 | Device connectivity indicator — green dot next to connected devices and red dot next to disconnected devices in the Settings dropdowns, so you can see at a glance which are available without trying to switch |
+| F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
 
 ---
 
@@ -604,8 +604,8 @@ Fine as placeholder; update when site launches.
 | Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 27 | 3 | 24 |
-| **Total** | **100** | **72** | **28** |
+| Feature Additions | 27 | 7 | 20 |
+| **Total** | **100** | **76** | **24** |
 
 ---
 
