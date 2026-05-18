@@ -23,6 +23,8 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        AppLogger.StartSession();
+
         // Last-resort handler for exceptions that escape all other catch blocks on the UI thread.
         // Marking Handled=true keeps the app alive for recoverable cases (e.g. a bad tray click).
         // Truly unexpected exceptions are still logged so they appear in the error log.
