@@ -227,7 +227,8 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 | # | Feature |
 |---|---------|
-| F11 | Profile scheduler — per-profile schedule (time + days of week); background timer checks current time and switches automatically; integrates with the existing power-mode wake handler |
+| F11 | Profile scheduler — per-profile schedule (time + days of week); background timer checks current time and switches automatically; integrates with the existing power-mode wake handler so schedules re-evaluate correctly after sleep/wake |
+| F11 (reminder) | Optional pre-switch reminder notification — each schedule entry has a configurable lead time (e.g. 5 min before, or disabled); fires a balloon tip like "Gaming Setup activates in 5 minutes" so the user can finish what they're doing or manually override before the switch happens |
 
 ---
 
