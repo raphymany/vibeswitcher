@@ -27,12 +27,7 @@ public partial class AboutWindow : Window
             : Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
         VersionText.Text = $"Version {_version}";
 
-        try
-        {
-            var icon = IconHelper.GetDefaultIcon();
-            AppIconImage.Source = IconHelper.ToImageSource(icon);
-        }
-        catch { }
+        try { AppIconImage.Source = IconHelper.GetAppIconImageSource(); } catch { }
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

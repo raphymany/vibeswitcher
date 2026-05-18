@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
@@ -67,6 +69,20 @@ public class TrayService : IDisposable
     public void RebuildMenu()
     {
         _contextMenu.Items.Clear();
+
+        try
+        {
+            var appIconSource = IconHelper.GetAppIconImageSource();
+            var headerItem = new MenuItem
+            {
+                Header = BuildAppHeader(appIconSource),
+                IsEnabled = false,
+                Padding = new Thickness(12, 6, 16, 6),
+            };
+            _contextMenu.Items.Add(headerItem);
+            _contextMenu.Items.Add(new Separator());
+        }
+        catch (Exception ex) { AppLogger.Warning("TrayService.RebuildMenu", ex.Message); }
 
         var activeId = _configService.Current.ActiveProfileId;
         var profiles = _configService.Current.Profiles.OrderBy(p => p.SortOrder).ToList();
@@ -256,6 +272,29 @@ public class TrayService : IDisposable
         grid.Children.Add(iconElement);
         grid.Children.Add(stack);
         return grid;
+    }
+
+    private static UIElement BuildAppHeader(ImageSource appIconSource)
+    {
+        var sp = new StackPanel { Orientation = Orientation.Horizontal };
+        sp.Children.Add(new System.Windows.Controls.Image
+        {
+            Source = appIconSource,
+            Width = 20,
+            Height = 20,
+            Stretch = Stretch.Uniform,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 8, 0),
+        });
+        sp.Children.Add(new TextBlock
+        {
+            Text = "VibeSwitcher",
+            FontSize = 13,
+            FontWeight = FontWeights.SemiBold,
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A)),
+        });
+        return sp;
     }
 
     // Single-line action item: [icon]  Label

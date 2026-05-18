@@ -57,6 +57,7 @@ public partial class SettingsWindow : Window
 
         DataContext = _viewModel;
         RestoreWindowBounds();
+        try { HeaderIcon.Source = IconHelper.GetAppIconImageSource(); } catch { }
 
         _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
 
