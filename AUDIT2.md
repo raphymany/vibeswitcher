@@ -227,8 +227,13 @@ No mechanism to notify users of or deliver new versions.
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Merged — PR #36 |
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Merged — PR #37 |
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Merged — PR #38 |
+| 21 | `fix/switch-reliability` | M16 + M17 — not started |
+| 22 | `fix/settings-async` | M18 + M19 — not started |
+| 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
+| 24 | `ci/sha256-checksums` | L20/8.9 — not started |
+| 25 | `test/additional-coverage` | 7.16 — not started |
 
 ---
 
 **Still pending (no branch planned yet):**
-C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11/F2 (profile reorder — future feature), M16–M19 (deep-dive fixes — no branch yet), L17/F16 (dark mode — after new design), L20/8.9 (SHA256 checksums — next release), L21–L23 (deep-dive low-priority fixes), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions (F1–F5, F8–F14, F16–F27).
+C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11/F2 (profile reorder — future feature), L17/F16 (dark mode — after new design), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions (F1–F5, F8–F14, F16–F27).

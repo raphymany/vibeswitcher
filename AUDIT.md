@@ -755,6 +755,11 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Done — PR #36 |
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Done — PR #37 |
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Done — PR #38 |
+| 21 | `fix/switch-reliability` | M16 + M17 — not started |
+| 22 | `fix/settings-async` | M18 + M19 — not started |
+| 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
+| 24 | `ci/sha256-checksums` | L20/8.9 — not started |
+| 25 | `test/additional-coverage` | 7.16 — not started |
 
 ---
 
