@@ -152,5 +152,89 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-**Still pending (no branch planned yet):**
-C2 (installer — after new design), C3 (code signing — needs certificate purchase), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions (F1–F27).
+## PLANNED BRANCHES
+
+Grouped by shared UI surface or implementation concern. Features within each branch can ship together without stepping on each other.
+
+---
+
+### Branch 28: `feat/tray-interactions`
+**Theme:** Tray icon and global hotkey UX — no Settings UI changes required.
+
+| # | Feature |
+|---|---------|
+| F21 | Left-click tray icon cycles to the next profile in sort order (wraps around) |
+| 4.14 / F21 variant | Middle-click toggles between the last two active profiles |
+| F5 | Hotkey cheat sheet in tray tooltip — hover shows all profile hotkeys |
+| F24 | Global hotkey to open Settings — user-configurable, optional |
+
+---
+
+### Branch 29: `feat/profile-management`
+**Theme:** Per-card controls in the Settings profile list.
+
+| # | Feature |
+|---|---------|
+| F2 / 4.7 | Drag-and-drop profile reorder — Spotify-style 3-line grip on left of each card |
+| F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile |
+| F25 | Per-profile silent switch — checkbox to skip the balloon notification for that profile |
+
+---
+
+### Branch 30: `feat/device-enhancements`
+**Theme:** Audio device interaction features — all touch `AudioService` or the device dropdowns.
+
+| # | Feature |
+|---|---------|
+| F3 / 4.8 | "Test sound" button on each profile — plays a short tone through the selected playback device |
+| F10 | Per-profile volume level — sets the device default volume when switching to that profile |
+| F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns |
+
+---
+
+### Branch 31: `feat/settings-polish`
+**Theme:** Settings window refinements that don't require new audio logic.
+
+| # | Feature |
+|---|---------|
+| F18 | Field feedback — brief green border flash on a card when a change is saved |
+| F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling |
+| F16 | Dark mode + high-contrast — `SystemColors` brushes to follow the OS theme |
+| F1 / 4.13 | Config import/export — backup and transfer profiles via Settings |
+
+---
+
+### Branch 32: `feat/profile-visual`
+**Theme:** Visual identity features for profiles — icons, names, and colors.
+
+| # | Feature |
+|---|---------|
+| F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path |
+| F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 |
+| F27 | Profile color tag — small colored circle on each card and in the tray menu |
+
+---
+
+### Branch 33: `feat/installer`
+**Theme:** Pre-release distribution blockers — must be done before a public v1.0 release.
+
+| # | Feature |
+|---|---------|
+| C2 / 8.1 | Installer — Inno Setup or WiX; handles install path, Start Menu shortcut, uninstall |
+| C3 / 8.2 | Code signing — Authenticode certificate to prevent SmartScreen warnings |
+| F13 | Portable mode — auto-detected via `portable.txt` next to the exe; stores config locally |
+
+---
+
+### Deferred — No branch planned yet
+
+Complex, blocked, or clearly post-v1.0. Revisit after Branch 33.
+
+| # | Feature | Why deferred |
+|---|---------|--------------|
+| F8 / 8.3 | Auto-updater (GitHub Releases check) | Needs installer/signing first |
+| 8.7 | winget / Chocolatey package | Post-v1.0 distribution |
+| F9 | Full WinRT toast notifications (persist in Action Center) | Blocked by VS tooling requirement for Windows App SDK |
+| F11 | Profile scheduler (time-based switching) | Complex, low demand |
+| F19 / 10.3 | In-app help / getting-started walkthrough | Post-v1.0 polish |
+| 10.8 | Website ("coming soon") | External, not in this repo |
