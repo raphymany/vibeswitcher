@@ -65,4 +65,17 @@ public class IconHelperTests : IDisposable
 
         Assert.NotNull(icon);
     }
+
+    [Fact]
+    public void LoadIcon_CorruptIconFile_ReturnsDefaultAndRecordsError()
+    {
+        // A file that exists inside the icons dir but contains garbage bytes (not a valid ICO).
+        var corruptPath = Path.Combine(_iconsDir, "corrupt.ico");
+        File.WriteAllBytes(corruptPath, System.Text.Encoding.ASCII.GetBytes("NOT_AN_ICO_FILE"));
+
+        using var icon = IconHelper.LoadIcon(corruptPath, _iconsDir);
+
+        Assert.NotNull(icon);
+        Assert.True(SessionErrorTracker.HasErrors, "Should record an IconLoadFailed error for corrupt file");
+    }
 }
