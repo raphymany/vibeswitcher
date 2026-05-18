@@ -6,6 +6,24 @@ Only items **not yet marked ✅ Done** are listed here. Section numbers, letters
 
 ---
 
+## ~~SECTION 1 — CODE REVIEW & SECURITY AUDIT~~
+
+*(All items resolved — PR #44)*
+
+---
+
+## ~~SECTION 2 — PERFORMANCE~~
+
+*(All items resolved or dropped — 2.7 won't fix)*
+
+---
+
+## ~~SECTION 3 — CODE QUALITY & ARCHITECTURE~~
+
+*(All items resolved — PR #40)*
+
+---
+
 ## SECTION 4 — USER EXPERIENCE
 
 **4.7 — No way to reorder profiles** *(Medium)*
@@ -20,6 +38,18 @@ Users cannot back up or transfer their profiles.
 
 **4.14 — No middle-click tray handler** *(Low)*
 Convention: middle-click toggles between last two profiles.
+
+---
+
+## ~~SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY~~
+
+*(All items resolved or dropped — 5.9 won't fix)*
+
+---
+
+## ~~SECTION 6 — CONFIG & DATA INTEGRITY~~
+
+*(All items resolved — PR #27)*
 
 ---
 
@@ -46,6 +76,12 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
+## ~~SECTION 9 — LOGGING & DIAGNOSTICS~~
+
+*(All items resolved or dropped — 9.4–9.7 won't fix)*
+
+---
+
 ## SECTION 10 — DOCUMENTATION
 
 **10.3 — No in-app help** *(Feature — F19)*
@@ -63,6 +99,10 @@ No mechanism to notify users of or deliver new versions.
 | C2 | No installer / distribution mechanism | Build pipeline |
 | C3 | No code signing (SmartScreen blocks app on every first run) | Build pipeline |
 
+### ~~HIGH — Important before v1.0.0~~
+
+*(All High items resolved)*
+
 ### MEDIUM — Should fix for a quality release
 
 | # | Issue |
@@ -74,6 +114,14 @@ No mechanism to notify users of or deliver new versions.
 | # | Issue | Location |
 |---|-------|----------|
 | L17 | Dark mode + high-contrast mode — see F16 (same feature) | All XAML |
+
+### ~~TECHNICAL DEBT~~
+
+*(All Technical Debt items resolved — PR #38)*
+
+### ~~REFACTORING OPPORTUNITIES~~
+
+*(All Refactoring Opportunities resolved — PR #37)*
 
 ### FEATURE ADDITIONS (post-v1.0.0)
 
