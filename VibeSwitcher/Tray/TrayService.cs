@@ -156,9 +156,14 @@ public class TrayService : IDisposable
         }
     }
 
-    public void ShowBalloon(string title, string message, NotificationIcon icon = NotificationIcon.Info)
+    public void ShowBalloon(string title, string message)
     {
-        _taskbarIcon.ShowNotification(title, message, icon);
+        _taskbarIcon.ShowNotification(
+            title,
+            message,
+            icon: NotificationIcon.None,
+            customIconHandle: IconHelper.GetBalloonIconHandle(),
+            largeIcon: true);
     }
 
     public void RecreateIcon()

@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Interop;
-using H.NotifyIcon.Core;
 using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.NativeMethods;
@@ -123,8 +122,7 @@ public partial class App : Application
                 $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             _trayService!.ShowBalloon(
                 "Hotkey Conflict",
-                $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.",
-                NotificationIcon.Warning);
+                $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
         }
     }
 

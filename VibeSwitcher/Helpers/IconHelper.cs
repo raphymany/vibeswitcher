@@ -11,12 +11,18 @@ namespace VibeSwitcher.Helpers;
 public static class IconHelper
 {
     private static Icon? _defaultIcon;
+    private static IntPtr _balloonIconHandle;
     private static ImageSource? _appIconImageSource;
     private static readonly object _syncRoot = new();
 
     static IconHelper()
     {
-        AppDomain.CurrentDomain.ProcessExit += (_, _) => _defaultIcon?.Dispose();
+        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+        {
+            _defaultIcon?.Dispose();
+            if (_balloonIconHandle != IntPtr.Zero)
+                DestroyIcon(_balloonIconHandle);
+        };
     }
 
     public static Icon LoadIcon(string? iconPath, string iconsDir)
@@ -86,6 +92,32 @@ public static class IconHelper
             catch (Exception ex) { AppLogger.Warning("IconHelper.GetDefaultIcon", ex.Message); }
             _defaultIcon = CreateColorIcon(System.Drawing.Color.FromArgb(0, 120, 212));
             return _defaultIcon;
+        }
+    }
+
+    // Returns a cached 32×32 HICON suitable for NIIF_LARGE_ICON balloon tips.
+    // The HICON is owned here and destroyed at process exit via the static constructor hook.
+    public static IntPtr GetBalloonIconHandle()
+    {
+        if (_balloonIconHandle != IntPtr.Zero) return _balloonIconHandle;
+        lock (_syncRoot)
+        {
+            if (_balloonIconHandle != IntPtr.Zero) return _balloonIconHandle;
+            try
+            {
+                var uri = new Uri("pack://application:,,,/Resources/Icons/app.ico", UriKind.Absolute);
+                var info = System.Windows.Application.GetResourceStream(uri);
+                if (info != null)
+                {
+                    using (info.Stream)
+                    using (var icon = new Icon(info.Stream, new System.Drawing.Size(32, 32)))
+                    using (var bmp = icon.ToBitmap())
+                        _balloonIconHandle = bmp.GetHicon();
+                    return _balloonIconHandle;
+                }
+            }
+            catch (Exception ex) { AppLogger.Warning("IconHelper.GetBalloonIconHandle", ex.Message); }
+            return GetDefaultIcon().Handle;
         }
     }
 
