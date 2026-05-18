@@ -83,10 +83,13 @@ public partial class App : Application
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
         _trayService.SwitchRequested = _orchestrator.SwitchToProfile;
 
-        // 6. Register hotkeys
+        // 6. Initialise toast notifications (WinRT); writes icon.png + AUMID registry key; falls back to balloon tips on failure.
+        ToastNotificationService.Initialize();
+
+        // 7. Register hotkeys
         RegisterHotkeys();
 
-        // 7. Restore last active profile via the orchestrator so the single switch path is always used.
+        // 8. Restore last active profile via the orchestrator so the single switch path is always used.
         // Guard: if ActiveProfileId is set but no matching profile exists (e.g. profile was deleted
         // outside the app), reset it so the tray icon does not show a stale or wrong state.
         if (_configService.Current.ActiveProfileId.HasValue &&
@@ -102,14 +105,14 @@ public partial class App : Application
         if (activeProfile != null)
             _orchestrator.SwitchToProfile(activeProfile);
 
-        // 8. Refresh tray
+        // 9. Refresh tray
         _trayService.UpdateIcon(activeProfile);
         _trayService.RebuildMenu();
 
-        // 9. Re-apply active profile when the PC wakes from sleep/hibernate
+        // 10. Re-apply active profile when the PC wakes from sleep/hibernate
         SystemEvents.PowerModeChanged += _orchestrator.OnPowerModeChanged;
 
-        // 10. Open settings on first run, or if the user has turned off start-minimized
+        // 11. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
     }
@@ -165,6 +168,7 @@ public partial class App : Application
         _trayService?.Dispose();
         _audioService?.Dispose();
         _orchestrator?.Dispose();
+        ToastNotificationService.Unregister();
 
         _singleInstance.Dispose();
         base.OnExit(e);

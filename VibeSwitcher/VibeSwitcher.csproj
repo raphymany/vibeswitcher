@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>VibeSwitcher</RootNamespace>
     <AssemblyName>VibeSwitcher</AssemblyName>
@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Icons\app.ico"/>
+    <Resource Include="Resources\Icons\app.ico" />
   </ItemGroup>
 
   <ItemGroup>
