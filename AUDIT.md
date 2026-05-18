@@ -407,8 +407,8 @@ Submit to `winget-pkgs` and Chocolatey community for discoverability.
 **8.8 — Microsoft Store is not feasible** *(Info)*
 Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 
-**8.9 — No SHA256 checksums** *(Low)*
-Publish `sha256sums.txt` with each release for integrity verification.
+**~~8.9 — No SHA256 checksums~~** ✅ *Fixed — PR #46*
+`release.yml` now generates `sha256sums.txt` (PowerShell 7, BOM-free UTF-8, two-space format) and attaches it alongside the zip as a GitHub Release asset.
 
 ---
 
@@ -539,7 +539,7 @@ Fine as placeholder; update when site launches.
 | L17 | Dark mode / high-contrast mode not supported — see F16 (same feature) | All XAML |
 | ~~L18~~ | ~~`AboutWindow` version falls back to hardcoded "1.0.0"~~ | ✅ Done — PR #16 |
 | ~~L19~~ | ~~`StartupService.Enable` uses `OpenSubKey` instead of `CreateSubKey`~~ | ✅ Done — PR #14 |
-| L20 | No SHA256 checksums published with binaries | Release pipeline |
+| ~~L20~~ | ~~No SHA256 checksums published with binaries~~ | ✅ Done — PR #46 |
 | ~~L21~~ | ~~`AudioService.IsDeviceActive()` bare `catch` swallows all exceptions — see 1.23~~ | ✅ Done — PR #44 |
 | ~~L22~~ | ~~`ErrorDialog` shown without `Owner` in `TrayService` — see 1.24~~ | ✅ Done — PR #44 |
 | ~~L23~~ | ~~`TrayService` reads `ActiveProfileId` without null guard — see 1.25~~ | ✅ Done — PR #44 |
@@ -608,11 +608,11 @@ Fine as placeholder; update when site launches.
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
 | Medium | 18 | 17 | 1 (M11) |
-| Low | 23 | 21 | 2 (L17, L20) |
+| Low | 23 | 22 | 1 (L17) |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 27 | 3 | 24 |
-| **Total** | **100** | **69** | **31** |
+| **Total** | **100** | **70** | **30** |
 
 ---
 
@@ -753,7 +753,7 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Done — PR #40 |
 | ~~22~~ | ~~`fix/settings-async`~~ | ✅ Done — PR #42 |
 | ~~23~~ | ~~`fix/null-safety`~~ | ✅ Done — PR #44 |
-| 24 | `ci/sha256-checksums` | L20/8.9 — not started |
+| ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Done — PR #46 |
 | 25 | `test/additional-coverage` | 7.16 — not started |
 
 ---

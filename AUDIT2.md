@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-18 — reflects PR #44 (fix/null-safety).
+**Last updated:** 2026-05-18 — reflects PR #46 (ci/sha256-checksums).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -87,7 +87,7 @@ No mechanism to notify users of or deliver new versions.
 
 **8.7 — No winget or Chocolatey package** *(Low / post-release)*
 
-**8.9 — No SHA256 checksums** *(Low)*
+~~**8.9 — No SHA256 checksums**~~ ✅ Done — PR #46
 
 ---
 
@@ -133,10 +133,10 @@ No mechanism to notify users of or deliver new versions.
 | # | Issue | Location |
 |---|-------|----------|
 | L17 | Dark mode + high-contrast mode — see F16 (same feature) | All XAML |
-| L20 | No SHA256 checksums published with binaries | Release pipeline |
-| L21 | `AudioService.IsDeviceActive()` bare `catch` swallows all exceptions | `Services/AudioService.cs` |
-| L22 | `ErrorDialog` shown without `Owner` in `TrayService` | `Tray/TrayService.cs` |
-| L23 | `TrayService` reads `ActiveProfileId` without null guard | `Tray/TrayService.cs` |
+| ~~L20~~ | ~~No SHA256 checksums published with binaries~~ | ✅ Done — PR #46 |
+| ~~L21~~ | ~~`AudioService.IsDeviceActive()` bare `catch` swallows all exceptions~~ | ✅ Done — PR #44 |
+| ~~L22~~ | ~~`ErrorDialog` shown without `Owner` in `TrayService`~~ | ✅ Done — PR #44 |
+| ~~L23~~ | ~~`TrayService` reads `ActiveProfileId` without null guard~~ | ✅ Done — PR #44 |
 
 ### TECHNICAL DEBT
 
@@ -209,7 +209,7 @@ No mechanism to notify users of or deliver new versions.
 | ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Merged — PR #40 |
 | ~~22~~ | ~~`fix/settings-async`~~ | ✅ Merged — PR #42 |
 | ~~23~~ | ~~`fix/null-safety`~~ | ✅ Merged — PR #44 |
-| 24 | `ci/sha256-checksums` | L20/8.9 — not started |
+| ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Merged — PR #46 |
 | 25 | `test/additional-coverage` | 7.16 — not started |
 
 ---
@@ -245,12 +245,12 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-### Branch 24: `ci/sha256-checksums`
+### ~~Branch 24: `ci/sha256-checksums`~~ ✅ Merged — PR #46
 **Theme:** Publish SHA256 checksums alongside each GitHub Release zip.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| L20 / 8.9 | Add a step to `.github/workflows/release.yml` that generates `sha256sums.txt` and attaches it to the release alongside the zip | Not started |
+| L20 / 8.9 | Added "Generate SHA256 checksum" step to `release.yml` — uses `Get-FileHash` (PowerShell 7, BOM-free UTF-8) and writes `sha256sums.txt` in two-space format; both files attached to the release | ✅ Done |
 
 ---
 

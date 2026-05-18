@@ -6,6 +6,9 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **SHA256 checksums on releases** — the release pipeline now generates `sha256sums.txt` (PowerShell 7, BOM-free UTF-8, two-space `sha256sum`-compatible format) and attaches it alongside the zip on every GitHub Release so users can verify download integrity *(PR #46)*
+
 ### Fixed
 - **`IsDeviceActive` bare catch narrowed** — the catch block that covered all exception types (including `OutOfMemoryException`) is now scoped to `COMException` and `InvalidComObjectException` only; non-COM failures propagate to the caller's existing catch blocks. Also fixed: the device COM object was leaked when `GetState` returned a non-zero HRESULT, and the HRESULT itself was not checked (a failed call would falsely report the device as active) *(PR #44)*
 - **Error dialog appears on the correct monitor** — the `ErrorDialog` shown after a failed profile switch now sets its `Owner` to the first visible window and uses `CenterOwner` placement; on multi-monitor setups it follows the Settings window rather than always appearing on the primary monitor *(PR #44)*
