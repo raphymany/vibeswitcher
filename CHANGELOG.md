@@ -7,6 +7,12 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **App icon in balloon notification body** — switching profiles now shows the VibeSwitcher app icon as the large icon in the notification banner body instead of the generic blue "i"; the 32×32 HICON is cached for the app's lifetime *(PR #53)*
+
+### Fixed
+- **`error.log` cleared on each startup** — `AppLogger.StartSession()` truncates the log file at launch so entries from previous sessions do not accumulate *(PR #53)*
+
+### Added
 - **Multi-frame app icon and high-quality image source** — `app.ico` replaced with a 4-frame ICO (16/32/48/256px) generated from the keycap source icon; `IconHelper.GetAppIconImageSource()` loads the 256px frame via `BitmapDecoder` with `BitmapCacheOption.OnLoad`, guarded by a double-checked lock *(PR #50)*
 - **App icon in Settings window header** — the header row now shows the keycap icon next to the "VibeSwitcher" title instead of a plain text heading *(PR #50)*
 - **App icon in About window** — uses the high-quality 256px frame instead of the previous blue-square fallback *(PR #50)*

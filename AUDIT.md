@@ -751,6 +751,7 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Done — PR #46 |
 | ~~25~~ | ~~`test/additional-coverage`~~ | ✅ Done — PR #48 |
 | ~~26~~ | ~~`feat/app-icon-refresh`~~ | ✅ Done — PR #50 |
+| ~~27~~ | ~~`feat/toast-notifications`~~ | ✅ Done — PR #53 |
 
 ---
 
@@ -958,6 +959,17 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | 7.16c | `IconHelper.LoadIcon()` with ASCII garbage bytes — default icon returned and `HasErrors` is true | ✅ Done |
 | 7.16d | 10 concurrent `RaiseDevicesChanged()` calls from background threads — no exception thrown | ✅ Done |
 | 7.16e | `RaiseDevicesChanged()` from a single background thread — no exception thrown | ✅ Done |
+
+---
+
+### ~~Branch 27: `feat/toast-notifications`~~ ✅ Merged — PR #53
+**Theme:** Show the VibeSwitcher app icon in balloon notification body; clear the error log at session start.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F9 (partial) | `IconHelper.GetBalloonIconHandle()` — creates a cached 32×32 HICON from `app.ico` once; `DestroyIcon` called at process exit | ✅ Done |
+| F9 (partial) | `TrayService.ShowBalloon` updated to pass `customIconHandle` + `largeIcon: true` so the app icon appears in the balloon body | ✅ Done |
+| New | `AppLogger.StartSession()` truncates `error.log` at startup so logs from previous sessions do not accumulate | ✅ Done |
 
 ---
 

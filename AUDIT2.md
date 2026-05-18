@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — reflects PR #50 (feat/app-icon-refresh).
+**Last updated:** 2026-05-19 — reflects PR #53 (feat/toast-notifications).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
