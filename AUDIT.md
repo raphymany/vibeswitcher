@@ -70,6 +70,16 @@
 
 **~~1.22 — `DispatcherUnhandledException` swallows all exceptions unconditionally~~** — See ~~M15~~ ✅ Fixed
 
+**1.23 — `AudioService.IsDeviceActive()` uses a bare `catch` that swallows all exceptions** *(Low)*
+`Services/AudioService.cs` — The method catches all exceptions including `OutOfMemoryException` and returns `false`, making a device that threw a real error indistinguishable from a genuinely inactive device. Should catch only COM-related exceptions.
+
+**1.24 — `ErrorDialog` shown without an `Owner` window in `TrayService`** *(Low)*
+`Tray/TrayService.cs` — When a profile switch fails, `new ErrorDialog(...).ShowDialog()` is called with no `Owner` set. On multi-monitor setups this can cause the dialog to appear on the wrong screen or behind other windows.
+
+**1.25 — `TrayService` accesses `ActiveProfileId` without null guard** *(Low)*
+`Tray/TrayService.cs` — On a fresh install before any profile exists, `_config.ActiveProfileId` is null. Code paths that read this value and look it up in the profiles list (e.g. `FirstOrDefault(p => p.Id == activeId)`) will silently return null rather than failing visibly, which can leave the tray icon and menu in an inconsistent state.
+Fix: add a null/empty guard before the lookup and fall back to "no active profile" state.
+
 ---
 
 ## SECTION 2 — PERFORMANCE
@@ -131,6 +141,14 @@ Same as ~~1.8~~. `LoadDevicesAsync` in `SettingsViewModel` enumerates once on a 
 
 **~~3.11 — `HotkeyService.Refresh` is a trivial alias for `RegisterAll`~~** ✅ *Fixed — issue #13*
 `Services/HotkeyService.cs` — `Refresh` method removed entirely.
+
+**3.12 — Profile switch logic duplicated between `TrayService` and `ProfileSwitchOrchestrator`** *(Medium)*
+`Tray/TrayService.cs` / `ProfileSwitchOrchestrator.cs` — `TrayService.SwitchToProfileAsync` and `ProfileSwitchOrchestrator.SwitchToProfile` contain near-identical switch flows with slightly different error handling. Bug fixes applied to one path will silently miss the other.
+Fix: `TrayService` should delegate to `ProfileSwitchOrchestrator` rather than owning its own switch logic.
+
+**3.13 — No concurrent-switch guard in `ProfileSwitchOrchestrator`** *(Medium)*
+`ProfileSwitchOrchestrator.cs` — `SwitchToProfile` is `async void` with no in-progress flag. Spamming the hotkey or tray menu can trigger multiple overlapping `ApplyProfileAsync` calls simultaneously, leaving audio devices in an undefined state.
+Fix: add a `_switching` flag (or `SemaphoreSlim(1,1)`) and early-return if a switch is already in progress.
 
 **~~3.12 — `WinApi.MOD_*` constants defined but never referenced~~** ✅ *Fixed — issue #13*
 `NativeMethods/WinApi.cs` / `Models/HotkeyDefinition.cs` — `GetModifierFlags` now references `WinApi.MOD_*` constants.
@@ -200,6 +218,14 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 
 **~~4.17 — Window position restore may still partially overflow screen~~** ✅ *Fixed — PR #18*
 `Views/SettingsWindow.xaml.cs` — `Math.Clamp` now guards the upper bound so a saved window wider than the current screen is clamped on-screen rather than throwing an `ArgumentException`.
+
+**4.18 — `SettingsWindow` `ErrorAdded` event handler not cleaned up on hide** *(Medium)*
+`Views/SettingsWindow.xaml.cs` — The `SessionErrorTracker.ErrorAdded` event is unsubscribed in `OnClosed`, but when "Close to Tray" is enabled the window is *hidden* (`e.Cancel = true; Hide()`) rather than closed — `OnClosed` never fires. Each time the window is opened and hidden, a new subscription accumulates without the old one being removed, keeping the window alive in memory and firing the handler multiple times per event.
+Fix: unsubscribe in both `OnClosed` and the `OnClosing` hide path.
+
+**4.19 — `LoadDevicesAsync` not cancellable — concurrent calls overwrite each other** *(Medium)*
+`ViewModels/SettingsViewModel.cs` — `LoadDevicesAsync` is fire-and-forget with no cancellation token. Rapid device plug/unplug events trigger multiple concurrent enumerations; whichever finishes last wins, potentially overwriting fresher results with stale device lists.
+Fix: cancel the previous call with a `CancellationTokenSource` before starting a new one.
 
 ---
 
@@ -345,6 +371,16 @@ All five interfaces extracted; each ViewModel receives dependencies via construc
 - A second `Schedule()` call before the 500 ms elapses cancels the first pending task (no double-fire)
 - `OnDefaultDeviceChanged` and `OnPropertyValueChanged` are no-ops — calling them does not trigger `DevicesChanged`
 
+**7.16 — Additional unit tests identified in deep-dive review** *(Low)*
+- `_loadingDevices` guard: set flag to true via reflection, change `SelectedPlaybackDevice` — verify `_onChanged` is NOT fired; repeat with flag false — verify it IS fired
+- `ConfigService.Migrate()` asymmetric sentinel: config where `WindowLeft = -1` and `WindowTop = 200.0` — verify only left is nulled, top is preserved
+- `IconHelper.LoadIcon()` with a file that exists but contains invalid icon data — verify default icon returned and `HasErrors` is true
+- `LoadDevicesAsync` concurrent calls: fire two calls in rapid succession (via `OnDevicesChanged`) — verify dropdowns reflect the most recent result and no exception is thrown
+- `SettingsViewModel.OnDevicesChanged()` invoked from a background thread — verify no unhandled exception
+- Five `Schedule()` calls within 100 ms → `DevicesChanged` fires exactly once after ~500 ms
+- A second `Schedule()` call before the 500 ms elapses cancels the first pending task (no double-fire)
+- `OnDefaultDeviceChanged` and `OnPropertyValueChanged` are no-ops — calling them does not trigger `DevicesChanged`
+
 ---
 
 ## SECTION 8 — DEPLOYMENT & DISTRIBUTION
@@ -480,6 +516,10 @@ Fine as placeholder; update when site launches.
 | ~~M13~~ | ~~`ProfileMode` enum serialized as integer (fragile to reordering)~~ | ✅ Done — PR #16 |
 | ~~M14~~ | ~~`ConfigVersion` stored but no migration code exists~~ | ✅ Done — PR #16 |
 | ~~M15~~ | ~~`DispatcherUnhandledException` swallows all exceptions unconditionally~~ | ✅ Done — PR #14 |
+| M16 | Duplicate profile-switch logic in `TrayService` and `ProfileSwitchOrchestrator` — inconsistent bug fix surface |
+| M17 | No concurrent-switch guard — hotkey spam causes overlapping `ApplyProfileAsync` calls |
+| M18 | `SettingsWindow` `ErrorAdded` handler survives hide (close-to-tray) — accumulates across opens |
+| M19 | `LoadDevicesAsync` not cancellable — concurrent calls can overwrite fresh results with stale data |
 
 ### LOW — Nice to fix before or after release
 
@@ -505,6 +545,9 @@ Fine as placeholder; update when site launches.
 | ~~L18~~ | ~~`AboutWindow` version falls back to hardcoded "1.0.0"~~ | ✅ Done — PR #16 |
 | ~~L19~~ | ~~`StartupService.Enable` uses `OpenSubKey` instead of `CreateSubKey`~~ | ✅ Done — PR #14 |
 | L20 | No SHA256 checksums published with binaries | Release pipeline |
+| L21 | `AudioService.IsDeviceActive()` bare `catch` swallows all exceptions — see 1.23 | `Services/AudioService.cs` |
+| L22 | `ErrorDialog` shown without `Owner` in `TrayService` — see 1.24 | `Tray/TrayService.cs` |
+| L23 | `TrayService` reads `ActiveProfileId` without null guard — see 1.25 | `Tray/TrayService.cs` |
 
 ### TECHNICAL DEBT
 
@@ -544,7 +587,7 @@ Fine as placeholder; update when site launches.
 | F9 | Windows 11 Action Center rich notifications |
 | F10 | Per-profile volume level (set device default volume when switching) |
 | F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
-| F12 | Command-line interface: `AudioSwitcherCustom.exe --switch "Profile Name"` |
+| F12 | Command-line interface: `VibeSwitcher.exe --switch "Profile Name"` |
 | F13 | Portable mode (`--portable` flag storing config next to exe) |
 | F14 | System tray scroll wheel for volume control |
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
@@ -555,6 +598,11 @@ Fine as placeholder; update when site launches.
 | F20 | Pre-made profile names — quick-pick name suggestions ("Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", "Speakers", etc.) shown as chips or a dropdown below the name field; pairs with F17 built-in icons for a zero-typing onboarding path |
 | F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
+| F23 | Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list |
+| F24 | Global hotkey to open Settings — a fixed, non-configurable key combo (e.g. Ctrl+Alt+V) registered at startup that focuses the Settings window from anywhere; shown in the tray tooltip |
+| F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely; useful for profiles switched on a schedule or via hotkey spam |
+| F26 | Device connectivity indicator — a small red dot or strikethrough on device dropdown items in Settings for devices that are currently disconnected; uses the existing `IsDeviceActive()` check already present in `AudioService` |
+| F27 | Profile color tag — a small colored circle (6 preset colors) on each profile card set via a compact picker; color appears on the tray menu entry and the card border, helping users visually distinguish profiles at a glance |
 
 ---
 
@@ -564,16 +612,16 @@ Fine as placeholder; update when site launches.
 |----------|-------|-------|-----------|
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
-| Medium | 14 | 13 | 1 (M11) |
-| Low | 20 | 18 | 2 (L17, L20) |
+| Medium | 18 | 13 | 5 (M11, M16, M17, M18, M19) |
+| Low | 23 | 18 | 5 (L17, L20, L21, L22, L23) |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 22 | 3 | 19 |
-| **Total** | **88** | **62** | **26** |
+| Feature Additions | 27 | 3 | 24 |
+| **Total** | **100** | **62** | **38** |
 
 ---
 
-*The most impactful remaining items before any public release: C2/C3 (installer + code signing) and M11 (profile drag-to-reorder).*
+*The most impactful remaining items before any public release: C2/C3 (installer + code signing), M16/M17 (duplicate switch logic + concurrent-switch guard), and M11 (profile drag-to-reorder).*
 
 ---
 
@@ -582,7 +630,7 @@ Fine as placeholder; update when site launches.
 This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
 
 **Explicitly deferred (not in any branch):**
-C2 (installer), C3 (code signing), M11 (profile reorder), L17 (high-contrast/dark mode — same as F16), L20 (SHA256 checksums), 2.7 (GC pressure), 5.9 (mixed-DPI), 7.8 (UI automation), 7.9 (manual test checklist), Sections 8–10 remaining deployment/logging/docs items, and all feature additions (F1–F22 minus F6, F7, F15).
+C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11 (profile reorder), M16 (duplicate switch logic), M17 (concurrent switch guard), M18 (event handler leak on hide), M19 (LoadDevicesAsync cancellation), L17/F16 (dark mode/high-contrast), L20/8.9 (SHA256 checksums — do at next release), L21 (IsDeviceActive bare catch), L22 (ErrorDialog without Owner), L23 (ActiveProfileId null guard), 7.9 (manual test checklist), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and all remaining feature additions (F1–F5, F8–F14, F16–F27).
 
 ---
 

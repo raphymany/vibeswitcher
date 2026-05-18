@@ -1,14 +1,23 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-18 — reflects all 20 merged branches (PR #38) + v1.1.0 release.
+**Last updated:** 2026-05-18 — reflects all 20 merged branches (PR #38) + v1.1.0 release + deep-dive review.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
 ---
 
-## ~~SECTION 1 — CODE REVIEW & SECURITY AUDIT~~
+## SECTION 1 — CODE REVIEW & SECURITY AUDIT
 
-*(All items resolved as of PR #27)*
+*(1.1–1.22 resolved. Open items below from deep-dive review.)*
+
+**1.23 — `AudioService.IsDeviceActive()` uses a bare `catch` that swallows all exceptions** *(Low)*
+`Services/AudioService.cs` — Catches all exceptions including `OutOfMemoryException`; a device that threw a real error is indistinguishable from a genuinely inactive device. Should catch only COM-related exceptions.
+
+**1.24 — `ErrorDialog` shown without an `Owner` window in `TrayService`** *(Low)*
+`Tray/TrayService.cs` — `new ErrorDialog(...).ShowDialog()` called with no `Owner` set. On multi-monitor setups the dialog can appear on the wrong screen or behind other windows.
+
+**1.25 — `TrayService` accesses `ActiveProfileId` without null guard** *(Low)*
+`Tray/TrayService.cs` — On fresh install before any profile exists, `_config.ActiveProfileId` is null. Lookups against the profiles list silently return null rather than failing visibly, leaving the tray icon and menu in an inconsistent state.
 
 ---
 
@@ -18,9 +27,17 @@ Only items **not yet marked ✅ Done** are listed here. Section numbers, letters
 
 ---
 
-## ~~SECTION 3 — CODE QUALITY & ARCHITECTURE~~
+## SECTION 3 — CODE QUALITY & ARCHITECTURE
 
-*(All items resolved as of PR #37)*
+*(3.1–3.11 resolved as of PR #37. Open items below from deep-dive review.)*
+
+**3.12 — Profile switch logic duplicated between `TrayService` and `ProfileSwitchOrchestrator`** *(Medium)*
+`Tray/TrayService.cs` / `ProfileSwitchOrchestrator.cs` — Near-identical switch flows with slightly different error handling. Bug fixes applied to one path silently miss the other.
+Fix: `TrayService` should delegate to `ProfileSwitchOrchestrator` rather than owning its own switch logic.
+
+**3.13 — No concurrent-switch guard in `ProfileSwitchOrchestrator`** *(Medium)*
+`ProfileSwitchOrchestrator.cs` — `SwitchToProfile` is `async void` with no in-progress flag. Hotkey spam or rapid tray-menu clicks can trigger multiple overlapping `ApplyProfileAsync` calls, leaving audio devices in an undefined state.
+Fix: add a `_switching` flag (or `SemaphoreSlim(1,1)`) and early-return if a switch is already in progress.
 
 ---
 
@@ -39,6 +56,14 @@ Users cannot back up or transfer their profiles.
 **4.14 — No middle-click tray handler** *(Low)*
 Convention: middle-click toggles between last two profiles.
 
+**4.18 — `SettingsWindow` `ErrorAdded` event handler not cleaned up on hide** *(Medium)*
+`Views/SettingsWindow.xaml.cs` — `SessionErrorTracker.ErrorAdded` is unsubscribed in `OnClosed`, but when "Close to Tray" is enabled the window is hidden (`e.Cancel = true; Hide()`) instead of closed — `OnClosed` never fires. Each open-and-hide cycle accumulates another subscription.
+Fix: unsubscribe in both `OnClosed` and the `OnClosing` hide path.
+
+**4.19 — `LoadDevicesAsync` not cancellable — concurrent calls overwrite each other** *(Medium)*
+`ViewModels/SettingsViewModel.cs` — Fire-and-forget with no cancellation token. Rapid device plug/unplug events trigger concurrent enumerations; whichever finishes last wins, potentially overwriting fresher results with stale device lists.
+Fix: cancel the previous call with a `CancellationTokenSource` before starting a new one.
+
 ---
 
 ## ~~SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY~~
@@ -55,10 +80,17 @@ Convention: middle-click toggles between last two profiles.
 
 ## SECTION 7 — TESTING
 
-*(7.1–7.7, 7.10–7.15 resolved. 7.8 dropped. Open item below.)*
+*(7.1–7.7, 7.10–7.15 resolved. 7.8 dropped. Open items below.)*
 
 **7.9 — Manual regression checklist** *(Ongoing)*
 Run before each release: first-run flow, corrupted config recovery, single-instance guard, profile switch with device present/disconnected, hotkey switch, close-to-tray, window position/size persistence, settings toggles.
+
+**7.16 — Additional unit tests identified in deep-dive review** *(Low)*
+- `_loadingDevices` guard: set flag to true via reflection, change `SelectedPlaybackDevice` — verify `_onChanged` is NOT fired
+- `ConfigService.Migrate()` asymmetric sentinel: `WindowLeft = -1` and `WindowTop = 200.0` — verify only left is nulled
+- `IconHelper.LoadIcon()` with a file that exists but contains invalid icon data — verify default icon returned and `HasErrors` is true
+- `LoadDevicesAsync` concurrent calls — verify dropdowns reflect the most recent result and no exception is thrown
+- `SettingsViewModel.OnDevicesChanged()` invoked from a background thread — verify no unhandled exception
 
 ---
 
@@ -112,6 +144,10 @@ No mechanism to notify users of or deliver new versions.
 | # | Issue |
 |---|-------|
 | M11 | No profile reorder UI — drag handles (Spotify-style) planned for future branch |
+| M16 | Duplicate profile-switch logic in `TrayService` and `ProfileSwitchOrchestrator` — inconsistent bug fix surface |
+| M17 | No concurrent-switch guard — hotkey spam causes overlapping `ApplyProfileAsync` calls |
+| M18 | `SettingsWindow` `ErrorAdded` handler survives hide (close-to-tray) — accumulates across opens |
+| M19 | `LoadDevicesAsync` not cancellable — concurrent calls can overwrite fresh results with stale data |
 
 ### LOW — Nice to fix before or after release
 
@@ -119,6 +155,9 @@ No mechanism to notify users of or deliver new versions.
 |---|-------|----------|
 | L17 | Dark mode + high-contrast mode — see F16 (same feature) | All XAML |
 | L20 | No SHA256 checksums published with binaries | Release pipeline |
+| L21 | `AudioService.IsDeviceActive()` bare `catch` swallows all exceptions | `Services/AudioService.cs` |
+| L22 | `ErrorDialog` shown without `Owner` in `TrayService` | `Tray/TrayService.cs` |
+| L23 | `TrayService` reads `ActiveProfileId` without null guard | `Tray/TrayService.cs` |
 
 ### TECHNICAL DEBT
 
@@ -151,6 +190,11 @@ No mechanism to notify users of or deliver new versions.
 | F20 | Pre-made profile name suggestions — chips or dropdown with "Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", etc.; pairs with F17 for a zero-typing onboarding path |
 | F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
+| F23 | Profile clone button — a duplicate icon next to each profile card's delete button; clones name, device selections, hotkey, and icon path into a new profile |
+| F24 | Global hotkey to open Settings — a fixed non-configurable key combo (e.g. Ctrl+Alt+V) that focuses the Settings window from anywhere |
+| F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification") to skip the balloon tip when switching to that profile |
+| F26 | Device connectivity indicator — a small red dot or strikethrough on disconnected device dropdown items in Settings |
+| F27 | Profile color tag — a small colored circle (6 preset colors) on each profile card and tray menu entry for visual distinction |
 
 ---
 
@@ -187,4 +231,4 @@ No mechanism to notify users of or deliver new versions.
 ---
 
 **Still pending (no branch planned yet):**
-C2 (installer — after new design), C3 (code signing — needs certificate purchase), L17/F16 (dark mode — after new design), L20/8.9 (SHA256 checksums — next release), M11/F2 (profile reorder — future feature), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions.
+C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11/F2 (profile reorder — future feature), M16–M19 (deep-dive fixes — no branch yet), L17/F16 (dark mode — after new design), L20/8.9 (SHA256 checksums — next release), L21–L23 (deep-dive low-priority fixes), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions (F1–F5, F8–F14, F16–F27).
