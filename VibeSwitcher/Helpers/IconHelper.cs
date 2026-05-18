@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -10,6 +11,8 @@ namespace VibeSwitcher.Helpers;
 public static class IconHelper
 {
     private static Icon? _defaultIcon;
+    private static ImageSource? _appIconImageSource;
+    private static readonly object _syncRoot = new();
 
     static IconHelper()
     {
@@ -66,8 +69,48 @@ public static class IconHelper
     public static Icon GetDefaultIcon()
     {
         if (_defaultIcon != null) return _defaultIcon;
-        _defaultIcon = CreateColorIcon(System.Drawing.Color.FromArgb(0, 120, 212));
-        return _defaultIcon;
+        lock (_syncRoot)
+        {
+            if (_defaultIcon != null) return _defaultIcon;
+            try
+            {
+                var uri = new Uri("pack://application:,,,/Resources/Icons/app.ico", UriKind.Absolute);
+                var info = System.Windows.Application.GetResourceStream(uri);
+                if (info != null)
+                {
+                    using (info.Stream)
+                        _defaultIcon = new Icon(info.Stream);
+                    return _defaultIcon;
+                }
+            }
+            catch (Exception ex) { AppLogger.Warning("IconHelper.GetDefaultIcon", ex.Message); }
+            _defaultIcon = CreateColorIcon(System.Drawing.Color.FromArgb(0, 120, 212));
+            return _defaultIcon;
+        }
+    }
+
+    public static ImageSource GetAppIconImageSource()
+    {
+        if (_appIconImageSource != null) return _appIconImageSource;
+        lock (_syncRoot)
+        {
+            if (_appIconImageSource != null) return _appIconImageSource;
+            try
+            {
+                var uri = new Uri("pack://application:,,,/Resources/Icons/app.ico", UriKind.Absolute);
+                var decoder = BitmapDecoder.Create(uri, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
+                var frame = decoder.Frames.OrderByDescending(f => f.PixelWidth).First();
+                frame.Freeze();
+                _appIconImageSource = frame;
+                return _appIconImageSource;
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("IconHelper.GetAppIconImageSource", ex.Message);
+                _appIconImageSource = ToImageSource(GetDefaultIcon());
+                return _appIconImageSource;
+            }
+        }
     }
 
     private static Icon CopyIcon(Icon source)

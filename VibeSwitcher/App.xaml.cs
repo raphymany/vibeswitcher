@@ -1,11 +1,11 @@
 using System.Windows;
 using System.Windows.Interop;
+using H.NotifyIcon.Core;
 using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.NativeMethods;
 using VibeSwitcher.Services;
 using VibeSwitcher.Tray;
-using H.NotifyIcon.Core;
 
 namespace VibeSwitcher;
 
