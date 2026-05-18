@@ -118,29 +118,29 @@ No mechanism to notify users of or deliver new versions.
 
 ### FEATURE ADDITIONS (post-v1.0.0)
 
-| # | Feature |
-|---|---------|
-| F1 | Import/export `config.json` via Settings for backup and sharing |
-| F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) |
-| F3 | "Test sound" button to verify active device plays audio |
-| F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys (e.g. "Desktop Setup: Ctrl+PgUp / Gaming: Ctrl+PgDn") so you can see the full list without opening any window |
-| F8 | Auto-updater with GitHub Releases version check |
-| F9 | Windows 11 Toast notifications — replace the current balloon tip with the modern Windows 10/11 Toast API so notifications persist in Action Center, support richer formatting, and stack/stack-dismiss properly |
-| F10 | Per-profile volume level (set device default volume when switching) |
-| F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
-| F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
-| F16 | Dark mode + high-contrast mode — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting |
-| F17 | Built-in profile icons gallery picker |
-| F18 | Field feedback — green border flash when a field change is saved |
-| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
-| F20 | Pre-made profile name suggestions — chips or dropdown with "Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", etc.; pairs with F17 for a zero-typing onboarding path |
-| F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
-| F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
-| F23 | Profile clone button — a duplicate icon next to each profile card's delete button; clones name, device selections, hotkey, and icon path into a new profile |
-| F24 | Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere |
-| F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification") to skip the balloon tip when switching to that profile |
-| F26 | Device connectivity indicator — green dot next to connected devices and red dot next to disconnected devices in the Settings dropdowns, so you can see at a glance which are available without trying to switch |
-| F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
+| # | Feature | Branch |
+|---|---------|--------|
+| F1 | Import/export `config.json` via Settings for backup and sharing | 31 |
+| F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) | 29 |
+| F3 | "Test sound" button to verify active device plays audio | 30 |
+| F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys | 28 |
+| F8 | Auto-updater with GitHub Releases version check | Deferred |
+| F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
+| F10 | Per-profile volume level — sets device default volume when switching to that profile | 30 |
+| F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 34 |
+| F13 | Portable mode — auto-detected via `portable.txt` next to the exe; stores config in the same folder instead of `%APPDATA%` | 33 |
+| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 31 |
+| F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path | 32 |
+| F18 | Field feedback — brief green border flash on a card when a change is saved | 31 |
+| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 31 |
+| F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding | 32 |
+| F21 | Left-click tray cycles profiles — switches to the next profile in sort order, wrapping around; right-click still opens the menu | 28 |
+| F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 31 |
+| F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile | 29 |
+| F24 | Global hotkey to open Settings — user-configurable, with option to disable entirely | 28 |
+| F25 | Per-profile silent switch — checkbox on each card to skip the balloon notification when switching to that profile | 29 |
+| F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 30 |
+| F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 32 |
 
 ---
 
