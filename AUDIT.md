@@ -904,3 +904,56 @@ Production enablers (no behavior change): ConfigService baseDir injection, AppLo
 
 **Still deferred (no branch planned):**
 C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast — low priority), 2.7 (GC pressure — minor), 5.9 (mixed-DPI — WPF limitation), 7.8 (UI automation — requires WinAppDriver, out of scope), Sections 8–10 remaining deployment/logging/docs items.
+
+---
+
+### ~~Branch 21: `fix/switch-reliability`~~ ✅ Merged — PR #40
+**Theme:** Remove duplicate switch logic and add a concurrent-switch guard.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| M16 / 3.12 | `TrayService.SwitchToProfileAsync` duplicates the switch flow — delegate to `ProfileSwitchOrchestrator` instead | ✅ Done |
+| M17 / 3.13 | No in-progress flag in `ProfileSwitchOrchestrator` — hotkey spam triggers overlapping `ApplyProfileAsync` calls; add `SemaphoreSlim(1,1)` guard | ✅ Done |
+
+---
+
+### ~~Branch 22: `fix/settings-async`~~ ✅ Merged — PR #42
+**Theme:** Fix the two async/event correctness issues in the Settings window.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| M18 / 4.18 | `SessionErrorTracker.ErrorAdded` subscription never removed when window is hidden (close-to-tray path) — switched to `IsVisibleChanged` to subscribe/unsubscribe on visibility | ✅ Done |
+| M19 / 4.19 | `LoadDevicesAsync` has no cancellation — rapid plug/unplug events cause concurrent enumerations that overwrite each other; added `CancellationTokenSource` with `Interlocked.Exchange` | ✅ Done |
+
+---
+
+### ~~Branch 23: `fix/null-safety`~~ ✅ Merged — PR #44
+**Theme:** Three small robustness fixes found in deep-dive review.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| L21 / 1.23 | `AudioService.IsDeviceActive()` bare `catch` narrowed to COM exceptions; device COM object leak and unchecked `GetState` HRESULT also fixed | ✅ Done |
+| L22 / 1.24 | `ErrorDialog` in `ProfileSwitchOrchestrator` now sets `Owner` to the first visible window with `CenterOwner` placement | ✅ Done |
+| L23 / 1.25 | Stale `ActiveProfileId` reset at startup with a warning log; `IsChecked` in `RebuildMenu` uses explicit `HasValue && .Value` | ✅ Done |
+
+---
+
+### ~~Branch 24: `ci/sha256-checksums`~~ ✅ Merged — PR #46
+**Theme:** Publish SHA256 checksums alongside each GitHub Release zip.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| L20 / 8.9 | Added "Generate SHA256 checksum" step to `release.yml` — uses `Get-FileHash` (PowerShell 7, BOM-free UTF-8) and writes `sha256sums.txt` in two-space format; both files attached to the release | ✅ Done |
+
+---
+
+### ~~Branch 25: `test/additional-coverage`~~ ✅ Merged — PR #48
+**Theme:** Additional unit tests identified in the deep-dive review.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| 7.16a | `_loadingDevices` guard: two tests confirm flag suppresses `_onChanged` during `LoadDevices()` but allows it on direct setter assignment | ✅ Done |
+| 7.16b | `ConfigService.Migrate()` asymmetric sentinel: `WindowLeft = -1` nulled, `WindowTop = 200.0` preserved | ✅ Done |
+| 7.16c | `IconHelper.LoadIcon()` with ASCII garbage bytes — default icon returned and `HasErrors` is true | ✅ Done |
+| 7.16d | 10 concurrent `RaiseDevicesChanged()` calls from background threads — no exception thrown | ✅ Done |
+| 7.16e | `RaiseDevicesChanged()` from a single background thread — no exception thrown | ✅ Done |

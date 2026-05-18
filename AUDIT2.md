@@ -6,24 +6,6 @@ Only items **not yet marked ✅ Done** are listed here. Section numbers, letters
 
 ---
 
-## ~~SECTION 1 — CODE REVIEW & SECURITY AUDIT~~
-
-*(All items resolved as of PR #44)*
-
----
-
-## ~~SECTION 2 — PERFORMANCE~~
-
-*(All items resolved or dropped — 2.7 won't fix)*
-
----
-
-## ~~SECTION 3 — CODE QUALITY & ARCHITECTURE~~
-
-*(All items resolved as of PR #40)*
-
----
-
 ## SECTION 4 — USER EXPERIENCE
 
 **4.7 — No way to reorder profiles** *(Medium)*
@@ -39,32 +21,12 @@ Users cannot back up or transfer their profiles.
 **4.14 — No middle-click tray handler** *(Low)*
 Convention: middle-click toggles between last two profiles.
 
-~~**4.18** — resolved PR #42~~
-
-~~**4.19** — resolved PR #42~~
-
----
-
-## ~~SECTION 5 — WINDOWS INTEGRATION & COMPATIBILITY~~
-
-*(All items resolved or dropped — 5.9 won't fix)*
-
----
-
-## ~~SECTION 6 — CONFIG & DATA INTEGRITY~~
-
-*(All items resolved as of PR #27)*
-
 ---
 
 ## SECTION 7 — TESTING
 
-*(7.1–7.7, 7.10–7.15 resolved. 7.8 dropped. Open items below.)*
-
 **7.9 — Manual regression checklist** *(Ongoing)*
 Run before each release: first-run flow, corrupted config recovery, single-instance guard, profile switch with device present/disconnected, hotkey switch, close-to-tray, window position/size persistence, settings toggles.
-
-~~**7.16 — Additional unit tests identified in deep-dive review**~~ ✅ Done — PR #48
 
 ---
 
@@ -81,14 +43,6 @@ Without Authenticode, Windows SmartScreen blocks the app on every first run for 
 No mechanism to notify users of or deliver new versions.
 
 **8.7 — No winget or Chocolatey package** *(Low / post-release)*
-
-~~**8.9 — No SHA256 checksums**~~ ✅ Done — PR #46
-
----
-
-## ~~SECTION 9 — LOGGING & DIAGNOSTICS~~
-
-*(All items resolved or dropped — 9.4–9.7 won't fix)*
 
 ---
 
@@ -109,37 +63,17 @@ No mechanism to notify users of or deliver new versions.
 | C2 | No installer / distribution mechanism | Build pipeline |
 | C3 | No code signing (SmartScreen blocks app on every first run) | Build pipeline |
 
-### HIGH — Important before v1.0.0
-
-*(All High items resolved)*
-
 ### MEDIUM — Should fix for a quality release
 
 | # | Issue |
 |---|-------|
 | M11 | No profile reorder UI — drag handles (Spotify-style) planned for future branch |
-| ~~M16~~ | ~~Duplicate profile-switch logic~~ | ✅ Done — PR #40 |
-| ~~M17~~ | ~~No concurrent-switch guard~~ | ✅ Done — PR #40 |
-| ~~M18~~ | ~~`ErrorAdded` handler survives hide~~ | ✅ Done — PR #42 |
-| ~~M19~~ | ~~`LoadDevicesAsync` not cancellable~~ | ✅ Done — PR #42 |
 
 ### LOW — Nice to fix before or after release
 
 | # | Issue | Location |
 |---|-------|----------|
 | L17 | Dark mode + high-contrast mode — see F16 (same feature) | All XAML |
-| ~~L20~~ | ~~No SHA256 checksums published with binaries~~ | ✅ Done — PR #46 |
-| ~~L21~~ | ~~`AudioService.IsDeviceActive()` bare `catch` swallows all exceptions~~ | ✅ Done — PR #44 |
-| ~~L22~~ | ~~`ErrorDialog` shown without `Owner` in `TrayService`~~ | ✅ Done — PR #44 |
-| ~~L23~~ | ~~`TrayService` reads `ActiveProfileId` without null guard~~ | ✅ Done — PR #44 |
-
-### TECHNICAL DEBT
-
-*(All Technical Debt items resolved as of PR #38)*
-
-### REFACTORING OPPORTUNITIES
-
-*(All Refactoring Opportunities resolved as of PR #37)*
 
 ### FEATURE ADDITIONS (post-v1.0.0)
 
@@ -174,91 +108,6 @@ No mechanism to notify users of or deliver new versions.
 
 **Release process:**
 - SHA256 checksums are now generated automatically by the release pipeline (PR #46) — no manual step needed.
-
----
-
-## SECTION 12 — BRANCH EXECUTION LOG
-
-| # | Branch | Status |
-|---|--------|--------|
-| ~~1~~ | ~~`fix/startup-registry`~~ | ✅ Merged |
-| ~~2~~ | ~~`fix/config-integrity`~~ | ✅ Merged |
-| ~~3~~ | ~~`fix/hotkey-registration`~~ | ✅ Merged |
-| ~~4~~ | ~~`fix/ui-polish`~~ | ✅ Merged |
-| ~~5~~ | ~~`fix/dpi-threading`~~ | ✅ Merged |
-| ~~6~~ | ~~`fix/settings-performance`~~ | ✅ Merged |
-| ~~7~~ | ~~`feat/error-codes-and-logs`~~ | ✅ Merged |
-| ~~8~~ | ~~`fix/security-hardening`~~ | ✅ Merged |
-| ~~9~~ | ~~`fix/about-diagnostics`~~ | ✅ Merged |
-| ~~10~~ | ~~`fix/startup-service`~~ | ✅ Merged |
-| ~~11~~ | ~~`fix/ux-polish-2`~~ | ✅ Merged |
-| ~~12~~ | ~~`fix/ux-polish-3`~~ | ✅ Merged |
-| ~~13~~ | ~~`fix/ux-polish-4`~~ | ✅ Merged |
-| ~~14~~ | ~~`feat/audio-reliability`~~ | ✅ Merged — PR #30 |
-| ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Merged — PR #31 |
-| ~~16~~ | ~~`test/unit-tests`~~ | ✅ Merged — PR #33 |
-| ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Merged — PR #35 |
-| ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Merged — PR #36 |
-| ~~19~~ | ~~`refactor/god-class`~~ | ✅ Merged — PR #37 |
-| ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Merged — PR #38 |
-| ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Merged — PR #40 |
-| ~~22~~ | ~~`fix/settings-async`~~ | ✅ Merged — PR #42 |
-| ~~23~~ | ~~`fix/null-safety`~~ | ✅ Merged — PR #44 |
-| ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Merged — PR #46 |
-| ~~25~~ | ~~`test/additional-coverage`~~ | ✅ Merged — PR #48 |
-
----
-
-### ~~Branch 21: `fix/switch-reliability`~~ ✅ Merged — PR #40
-**Theme:** Remove duplicate switch logic and add a concurrent-switch guard.
-
-| Item | Description | Status |
-|------|-------------|--------|
-| M16 / 3.12 | `TrayService.SwitchToProfileAsync` duplicates the switch flow — delegate to `ProfileSwitchOrchestrator` instead | ✅ Done |
-| M17 / 3.13 | No in-progress flag in `ProfileSwitchOrchestrator` — hotkey spam triggers overlapping `ApplyProfileAsync` calls; add `SemaphoreSlim(1,1)` guard | ✅ Done |
-
----
-
-### ~~Branch 22: `fix/settings-async`~~ ✅ Merged — PR #42
-**Theme:** Fix the two async/event correctness issues in the Settings window.
-
-| Item | Description | Status |
-|------|-------------|--------|
-| M18 / 4.18 | `SessionErrorTracker.ErrorAdded` subscription never removed when window is hidden (close-to-tray path) — switched to `IsVisibleChanged` to subscribe/unsubscribe on visibility | ✅ Done |
-| M19 / 4.19 | `LoadDevicesAsync` has no cancellation — rapid plug/unplug events cause concurrent enumerations that overwrite each other; added `CancellationTokenSource` with `Interlocked.Exchange` | ✅ Done |
-
----
-
-### ~~Branch 23: `fix/null-safety`~~ ✅ Merged — PR #44
-**Theme:** Three small robustness fixes found in deep-dive review.
-
-| Item | Description | Status |
-|------|-------------|--------|
-| L21 / 1.23 | `AudioService.IsDeviceActive()` bare `catch` narrowed to COM exceptions; device COM object leak and unchecked `GetState` HRESULT also fixed | ✅ Done |
-| L22 / 1.24 | `ErrorDialog` in `ProfileSwitchOrchestrator` now sets `Owner` to the first visible window with `CenterOwner` placement | ✅ Done |
-| L23 / 1.25 | Stale `ActiveProfileId` reset at startup with a warning log; `IsChecked` in `RebuildMenu` uses explicit `HasValue && .Value` | ✅ Done |
-
----
-
-### ~~Branch 24: `ci/sha256-checksums`~~ ✅ Merged — PR #46
-**Theme:** Publish SHA256 checksums alongside each GitHub Release zip.
-
-| Item | Description | Status |
-|------|-------------|--------|
-| L20 / 8.9 | Added "Generate SHA256 checksum" step to `release.yml` — uses `Get-FileHash` (PowerShell 7, BOM-free UTF-8) and writes `sha256sums.txt` in two-space format; both files attached to the release | ✅ Done |
-
----
-
-### ~~Branch 25: `test/additional-coverage`~~ ✅ Merged — PR #48
-**Theme:** Additional unit tests identified in the deep-dive review.
-
-| Item | Description | Status |
-|------|-------------|--------|
-| 7.16a | `_loadingDevices` guard: two tests confirm flag suppresses `_onChanged` during `LoadDevices()` but allows it on direct setter assignment | ✅ Done |
-| 7.16b | `ConfigService.Migrate()` asymmetric sentinel: `WindowLeft = -1` nulled, `WindowTop = 200.0` preserved | ✅ Done |
-| 7.16c | `IconHelper.LoadIcon()` with ASCII garbage bytes — default icon returned and `HasErrors` is true | ✅ Done |
-| 7.16d | 10 concurrent `RaiseDevicesChanged()` calls from background threads — no exception thrown | ✅ Done |
-| 7.16e | `RaiseDevicesChanged()` from a single background thread — no exception thrown | ✅ Done |
 
 ---
 
