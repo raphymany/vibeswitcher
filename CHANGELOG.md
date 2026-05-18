@@ -6,6 +6,10 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **GitHub Actions CI pipeline** — every push and pull request to `main` automatically builds in Release mode and runs all 98 tests on a `windows-latest` runner; failures block the merge *(PR #38)*
+- **GitHub Actions release pipeline** — pushing a `v*` tag automatically publishes a self-contained Windows x64 single-file executable, zips it, and attaches it to a GitHub Release with auto-generated release notes *(PR #38)*
+
 ### Changed
 - **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` now owns `SwitchToProfile()`, `OnPowerModeChanged()`, and the full async switch flow (tooltip, config save, tray update, notifications, error dialog); `AppWindowManager` owns `OpenSettingsWindow()` and `OpenAboutWindow()`; `App.xaml.cs` reduced from 248 to ~120 lines and is now a thin bootstrapper; resolves TD3 and R2 *(PR #37)*
 

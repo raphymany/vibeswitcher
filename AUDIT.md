@@ -535,7 +535,7 @@ Fine as placeholder; update when site launches.
 | ~~TD4~~ | ~~No `IDialogService` abstraction — ViewModel/View tightly coupled~~ | ✅ Done — PR #35 |
 | ~~TD5~~ | ~~Two separate duplicate log implementations~~ | ✅ Done — Branch 3 (ConfigService.LogError removed; items 1.14 + 9.3) |
 | ~~TD6~~ | ~~`RunOnSta` pattern creates/destroys OS threads per operation~~ | ✅ Done — fix/reliability (RunOnSta removed; calls use Task.Run at call sites) |
-| TD7 | No CI/CD pipeline configured |
+| ~~TD7~~ | ~~No CI/CD pipeline configured~~ | ✅ Done — PR #38 |
 
 ### REFACTORING OPPORTUNITIES
 
@@ -585,7 +585,7 @@ Fine as placeholder; update when site launches.
 | High | 10 | 10 | 0 |
 | Medium | 14 | 13 | 1 (M11) |
 | Low | 20 | 18 | 2 (L17, L20) |
-| Technical Debt | 7 | 6 | 1 (TD7) |
+| Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 22 | 3 | 19 |
 | **Total** | **88** | **61** | **27** |
@@ -601,7 +601,7 @@ Fine as placeholder; update when site launches.
 This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
 
 **Explicitly deferred (not in any branch):**
-C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), TD7 (planned in Branch 20), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
+C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
 
 ---
 
@@ -725,7 +725,7 @@ C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intention
 | ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Done — PR #35 |
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Done — PR #36 |
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Done — PR #37 |
-| 20 | `ci/cd-pipeline` | Planned (any time after Branch 16) |
+| ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Done — PR #38 |
 
 ---
 
@@ -871,14 +871,10 @@ Production enablers (no behavior change): ConfigService baseDir injection, AppLo
 
 ---
 
-### Branch 20: `ci/cd-pipeline` *(independent — can run any time after Branch 16)*
-**Theme:** GitHub Actions build + test pipeline — resolves TD7.
+### ~~Branch 20: `ci/cd-pipeline`~~ ✅ Done — PR #38
+**Theme:** GitHub Actions build + test pipeline.
 
-| Item | Change |
-|------|--------|
-| TD7 | `.github/workflows/ci.yml`: triggers on push/PR to `main`; runs `dotnet build -c Release` and `dotnet test` |
-| — | Add `Microsoft.CodeAnalysis.NetAnalyzers` to csproj for static analysis warnings |
-| — | Release workflow (on tag push): `dotnet publish --self-contained -r win-x64` and upload artifact |
+`.github/workflows/ci.yml` added: triggers on every push and pull request to `main`; runs `dotnet build -c Release` then `dotnet test` on `windows-latest`. `.github/workflows/release.yml` added: triggers on `v*` tag push; runs `dotnet publish --self-contained -r win-x64 -p:PublishSingleFile=true`, zips the output, and uploads it as a GitHub Release artifact via `softprops/action-gh-release@v2` (with `permissions: contents: write`). `Microsoft.CodeAnalysis.NetAnalyzers` NuGet package removed — the .NET SDK on the runner already bundles a newer version, and adding it explicitly produced a version-conflict warning. 98 tests, 0 failures, 0 build warnings.
 
 ---
 
