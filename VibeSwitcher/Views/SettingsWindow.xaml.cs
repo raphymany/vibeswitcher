@@ -58,9 +58,21 @@ public partial class SettingsWindow : Window
         DataContext = _viewModel;
         RestoreWindowBounds();
 
-        UpdateLogsButton();
         _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
-        SessionErrorTracker.ErrorAdded += _errorAddedHandler;
+
+        // Subscribe only while visible so hide-and-reshow cycles don't accumulate handlers.
+        IsVisibleChanged += (_, e) =>
+        {
+            if ((bool)e.NewValue)
+            {
+                SessionErrorTracker.ErrorAdded += _errorAddedHandler;
+                UpdateLogsButton();
+            }
+            else
+            {
+                SessionErrorTracker.ErrorAdded -= _errorAddedHandler;
+            }
+        };
     }
 
     private void UpdateLogsButton()
@@ -117,12 +129,6 @@ public partial class SettingsWindow : Window
         cfg.WindowLeft   = Left;
         cfg.WindowTop    = Top;
         _configService.SaveImmediate();
-    }
-
-    protected override void OnClosed(EventArgs e)
-    {
-        SessionErrorTracker.ErrorAdded -= _errorAddedHandler;
-        base.OnClosed(e);
     }
 
     protected override void OnClosing(CancelEventArgs e)

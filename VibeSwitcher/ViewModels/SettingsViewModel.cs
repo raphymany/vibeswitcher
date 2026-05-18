@@ -23,8 +23,9 @@ public class SettingsViewModel : ViewModelBase
     private bool _useLegacySoundPanel;
 
     // Device lists loaded once async and shared across all profile cards.
-    private IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
-    private IReadOnlyList<AudioDeviceInfo> _recordingDevices = [];
+    private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
+    private volatile IReadOnlyList<AudioDeviceInfo> _recordingDevices = [];
+    private CancellationTokenSource? _loadCts;
 
     public ObservableCollection<ProfileCardViewModel> Profiles { get; }
 
@@ -147,11 +148,22 @@ public class SettingsViewModel : ViewModelBase
 
     private async Task LoadDevicesAsync()
     {
+        // Cancel any in-progress enumeration and start a fresh one.
+        // Interlocked.Exchange atomically replaces the field so concurrent OnDevicesChanged
+        // calls (from the thread-pool debounce) can't race on the same CTS instance.
+        var cts = new CancellationTokenSource();
+        var old = Interlocked.Exchange(ref _loadCts, cts);
+        old?.Cancel();
+        old?.Dispose();
+        var token = cts.Token;
+
         var audioService = _audioService;
         try
         {
             var (pb, rec) = await Task.Run(() =>
                 (audioService.GetPlaybackDevices(), audioService.GetRecordingDevices()));
+
+            if (token.IsCancellationRequested) return;
 
             _playbackDevices = pb;
             _recordingDevices = rec;
@@ -162,11 +174,12 @@ public class SettingsViewModel : ViewModelBase
             if (dispatcher == null) return;
             await dispatcher.InvokeAsync(() =>
             {
+                if (token.IsCancellationRequested) return;
                 foreach (var card in Profiles)
                     card.LoadDevices(pb, rec);
             });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!token.IsCancellationRequested)
         {
             AppLogger.Error("SettingsViewModel.LoadDevicesAsync", ex);
             SessionErrorTracker.Record(ErrorCode.AudioEnumerationFailed, "Audio Device Error",
