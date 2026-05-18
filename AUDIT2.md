@@ -48,13 +48,9 @@ Users cannot back up or transfer their profiles.
 **4.14 — No middle-click tray handler** *(Low)*
 Convention: middle-click toggles between last two profiles.
 
-**4.18 — `SettingsWindow` `ErrorAdded` event handler not cleaned up on hide** *(Medium)*
-`Views/SettingsWindow.xaml.cs` — `SessionErrorTracker.ErrorAdded` is unsubscribed in `OnClosed`, but when "Close to Tray" is enabled the window is hidden (`e.Cancel = true; Hide()`) instead of closed — `OnClosed` never fires. Each open-and-hide cycle accumulates another subscription.
-Fix: unsubscribe in both `OnClosed` and the `OnClosing` hide path.
+~~**4.18** — resolved PR #42~~
 
-**4.19 — `LoadDevicesAsync` not cancellable — concurrent calls overwrite each other** *(Medium)*
-`ViewModels/SettingsViewModel.cs` — Fire-and-forget with no cancellation token. Rapid device plug/unplug events trigger concurrent enumerations; whichever finishes last wins, potentially overwriting fresher results with stale device lists.
-Fix: cancel the previous call with a `CancellationTokenSource` before starting a new one.
+~~**4.19** — resolved PR #42~~
 
 ---
 
@@ -138,8 +134,8 @@ No mechanism to notify users of or deliver new versions.
 | M11 | No profile reorder UI — drag handles (Spotify-style) planned for future branch |
 | ~~M16~~ | ~~Duplicate profile-switch logic~~ | ✅ Done — PR #40 |
 | ~~M17~~ | ~~No concurrent-switch guard~~ | ✅ Done — PR #40 |
-| M18 | `SettingsWindow` `ErrorAdded` handler survives hide (close-to-tray) — accumulates across opens |
-| M19 | `LoadDevicesAsync` not cancellable — concurrent calls can overwrite fresh results with stale data |
+| ~~M18~~ | ~~`ErrorAdded` handler survives hide~~ | ✅ Done — PR #42 |
+| ~~M19~~ | ~~`LoadDevicesAsync` not cancellable~~ | ✅ Done — PR #42 |
 
 ### LOW — Nice to fix before or after release
 
@@ -220,7 +216,7 @@ No mechanism to notify users of or deliver new versions.
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Merged — PR #37 |
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Merged — PR #38 |
 | ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Merged — PR #40 |
-| 22 | `fix/settings-async` | M18 + M19 — not started |
+| ~~22~~ | ~~`fix/settings-async`~~ | ✅ Merged — PR #42 |
 | 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
 | 24 | `ci/sha256-checksums` | L20/8.9 — not started |
 | 25 | `test/additional-coverage` | 7.16 — not started |
@@ -237,13 +233,13 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-### Branch 22: `fix/settings-async`
+### ~~Branch 22: `fix/settings-async`~~ ✅ Merged — PR #42
 **Theme:** Fix the two async/event correctness issues in the Settings window.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| M18 / 4.18 | `SessionErrorTracker.ErrorAdded` subscription never removed when window is hidden (close-to-tray path) — unsubscribe in `OnClosing` hide path as well as `OnClosed` | Not started |
-| M19 / 4.19 | `LoadDevicesAsync` has no cancellation — rapid plug/unplug events cause concurrent enumerations that overwrite each other; add `CancellationTokenSource` | Not started |
+| M18 / 4.18 | `SessionErrorTracker.ErrorAdded` subscription never removed when window is hidden (close-to-tray path) — switched to `IsVisibleChanged` to subscribe/unsubscribe on visibility | ✅ Done |
+| M19 / 4.19 | `LoadDevicesAsync` has no cancellation — rapid plug/unplug events cause concurrent enumerations that overwrite each other; added `CancellationTokenSource` with `Interlocked.Exchange` | ✅ Done |
 
 ---
 

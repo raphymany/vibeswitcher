@@ -217,13 +217,11 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 **~~4.17 — Window position restore may still partially overflow screen~~** ✅ *Fixed — PR #18*
 `Views/SettingsWindow.xaml.cs` — `Math.Clamp` now guards the upper bound so a saved window wider than the current screen is clamped on-screen rather than throwing an `ArgumentException`.
 
-**4.18 — `SettingsWindow` `ErrorAdded` event handler not cleaned up on hide** *(Medium)*
-`Views/SettingsWindow.xaml.cs` — The `SessionErrorTracker.ErrorAdded` event is unsubscribed in `OnClosed`, but when "Close to Tray" is enabled the window is *hidden* (`e.Cancel = true; Hide()`) rather than closed — `OnClosed` never fires. Each time the window is opened and hidden, a new subscription accumulates without the old one being removed, keeping the window alive in memory and firing the handler multiple times per event.
-Fix: unsubscribe in both `OnClosed` and the `OnClosing` hide path.
+**~~4.18 — `SettingsWindow` `ErrorAdded` event handler not cleaned up on hide~~** ✅ Done — PR #42
+`IsVisibleChanged` handler added; subscribes when window becomes visible, unsubscribes when hidden or closed. Removes the accumulation on each show-and-hide cycle and refreshes the button state on every re-open.
 
-**4.19 — `LoadDevicesAsync` not cancellable — concurrent calls overwrite each other** *(Medium)*
-`ViewModels/SettingsViewModel.cs` — `LoadDevicesAsync` is fire-and-forget with no cancellation token. Rapid device plug/unplug events trigger multiple concurrent enumerations; whichever finishes last wins, potentially overwriting fresher results with stale device lists.
-Fix: cancel the previous call with a `CancellationTokenSource` before starting a new one.
+**~~4.19 — `LoadDevicesAsync` not cancellable — concurrent calls overwrite each other~~** ✅ Done — PR #42
+`CancellationTokenSource? _loadCts` added; swapped atomically via `Interlocked.Exchange` on each call. Previous enumeration cancelled and disposed before a new one starts. `_playbackDevices` and `_recordingDevices` marked `volatile`.
 
 ---
 
@@ -516,8 +514,8 @@ Fine as placeholder; update when site launches.
 | ~~M15~~ | ~~`DispatcherUnhandledException` swallows all exceptions unconditionally~~ | ✅ Done — PR #14 |
 | ~~M16~~ | ~~Duplicate profile-switch logic in `TrayService` and `ProfileSwitchOrchestrator`~~ | ✅ Done — PR #40 |
 | ~~M17~~ | ~~No concurrent-switch guard — hotkey spam causes overlapping `ApplyProfileAsync` calls~~ | ✅ Done — PR #40 |
-| M18 | `SettingsWindow` `ErrorAdded` handler survives hide (close-to-tray) — accumulates across opens |
-| M19 | `LoadDevicesAsync` not cancellable — concurrent calls can overwrite fresh results with stale data |
+| ~~M18~~ | ~~`SettingsWindow` `ErrorAdded` handler survives hide~~ | ✅ Done — PR #42 |
+| ~~M19~~ | ~~`LoadDevicesAsync` not cancellable~~ | ✅ Done — PR #42 |
 
 ### LOW — Nice to fix before or after release
 
@@ -610,12 +608,12 @@ Fine as placeholder; update when site launches.
 |----------|-------|-------|-----------|
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
-| Medium | 18 | 15 | 3 (M11, M18, M19) |
+| Medium | 18 | 17 | 1 (M11) |
 | Low | 23 | 18 | 5 (L17, L20, L21, L22, L23) |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 27 | 3 | 24 |
-| **Total** | **100** | **64** | **36** |
+| **Total** | **100** | **66** | **34** |
 
 ---
 
@@ -754,7 +752,7 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Done — PR #37 |
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Done — PR #38 |
 | ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Done — PR #40 |
-| 22 | `fix/settings-async` | M18 + M19 — not started |
+| ~~22~~ | ~~`fix/settings-async`~~ | ✅ Done — PR #42 |
 | 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
 | 24 | `ci/sha256-checksums` | L20/8.9 — not started |
 | 25 | `test/additional-coverage` | 7.16 — not started |

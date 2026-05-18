@@ -6,6 +6,10 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Fixed
+- **Event handler leak when closing to tray** — `SettingsWindow` previously accumulated a new `SessionErrorTracker.ErrorAdded` subscription on every show-and-hide cycle when "Close to Tray" is enabled; now managed via `IsVisibleChanged` so exactly one subscription is active while the window is visible *(PR #42)*
+- **Stale device list after rapid plug/unplug** — `LoadDevicesAsync` now cancels any in-progress enumeration before starting a new one; the previous call is cancelled and disposed atomically so only the most recent result can reach the UI *(PR #42)*
+
 ### Changed
 - **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume. Bug fixes to switch logic now apply everywhere automatically *(PR #40)*
 - **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
