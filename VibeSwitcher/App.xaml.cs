@@ -74,20 +74,23 @@ public partial class App : Application
         // 4. Initialise services
         _audioService = new AudioService();
         _hotkeyService = new HotkeyService(_hwndSource.Handle);
-        _trayService = new TrayService(_configService, _audioService, _hotkeyService);
+        _trayService = new TrayService(_configService);
 
         // 5. Initialise orchestrators
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, Dispatcher);
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService);
 
+        // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
+        _trayService.SwitchRequested = _orchestrator.SwitchToProfile;
+
         // 6. Register hotkeys
         RegisterHotkeys();
 
-        // 7. Restore last active profile (fire-and-forget, non-blocking)
+        // 7. Restore last active profile via the orchestrator so the single switch path is always used.
         var activeProfile = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         if (activeProfile != null)
-            _ = _audioService.ApplyProfileAsync(activeProfile);
+            _orchestrator.SwitchToProfile(activeProfile);
 
         // 8. Refresh tray
         _trayService.UpdateIcon(activeProfile);
@@ -151,6 +154,7 @@ public partial class App : Application
         _hwndSource?.Dispose();
         _trayService?.Dispose();
         _audioService?.Dispose();
+        _orchestrator?.Dispose();
 
         _singleInstance.Dispose();
         base.OnExit(e);

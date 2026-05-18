@@ -5,7 +5,6 @@ using System.Windows.Media;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
-using VibeSwitcher.Views;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
 
@@ -16,16 +15,15 @@ public class TrayService : IDisposable
     private readonly TaskbarIcon _taskbarIcon;
     private readonly ContextMenu _contextMenu = new();
     private readonly IConfigService _configService;
-    private readonly IAudioService _audioService;
-    private readonly IHotkeyService _hotkeyService;
     // Caches the ImageSource for each profile's icon so RebuildMenu never reads from disk.
     private readonly Dictionary<Guid, ImageSource> _iconCache = new();
 
-    public TrayService(IConfigService configService, IAudioService audioService, IHotkeyService hotkeyService)
+    // Wired up by App.xaml.cs after ProfileSwitchOrchestrator is created.
+    internal Action<DeviceProfile>? SwitchRequested;
+
+    public TrayService(IConfigService configService)
     {
         _configService = configService;
-        _audioService = audioService;
-        _hotkeyService = hotkeyService;
 
         _taskbarIcon = new TaskbarIcon
         {
@@ -86,7 +84,7 @@ public class TrayService : IDisposable
                 };
 
                 var capturedProfile = profile;
-                item.Click += (_, _) => _ = SwitchToProfileAsync(capturedProfile);
+                item.Click += (_, _) => SwitchRequested?.Invoke(capturedProfile);
 
                 _contextMenu.Items.Add(item);
             }
@@ -164,59 +162,6 @@ public class TrayService : IDisposable
     public void SetSwitchingTooltip(string profileName)
     {
         _taskbarIcon.ToolTipText = $"Switching to {profileName}...";
-    }
-
-    private async Task SwitchToProfileAsync(DeviceProfile profile)
-    {
-        SetSwitchingTooltip(profile.Name);
-        try
-        {
-            var result = await _audioService.ApplyProfileAsync(profile);
-            _configService.Current.ActiveProfileId = profile.Id;
-            _configService.SaveImmediate();
-            UpdateIcon(profile);
-            SetActiveProfile(profile.Id);
-
-            if (result.MissingPlaybackId != null)
-            {
-                var msg = $"Playback device for '{profile.Name}' is disconnected.";
-                AppLogger.Warning("TrayMenuClick", msg);
-                SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
-            }
-            if (result.MissingRecordingId != null)
-            {
-                var msg = $"Recording device for '{profile.Name}' is disconnected.";
-                AppLogger.Warning("TrayMenuClick", msg);
-                SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
-            }
-
-            if (_configService.Current.ShowNotifications)
-            {
-                if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
-                {
-                    ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
-                }
-                else
-                {
-                    if (result.MissingPlaybackId != null)
-                        ShowBalloon("Device Unavailable", $"Playback device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
-                    if (result.MissingRecordingId != null)
-                        ShowBalloon("Device Unavailable", $"Recording device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            AppLogger.Error("TrayMenuClick", ex);
-            var detail = ex.InnerException?.Message ?? ex.Message;
-            SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                $"Could not switch to '{profile.Name}': {detail}");
-            // Restore tooltip to the still-active profile (switch did not complete)
-            var still = _configService.Current.Profiles.FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-            UpdateIcon(still);
-            new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
-        }
     }
 
     private static void OpenSettings()
