@@ -750,6 +750,7 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~23~~ | ~~`fix/null-safety`~~ | ✅ Done — PR #44 |
 | ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Done — PR #46 |
 | ~~25~~ | ~~`test/additional-coverage`~~ | ✅ Done — PR #48 |
+| ~~26~~ | ~~`feat/app-icon-refresh`~~ | ✅ Done — PR #50 |
 
 ---
 
@@ -957,3 +958,17 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | 7.16c | `IconHelper.LoadIcon()` with ASCII garbage bytes — default icon returned and `HasErrors` is true | ✅ Done |
 | 7.16d | 10 concurrent `RaiseDevicesChanged()` calls from background threads — no exception thrown | ✅ Done |
 | 7.16e | `RaiseDevicesChanged()` from a single background thread — no exception thrown | ✅ Done |
+
+---
+
+### ~~Branch 26: `feat/app-icon-refresh`~~ ✅ Merged — PR #50
+**Theme:** Replace the single-frame 16px app icon with a multi-frame ICO and use the 256px frame wherever the icon appears in the UI.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| New | `app.ico` replaced with a 4-frame ICO (16/32/48/256px) generated from the keycap source icon via Pillow LANCZOS resampling | ✅ Done |
+| New | `IconHelper.GetAppIconImageSource()` added: loads the 256px frame via `BitmapDecoder` with `BitmapCacheOption.OnLoad`; double-checked lock for thread safety; falls back to the solid-colour icon if the pack URI fails | ✅ Done |
+| New | Settings window header updated to a horizontal `StackPanel` with the app icon next to the title | ✅ Done |
+| New | About window uses `GetAppIconImageSource()` instead of a blue-square fallback | ✅ Done |
+| New | Tray context menu gains a non-interactive header row showing the app icon and "VibeSwitcher" label | ✅ Done |
+| New | `GetDefaultIcon()` wrapped in the same double-checked lock; bare `catch {}` blocks now log via `AppLogger.Warning` | ✅ Done |

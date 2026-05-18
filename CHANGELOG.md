@@ -7,6 +7,15 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Multi-frame app icon and high-quality image source** — `app.ico` replaced with a 4-frame ICO (16/32/48/256px) generated from the keycap source icon; `IconHelper.GetAppIconImageSource()` loads the 256px frame via `BitmapDecoder` with `BitmapCacheOption.OnLoad`, guarded by a double-checked lock *(PR #50)*
+- **App icon in Settings window header** — the header row now shows the keycap icon next to the "VibeSwitcher" title instead of a plain text heading *(PR #50)*
+- **App icon in About window** — uses the high-quality 256px frame instead of the previous blue-square fallback *(PR #50)*
+- **App icon in tray context menu header** — a non-interactive header row at the top of the right-click menu shows the app icon and name *(PR #50)*
+
+### Fixed
+- **`GetDefaultIcon()` thread safety** — double-checked lock added; bare `catch {}` now logs via `AppLogger.Warning` instead of swallowing silently *(PR #50)*
+
+### Added
 - **Additional unit tests for edge cases** — 6 new tests covering previously untested paths: the `_loadingDevices` flag in `ProfileCardViewModel` prevents the TwoWay ComboBox rebind from firing `_onChanged` during `LoadDevices()`, while direct setter assignment outside that method correctly fires it; `ConfigService.Migrate()` nulls `WindowLeft = -1` (the v1 sentinel) but preserves a real `WindowTop` value on the same load; `IconHelper.LoadIcon()` with corrupt bytes returns the default icon and records the error; and `RaiseDevicesChanged()` is safe to call from both a single background thread and 10 concurrent background threads without throwing *(PR #48)*
 
 ### Added
