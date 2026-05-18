@@ -618,7 +618,9 @@ Fine as placeholder; update when site launches.
 This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
 
 **Explicitly deferred (not in any branch):**
-C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11 (profile reorder), M16 (duplicate switch logic), M17 (concurrent switch guard), M18 (event handler leak on hide), M19 (LoadDevicesAsync cancellation), L17/F16 (dark mode/high-contrast), L20/8.9 (SHA256 checksums — do at next release), L21 (IsDeviceActive bare catch), L22 (ErrorDialog without Owner), L23 (ActiveProfileId null guard), 7.9 (manual test checklist), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and all remaining feature additions (F1–F5, F8–F14, F16–F27).
+C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11 (profile reorder), L17/F16 (dark mode/high-contrast), 7.9 (manual test checklist), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and all remaining feature additions (F1–F5, F8–F14, F16–F27).
+
+*(M16, M17 resolved PR #40; M18, M19 resolved PR #42; L21, L22, L23 resolved PR #44; L20/8.9 resolved PR #46; 7.16 resolved PR #48)*
 
 ---
 
@@ -901,4 +903,4 @@ Production enablers (no behavior change): ConfigService baseDir injection, AppLo
 ---
 
 **Still deferred (no branch planned):**
-C2/C3 (installer, code signing — external tooling/money), L17/L20 (high-contrast/SHA256 — low priority), 2.7 (GC pressure — minor), 5.9 (mixed-DPI — WPF limitation), 7.8 (UI automation — requires WinAppDriver, out of scope), Sections 8–10 remaining deployment/logging/docs items.
+C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast — low priority), 2.7 (GC pressure — minor), 5.9 (mixed-DPI — WPF limitation), 7.8 (UI automation — requires WinAppDriver, out of scope), Sections 8–10 remaining deployment/logging/docs items.

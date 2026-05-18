@@ -172,8 +172,8 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-**Release process (not a branch — do at next release):**
-- L20 / 8.9: Generate and publish SHA256 checksums alongside the zip in the GitHub release
+**Release process:**
+- SHA256 checksums are now generated automatically by the release pipeline (PR #46) — no manual step needed.
 
 ---
 
