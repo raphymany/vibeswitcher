@@ -87,6 +87,16 @@ public partial class App : Application
         RegisterHotkeys();
 
         // 7. Restore last active profile via the orchestrator so the single switch path is always used.
+        // Guard: if ActiveProfileId is set but no matching profile exists (e.g. profile was deleted
+        // outside the app), reset it so the tray icon does not show a stale or wrong state.
+        if (_configService.Current.ActiveProfileId.HasValue &&
+            !_configService.Current.Profiles.Any(p => p.Id == _configService.Current.ActiveProfileId))
+        {
+            AppLogger.Warning("App.OnStartup", "ActiveProfileId in config does not match any profile — resetting.");
+            _configService.Current.ActiveProfileId = null;
+            _configService.SaveImmediate();
+        }
+
         var activeProfile = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         if (activeProfile != null)

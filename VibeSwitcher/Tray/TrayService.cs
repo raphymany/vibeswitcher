@@ -78,7 +78,7 @@ public class TrayService : IDisposable
                 var item = new MenuItem
                 {
                     Header = BuildProfileHeader(profile),
-                    IsChecked = profile.Id == activeId,
+                    IsChecked = activeId.HasValue && profile.Id == activeId.Value,
                     Padding = new Thickness(12, 8, 16, 8),
                     Tag = profile.Id,
                 };

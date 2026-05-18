@@ -231,12 +231,17 @@ public class AudioService : IAudioService
         {
             int hr = enumerator.GetDevice(deviceId, out var device);
             if (hr != 0) return false;
-
-            device.GetState(out var state);
-            Marshal.ReleaseComObject(device);
-            return state == AudioDeviceState.Active;
+            try
+            {
+                int stateHr = device.GetState(out var state);
+                return stateHr == 0 && state == AudioDeviceState.Active;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(device);
+            }
         }
-        catch
+        catch (Exception ex) when (ex is COMException or InvalidComObjectException)
         {
             return false;
         }
