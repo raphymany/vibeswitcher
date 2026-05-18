@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Win32;
-using H.NotifyIcon.Core;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
@@ -91,10 +90,10 @@ public class ProfileSwitchOrchestrator : IDisposable
                     {
                         if (result.MissingPlaybackId != null)
                             _trayService.ShowBalloon("Device Unavailable",
-                                $"Playback device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                                $"Playback device for '{profile.Name}' is disconnected.");
                         if (result.MissingRecordingId != null)
                             _trayService.ShowBalloon("Device Unavailable",
-                                $"Recording device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                                $"Recording device for '{profile.Name}' is disconnected.");
                     }
                 }
             });

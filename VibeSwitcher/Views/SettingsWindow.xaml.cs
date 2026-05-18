@@ -51,8 +51,7 @@ public partial class SettingsWindow : Window
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
                 trayService.ShowBalloon(
                     "Hotkey Conflict",
-                    $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.",
-                    H.NotifyIcon.Core.NotificationIcon.Warning);
+                    $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             });
 
         DataContext = _viewModel;

@@ -16,6 +16,17 @@ public static class AppLogger
     private const long MaxLogBytes = 1 * 1024 * 1024; // 1 MB
     private const int BackupCount = 2;
 
+    // Truncate the log at startup so each session starts with a clean file.
+    public static void StartSession()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(EffectivePath)!);
+            File.WriteAllText(EffectivePath, string.Empty);
+        }
+        catch { }
+    }
+
     public static void Info(string context, string message)    => Write("INFO",  context, message);
     public static void Warning(string context, string message) => Write("WARN",  context, message);
     public static void Error(string context, string message)   => Write("ERROR", context, message);
