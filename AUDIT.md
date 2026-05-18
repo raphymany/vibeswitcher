@@ -108,9 +108,8 @@ Fix: extract `IDialogService` interface.
 **~~3.2 — `StartWithWindows` initialized from config JSON, not actual registry state~~** ✅ *Fixed — issue #8*
 `ViewModels/SettingsViewModel.cs` — Constructor now sets `_startWithWindows = startupService.IsStartupEnabled()`, reading the actual registry state.
 
-**3.3 — `App.xaml.cs` is a God Class** *(Medium)*
-Owns services, handles `WndProc`, orchestrates profile switches, manages window lifecycle, drives startup.
-Fix: extract `ProfileSwitchOrchestrator` and `WindowManager`.
+**~~3.3 — `App.xaml.cs` is a God Class~~** ✅ Done — PR #37
+`ProfileSwitchOrchestrator` and `AppWindowManager` extracted; `App.xaml.cs` reduced from 248 to ~120 lines as a thin bootstrapper.
 
 **~~3.4 — Button/control styles not in `App.xaml`~~** ✅ *Fixed — fix/settings-ux-3*
 `App.xaml` — `RoundedButtonTemplate`, `ActionButton`, `DangerButton`, `PrimaryButton`, and new `ToggleSwitchStyle` moved to `Application.Resources`. Global `<Style TargetType="Window">` sets `FontFamily="Segoe UI"` for all windows. Local duplicates removed from `SettingsWindow` and `AboutWindow`.
@@ -331,11 +330,8 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 **7.10 — Mock strategy**
 Extract `IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, and `IDialogService` interfaces (Branch 17). Each ViewModel receives its dependencies via constructor injection. Fake implementations (`FakeAudioService`, `FakeConfigService`, `FakeDialogService`) are defined in the test project and returned canned data. COM and registry layers are entirely outside the fake boundary — never mocked at the P/Invoke level.
 
-**7.11 — CI/CD pipeline** *(Branch 20)*
-- GitHub Actions workflow on push/PR to `main`: `dotnet build --configuration Release`, `dotnet test`
-- Add `Microsoft.CodeAnalysis.NetAnalyzers` to csproj
-- `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` for clean compiler output
-- `dotnet publish -r win-x64 --self-contained` as a release artifact step (triggered on tag)
+**~~7.11 — CI/CD pipeline~~** ✅ Done — PR #38
+`.github/workflows/ci.yml` and `release.yml` added; CI runs `dotnet build -c Release` and `dotnet test` on every push/PR; release workflow publishes a self-contained win-x64 single-file exe on `v*` tag push.
 
 **~~7.12 — Suggested unit tests for `AppLogger`~~** ✅ Done — PR #33
 - Rotation: after writing past 1 MB, `.log` is renamed to `.log.1`, previous `.log.1` to `.log.2`, oldest `.log.2` deleted; new `.log` starts fresh
@@ -488,7 +484,7 @@ Fine as placeholder; update when site launches.
 | ~~M2~~ | ~~`RebuildMenu` does disk I/O (icon file read) on every profile switch~~ | ✅ Done |
 | ~~M3~~ | ~~Log file has no rotation — grows indefinitely~~ | ✅ Done — PR #16 |
 | ~~M4~~ | ~~Only Error log level — no Info/Warning~~ | ✅ Done — PR #16 |
-| M5 | `PropVariant` struct size declared at 16 bytes; x64 PROPVARIANT is 24 |
+| ~~M5~~ | ~~`PropVariant` struct size declared at 16 bytes; x64 PROPVARIANT is 24~~ | ✅ Done — PR #27 |
 | ~~M6~~ | ~~MVVM violation — ViewModels directly instantiate View dialogs~~ | ✅ Done — PR #35 |
 | ~~M7~~ | ~~Button/control styles not in `App.xaml`~~ | ✅ Done — fix/settings-ux-3 |
 | ~~M8~~ | ~~Double `Task.Run` wrapping in `SwitchToProfile`~~ | ✅ Done — PR #19 |
@@ -588,11 +584,11 @@ Fine as placeholder; update when site launches.
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 22 | 3 | 19 |
-| **Total** | **88** | **61** | **27** |
+| **Total** | **88** | **62** | **26** |
 
 ---
 
-*The most impactful remaining items before any public release: C2/C3 (installer + code signing), H8 (device hotplug), M5 (PropVariant struct size), M11 (profile drag-to-reorder).*
+*The most impactful remaining items before any public release: C2/C3 (installer + code signing) and M11 (profile drag-to-reorder).*
 
 ---
 
@@ -601,7 +597,7 @@ Fine as placeholder; update when site launches.
 This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
 
 **Explicitly deferred (not in any branch):**
-C2 (installer), C3 (code signing), M1 (dark mode), M12 (user confirmed intentional), H8 (device hotplug), H10 (RunOnSta persistent thread), H9 (needs icon design first), L17 (high-contrast), L20 (SHA256), F1–F15 (features), and all items already marked ✅ Done.
+C2 (installer), C3 (code signing), M11 (profile reorder), L17 (high-contrast/dark mode — same as F16), L20 (SHA256 checksums), 2.7 (GC pressure), 5.9 (mixed-DPI), 7.8 (UI automation), 7.9 (manual test checklist), Sections 8–10 remaining deployment/logging/docs items, and all feature additions (F1–F22 minus F6, F7, F15).
 
 ---
 

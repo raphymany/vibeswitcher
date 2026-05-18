@@ -21,10 +21,7 @@ Minor GC pressure from `MemoryStream` + `Icon` per user-icon load. `_defaultIcon
 
 ## SECTION 3 — CODE QUALITY & ARCHITECTURE
 
-**3.3 — `App.xaml.cs` is a God Class** *(Medium)*
-Owns services, handles `WndProc`, orchestrates profile switches, manages window lifecycle, drives startup.
-Fix: extract `ProfileSwitchOrchestrator` and `WindowManager`.
-
+*(All Section 3 open items resolved as of PR #37)*
 
 ---
 
@@ -54,11 +51,13 @@ Convention: middle-click toggles between last two profiles.
 
 ## SECTION 6 — CONFIG & DATA INTEGRITY
 
+*(All Section 6 open items resolved as of PR #27)*
+
 ---
 
 ## SECTION 7 — TESTING
 
-*(All Section 7 open items resolved as of PR #33)*
+*(All Section 7 open items resolved as of PR #38)*
 
 ---
 
@@ -112,8 +111,7 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ### HIGH — Important before v1.0.0
 
-| # | Issue | Location |
-|---|-------|----------|
+*(All High items resolved)*
 
 ### MEDIUM — Should fix for a quality release
 
@@ -130,19 +128,11 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ### TECHNICAL DEBT
 
-| # | Item |
-|---|------|
-| ~~TD1~~ | ~~No test project — zero automated test coverage~~ ✅ Done — PR #33 |
-| ~~TD2~~ | ~~No `IAudioService` / `IConfigService` interfaces preventing testability~~ ✅ Done — PR #35 |
-| ~~TD3~~ | ~~`App.xaml.cs` has too many responsibilities (God Class)~~ ✅ Done — PR #37 |
-| ~~TD4~~ | ~~No `IDialogService` abstraction — ViewModel/View tightly coupled~~ ✅ Done — PR #35 |
-| ~~TD7~~ | ~~No CI/CD pipeline configured~~ ✅ Done — PR #38 |
+*(All Technical Debt items resolved as of PR #38)*
 
 ### REFACTORING OPPORTUNITIES
 
-| # | Opportunity |
-|---|-------------|
-| ~~R2~~ | ~~Extract `ProfileSwitchOrchestrator` from `App.xaml.cs`~~ ✅ Done — PR #37 |
+*(All Refactoring Opportunities resolved as of PR #37)*
 
 ### FEATURE ADDITIONS (post-v1.0.0)
 
@@ -202,54 +192,5 @@ Consider Serilog with a rolling file sink which handles rotation automatically.
 
 ---
 
-### ~~Branch H: `fix/keyboard-nav-focus`~~ ✅ Merged — PR #31
-**Theme:** Keyboard navigation visibility and hotkey dialog Tab capture.
-
-- `Key.Tab` (plus Apps, Pause, PrintScreen, Scroll) excluded from hotkey capture — Tab navigates between dialog buttons
-- `ToggleSwitchStyle`: `FocusRing` wrapper border + `IsKeyboardFocused` trigger shows blue ring when pill is Tab-focused
-- All button styles (`ActionButton`, `DangerButton`, `PrimaryButton`): `IsFocused` trigger highlights border in accent colour
-
----
-
-### ~~Branch I: `test/unit-tests`~~ ✅ Merged — PR #33
-**Theme:** Create the test project and write pure-logic unit tests — zero risk to the running app.
-
-69 tests across 7 test classes, all passing. Covers TD1, 7.2, 7.3, 7.7, 7.12, 7.13, 7.14, 7.15.
-
----
-
-### ~~Branch J: `refactor/interfaces`~~ ✅ Merged — PR #35
-**Theme:** Extract interfaces for every service. Resolves TD2, TD4, M6, 3.8.
-
-5 interfaces + `DialogService` added. All ViewModels, TrayService, App.xaml.cs updated to use interface types. Dialog calls extracted from ViewModels into `DialogService`. `FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService`, `FakeStartupService` stubs added. 11 new tests: `StartupServiceTests` (7.4) and `HotkeyServiceTests` (7.6, partial). 80 tests total.
-
----
-
-### ~~Branch K: `refactor/viewmodel-dialogs`~~ ✅ Merged — PR #36
-**Theme:** Add SettingsViewModel and ProfileCardViewModel unit tests using fake services — resolves 7.5.
-
-18 new tests (80 → 98 total). `SettingsViewModelTests`: AddProfile, DeleteProfile, StartWithWindows, hotkey re-registration, each mutation asserts `_profilesChangedCount` fires once. `ProfileCardViewModelTests`: CaptureHotkey cancel/clear/conflict/success/replace-existing, BrowseIcon cancel/success/failure/same-path-skip, DeleteProfile confirm/cancel. Also null-guards `Application.Current?.Dispatcher` in `LoadDevicesAsync` for headless environments.
-
----
-
-### Branch L: `refactor/god-class`
-**Theme:** Split `App.xaml.cs` — resolves TD3/R2. Do last; highest-risk refactor.
-
-- Extract `ProfileSwitchOrchestrator`: owns `SwitchToProfile()`, `OnPowerModeChanged()`, startup profile re-apply, tray feedback (TD3, R2)
-- Extract `AppWindowManager`: owns `OpenSettingsWindow()`, `OpenAboutWindow()` (TD3)
-- `App.xaml.cs` becomes a thin bootstrapper; manual regression checklist run after merge (7.9)
-
----
-
-### ~~Branch M: `ci/cd-pipeline`~~ ✅ Merged — PR #38
-**Theme:** GitHub Actions build + test pipeline.
-
-- `.github/workflows/ci.yml` added: triggers on push/PR to `main`; runs `dotnet build -c Release` then `dotnet test` on `windows-latest`
-- `.github/workflows/release.yml` added: triggers on `v*` tag push; publishes a self-contained win-x64 single-file exe, zips it, and uploads to GitHub Releases
-- `Microsoft.CodeAnalysis.NetAnalyzers` NuGet package removed — SDK bundles a newer version, the explicit package caused a version-conflict warning
-
----
-
 **Still deferred (no branch planned):**
-C2/C3 (installer, code signing), L17/L20 (high-contrast/SHA256), 2.7 (GC pressure), 5.9 (mixed-DPI), 7.8 (UI automation), Sections 8–10 remaining items.
-
+C2/C3 (installer, code signing), L17/L20 (high-contrast/SHA256), M11 (profile reorder), 2.7 (GC pressure), 5.9 (mixed-DPI), 7.8 (UI automation), Sections 8–10 remaining deployment/logging/docs items, and all feature additions (F1–F22 minus F6, F7, F15).
