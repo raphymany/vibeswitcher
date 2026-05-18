@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using H.NotifyIcon.Core;
@@ -109,8 +110,15 @@ public class ProfileSwitchOrchestrator : IDisposable
                 var still = _configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
                 _trayService.UpdateIcon(still);
-                new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                    $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
+                var dialog = new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                    $"Could not switch to '{profile.Name}': {detail}");
+                var owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsVisible);
+                if (owner != null)
+                {
+                    dialog.Owner = owner;
+                    dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                }
+                dialog.ShowDialog();
             });
         }
         }
