@@ -962,17 +962,6 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 27: `feat/toast-notifications`~~ ✅ Merged — PR #53
-**Theme:** Show the VibeSwitcher app icon in balloon notification body; clear the error log at session start.
-
-| Item | Description | Status |
-|------|-------------|--------|
-| F9 (partial) | `IconHelper.GetBalloonIconHandle()` — creates a cached 32×32 HICON from `app.ico` once; `DestroyIcon` called at process exit | ✅ Done |
-| F9 (partial) | `TrayService.ShowBalloon` updated to pass `customIconHandle` + `largeIcon: true` so the app icon appears in the balloon body | ✅ Done |
-| New | `AppLogger.StartSession()` truncates `error.log` at startup so logs from previous sessions do not accumulate | ✅ Done |
-
----
-
 ### ~~Branch 26: `feat/app-icon-refresh`~~ ✅ Merged — PR #50
 **Theme:** Replace the single-frame 16px app icon with a multi-frame ICO and use the 256px frame wherever the icon appears in the UI.
 
@@ -984,3 +973,14 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | New | About window uses `GetAppIconImageSource()` instead of a blue-square fallback | ✅ Done |
 | New | Tray context menu gains a non-interactive header row showing the app icon and "VibeSwitcher" label | ✅ Done |
 | New | `GetDefaultIcon()` wrapped in the same double-checked lock; bare `catch {}` blocks now log via `AppLogger.Warning` | ✅ Done |
+
+---
+
+### ~~Branch 27: `feat/toast-notifications`~~ ✅ Merged — PR #53
+**Theme:** Show the VibeSwitcher app icon in balloon notification body; clear the error log at session start.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F9 (partial) | `IconHelper.GetBalloonIconHandle()` — creates a cached 32×32 HICON from `app.ico` once; `DestroyIcon` called at process exit | ✅ Done |
+| F9 (partial) | `TrayService.ShowBalloon` updated to pass `customIconHandle` + `largeIcon: true` so the app icon appears in the balloon body | ✅ Done |
+| New | `AppLogger.StartSession()` truncates `error.log` at startup so logs from previous sessions do not accumulate | ✅ Done |
