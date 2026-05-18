@@ -7,6 +7,9 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Additional unit tests for edge cases** — 6 new tests covering previously untested paths: the `_loadingDevices` flag in `ProfileCardViewModel` prevents the TwoWay ComboBox rebind from firing `_onChanged` during `LoadDevices()`, while direct setter assignment outside that method correctly fires it; `ConfigService.Migrate()` nulls `WindowLeft = -1` (the v1 sentinel) but preserves a real `WindowTop` value on the same load; `IconHelper.LoadIcon()` with corrupt bytes returns the default icon and records the error; and `RaiseDevicesChanged()` is safe to call from both a single background thread and 10 concurrent background threads without throwing *(PR #48)*
+
+### Added
 - **SHA256 checksums on releases** — the release pipeline now generates `sha256sums.txt` (PowerShell 7, BOM-free UTF-8, two-space `sha256sum`-compatible format) and attaches it alongside the zip on every GitHub Release so users can verify download integrity *(PR #46)*
 
 ### Fixed

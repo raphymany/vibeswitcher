@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-18 — reflects PR #46 (ci/sha256-checksums).
+**Last updated:** 2026-05-18 — reflects PR #48 (test/additional-coverage).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -64,12 +64,7 @@ Convention: middle-click toggles between last two profiles.
 **7.9 — Manual regression checklist** *(Ongoing)*
 Run before each release: first-run flow, corrupted config recovery, single-instance guard, profile switch with device present/disconnected, hotkey switch, close-to-tray, window position/size persistence, settings toggles.
 
-**7.16 — Additional unit tests identified in deep-dive review** *(Low)*
-- `_loadingDevices` guard: set flag to true via reflection, change `SelectedPlaybackDevice` — verify `_onChanged` is NOT fired
-- `ConfigService.Migrate()` asymmetric sentinel: `WindowLeft = -1` and `WindowTop = 200.0` — verify only left is nulled
-- `IconHelper.LoadIcon()` with a file that exists but contains invalid icon data — verify default icon returned and `HasErrors` is true
-- `LoadDevicesAsync` concurrent calls — verify dropdowns reflect the most recent result and no exception is thrown
-- `SettingsViewModel.OnDevicesChanged()` invoked from a background thread — verify no unhandled exception
+~~**7.16 — Additional unit tests identified in deep-dive review**~~ ✅ Done — PR #48
 
 ---
 
@@ -210,7 +205,7 @@ No mechanism to notify users of or deliver new versions.
 | ~~22~~ | ~~`fix/settings-async`~~ | ✅ Merged — PR #42 |
 | ~~23~~ | ~~`fix/null-safety`~~ | ✅ Merged — PR #44 |
 | ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Merged — PR #46 |
-| 25 | `test/additional-coverage` | 7.16 — not started |
+| ~~25~~ | ~~`test/additional-coverage`~~ | ✅ Merged — PR #48 |
 
 ---
 
@@ -254,16 +249,16 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-### Branch 25: `test/additional-coverage`
+### ~~Branch 25: `test/additional-coverage`~~ ✅ Merged — PR #48
 **Theme:** Additional unit tests identified in the deep-dive review.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| 7.16a | `_loadingDevices` guard: verify `_onChanged` is not fired when flag is true, is fired when false | Not started |
-| 7.16b | `ConfigService.Migrate()` asymmetric sentinel: `WindowLeft = -1` with `WindowTop = 200.0` — verify only left is nulled | Not started |
-| 7.16c | `IconHelper.LoadIcon()` with invalid icon data — verify default returned and `HasErrors` is true | Not started |
-| 7.16d | `LoadDevicesAsync` concurrent calls — verify dropdowns reflect most recent result, no exception thrown | Not started |
-| 7.16e | `SettingsViewModel.OnDevicesChanged()` invoked from background thread — verify no unhandled exception | Not started |
+| 7.16a | `_loadingDevices` guard: two tests confirm flag suppresses `_onChanged` during `LoadDevices()` but allows it on direct setter assignment | ✅ Done |
+| 7.16b | `ConfigService.Migrate()` asymmetric sentinel: `WindowLeft = -1` nulled, `WindowTop = 200.0` preserved | ✅ Done |
+| 7.16c | `IconHelper.LoadIcon()` with ASCII garbage bytes — default icon returned and `HasErrors` is true | ✅ Done |
+| 7.16d | 10 concurrent `RaiseDevicesChanged()` calls from background threads — no exception thrown | ✅ Done |
+| 7.16e | `RaiseDevicesChanged()` from a single background thread — no exception thrown | ✅ Done |
 
 ---
 

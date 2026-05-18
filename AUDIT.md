@@ -366,15 +366,8 @@ All five interfaces extracted; each ViewModel receives dependencies via construc
 - A second `Schedule()` call before the 500 ms elapses cancels the first pending task (no double-fire)
 - `OnDefaultDeviceChanged` and `OnPropertyValueChanged` are no-ops — calling them does not trigger `DevicesChanged`
 
-**7.16 — Additional unit tests identified in deep-dive review** *(Low)*
-- `_loadingDevices` guard: set flag to true via reflection, change `SelectedPlaybackDevice` — verify `_onChanged` is NOT fired; repeat with flag false — verify it IS fired
-- `ConfigService.Migrate()` asymmetric sentinel: config where `WindowLeft = -1` and `WindowTop = 200.0` — verify only left is nulled, top is preserved
-- `IconHelper.LoadIcon()` with a file that exists but contains invalid icon data — verify default icon returned and `HasErrors` is true
-- `LoadDevicesAsync` concurrent calls: fire two calls in rapid succession (via `OnDevicesChanged`) — verify dropdowns reflect the most recent result and no exception is thrown
-- `SettingsViewModel.OnDevicesChanged()` invoked from a background thread — verify no unhandled exception
-- Five `Schedule()` calls within 100 ms → `DevicesChanged` fires exactly once after ~500 ms
-- A second `Schedule()` call before the 500 ms elapses cancels the first pending task (no double-fire)
-- `OnDefaultDeviceChanged` and `OnPropertyValueChanged` are no-ops — calling them does not trigger `DevicesChanged`
+**~~7.16 — Additional unit tests identified in deep-dive review~~** ✅ *Fixed — PR #48*
+Six new tests: `_loadingDevices` guard (two tests), `ConfigService.Migrate()` asymmetric sentinel, `IconHelper.LoadIcon()` with corrupt data, 10 concurrent `LoadDevicesAsync` calls, and `OnDevicesChanged` from a background thread. 104 tests total.
 
 ---
 
@@ -754,7 +747,7 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~22~~ | ~~`fix/settings-async`~~ | ✅ Done — PR #42 |
 | ~~23~~ | ~~`fix/null-safety`~~ | ✅ Done — PR #44 |
 | ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Done — PR #46 |
-| 25 | `test/additional-coverage` | 7.16 — not started |
+| ~~25~~ | ~~`test/additional-coverage`~~ | ✅ Done — PR #48 |
 
 ---
 
