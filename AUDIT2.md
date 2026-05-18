@@ -55,9 +55,15 @@ Convention: middle-click toggles between last two profiles.
 
 ---
 
-## ~~SECTION 7 — TESTING~~
+## SECTION 7 — TESTING
 
-*(All items resolved as of PR #38)*
+*(7.1–7.7, 7.10–7.15 resolved. Open items below.)*
+
+**7.8 — UI automation tests** *(Low / deferred)*
+Requires WinAppDriver or similar tooling. No planned branch.
+
+**7.9 — Manual regression checklist** *(Ongoing)*
+Run before each release: first-run flow, corrupted config recovery, single-instance guard, profile switch with device present/disconnected, hotkey switch, close-to-tray, window position/size persistence, settings toggles.
 
 ---
 

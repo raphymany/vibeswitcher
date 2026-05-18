@@ -101,9 +101,8 @@ Minor GC pressure from `MemoryStream` + `Icon` per user-icon load. `_defaultIcon
 
 ## SECTION 3 — CODE QUALITY & ARCHITECTURE
 
-**3.1 — MVVM violation: ViewModels directly instantiate and open View classes** *(Medium)*
-`ViewModels/ProfileCardViewModel.cs:148-222`, `ViewModels/SettingsViewModel.cs:117-139` — ViewModels directly `new` up `HotkeyCaptureDialog`, `ConfirmDeleteDialog`, `ProfileTypeDialog`, `OpenFileDialog`. Untestable and couples ViewModels to Views.
-Fix: extract `IDialogService` interface.
+**~~3.1 — MVVM violation: ViewModels directly instantiate and open View classes~~** ✅ Done — PR #35
+`IDialogService` extracted with `ShowHotkeyCaptureDialog`, `ShowConfirmDeleteDialog`, `ShowAddProfileDialog`, and `ShowOpenFileDialog` methods; `DialogService` concrete implementation added; all ViewModels updated to receive `IDialogService` via constructor injection.
 
 **~~3.2 — `StartWithWindows` initialized from config JSON, not actual registry state~~** ✅ *Fixed — issue #8*
 `ViewModels/SettingsViewModel.cs` — Constructor now sets `_startWithWindows = startupService.IsStartupEnabled()`, reading the actual registry state.
@@ -327,8 +326,8 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 - Resize window, save, reopen — size restored
 - Toggle all settings checkboxes and verify persistence after relaunch
 
-**7.10 — Mock strategy**
-Extract `IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, and `IDialogService` interfaces (Branch 17). Each ViewModel receives its dependencies via constructor injection. Fake implementations (`FakeAudioService`, `FakeConfigService`, `FakeDialogService`) are defined in the test project and returned canned data. COM and registry layers are entirely outside the fake boundary — never mocked at the P/Invoke level.
+**~~7.10 — Mock strategy~~** ✅ Done — PR #35
+All five interfaces extracted; each ViewModel receives dependencies via constructor injection. `FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService`, `FakeStartupService` defined in the test project. COM and registry layers remain outside the fake boundary — never mocked at the P/Invoke level.
 
 **~~7.11 — CI/CD pipeline~~** ✅ Done — PR #38
 `.github/workflows/ci.yml` and `release.yml` added; CI runs `dotnet build -c Release` and `dotnet test` on every push/PR; release workflow publishes a self-contained win-x64 single-file exe on `v*` tag push.
