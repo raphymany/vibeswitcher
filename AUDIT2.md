@@ -235,5 +235,58 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
+### Branch 21: `fix/switch-reliability`
+**Theme:** Remove duplicate switch logic and add a concurrent-switch guard.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| M16 / 3.12 | `TrayService.SwitchToProfileAsync` duplicates the switch flow — delegate to `ProfileSwitchOrchestrator` instead | Not started |
+| M17 / 3.13 | No in-progress flag in `ProfileSwitchOrchestrator` — hotkey spam triggers overlapping `ApplyProfileAsync` calls; add `SemaphoreSlim(1,1)` guard | Not started |
+
+---
+
+### Branch 22: `fix/settings-async`
+**Theme:** Fix the two async/event correctness issues in the Settings window.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| M18 / 4.18 | `SessionErrorTracker.ErrorAdded` subscription never removed when window is hidden (close-to-tray path) — unsubscribe in `OnClosing` hide path as well as `OnClosed` | Not started |
+| M19 / 4.19 | `LoadDevicesAsync` has no cancellation — rapid plug/unplug events cause concurrent enumerations that overwrite each other; add `CancellationTokenSource` | Not started |
+
+---
+
+### Branch 23: `fix/null-safety`
+**Theme:** Three small robustness fixes found in deep-dive review.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| L21 / 1.23 | `AudioService.IsDeviceActive()` bare `catch` swallows all exceptions — narrow to COM exceptions only | Not started |
+| L22 / 1.24 | `ErrorDialog` shown without `Owner` in `TrayService` — set `Owner` to avoid wrong-screen placement | Not started |
+| L23 / 1.25 | `TrayService` reads `ActiveProfileId` without null guard — add null/empty check before profile lookup | Not started |
+
+---
+
+### Branch 24: `ci/sha256-checksums`
+**Theme:** Publish SHA256 checksums alongside each GitHub Release zip.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| L20 / 8.9 | Add a step to `.github/workflows/release.yml` that generates `sha256sums.txt` and attaches it to the release alongside the zip | Not started |
+
+---
+
+### Branch 25: `test/additional-coverage`
+**Theme:** Additional unit tests identified in the deep-dive review.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| 7.16a | `_loadingDevices` guard: verify `_onChanged` is not fired when flag is true, is fired when false | Not started |
+| 7.16b | `ConfigService.Migrate()` asymmetric sentinel: `WindowLeft = -1` with `WindowTop = 200.0` — verify only left is nulled | Not started |
+| 7.16c | `IconHelper.LoadIcon()` with invalid icon data — verify default returned and `HasErrors` is true | Not started |
+| 7.16d | `LoadDevicesAsync` concurrent calls — verify dropdowns reflect most recent result, no exception thrown | Not started |
+| 7.16e | `SettingsViewModel.OnDevicesChanged()` invoked from background thread — verify no unhandled exception | Not started |
+
+---
+
 **Still pending (no branch planned yet):**
 C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11/F2 (profile reorder — future feature), L17/F16 (dark mode — after new design), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions (F1–F5, F8–F14, F16–F27).
