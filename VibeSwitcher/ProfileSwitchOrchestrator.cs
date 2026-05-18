@@ -1,0 +1,104 @@
+using System.Windows.Threading;
+using Microsoft.Win32;
+using H.NotifyIcon.Core;
+using VibeSwitcher.Helpers;
+using VibeSwitcher.Models;
+using VibeSwitcher.Services;
+using VibeSwitcher.Tray;
+using VibeSwitcher.Views;
+
+namespace VibeSwitcher;
+
+public class ProfileSwitchOrchestrator
+{
+    private readonly IConfigService _configService;
+    private readonly IAudioService _audioService;
+    private readonly TrayService _trayService;
+    private readonly Dispatcher _dispatcher;
+
+    public ProfileSwitchOrchestrator(
+        IConfigService configService,
+        IAudioService audioService,
+        TrayService trayService,
+        Dispatcher dispatcher)
+    {
+        _configService = configService;
+        _audioService = audioService;
+        _trayService = trayService;
+        _dispatcher = dispatcher;
+    }
+
+    public void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode != PowerModes.Resume) return;
+        var activeProfile = _configService.Current.Profiles
+            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+        if (activeProfile != null)
+            SwitchToProfile(activeProfile);
+    }
+
+    // async void is intentional: called as fire-and-forget from WndProc and PowerModeChanged.
+    // The try/catch ensures exceptions are always handled, so the async void is safe.
+    public async void SwitchToProfile(DeviceProfile profile)
+    {
+        // Dispatch to UI thread — SwitchToProfile can be called from the PowerModeChanged
+        // background thread (SystemEvents callbacks run off the UI thread).
+        await _dispatcher.InvokeAsync(() => _trayService.SetSwitchingTooltip(profile.Name));
+        try
+        {
+            var result = await _audioService.ApplyProfileAsync(profile);
+            await _dispatcher.InvokeAsync(() =>
+            {
+                _configService.Current.ActiveProfileId = profile.Id;
+                _configService.SaveImmediate();
+                _trayService.UpdateIcon(profile);
+                _trayService.SetActiveProfile(profile.Id);
+
+                if (result.MissingPlaybackId != null)
+                {
+                    var msg = $"Playback device for '{profile.Name}' is disconnected.";
+                    AppLogger.Warning("SwitchToProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
+                }
+                if (result.MissingRecordingId != null)
+                {
+                    var msg = $"Recording device for '{profile.Name}' is disconnected.";
+                    AppLogger.Warning("SwitchToProfile", msg);
+                    SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
+                }
+
+                if (_configService.Current.ShowNotifications)
+                {
+                    if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
+                    {
+                        _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
+                    }
+                    else
+                    {
+                        if (result.MissingPlaybackId != null)
+                            _trayService.ShowBalloon("Device Unavailable",
+                                $"Playback device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                        if (result.MissingRecordingId != null)
+                            _trayService.ShowBalloon("Device Unavailable",
+                                $"Recording device for '{profile.Name}' is disconnected.", NotificationIcon.Warning);
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("SwitchToProfile", ex);
+            var detail = ex.InnerException?.Message ?? ex.Message;
+            SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                $"Could not switch to '{profile.Name}': {detail}");
+            await _dispatcher.InvokeAsync(() =>
+            {
+                var still = _configService.Current.Profiles
+                    .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+                _trayService.UpdateIcon(still);
+                new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                    $"Could not switch to '{profile.Name}': {detail}").ShowDialog();
+            });
+        }
+    }
+}
