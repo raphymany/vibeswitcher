@@ -103,17 +103,13 @@ No mechanism to notify users of or deliver new versions.
 
 *(All High items resolved)*
 
-### MEDIUM — Should fix for a quality release
+### ~~MEDIUM — Should fix for a quality release~~
 
-| # | Issue |
-|---|-------|
-| M11 | No profile reorder UI — drag handles (Spotify-style) planned for future branch |
+*(All Medium items resolved)*
 
-### LOW — Nice to fix before or after release
+### ~~LOW — Nice to fix before or after release~~
 
-| # | Issue | Location |
-|---|-------|----------|
-| L17 | Dark mode + high-contrast mode — see F16 (same feature) | All XAML |
+*(All Low items resolved)*
 
 ### ~~TECHNICAL DEBT~~
 
@@ -160,4 +156,4 @@ No mechanism to notify users of or deliver new versions.
 ---
 
 **Still pending (no branch planned yet):**
-C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11/F2 (profile reorder — future feature), L17/F16 (dark mode — after new design), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions (F1–F5, F8–F14, F16–F27).
+C2 (installer — after new design), C3 (code signing — needs certificate purchase), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and remaining feature additions (F1–F27).

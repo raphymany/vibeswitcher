@@ -499,7 +499,7 @@ Fine as placeholder; update when site launches.
 | ~~M8~~ | ~~Double `Task.Run` wrapping in `SwitchToProfile`~~ | ✅ Done — PR #19 |
 | ~~M9~~ | ~~Active profile not re-applied after system sleep/resume~~ | ✅ Done — PR #18 |
 | ~~M10~~ | ~~Single-instance mutex is global — blocks other users on multi-session machines~~ | ✅ Done — PR #18 |
-| M11 | No profile reorder UI (SortOrder never updated via UI) |
+| ~~M11~~ | ~~No profile reorder UI (SortOrder never updated via UI)~~ | Feature — see F2 |
 | ~~M12~~ | ~~`control.exe` Sound panel deprecated on Windows 11~~ | ✅ Done — fix/polish-and-compat + fix/settings-ux-3 |
 | ~~M13~~ | ~~`ProfileMode` enum serialized as integer (fragile to reordering)~~ | ✅ Done — PR #16 |
 | ~~M14~~ | ~~`ConfigVersion` stored but no migration code exists~~ | ✅ Done — PR #16 |
@@ -529,7 +529,7 @@ Fine as placeholder; update when site launches.
 | ~~L14~~ | ~~Profile name TextBox uses LostFocus — name lost if window closed immediately~~ | ✅ Done — PR #17 |
 | ~~L15~~ | ~~Tab order and keyboard navigation not explicitly set~~ | ✅ Done — PR #28 |
 | ~~L16~~ | ~~`WinApi.GlobalAddAtom` type mismatch (int vs ushort ATOM)~~ | ✅ Done — PR #13 |
-| L17 | Dark mode / high-contrast mode not supported — see F16 (same feature) | All XAML |
+| ~~L17~~ | ~~Dark mode / high-contrast mode not supported — see F16 (same feature)~~ | Feature — see F16 |
 | ~~L18~~ | ~~`AboutWindow` version falls back to hardcoded "1.0.0"~~ | ✅ Done — PR #16 |
 | ~~L19~~ | ~~`StartupService.Enable` uses `OpenSubKey` instead of `CreateSubKey`~~ | ✅ Done — PR #14 |
 | ~~L20~~ | ~~No SHA256 checksums published with binaries~~ | ✅ Done — PR #46 |
@@ -600,16 +600,16 @@ Fine as placeholder; update when site launches.
 |----------|-------|-------|-----------|
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
-| Medium | 18 | 17 | 1 (M11) |
-| Low | 23 | 22 | 1 (L17) |
+| Medium | 18 | 18 | 0 |
+| Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 27 | 3 | 24 |
-| **Total** | **100** | **70** | **30** |
+| **Total** | **100** | **72** | **28** |
 
 ---
 
-*The most impactful remaining items before any public release: C2/C3 (installer + code signing), M16/M17 (duplicate switch logic + concurrent-switch guard), and M11 (profile drag-to-reorder).*
+*The most impactful remaining items before any public release: C2/C3 (installer + code signing).*
 
 ---
 
