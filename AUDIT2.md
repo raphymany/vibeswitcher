@@ -27,17 +27,9 @@ Only items **not yet marked ✅ Done** are listed here. Section numbers, letters
 
 ---
 
-## SECTION 3 — CODE QUALITY & ARCHITECTURE
+## ~~SECTION 3 — CODE QUALITY & ARCHITECTURE~~
 
-*(3.1–3.11 resolved as of PR #37. Open items below from deep-dive review.)*
-
-**3.12 — Profile switch logic duplicated between `TrayService` and `ProfileSwitchOrchestrator`** *(Medium)*
-`Tray/TrayService.cs` / `ProfileSwitchOrchestrator.cs` — Near-identical switch flows with slightly different error handling. Bug fixes applied to one path silently miss the other.
-Fix: `TrayService` should delegate to `ProfileSwitchOrchestrator` rather than owning its own switch logic.
-
-**3.13 — No concurrent-switch guard in `ProfileSwitchOrchestrator`** *(Medium)*
-`ProfileSwitchOrchestrator.cs` — `SwitchToProfile` is `async void` with no in-progress flag. Hotkey spam or rapid tray-menu clicks can trigger multiple overlapping `ApplyProfileAsync` calls, leaving audio devices in an undefined state.
-Fix: add a `_switching` flag (or `SemaphoreSlim(1,1)`) and early-return if a switch is already in progress.
+*(All items resolved as of PR #40)*
 
 ---
 
@@ -144,8 +136,8 @@ No mechanism to notify users of or deliver new versions.
 | # | Issue |
 |---|-------|
 | M11 | No profile reorder UI — drag handles (Spotify-style) planned for future branch |
-| M16 | Duplicate profile-switch logic in `TrayService` and `ProfileSwitchOrchestrator` — inconsistent bug fix surface |
-| M17 | No concurrent-switch guard — hotkey spam causes overlapping `ApplyProfileAsync` calls |
+| ~~M16~~ | ~~Duplicate profile-switch logic~~ | ✅ Done — PR #40 |
+| ~~M17~~ | ~~No concurrent-switch guard~~ | ✅ Done — PR #40 |
 | M18 | `SettingsWindow` `ErrorAdded` handler survives hide (close-to-tray) — accumulates across opens |
 | M19 | `LoadDevicesAsync` not cancellable — concurrent calls can overwrite fresh results with stale data |
 
@@ -227,7 +219,7 @@ No mechanism to notify users of or deliver new versions.
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Merged — PR #36 |
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Merged — PR #37 |
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Merged — PR #38 |
-| 21 | `fix/switch-reliability` | M16 + M17 — not started |
+| ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Merged — PR #40 |
 | 22 | `fix/settings-async` | M18 + M19 — not started |
 | 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
 | 24 | `ci/sha256-checksums` | L20/8.9 — not started |
@@ -235,13 +227,13 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-### Branch 21: `fix/switch-reliability`
+### ~~Branch 21: `fix/switch-reliability`~~ ✅ Merged — PR #40
 **Theme:** Remove duplicate switch logic and add a concurrent-switch guard.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| M16 / 3.12 | `TrayService.SwitchToProfileAsync` duplicates the switch flow — delegate to `ProfileSwitchOrchestrator` instead | Not started |
-| M17 / 3.13 | No in-progress flag in `ProfileSwitchOrchestrator` — hotkey spam triggers overlapping `ApplyProfileAsync` calls; add `SemaphoreSlim(1,1)` guard | Not started |
+| M16 / 3.12 | `TrayService.SwitchToProfileAsync` duplicates the switch flow — delegate to `ProfileSwitchOrchestrator` instead | ✅ Done |
+| M17 / 3.13 | No in-progress flag in `ProfileSwitchOrchestrator` — hotkey spam triggers overlapping `ApplyProfileAsync` calls; add `SemaphoreSlim(1,1)` guard | ✅ Done |
 
 ---
 

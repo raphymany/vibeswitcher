@@ -142,13 +142,11 @@ Same as ~~1.8~~. `LoadDevicesAsync` in `SettingsViewModel` enumerates once on a 
 **~~3.11 — `HotkeyService.Refresh` is a trivial alias for `RegisterAll`~~** ✅ *Fixed — issue #13*
 `Services/HotkeyService.cs` — `Refresh` method removed entirely.
 
-**3.12 — Profile switch logic duplicated between `TrayService` and `ProfileSwitchOrchestrator`** *(Medium)*
-`Tray/TrayService.cs` / `ProfileSwitchOrchestrator.cs` — `TrayService.SwitchToProfileAsync` and `ProfileSwitchOrchestrator.SwitchToProfile` contain near-identical switch flows with slightly different error handling. Bug fixes applied to one path will silently miss the other.
-Fix: `TrayService` should delegate to `ProfileSwitchOrchestrator` rather than owning its own switch logic.
+**~~3.12 — Profile switch logic duplicated between `TrayService` and `ProfileSwitchOrchestrator`~~** ✅ Done — PR #40
+`TrayService.SwitchToProfileAsync` removed; tray clicks now fire a `SwitchRequested` delegate wired to `ProfileSwitchOrchestrator.SwitchToProfile`. Single switch path for all trigger sources.
 
-**3.13 — No concurrent-switch guard in `ProfileSwitchOrchestrator`** *(Medium)*
-`ProfileSwitchOrchestrator.cs` — `SwitchToProfile` is `async void` with no in-progress flag. Spamming the hotkey or tray menu can trigger multiple overlapping `ApplyProfileAsync` calls simultaneously, leaving audio devices in an undefined state.
-Fix: add a `_switching` flag (or `SemaphoreSlim(1,1)`) and early-return if a switch is already in progress.
+**~~3.13 — No concurrent-switch guard in `ProfileSwitchOrchestrator`~~** ✅ Done — PR #40
+`SemaphoreSlim(1,1)` guard added; concurrent requests are dropped and logged as warnings. Orchestrator now implements `IDisposable` and is disposed in `App.OnExit`.
 
 **~~3.12 — `WinApi.MOD_*` constants defined but never referenced~~** ✅ *Fixed — issue #13*
 `NativeMethods/WinApi.cs` / `Models/HotkeyDefinition.cs` — `GetModifierFlags` now references `WinApi.MOD_*` constants.
@@ -516,8 +514,8 @@ Fine as placeholder; update when site launches.
 | ~~M13~~ | ~~`ProfileMode` enum serialized as integer (fragile to reordering)~~ | ✅ Done — PR #16 |
 | ~~M14~~ | ~~`ConfigVersion` stored but no migration code exists~~ | ✅ Done — PR #16 |
 | ~~M15~~ | ~~`DispatcherUnhandledException` swallows all exceptions unconditionally~~ | ✅ Done — PR #14 |
-| M16 | Duplicate profile-switch logic in `TrayService` and `ProfileSwitchOrchestrator` — inconsistent bug fix surface |
-| M17 | No concurrent-switch guard — hotkey spam causes overlapping `ApplyProfileAsync` calls |
+| ~~M16~~ | ~~Duplicate profile-switch logic in `TrayService` and `ProfileSwitchOrchestrator`~~ | ✅ Done — PR #40 |
+| ~~M17~~ | ~~No concurrent-switch guard — hotkey spam causes overlapping `ApplyProfileAsync` calls~~ | ✅ Done — PR #40 |
 | M18 | `SettingsWindow` `ErrorAdded` handler survives hide (close-to-tray) — accumulates across opens |
 | M19 | `LoadDevicesAsync` not cancellable — concurrent calls can overwrite fresh results with stale data |
 
@@ -612,12 +610,12 @@ Fine as placeholder; update when site launches.
 |----------|-------|-------|-----------|
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
-| Medium | 18 | 13 | 5 (M11, M16, M17, M18, M19) |
+| Medium | 18 | 15 | 3 (M11, M18, M19) |
 | Low | 23 | 18 | 5 (L17, L20, L21, L22, L23) |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 27 | 3 | 24 |
-| **Total** | **100** | **62** | **38** |
+| **Total** | **100** | **64** | **36** |
 
 ---
 
@@ -755,7 +753,7 @@ C2 (installer — after new design), C3 (code signing — needs certificate purc
 | ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Done — PR #36 |
 | ~~19~~ | ~~`refactor/god-class`~~ | ✅ Done — PR #37 |
 | ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Done — PR #38 |
-| 21 | `fix/switch-reliability` | M16 + M17 — not started |
+| ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Done — PR #40 |
 | 22 | `fix/settings-async` | M18 + M19 — not started |
 | 23 | `fix/null-safety` | L21 + L22 + L23 — not started |
 | 24 | `ci/sha256-checksums` | L20/8.9 — not started |

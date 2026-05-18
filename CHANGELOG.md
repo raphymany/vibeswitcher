@@ -6,12 +6,20 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Changed
+- **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume. Bug fixes to switch logic now apply everywhere automatically *(PR #40)*
+- **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
+
+### Fixed
+- **Concurrent profile switches no longer corrupt audio state** — rapid hotkey presses or tray-menu clicks while a switch is already in progress are dropped and logged rather than queued as overlapping `ApplyProfileAsync` calls *(PR #40)*
+- **`ProfileSwitchOrchestrator` now disposes its `SemaphoreSlim`** on app exit *(PR #40)*
+
 ### Added
 - **GitHub Actions CI pipeline** — every push and pull request to `main` automatically builds in Release mode and runs all 98 tests on a `windows-latest` runner; failures block the merge *(PR #38)*
 - **GitHub Actions release pipeline** — pushing a `v*` tag automatically publishes a self-contained Windows x64 single-file executable, zips it, and attaches it to a GitHub Release with auto-generated release notes *(PR #38)*
 
 ### Changed
-- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` now owns `SwitchToProfile()`, `OnPowerModeChanged()`, and the full async switch flow (tooltip, config save, tray update, notifications, error dialog); `AppWindowManager` owns `OpenSettingsWindow()` and `OpenAboutWindow()`; `App.xaml.cs` reduced from 248 to ~120 lines and is now a thin bootstrapper; resolves TD3 and R2 *(PR #37)*
+- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` now owns `SwitchToProfile()`, `OnPowerModeChanged()`, and the full async switch flow (tooltip, config save, tray update, notifications, error dialog); `AppWindowManager` owns `OpenSettingsWindow()` and `OpenAboutWindow()`; `App.xaml.cs` reduced from 248 to ~120 lines and is now a thin bootstrapper *(PR #37)*
 
 ### Fixed
 - **Second-instance crash on exit** — `OnExit` now null-guards `_orchestrator` before unsubscribing from `SystemEvents.PowerModeChanged`; previously a second instance calling `Shutdown()` before `OnStartup` completed would throw `NullReferenceException` *(PR #37)*
