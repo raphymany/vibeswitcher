@@ -21,6 +21,8 @@ public class SettingsViewModel : ViewModelBase
     private bool _closeToTray;
     private bool _showNotifications;
     private bool _useLegacySoundPanel;
+    private bool _showDisabledDevices;
+    private bool _showDisconnectedDevices;
 
     // Device lists loaded once async and shared across all profile cards.
     private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
@@ -92,6 +94,34 @@ public class SettingsViewModel : ViewModelBase
             {
                 _configService.Current.UseLegacySoundPanel = value;
                 _configService.SaveImmediate();
+            }
+        }
+    }
+
+    public bool ShowDisabledDevices
+    {
+        get => _showDisabledDevices;
+        set
+        {
+            if (SetField(ref _showDisabledDevices, value))
+            {
+                _configService.Current.ShowDisabledDevices = value;
+                _configService.SaveImmediate();
+                PushFilteredDevices();
+            }
+        }
+    }
+
+    public bool ShowDisconnectedDevices
+    {
+        get => _showDisconnectedDevices;
+        set
+        {
+            if (SetField(ref _showDisconnectedDevices, value))
+            {
+                _configService.Current.ShowDisconnectedDevices = value;
+                _configService.SaveImmediate();
+                PushFilteredDevices();
             }
         }
     }
@@ -173,6 +203,8 @@ public class SettingsViewModel : ViewModelBase
         _closeToTray = configService.Current.CloseToTray;
         _showNotifications = configService.Current.ShowNotifications;
         _useLegacySoundPanel = configService.Current.UseLegacySoundPanel;
+        _showDisabledDevices = configService.Current.ShowDisabledDevices;
+        _showDisconnectedDevices = configService.Current.ShowDisconnectedDevices;
 
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(
@@ -199,6 +231,28 @@ public class SettingsViewModel : ViewModelBase
         _ = LoadDevicesAsync();
     }
 
+    private IReadOnlyList<AudioDeviceInfo> FilterDevices(IReadOnlyList<AudioDeviceInfo> devices)
+    {
+        if (_showDisabledDevices && _showDisconnectedDevices) return devices;
+        return devices.Where(d =>
+            d.IsConnected ||
+            (d.IsDisabled  && _showDisabledDevices) ||
+            (!d.IsConnected && !d.IsDisabled && _showDisconnectedDevices)
+        ).ToList();
+    }
+
+    private void PushFilteredDevices()
+    {
+        var pb  = FilterDevices(_playbackDevices);
+        var rec = FilterDevices(_recordingDevices);
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        dispatcher?.InvokeAsync(() =>
+        {
+            foreach (var card in Profiles)
+                card.LoadDevices(pb, rec);
+        });
+    }
+
     private async Task LoadDevicesAsync()
     {
         // Cancel any in-progress enumeration and start a fresh one.
@@ -221,6 +275,9 @@ public class SettingsViewModel : ViewModelBase
             _playbackDevices = pb;
             _recordingDevices = rec;
 
+            var filteredPb = FilterDevices(pb);
+            var filteredRec = FilterDevices(rec);
+
             // ObservableCollection is not thread-safe; must populate on the UI thread.
             // Application.Current is null in headless test environments; skip dispatch there.
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
@@ -229,7 +286,7 @@ public class SettingsViewModel : ViewModelBase
             {
                 if (token.IsCancellationRequested) return;
                 foreach (var card in Profiles)
-                    card.LoadDevices(pb, rec);
+                    card.LoadDevices(filteredPb, filteredRec);
             });
         }
         catch (Exception ex) when (!token.IsCancellationRequested)
@@ -247,8 +304,8 @@ public class SettingsViewModel : ViewModelBase
             _configService,
             _hotkeyService,
             _dialogService,
-            _playbackDevices,
-            _recordingDevices,
+            FilterDevices(_playbackDevices),
+            FilterDevices(_recordingDevices),
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card),
             onClone: card => CloneProfile(card),
@@ -274,7 +331,7 @@ public class SettingsViewModel : ViewModelBase
         _configService.Current.Profiles.Add(clone);
         _configService.SaveImmediate();
         var newCard = CreateCard(clone);
-        newCard.LoadDevices(_playbackDevices, _recordingDevices);
+        newCard.LoadDevices(FilterDevices(_playbackDevices), FilterDevices(_recordingDevices));
         Profiles.Add(newCard);
         _onProfilesChanged();
     }
