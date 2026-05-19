@@ -124,38 +124,65 @@
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,14">
             <TextBlock Text="Icon color:" FontSize="12" Foreground="#666666"
                        VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <RadioButton x:Name="ColorAuto"  Content="Auto"  GroupName="IconColor" IsChecked="True" Style="{StaticResource ColorPill}"/>
-            <RadioButton x:Name="ColorBlack" Content="Black" GroupName="IconColor" Style="{StaticResource ColorPill}"/>
+            <RadioButton x:Name="ColorBlack" Content="Black" GroupName="IconColor" IsChecked="True" Style="{StaticResource ColorPill}"/>
             <RadioButton x:Name="ColorWhite" Content="White" GroupName="IconColor" Margin="0" Style="{StaticResource ColorPill}"/>
         </StackPanel>
 
-        <!-- Gallery grid — 4 columns -->
-        <ItemsControl ItemsSource="{Binding Items}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <UniformGrid Columns="4"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Button Tag="{Binding}"
-                            Style="{StaticResource GalleryItemButton}"
-                            Click="GalleryItem_Click">
-                        <StackPanel>
-                            <TextBlock Text="{Binding Emoji}"
-                                       FontSize="34"
-                                       FontFamily="Segoe UI Emoji"
-                                       HorizontalAlignment="Center"
-                                       Margin="0,0,0,4"/>
-                            <TextBlock Text="{Binding Label}"
-                                       FontSize="11"
-                                       Foreground="#555555"
-                                       HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+        <!-- Gallery grid — background darkens when White is selected to preview on dark taskbar -->
+        <Border CornerRadius="8" Padding="4" Margin="0,0,0,4">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsChecked, ElementName=ColorWhite}" Value="True">
+                            <Setter Property="Background" Value="#252525"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="4"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Tag="{Binding}"
+                                Style="{StaticResource GalleryItemButton}"
+                                Click="GalleryItem_Click">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Emoji}"
+                                           FontSize="34"
+                                           FontFamily="Segoe UI Emoji"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,4"/>
+                                <TextBlock Text="{Binding Label}"
+                                           FontSize="11"
+                                           Foreground="#555555"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <!-- Hint shown when White mode is active -->
+        <TextBlock Text="Gallery shows original colors — saved icon will be white (best for dark taskbars)"
+                   FontSize="11" Foreground="#AAAAAA" HorizontalAlignment="Center"
+                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,4">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsChecked, ElementName=ColorWhite}" Value="True">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
 
         <Separator Margin="0,16"/>
 

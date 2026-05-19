@@ -304,7 +304,7 @@
                                     <TextBlock Grid.Column="0" Grid.Row="3"
                                                Text="⠿" FontSize="20" Foreground="#CCCCCC"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
-                                               Cursor="SizeNS" Margin="-4,0,4,0"
+                                               Cursor="Hand" Margin="-4,0,4,0"
                                                PreviewMouseLeftButtonDown="DragGrip_MouseDown"
                                                PreviewMouseLeftButtonUp="DragGrip_MouseUp"
                                                MouseMove="DragGrip_MouseMove">
@@ -590,20 +590,19 @@
                                         <Button Content="Pick Icon"
                                                 Style="{StaticResource ActionButton}"
                                                 Command="{Binding PickIconCommand}"/>
-                                        <Image Source="{Binding IconPreview}"
-                                               Width="20" Height="20"
-                                               Margin="8,0,0,0"
-                                               VerticalAlignment="Center">
-                                            <Image.Style>
-                                                <Style TargetType="Image">
+                                        <Border Background="#4A4A4A" CornerRadius="4" Padding="3"
+                                                Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IconPreview}" Value="{x:Null}">
                                                             <Setter Property="Visibility" Value="Collapsed"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </Image.Style>
-                                        </Image>
+                                            </Border.Style>
+                                            <Image Source="{Binding IconPreview}" Width="18" Height="18"/>
+                                        </Border>
                                     </StackPanel>
 
                                     <!-- Separator -->
