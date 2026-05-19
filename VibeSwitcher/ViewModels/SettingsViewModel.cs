@@ -250,7 +250,44 @@ public class SettingsViewModel : ViewModelBase
             _playbackDevices,
             _recordingDevices,
             onChanged: card => OnProfileChanged(card),
-            onDelete: card => DeleteProfile(card));
+            onDelete: card => DeleteProfile(card),
+            onClone: card => CloneProfile(card));
+    }
+
+    private void CloneProfile(ProfileCardViewModel card)
+    {
+        var original = card.Model;
+        var clone = new DeviceProfile
+        {
+            Name = original.Name + " (copy)",
+            Mode = original.Mode,
+            PlaybackDeviceId = original.PlaybackDeviceId,
+            RecordingDeviceId = original.RecordingDeviceId,
+            // IconPath intentionally not copied — both profiles sharing the same file path would
+            // cause DeleteOrphanedIcon to delete the icon for whichever profile is deleted first,
+            // silently breaking the other. The user can re-browse the icon on the clone.
+            Silent = original.Silent,
+            SortOrder = Profiles.Count,
+            // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
+        };
+        _configService.Current.Profiles.Add(clone);
+        _configService.SaveImmediate();
+        var newCard = CreateCard(clone);
+        newCard.LoadDevices(_playbackDevices, _recordingDevices);
+        Profiles.Add(newCard);
+        _onProfilesChanged();
+    }
+
+    internal void MoveProfile(ProfileCardViewModel from, ProfileCardViewModel to)
+    {
+        int oldIndex = Profiles.IndexOf(from);
+        int newIndex = Profiles.IndexOf(to);
+        if (oldIndex < 0 || newIndex < 0 || oldIndex == newIndex) return;
+        Profiles.Move(oldIndex, newIndex);
+        for (int i = 0; i < Profiles.Count; i++)
+            Profiles[i].Model.SortOrder = i;
+        _configService.SaveImmediate();
+        _onProfilesChanged();
     }
 
     private void AddProfile()
@@ -277,9 +314,13 @@ public class SettingsViewModel : ViewModelBase
     {
         var iconPath = card.Model.IconPath;
         _configService.Current.Profiles.Remove(card.Model);
-        _configService.SaveImmediate();
         Profiles.Remove(card);
         card.Dispose();
+        // Re-number so SortOrder stays contiguous; prevents collisions when AddProfile/CloneProfile
+        // later assign SortOrder = Profiles.Count after a delete has left gaps.
+        for (int i = 0; i < Profiles.Count; i++)
+            Profiles[i].Model.SortOrder = i;
+        _configService.SaveImmediate();
         DeleteOrphanedIcon(iconPath, _configService.IconsDir);
         ReregisterHotkeys();
         _onProfilesChanged();

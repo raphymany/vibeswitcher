@@ -24,7 +24,8 @@ public class ProfileCardViewModelTests
             Array.Empty<AudioDeviceInfo>(),
             Array.Empty<AudioDeviceInfo>(),
             _ => _changedCount++,
-            card => _deletedCard = card);
+            card => _deletedCard = card,
+            _ => { });
     }
 
     // ── CaptureHotkey ────────────────────────────────────────────────────────
@@ -241,7 +242,7 @@ public class ProfileCardViewModelTests
         using var card = new ProfileCardViewModel(
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             [], [],
-            _ => changedCount++, _ => { });
+            _ => changedCount++, _ => { }, _ => { });
 
         var pb = new AudioDeviceInfo[] { new("id1", "Speakers", true) };
         card.LoadDevices(pb, []);
@@ -259,7 +260,7 @@ public class ProfileCardViewModelTests
         using var card = new ProfileCardViewModel(
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             pb, [],
-            _ => changedCount++, _ => { });
+            _ => changedCount++, _ => { }, _ => { });
 
         card.SelectedPlaybackDevice = card.PlaybackDevices[1]; // index 0 is (None)
 

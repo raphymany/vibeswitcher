@@ -39,4 +39,6 @@ public class DeviceProfile
     public string? IconPath { get; set; }
 
     public int SortOrder { get; set; }
+
+    public bool Silent { get; set; } = false;
 }

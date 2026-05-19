@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,6 +20,18 @@ public partial class SettingsWindow : Window
     private readonly IConfigService _configService;
     private readonly IHotkeyService _hotkeyService;
     private readonly EventHandler _errorAddedHandler;
+
+    // Drag-and-drop state for profile card reordering
+    private Point _dragStart;
+    private ProfileCardViewModel? _dragSource;
+    private static readonly Brush _normalCardBorder = MakeFrozenBrush(0xE0, 0xE0, 0xE0);
+    private static readonly Brush _dropTargetBorder = MakeFrozenBrush(0x00, 0x78, 0xD4);
+    private static SolidColorBrush MakeFrozenBrush(byte r, byte g, byte b)
+    {
+        var b2 = new SolidColorBrush(Color.FromRgb(r, g, b));
+        b2.Freeze();
+        return b2;
+    }
 
     public SettingsWindow(
         IConfigService configService,
@@ -264,5 +277,63 @@ public partial class SettingsWindow : Window
                 $"Could not open '{e.Uri.AbsoluteUri}': {ex.Message}");
         }
         e.Handled = true;
+    }
+
+    private void DragGrip_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        _dragStart = e.GetPosition(null);
+        _dragSource = (sender as FrameworkElement)?.DataContext as ProfileCardViewModel;
+    }
+
+    private void DragGrip_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        // Clear stale drag source if the user released without crossing the drag threshold.
+        _dragSource = null;
+    }
+
+    private void DragGrip_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed || _dragSource == null) return;
+        var pos = e.GetPosition(null);
+        if (Math.Abs(pos.X - _dragStart.X) > SystemParameters.MinimumHorizontalDragDistance ||
+            Math.Abs(pos.Y - _dragStart.Y) > SystemParameters.MinimumVerticalDragDistance)
+        {
+            DragDrop.DoDragDrop((DependencyObject)sender, _dragSource, DragDropEffects.Move);
+            _dragSource = null;
+        }
+    }
+
+    private void Card_DragEnter(object sender, DragEventArgs e)
+    {
+        if (sender is Border border && e.Data.GetDataPresent(typeof(ProfileCardViewModel)))
+            border.BorderBrush = _dropTargetBorder;
+    }
+
+    private void Card_DragLeave(object sender, DragEventArgs e)
+    {
+        // Only reset when the drag has truly left the card bounds, not just crossed into a child element.
+        if (sender is not Border border) return;
+        var pos = e.GetPosition(border);
+        if (pos.X < 0 || pos.Y < 0 || pos.X > border.ActualWidth || pos.Y > border.ActualHeight)
+            border.BorderBrush = _normalCardBorder;
+    }
+
+    private void Card_DragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = e.Data.GetDataPresent(typeof(ProfileCardViewModel))
+            ? DragDropEffects.Move
+            : DragDropEffects.None;
+        e.Handled = true;
+    }
+
+    private void Card_Drop(object sender, DragEventArgs e)
+    {
+        if (sender is Border border)
+            border.BorderBrush = _normalCardBorder;
+
+        var target = (sender as FrameworkElement)?.DataContext as ProfileCardViewModel;
+        var source = e.Data.GetData(typeof(ProfileCardViewModel)) as ProfileCardViewModel;
+        if (source == null || target == null || source == target) return;
+        _viewModel.MoveProfile(source, target);
     }
 }

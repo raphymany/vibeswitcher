@@ -85,10 +85,12 @@ public class ProfileSwitchOrchestrator : IDisposable
                 {
                     if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
                     {
-                        _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
+                        if (!profile.Silent)
+                            _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
                     }
                     else
                     {
+                        // Device-unavailable warnings always show regardless of Silent flag
                         if (result.MissingPlaybackId != null)
                             _trayService.ShowBalloon("Device Unavailable",
                                 $"Playback device for '{profile.Name}' is disconnected.");
