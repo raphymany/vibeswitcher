@@ -290,44 +290,6 @@ public class ProfileCardViewModelTests
         Assert.Null(_deletedCard);
     }
 
-    // ── Volume ───────────────────────────────────────────────────────────────
-
-    [Fact]
-    public void VolumeOverrideEnabled_Toggle_UpdatesModelAndFiresOnChanged()
-    {
-        var profile = new DeviceProfile { Name = "Test" };
-        using var card = MakeCard(profile);
-
-        card.VolumeOverrideEnabled = true;
-
-        Assert.True(profile.VolumeOverrideEnabled);
-        Assert.Equal(1, _changedCount);
-    }
-
-    [Fact]
-    public void Volume_SetValue_ClampsToRange()
-    {
-        var profile = new DeviceProfile { Name = "Test", Volume = 50 };
-        using var card = MakeCard(profile);
-
-        card.Volume = 150;
-        Assert.Equal(100, profile.Volume);
-
-        card.Volume = -10;
-        Assert.Equal(0, profile.Volume);
-    }
-
-    [Fact]
-    public void Volume_SetValue_UpdatesVolumeDisplayProperty()
-    {
-        var profile = new DeviceProfile { Name = "Test", Volume = 50 };
-        using var card = MakeCard(profile);
-
-        card.Volume = 75;
-
-        Assert.Equal("75%", card.VolumeDisplay);
-    }
-
     // ── TestSoundCommand ─────────────────────────────────────────────────────
 
     [Fact]

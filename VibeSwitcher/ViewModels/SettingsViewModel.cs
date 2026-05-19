@@ -268,8 +268,6 @@ public class SettingsViewModel : ViewModelBase
             // cause DeleteOrphanedIcon to delete the icon for whichever profile is deleted first,
             // silently breaking the other. The user can re-browse the icon on the clone.
             Silent = original.Silent,
-            VolumeOverrideEnabled = original.VolumeOverrideEnabled,
-            Volume = original.Volume,
             SortOrder = Profiles.Count,
             // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
         };

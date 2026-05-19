@@ -136,34 +136,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public bool VolumeOverrideEnabled
-    {
-        get => _model.VolumeOverrideEnabled;
-        set
-        {
-            if (_model.VolumeOverrideEnabled == value) return;
-            _model.VolumeOverrideEnabled = value;
-            OnPropertyChanged(nameof(VolumeOverrideEnabled));
-            _onChanged(this);
-        }
-    }
-
-    public int Volume
-    {
-        get => _model.Volume;
-        set
-        {
-            int clamped = Math.Clamp(value, 0, 100);
-            if (_model.Volume == clamped) return;
-            _model.Volume = clamped;
-            OnPropertyChanged(nameof(Volume));
-            OnPropertyChanged(nameof(VolumeDisplay));
-            _onChanged(this);
-        }
-    }
-
-    public string VolumeDisplay => $"{_model.Volume}%";
-
     public ICommand CaptureHotkeyCommand { get; }
     public ICommand BrowseIconCommand { get; }
     public ICommand CloneCommand { get; }

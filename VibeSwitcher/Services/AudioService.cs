@@ -83,8 +83,8 @@ public class AudioService : IAudioService
         IMMDeviceCollection? collection = null;
         try
         {
-            // Include Unplugged so disconnected devices appear with a red dot rather than disappearing.
-            enumerator.EnumAudioEndpoints(flow, AudioDeviceState.Active | AudioDeviceState.Unplugged, out collection);
+            // Include Disabled and Unplugged so those devices appear with a red dot rather than disappearing.
+            enumerator.EnumAudioEndpoints(flow, AudioDeviceState.Active | AudioDeviceState.Disabled | AudioDeviceState.Unplugged, out collection);
             collection.GetCount(out uint count);
 
             var results = new List<AudioDeviceInfo>((int)count);
@@ -193,8 +193,6 @@ public class AudioService : IAudioService
                 {
                     setDefault(profile.PlaybackDeviceId);
                     playbackApplied = true;
-                    if (profile.VolumeOverrideEnabled)
-                        SetDeviceVolume(enumerator, profile.PlaybackDeviceId, profile.Volume);
                 }
                 else
                 {
@@ -250,33 +248,6 @@ public class AudioService : IAudioService
         catch (Exception ex) when (ex is COMException or InvalidComObjectException)
         {
             return false;
-        }
-    }
-
-    // ── Volume ────────────────────────────────────────────────────────────────
-
-    private static void SetDeviceVolume(IMMDeviceEnumerator enumerator, string deviceId, int volume)
-    {
-        try
-        {
-            if (enumerator.GetDevice(deviceId, out var device) != 0) return;
-            try
-            {
-                var volId = typeof(IAudioEndpointVolume).GUID;
-                if (device.Activate(ref volId, 23 /* CLSCTX_ALL */, IntPtr.Zero, out var volObj) != 0) return;
-                var vol = (IAudioEndpointVolume)volObj;
-                try
-                {
-                    var ctx = Guid.Empty;
-                    vol.SetMasterVolumeLevelScalar(Math.Clamp(volume / 100f, 0f, 1f), ref ctx);
-                }
-                finally { Marshal.ReleaseComObject(vol); }
-            }
-            finally { Marshal.ReleaseComObject(device); }
-        }
-        catch (Exception ex)
-        {
-            AppLogger.Warning("AudioService.SetDeviceVolume", ex.Message);
         }
     }
 

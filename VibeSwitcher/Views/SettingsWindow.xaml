@@ -265,11 +265,10 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
                                     <!-- Drag grip — spans full card height -->
-                                    <TextBlock Grid.Column="0" Grid.RowSpan="8"
+                                    <TextBlock Grid.Column="0" Grid.RowSpan="7"
                                                Text="⠿" FontSize="14" Foreground="#CCCCCC"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Cursor="SizeNS" Margin="0,0,6,0"
@@ -371,33 +370,8 @@
                                             IsEnabled="{Binding IsPlaybackDeviceSet}"
                                             Visibility="{Binding PlaybackVisible}"/>
 
-                                    <!-- Volume (optional override, playback-only) -->
-                                    <TextBlock Grid.Row="2" Grid.Column="1"
-                                               Text="Volume" Style="{StaticResource LabelText}"
-                                               Visibility="{Binding PlaybackVisible}"/>
-                                    <StackPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="2"
-                                                Orientation="Horizontal" VerticalAlignment="Center"
-                                                Margin="0,0,0,8"
-                                                Visibility="{Binding PlaybackVisible}">
-                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                                  IsChecked="{Binding VolumeOverrideEnabled}"
-                                                  VerticalAlignment="Center">
-                                            <TextBlock Text="Override" FontSize="12" Foreground="#555555"/>
-                                        </CheckBox>
-                                        <StackPanel Orientation="Horizontal" Margin="10,0,0,0"
-                                                    IsEnabled="{Binding VolumeOverrideEnabled}">
-                                            <Slider Minimum="0" Maximum="100"
-                                                    Value="{Binding Volume, Mode=TwoWay}"
-                                                    Width="100" SmallChange="1" LargeChange="10"
-                                                    VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding VolumeDisplay}"
-                                                       FontSize="12" Margin="8,0,0,0"
-                                                       VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </StackPanel>
-
                                     <!-- Recording -->
-                                    <StackPanel Grid.Row="3" Grid.Column="1"
+                                    <StackPanel Grid.Row="2" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding RecordingVisible}">
                                         <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
@@ -416,7 +390,7 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <ComboBox Grid.Row="3" Grid.Column="2"
+                                    <ComboBox Grid.Row="2" Grid.Column="2"
                                               ItemsSource="{Binding RecordingDevices}"
                                               SelectedItem="{Binding SelectedRecordingDevice}"
                                               Visibility="{Binding RecordingVisible}"
@@ -442,7 +416,7 @@
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
-                                    <Button Grid.Row="3" Grid.Column="3"
+                                    <Button Grid.Row="2" Grid.Column="3"
                                             Content="Test"
                                             Margin="8,0,0,8" VerticalAlignment="Center"
                                             Style="{StaticResource ActionButton}"
@@ -451,7 +425,7 @@
                                             Visibility="{Binding RecordingVisible}"/>
 
                                     <!-- Hotkey -->
-                                    <StackPanel Grid.Row="4" Grid.Column="1"
+                                    <StackPanel Grid.Row="3" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Hotkey" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                         <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
@@ -469,19 +443,19 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <TextBox Grid.Row="4" Grid.Column="2"
+                                    <TextBox Grid.Row="3" Grid.Column="2"
                                              Text="{Binding HotkeyDisplay, Mode=OneWay}"
                                              IsReadOnly="True"
                                              IsTabStop="False"
                                              Margin="0,0,0,8"/>
-                                    <Button Grid.Row="4" Grid.Column="3"
+                                    <Button Grid.Row="3" Grid.Column="3"
                                             Content="Set Hotkey"
                                             Margin="8,0,0,8" VerticalAlignment="Center"
                                             Style="{StaticResource ActionButton}"
                                             Command="{Binding CaptureHotkeyCommand}"/>
 
                                     <!-- Icon -->
-                                    <StackPanel Grid.Row="5" Grid.Column="1"
+                                    <StackPanel Grid.Row="4" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Icon" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                         <ToggleButton x:Name="IconInfoToggle"
@@ -546,12 +520,12 @@
                                             </Border>
                                         </Popup>
                                     </StackPanel>
-                                    <TextBox Grid.Row="5" Grid.Column="2"
+                                    <TextBox Grid.Row="4" Grid.Column="2"
                                              Text="{Binding IconPath, Mode=OneWay, FallbackValue='(default)'}"
                                              IsReadOnly="True"
                                              IsTabStop="False"
                                              Margin="0,0,0,12"/>
-                                    <StackPanel Grid.Row="5" Grid.Column="3"
+                                    <StackPanel Grid.Row="4" Grid.Column="3"
                                                 Orientation="Horizontal"
                                                 VerticalAlignment="Center"
                                                 Margin="8,0,0,12">
@@ -575,11 +549,11 @@
                                     </StackPanel>
 
                                     <!-- Separator -->
-                                    <Border Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4"
+                                    <Border Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4"
                                             Height="1" Background="#F0F0F0" Margin="0,0,0,12"/>
 
                                     <!-- Bottom row: Silent toggle (left) + Clone + Delete (right) -->
-                                    <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4">
+                                    <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4">
                                         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal"
                                                     VerticalAlignment="Center">
                                             <CheckBox IsChecked="{Binding Silent}"
