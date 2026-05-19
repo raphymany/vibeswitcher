@@ -200,22 +200,52 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         if (captured != null)
         {
-            if (!captured.IsEmpty && _hotkeyService.TestHotkey(captured))
+            if (!captured.IsEmpty)
             {
-                _dialogService.ShowAlert("Hotkey Conflict",
-                    $"'{captured.ToDisplayString()}' is already in use by another application.");
+                var internalOwner = FindInternalConflictOwner(captured);
+                if (internalOwner != null)
+                {
+                    _dialogService.ShowAlert("Hotkey Already in Use",
+                        $"'{captured.ToDisplayString()}' is already assigned to {internalOwner}.");
+                }
+                else if (_hotkeyService.TestHotkey(captured))
+                {
+                    _dialogService.ShowAlert("Hotkey Conflict",
+                        $"'{captured.ToDisplayString()}' is already in use by another application.");
+                }
+                else
+                {
+                    _model.Hotkey = captured;
+                    HotkeyDisplay = _model.Hotkey.ToDisplayString();
+                    _onChanged(this); // triggers RegisterAll → re-registers all hotkeys with new value
+                    applied = true;
+                }
             }
             else
             {
                 _model.Hotkey = captured;
                 HotkeyDisplay = _model.Hotkey.ToDisplayString();
-                _onChanged(this); // triggers RegisterAll → re-registers all hotkeys with new value
+                _onChanged(this);
                 applied = true;
             }
         }
 
         if (!applied)
             _hotkeyService.RegisterProfile(_model); // restore original on cancel / conflict
+    }
+
+    private string? FindInternalConflictOwner(HotkeyDefinition hotkey)
+    {
+        foreach (var p in _configService.Current.Profiles)
+        {
+            if (p.Id == _model.Id) continue;
+            if (!p.Hotkey.IsEmpty && hotkey.Matches(p.Hotkey))
+                return $"\"{p.Name}\"";
+        }
+        var settingsHk = _configService.Current.SettingsHotkey;
+        if (settingsHk is { IsEmpty: false } && hotkey.Matches(settingsHk))
+            return "the Settings shortcut";
+        return null;
     }
 
     private void BrowseIcon()

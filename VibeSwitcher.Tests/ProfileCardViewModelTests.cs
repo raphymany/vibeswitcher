@@ -76,6 +76,45 @@ public class ProfileCardViewModelTests
     }
 
     [Fact]
+    public void CaptureHotkey_InternalConflictWithProfile_ShowsAlertWithProfileName()
+    {
+        var otherProfile = new DeviceProfile
+        {
+            Name = "Gaming Setup",
+            Hotkey = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true }
+        };
+        _fakeConfig.Current.Profiles.Add(otherProfile);
+
+        var profile = new DeviceProfile { Name = "Test" };
+        _fakeDialog.HotkeyCaptureResult = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
+        using var card = MakeCard(profile);
+
+        card.CaptureHotkeyCommand.Execute(null);
+
+        Assert.Single(_fakeDialog.AlertsShown);
+        Assert.Contains("Gaming Setup", _fakeDialog.AlertsShown[0].Message);
+        Assert.True(profile.Hotkey.IsEmpty);
+        Assert.Equal(0, _changedCount);
+    }
+
+    [Fact]
+    public void CaptureHotkey_InternalConflictWithSettingsHotkey_ShowsAlertMentioningSettings()
+    {
+        _fakeConfig.Current.SettingsHotkey = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
+
+        var profile = new DeviceProfile { Name = "Test" };
+        _fakeDialog.HotkeyCaptureResult = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
+        using var card = MakeCard(profile);
+
+        card.CaptureHotkeyCommand.Execute(null);
+
+        Assert.Single(_fakeDialog.AlertsShown);
+        Assert.Contains("Settings", _fakeDialog.AlertsShown[0].Message);
+        Assert.True(profile.Hotkey.IsEmpty);
+        Assert.Equal(0, _changedCount);
+    }
+
+    [Fact]
     public void CaptureHotkey_Success_SetsHotkey()
     {
         var profile = new DeviceProfile { Name = "Test" };

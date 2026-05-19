@@ -139,4 +139,22 @@ public class SettingsViewModelTests
         Assert.Equal(profile.Id, _fakeHotkey.RegisteredProfiles[0].Id);
         Assert.Equal(1, _profilesChangedCount);
     }
+
+    [Fact]
+    public void SettingsHotkey_ConflictsWithProfile_ShowsAlertAndDoesNotSave()
+    {
+        var profile = new DeviceProfile
+        {
+            Name = "Gaming Setup",
+            Hotkey = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true }
+        };
+        _fakeConfig.Current.Profiles.Add(profile);
+        var vm = MakeViewModel();
+
+        vm.SettingsHotkey = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
+
+        Assert.Single(_fakeDialog.AlertsShown);
+        Assert.Contains("Gaming Setup", _fakeDialog.AlertsShown[0].Message);
+        Assert.True(vm.SettingsHotkey.IsEmpty); // setter returned early — not saved
+    }
 }
