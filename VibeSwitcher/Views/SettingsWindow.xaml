@@ -300,9 +300,9 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Drag grip — spans full card height -->
-                                    <TextBlock Grid.Column="0" Grid.RowSpan="8"
-                                               Text="⠿" FontSize="17" Foreground="#CCCCCC"
+                                    <!-- Drag grip — spans Playback+Recording rows -->
+                                    <TextBlock Grid.Column="0" Grid.Row="2" Grid.RowSpan="2"
+                                               Text="⠿" FontSize="20" Foreground="#CCCCCC"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Cursor="SizeNS" Margin="0,0,4,0"
                                                PreviewMouseLeftButtonDown="DragGrip_MouseDown"
@@ -350,7 +350,8 @@
                                     </Border>
 
                                     <!-- Name suggestions — visible only when name is still the default "Profile N" -->
-                                    <WrapPanel Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3"
+                                    <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
+                                               HorizontalAlignment="Center"
                                                Orientation="Horizontal" Margin="0,0,0,8">
                                         <WrapPanel.Style>
                                             <Style TargetType="WrapPanel">
