@@ -195,39 +195,39 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         // Without this, Windows intercepts registered keys before WPF sees them.
         _hotkeyService.UnregisterAll();
 
-        var captured = _dialogService.ShowHotkeyCapture(_model.Hotkey);
         bool applied = false;
+        var dialogSeed = _model.Hotkey; // what the capture dialog opens with
 
-        if (captured != null)
+        while (true)
         {
+            var captured = _dialogService.ShowHotkeyCapture(dialogSeed);
+            if (captured == null) break; // cancelled
+
             if (!captured.IsEmpty)
             {
                 var internalOwner = FindInternalConflictOwner(captured);
                 if (internalOwner != null)
                 {
-                    _dialogService.ShowAlert("Hotkey Already in Use",
+                    bool retry = _dialogService.ShowHotkeyConflictRetry("Hotkey Already in Use",
                         $"'{captured.ToDisplayString()}' is already assigned to {internalOwner}.");
+                    if (retry) { dialogSeed = captured; continue; }
+                    break;
                 }
-                else if (_hotkeyService.TestHotkey(captured))
+
+                if (_hotkeyService.TestHotkey(captured))
                 {
-                    _dialogService.ShowAlert("Hotkey Conflict",
+                    bool retry = _dialogService.ShowHotkeyConflictRetry("Hotkey Conflict",
                         $"'{captured.ToDisplayString()}' is already in use by another application.");
-                }
-                else
-                {
-                    _model.Hotkey = captured;
-                    HotkeyDisplay = _model.Hotkey.ToDisplayString();
-                    _onChanged(this); // triggers ReregisterHotkeys → re-registers all hotkeys
-                    applied = true;
+                    if (retry) { dialogSeed = captured; continue; }
+                    break;
                 }
             }
-            else
-            {
-                _model.Hotkey = captured;
-                HotkeyDisplay = _model.Hotkey.ToDisplayString();
-                _onChanged(this);
-                applied = true;
-            }
+
+            _model.Hotkey = captured;
+            HotkeyDisplay = _model.Hotkey.ToDisplayString();
+            _onChanged(this); // triggers ReregisterHotkeys → re-registers all hotkeys
+            applied = true;
+            break;
         }
 
         if (!applied)

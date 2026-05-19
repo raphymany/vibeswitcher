@@ -38,6 +38,12 @@ public class DialogService : IDialogService
         new AlertDialog(title, message) { Owner = OwnerWindow }.ShowDialog();
     }
 
+    public bool ShowHotkeyConflictRetry(string title, string message)
+    {
+        return MessageBox.Show(OwnerWindow, message + "\n\nWould you like to try a different hotkey?",
+            title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+    }
+
     public ProfileMode? ShowProfileTypeDialog()
     {
         var dialog = new ProfileTypeDialog { Owner = OwnerWindow };

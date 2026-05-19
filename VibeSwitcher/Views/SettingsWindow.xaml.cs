@@ -221,9 +221,33 @@ public partial class SettingsWindow : Window
     {
         // Unregister all hotkeys so profile hotkeys can't fire while the dialog is open.
         _hotkeyService.UnregisterAll();
-        var dialog = new HotkeyCaptureDialog(_viewModel.SettingsHotkey) { Owner = this };
-        if (dialog.ShowDialog() == true && dialog.CapturedHotkey != null)
-            _viewModel.SettingsHotkey = dialog.CapturedHotkey;
+
+        var dialogSeed = _viewModel.SettingsHotkey;
+        while (true)
+        {
+            var dialog = new HotkeyCaptureDialog(dialogSeed) { Owner = this };
+            if (dialog.ShowDialog() != true || dialog.CapturedHotkey == null) break;
+
+            var captured = dialog.CapturedHotkey;
+            if (!captured.IsEmpty)
+            {
+                var ownerName = _configService.Current.Profiles
+                    .FirstOrDefault(p => !p.Hotkey.IsEmpty && captured.Matches(p.Hotkey))?.Name;
+                if (ownerName != null)
+                {
+                    bool retry = MessageBox.Show(this,
+                        $"'{captured.ToDisplayString()}' is already assigned to \"{ownerName}\".\n\nWould you like to try a different hotkey?",
+                        "Hotkey Already in Use",
+                        MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+                    if (retry) { dialogSeed = captured; continue; }
+                    break;
+                }
+            }
+
+            _viewModel.SettingsHotkey = captured;
+            break;
+        }
+
         // Always re-register everything (profiles + Settings hotkey) after the dialog closes.
         _viewModel.ReregisterHotkeys();
     }

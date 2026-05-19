@@ -101,17 +101,6 @@ public class SettingsViewModel : ViewModelBase
         get => _configService.Current.SettingsHotkey ?? new HotkeyDefinition();
         set
         {
-            if (!value.IsEmpty)
-            {
-                var ownerProfile = _configService.Current.Profiles
-                    .FirstOrDefault(p => !p.Hotkey.IsEmpty && value.Matches(p.Hotkey));
-                if (ownerProfile != null)
-                {
-                    _dialogService.ShowAlert("Hotkey Already in Use",
-                        $"'{value.ToDisplayString()}' is already assigned to \"{ownerProfile.Name}\".");
-                    return;
-                }
-            }
             _configService.Current.SettingsHotkey = value;
             _configService.SaveImmediate();
             _hotkeyService.UnregisterSettingsHotkey();

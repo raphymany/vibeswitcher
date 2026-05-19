@@ -8,5 +8,6 @@ public interface IDialogService
     bool ShowConfirmDelete(string profileName);
     string? ShowBrowseIconFile();
     void ShowAlert(string title, string message);
+    bool ShowHotkeyConflictRetry(string title, string message);
     ProfileMode? ShowProfileTypeDialog();
 }

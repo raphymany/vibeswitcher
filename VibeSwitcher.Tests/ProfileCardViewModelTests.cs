@@ -61,22 +61,23 @@ public class ProfileCardViewModelTests
     }
 
     [Fact]
-    public void CaptureHotkey_Conflict_ShowsAlertAndNoChange()
+    public void CaptureHotkey_Conflict_ShowsRetryDialogAndNoChange()
     {
         var profile = new DeviceProfile { Name = "Test" };
         _fakeDialog.HotkeyCaptureResult = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
         _fakeHotkey.TestHotkeyResult = true; // simulates another app owns this combo
+        _fakeDialog.ConflictRetryResult = false; // user clicks Cancel (don't retry)
         using var card = MakeCard(profile);
 
         card.CaptureHotkeyCommand.Execute(null);
 
-        Assert.Single(_fakeDialog.AlertsShown);
+        Assert.Single(_fakeDialog.ConflictRetriesShown);
         Assert.True(profile.Hotkey.IsEmpty); // model unchanged
         Assert.Equal(0, _changedCount);
     }
 
     [Fact]
-    public void CaptureHotkey_InternalConflictWithProfile_ShowsAlertWithProfileName()
+    public void CaptureHotkey_InternalConflictWithProfile_ShowsRetryDialogWithProfileName()
     {
         var otherProfile = new DeviceProfile
         {
@@ -87,29 +88,31 @@ public class ProfileCardViewModelTests
 
         var profile = new DeviceProfile { Name = "Test" };
         _fakeDialog.HotkeyCaptureResult = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
+        _fakeDialog.ConflictRetryResult = false;
         using var card = MakeCard(profile);
 
         card.CaptureHotkeyCommand.Execute(null);
 
-        Assert.Single(_fakeDialog.AlertsShown);
-        Assert.Contains("Gaming Setup", _fakeDialog.AlertsShown[0].Message);
+        Assert.Single(_fakeDialog.ConflictRetriesShown);
+        Assert.Contains("Gaming Setup", _fakeDialog.ConflictRetriesShown[0].Message);
         Assert.True(profile.Hotkey.IsEmpty);
         Assert.Equal(0, _changedCount);
     }
 
     [Fact]
-    public void CaptureHotkey_InternalConflictWithSettingsHotkey_ShowsAlertMentioningSettings()
+    public void CaptureHotkey_InternalConflictWithSettingsHotkey_ShowsRetryDialogMentioningSettings()
     {
         _fakeConfig.Current.SettingsHotkey = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
 
         var profile = new DeviceProfile { Name = "Test" };
         _fakeDialog.HotkeyCaptureResult = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true };
+        _fakeDialog.ConflictRetryResult = false;
         using var card = MakeCard(profile);
 
         card.CaptureHotkeyCommand.Execute(null);
 
-        Assert.Single(_fakeDialog.AlertsShown);
-        Assert.Contains("Settings", _fakeDialog.AlertsShown[0].Message);
+        Assert.Single(_fakeDialog.ConflictRetriesShown);
+        Assert.Contains("Settings", _fakeDialog.ConflictRetriesShown[0].Message);
         Assert.True(profile.Hotkey.IsEmpty);
         Assert.Equal(0, _changedCount);
     }
