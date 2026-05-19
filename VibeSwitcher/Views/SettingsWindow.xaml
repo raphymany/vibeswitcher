@@ -575,21 +575,36 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                         <TextBlock Text="Open Settings" FontSize="13" Foreground="#1A1A1A"/>
                         <TextBlock Text="Global hotkey to open this window from anywhere"
                                    FontSize="11" Foreground="#888888" Margin="0,2,0,0"/>
                     </StackPanel>
-                    <TextBlock Grid.Column="1"
-                               Text="{Binding SettingsHotkeyDisplay}"
-                               FontSize="12" Foreground="#555555"
-                               VerticalAlignment="Center" Margin="0,0,12,0"/>
-                    <Button Grid.Column="2"
-                            Style="{StaticResource ActionButton}"
-                            Content="Set hotkey"
-                            Click="SettingsHotkeyButton_Click"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Keyboard badge — styled chip showing the current shortcut -->
+                        <Border Background="#F5F5F5" BorderBrush="#D0D0D0" BorderThickness="1"
+                                CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
+                                MinWidth="74" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding SettingsHotkeyDisplay}"
+                                       FontFamily="Consolas" FontSize="12"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#1A1A1A"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
+                                                <Setter Property="Foreground" Value="#AAAAAA"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                        <Button Style="{StaticResource ActionButton}"
+                                Content="Set hotkey"
+                                Click="SettingsHotkeyButton_Click"/>
+                    </StackPanel>
                 </Grid>
             </StackPanel>
         </Border>
