@@ -97,28 +97,28 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 | # | Feature | Branch |
 |---|---------|--------|
-| F1 | Import/export `config.json` via Settings for backup and sharing | 33 |
-| F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) | 30 |
-| F3 | "Test sound" button to verify active device plays audio | 31 |
-| F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys | 29 |
+| F1 | Import/export `config.json` via Settings for backup and sharing | 31 |
+| F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) | 29 |
+| F3 | "Test sound" button to verify active device plays audio | 30 |
+| F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys | 28 |
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
-| F10 | Per-profile volume level — sets device default volume when switching to that profile | 31 |
+| F10 | Per-profile volume level — sets device default volume when switching to that profile | 30 |
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 34 |
-| F13 | Portable mode — auto-detected via `portable.txt` next to the exe; stores config in the same folder instead of `%APPDATA%` | 28 |
-| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 33 |
+| F13 | Portable mode — auto-detected via `portable.txt` next to the exe; stores config in the same folder instead of `%APPDATA%` | 33 |
+| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 31 |
 | F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path | 32 |
-| F18 | Field feedback — brief green border flash on a card when a change is saved | 33 |
-| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 33 |
+| F18 | Field feedback — brief green border flash on a card when a change is saved | 31 |
+| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 31 |
 | F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding | 32 |
-| F21 | Left-click tray cycles profiles — switches to the next profile in sort order, wrapping around; right-click still opens the menu | 29 |
-| F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 33 |
-| F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile | 30 |
-| F24 | Global hotkey to open Settings — user-configurable, with option to disable entirely | 29 |
-| F25 | Per-profile silent switch — checkbox on each card to skip the balloon notification when switching to that profile | 30 |
-| F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 31 |
+| F21 | Left-click tray cycles profiles — switches to the next profile in sort order, wrapping around; right-click still opens the menu | 28 |
+| F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 31 |
+| F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile | 29 |
+| F24 | Global hotkey to open Settings — user-configurable, with option to disable entirely | 28 |
+| F25 | Per-profile silent switch — checkbox on each card to skip the balloon notification when switching to that profile | 29 |
+| F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 30 |
 | F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 32 |
-| F30 | Tray icon switch flash — brief icon pulse when a profile switch completes; visual confirmation when balloon notifications are disabled | 29 |
+| F30 | Tray icon switch flash — brief icon pulse when a profile switch completes; visual confirmation when balloon notifications are disabled | 28 |
 
 ---
 
@@ -133,7 +133,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 28: `feat/portable-mode`
+### Branch 33: `feat/portable-mode`
 **Theme:** Portable install support — config stored next to the exe when `portable.txt` is present.
 
 | # | Feature |
@@ -142,7 +142,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 29: `feat/tray-interactions`
+### Branch 28: `feat/tray-interactions`
 **Theme:** Tray icon and global hotkey UX — no Settings UI changes required.
 
 | # | Feature |
@@ -154,7 +154,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 30: `feat/profile-management`
+### Branch 29: `feat/profile-management`
 **Theme:** Per-card controls in the Settings profile list.
 
 | # | Feature |
@@ -165,7 +165,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 31: `feat/device-enhancements`
+### Branch 30: `feat/device-enhancements`
 **Theme:** Audio device interaction features — all touch `AudioService` or the device dropdowns.
 
 | # | Feature |
@@ -187,7 +187,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 33: `feat/settings-polish`
+### Branch 31: `feat/settings-polish`
 **Theme:** Settings window refinements that don't require new audio logic.
 
 | # | Feature |
