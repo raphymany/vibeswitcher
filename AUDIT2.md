@@ -129,6 +129,8 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle | 41 |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | 42 |
 | F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle | 43 |
+| F42 | Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping | 32 |
+| F43 | Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled | 32 |
 
 ---
 
@@ -198,6 +200,8 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | F16 | Dark mode + high-contrast — `SystemColors` brushes to follow the OS theme |
 | F1 / 4.13 | Config import/export — backup and transfer profiles via Settings |
 | F19 / 10.3 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
+| F42 | Settings sub-card layout — each group (Startup, Notifications, Shortcuts) in its own inner card |
+| F43 | Card-based enable/disable — toggleable settings cards fade when disabled instead of using pill toggles |
 
 ---
 

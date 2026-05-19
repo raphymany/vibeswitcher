@@ -568,6 +568,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups where undocking a laptop should switch to built-in speakers automatically |
 | F41 | App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable |
+| F42 | Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign |
+| F43 | Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign |
 
 ---
 
