@@ -126,6 +126,17 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public bool SettingsCardExpanded
+    {
+        get => _configService.Current.SettingsCardExpanded;
+        set
+        {
+            _configService.Current.SettingsCardExpanded = value;
+            _configService.SaveImmediate();
+            OnPropertyChanged();
+        }
+    }
+
     public HotkeyDefinition SettingsHotkey
     {
         get => _configService.Current.SettingsHotkey ?? new HotkeyDefinition();
