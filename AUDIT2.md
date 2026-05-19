@@ -116,7 +116,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F24~~ | ~~Global hotkey to open Settings~~ | ✅ Done — PR #57 |
 | ~~F25~~ | ~~Per-profile silent switch — checkbox to skip the Windows notification banner~~ | ✅ Done — PR #59 |
 | ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in the Settings dropdowns~~ | ✅ Done — PR #61 |
-| F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 31 |
+| ~~F27~~ | ~~Profile color tag~~ | Dropped — profiles already have icons; color adds no value |
 | ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ | ✅ Done — PR #57 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers") | 36 |
 | F32 | Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name | 35 |
@@ -180,13 +180,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 ---
 
 ### Branch 31: `feat/profile-visual`
-**Theme:** Visual identity features for profiles — icons, names, and colors.
+**Theme:** Visual identity features for profiles — icon gallery and name suggestions.
 
 | # | Feature |
 |---|---------|
 | F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path |
 | F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 |
-| F27 | Profile color tag — small colored circle on each card and in the tray menu |
 
 ---
 

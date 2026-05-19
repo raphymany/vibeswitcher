@@ -555,7 +555,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F24~~ | ~~Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere~~ | ✅ Done — PR #57 |
 | ~~F25~~ | ~~Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely~~ | ✅ Done — PR #59 |
 | ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in Settings dropdowns~~ | ✅ Done — PR #61 |
-| F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
+| ~~F27~~ | ~~Profile color tag~~ | Dropped — profiles already have icons; color adds no value |
 | ~~F30~~ | ~~Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25~~ | ✅ Done — PR #57 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); stored as a `{deviceId → alias}` dictionary in config |
 | F32 | Profile notes — optional short description field on each profile card (e.g. "For work meetings — webcam mic disabled"); stored per profile, shown below the profile name |
