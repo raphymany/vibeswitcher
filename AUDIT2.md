@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — Branch 28 merged (PR #57); F5, F21, F24, F30 done.
+**Last updated:** 2026-05-19 — Branch 29 merged (PR #59); F2, F23, F25 done.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -98,7 +98,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | # | Feature | Branch |
 |---|---------|--------|
 | F1 | Import/export `config.json` via Settings for backup and sharing | 32 |
-| F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) | 29 |
+| ~~F2~~ | ~~Drag-and-drop profile reorder~~ | ✅ Done — PR #59 |
 | F3 | "Test sound" button to verify active device plays audio | 30 |
 | ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip~~ | ✅ Done — PR #57 |
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
@@ -112,9 +112,9 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding | 31 |
 | ~~F21~~ | ~~Left-click tray cycles profiles~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 32 |
-| F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile | 29 |
+| ~~F23~~ | ~~Profile clone button~~ | ✅ Done — PR #59 |
 | ~~F24~~ | ~~Global hotkey to open Settings~~ | ✅ Done — PR #57 |
-| F25 | Per-profile silent switch — checkbox on each card to skip the balloon notification when switching to that profile | 29 |
+| ~~F25~~ | ~~Per-profile silent switch — checkbox to skip the Windows notification banner~~ | ✅ Done — PR #59 |
 | F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 30 |
 | F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 31 |
 | ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ | ✅ Done — PR #57 |
@@ -157,14 +157,14 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 29: `feat/profile-management`
-**Theme:** Per-card controls in the Settings profile list.
+### ~~Branch 29: `feat/profile-management`~~ ✅ Merged — PR #59
+**Theme:** Per-card controls in the Settings profile list — reorder, clone, silent switch.
 
 | # | Feature |
 |---|---------|
-| F2 / 4.7 | Drag-and-drop profile reorder — Spotify-style 3-line grip on left of each card |
-| F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile |
-| F25 | Per-profile silent switch — checkbox to skip the balloon notification for that profile |
+| ~~F2~~ | ~~Drag-and-drop profile reorder — ⠿ grip on each card~~ |
+| ~~F23~~ | ~~Profile clone button~~ |
+| ~~F25~~ | ~~Per-profile silent switch~~ |
 
 ---
 

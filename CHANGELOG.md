@@ -7,6 +7,14 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Drag-and-drop profile reorder (F2)** — each profile card has a ⠿ grip handle on the left; dragging it over another card reorders the list and saves the new order immediately *(PR #59)*
+- **Profile clone (F23)** — Clone button on each card duplicates the profile (name + " (copy)", same devices and mode); hotkey and icon are not copied to avoid conflicts and file-sharing issues *(PR #59)*
+- **Per-profile silent switch (F25)** — Silent switch checkbox on each card; when enabled, switching to that profile skips the Windows notification banner while device-unavailable warnings still appear *(PR #59)*
+
+### Fixed
+- **SortOrder recompacted after delete** — deleting a profile now renumbers all remaining SortOrder values so cloning and adding new profiles never produce order collisions *(PR #59)*
+
+### Added
 - **Left-click tray cycles profiles (F21)** — a single left-click on the tray icon advances to the next profile in sort order, wrapping around; right-click still opens the menu *(PR #57)*
 - **Hotkey cheat sheet tooltip (F5)** — hovering the tray icon shows a multi-line tooltip listing every profile with an assigned hotkey; updates automatically on every switch *(PR #57)*
 - **Global Settings hotkey (F24)** — a Shortcuts section in the General Settings card lets the user assign any key combo to toggle the Settings window from anywhere; includes an enable/disable toggle and a keyboard badge chip showing the current binding *(PR #57)*

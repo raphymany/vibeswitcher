@@ -530,7 +530,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | # | Feature |
 |---|---------|
 | F1 | Import/export `config.json` via Settings for backup and sharing |
-| F2 | Drag-and-drop profile reorder |
+| ~~F2~~ | ~~Drag-and-drop profile reorder~~ | ✅ Done — PR #59 |
 | F3 | "Test sound" button to verify active device plays audio |
 | ~~F4~~ | ~~Middle-click tray to toggle between last two profiles~~ | Removed |
 | ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys (e.g. "Desktop Setup: Ctrl+PgUp / Gaming: Ctrl+PgDn") so you can see the full list without opening any window~~ | ✅ Done — PR #57 |
@@ -551,9 +551,9 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F20 | Pre-made profile names — quick-pick name suggestions ("Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", "Speakers", etc.) shown as chips or a dropdown below the name field; pairs with F17 built-in icons for a zero-typing onboarding path |
 | ~~F21~~ | ~~Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
-| F23 | Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list |
+| ~~F23~~ | ~~Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list~~ | ✅ Done — PR #59 |
 | ~~F24~~ | ~~Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere~~ | ✅ Done — PR #57 |
-| F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely |
+| ~~F25~~ | ~~Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely~~ | ✅ Done — PR #59 |
 | F26 | Device connectivity indicator — green dot next to connected devices and red dot next to disconnected devices in the Settings dropdowns, so you can see at a glance which are available without trying to switch |
 | F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
 | ~~F30~~ | ~~Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25~~ | ✅ Done — PR #57 |
@@ -981,3 +981,15 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | New | All hotkeys unregistered before capture dialog opens so profile hotkeys can't fire during capture | ✅ Done |
 | New | `ReregisterHotkeys` re-registers the Settings hotkey after `RegisterAll` wipes it | ✅ Done |
 | New | Shortcuts section redesigned to a two-row grid — feature name + toggle on top, description + badge + button below | ✅ Done |
+
+---
+
+### ~~Branch 29: `feat/profile-management`~~ ✅ Merged — PR #59
+**Theme:** Per-card controls in the Settings profile list — reorder, clone, and silent switch.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F2 | Drag-and-drop profile reorder — ⠿ grip on each card; dragging reorders the list and persists SortOrder | ✅ Done |
+| F23 | Profile clone button — duplicates name+" (copy)", devices, mode, silent flag; hotkey and icon path not copied | ✅ Done |
+| F25 | Per-profile silent switch — checkbox skips the Windows notification banner on switch; device warnings always show | ✅ Done |
+| Fix | SortOrder re-compacted after every delete to prevent future collisions | ✅ Done |
