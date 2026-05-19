@@ -24,4 +24,7 @@ internal sealed class FakeDialogService : IDialogService
         return ConflictRetryResult;
     }
     public ProfileMode? ShowProfileTypeDialog() => ProfileTypeResult;
+
+    public List<string> MicTestCalledWith { get; } = new();
+    public void ShowMicTest(string deviceId, string deviceName) => MicTestCalledWith.Add(deviceId);
 }

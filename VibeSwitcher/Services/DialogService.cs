@@ -48,4 +48,9 @@ public class DialogService : IDialogService
         var dialog = new ProfileTypeDialog { Owner = OwnerWindow };
         return dialog.ShowDialog() == true ? dialog.ChosenMode : null;
     }
+
+    public void ShowMicTest(string deviceId, string deviceName)
+    {
+        new MicTestDialog(deviceId, deviceName) { Owner = OwnerWindow }.ShowDialog();
+    }
 }

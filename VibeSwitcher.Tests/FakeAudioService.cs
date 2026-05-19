@@ -11,10 +11,17 @@ internal sealed class FakeAudioService : IAudioService
     public IReadOnlyList<AudioDeviceInfo> RecordingResult { get; set; } = [];
     public ProfileSwitchResult SwitchResult { get; set; } = new(true, true, null, null);
 
+    public List<string> TestSoundCalledWith { get; } = new();
+
     public IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices() => PlaybackResult;
     public IReadOnlyList<AudioDeviceInfo> GetRecordingDevices() => RecordingResult;
     public Task<ProfileSwitchResult> ApplyProfileAsync(DeviceProfile profile) =>
         Task.FromResult(SwitchResult);
+    public Task TestSoundAsync(string deviceId)
+    {
+        TestSoundCalledWith.Add(deviceId);
+        return Task.CompletedTask;
+    }
 
     public void RaiseDevicesChanged() => DevicesChanged?.Invoke();
     public void Dispose() { }

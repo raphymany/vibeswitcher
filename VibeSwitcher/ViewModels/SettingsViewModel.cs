@@ -251,7 +251,8 @@ public class SettingsViewModel : ViewModelBase
             _recordingDevices,
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card),
-            onClone: card => CloneProfile(card));
+            onClone: card => CloneProfile(card),
+            onTestSound: deviceId => _audioService.TestSoundAsync(deviceId));
     }
 
     private void CloneProfile(ProfileCardViewModel card)

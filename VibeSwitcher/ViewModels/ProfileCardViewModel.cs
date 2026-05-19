@@ -18,6 +18,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
     private readonly Action<ProfileCardViewModel> _onClone;
+    private readonly Func<string, Task> _onTestSound;
 
     private string _name;
     private AudioDeviceInfo? _selectedPlaybackDevice;
@@ -72,6 +73,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             {
                 _model.PlaybackDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
                 _onChanged(this);
+                OnPropertyChanged(nameof(IsPlaybackDeviceSet));
             }
         }
     }
@@ -85,9 +87,16 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             {
                 _model.RecordingDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
                 _onChanged(this);
+                OnPropertyChanged(nameof(IsRecordingDeviceSet));
             }
         }
     }
+
+    public bool IsPlaybackDeviceSet =>
+        !string.IsNullOrEmpty(_selectedPlaybackDevice?.Id);
+
+    public bool IsRecordingDeviceSet =>
+        !string.IsNullOrEmpty(_selectedRecordingDevice?.Id);
 
     public string HotkeyDisplay
     {
@@ -131,6 +140,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand BrowseIconCommand { get; }
     public ICommand CloneCommand { get; }
     public ICommand DeleteCommand { get; }
+    public ICommand TestSoundCommand { get; }
+    public ICommand TestMicCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -141,7 +152,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         IReadOnlyList<AudioDeviceInfo> recordingDevices,
         Action<ProfileCardViewModel> onChanged,
         Action<ProfileCardViewModel> onDelete,
-        Action<ProfileCardViewModel> onClone)
+        Action<ProfileCardViewModel> onClone,
+        Func<string, Task> onTestSound)
     {
         _model = model;
         _configService = configService;
@@ -150,6 +162,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _onChanged = onChanged;
         _onDelete = onDelete;
         _onClone = onClone;
+        _onTestSound = onTestSound;
 
         _name = model.Name;
         _hotkeyDisplay = model.Hotkey.ToDisplayString();
@@ -173,6 +186,24 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         BrowseIconCommand = new RelayCommand(BrowseIcon);
         CloneCommand = new RelayCommand(() => _onClone(this));
         DeleteCommand = new RelayCommand(DeleteProfile);
+        TestSoundCommand = new RelayCommand(() => _ = TestSound());
+        TestMicCommand = new RelayCommand(TestMic);
+    }
+
+    private async Task TestSound()
+    {
+        var deviceId = _selectedPlaybackDevice?.Id;
+        if (string.IsNullOrEmpty(deviceId)) return;
+        try { await _onTestSound(deviceId); }
+        catch (Exception ex) { AppLogger.Warning("ProfileCardViewModel.TestSound", ex.Message); }
+    }
+
+    private void TestMic()
+    {
+        var deviceId = _selectedRecordingDevice?.Id;
+        if (string.IsNullOrEmpty(deviceId)) return;
+        var deviceName = _selectedRecordingDevice?.FriendlyName ?? deviceId;
+        _dialogService.ShowMicTest(deviceId, deviceName);
     }
 
     // Called by SettingsViewModel once async device enumeration completes.
@@ -204,6 +235,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
         OnPropertyChanged(nameof(SelectedPlaybackDevice));
         OnPropertyChanged(nameof(SelectedRecordingDevice));
+        OnPropertyChanged(nameof(IsPlaybackDeviceSet));
+        OnPropertyChanged(nameof(IsRecordingDeviceSet));
     }
 
     private void CaptureHotkey()

@@ -12,6 +12,8 @@
 
     <Window.Resources>
 
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
         <!-- ── Card ── -->
         <Style x:Key="CardBorder" TargetType="Border">
             <Setter Property="Background"      Value="White"/>
@@ -338,7 +340,35 @@
                                               ItemsSource="{Binding PlaybackDevices}"
                                               SelectedItem="{Binding SelectedPlaybackDevice}"
                                               Visibility="{Binding PlaybackVisible}"
-                                              Margin="0,0,0,8"/>
+                                              Margin="0,0,0,8">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                             Visibility="{Binding ShowDot, Converter={StaticResource BoolToVis}}">
+                                                        <Ellipse.Style>
+                                                            <Style TargetType="Ellipse">
+                                                                <Setter Property="Fill" Value="#2DB55D"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                                        <Setter Property="Fill" Value="#CC3333"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Ellipse.Style>
+                                                    </Ellipse>
+                                                    <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Button Grid.Row="1" Grid.Column="3"
+                                            Content="Test"
+                                            Margin="8,0,0,8" VerticalAlignment="Center"
+                                            Style="{StaticResource ActionButton}"
+                                            Command="{Binding TestSoundCommand}"
+                                            IsEnabled="{Binding IsPlaybackDeviceSet}"
+                                            Visibility="{Binding PlaybackVisible}"/>
 
                                     <!-- Recording -->
                                     <StackPanel Grid.Row="2" Grid.Column="1"
@@ -364,7 +394,35 @@
                                               ItemsSource="{Binding RecordingDevices}"
                                               SelectedItem="{Binding SelectedRecordingDevice}"
                                               Visibility="{Binding RecordingVisible}"
-                                              Margin="0,0,0,8"/>
+                                              Margin="0,0,0,8">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                             Visibility="{Binding ShowDot, Converter={StaticResource BoolToVis}}">
+                                                        <Ellipse.Style>
+                                                            <Style TargetType="Ellipse">
+                                                                <Setter Property="Fill" Value="#2DB55D"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                                        <Setter Property="Fill" Value="#CC3333"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Ellipse.Style>
+                                                    </Ellipse>
+                                                    <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Button Grid.Row="2" Grid.Column="3"
+                                            Content="Test"
+                                            Margin="8,0,0,8" VerticalAlignment="Center"
+                                            Style="{StaticResource ActionButton}"
+                                            Command="{Binding TestMicCommand}"
+                                            IsEnabled="{Binding IsRecordingDeviceSet}"
+                                            Visibility="{Binding RecordingVisible}"/>
 
                                     <!-- Hotkey -->
                                     <StackPanel Grid.Row="3" Grid.Column="1"

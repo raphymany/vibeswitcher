@@ -41,4 +41,5 @@ public class DeviceProfile
     public int SortOrder { get; set; }
 
     public bool Silent { get; set; } = false;
+
 }
