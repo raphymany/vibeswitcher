@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — adds F31–F41 and planned branches 35–43.
+**Last updated:** 2026-05-19 — drops portable mode (Branch 33 repurposed as config import/export).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -105,7 +105,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
 | F10 | Per-profile volume level — sets device default volume when switching to that profile | 30 |
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 34 |
-| F13 | Portable mode — auto-detected via `portable.txt` next to the exe; stores config in the same folder instead of `%APPDATA%` | 33 |
+| F13 | Config import/export — export all profiles and settings to a file; import on any other machine | 33 |
 | F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 31 |
 | F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path | 32 |
 | F18 | Field feedback — brief green border flash on a card when a change is saved | 31 |
@@ -144,12 +144,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 33: `feat/portable-mode`
-**Theme:** Portable install support — config stored next to the exe when `portable.txt` is present.
+### Branch 33: `feat/config-import-export`
+**Theme:** Move profiles and settings between machines — export to a file, import on any install.
 
 | # | Feature |
 |---|---------|
-| F13 | Portable mode — auto-detected via `portable.txt` next to the exe; stores config locally |
+| F13 | Config import/export — export all profiles and settings to a file; import on any other machine |
 
 ---
 
