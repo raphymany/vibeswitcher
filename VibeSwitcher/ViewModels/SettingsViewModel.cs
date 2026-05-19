@@ -104,7 +104,7 @@ public class SettingsViewModel : ViewModelBase
             _configService.Current.SettingsHotkey = value;
             _configService.SaveImmediate();
             _hotkeyService.UnregisterSettingsHotkey();
-            if (!value.IsEmpty)
+            if (!value.IsEmpty && _configService.Current.SettingsHotkeyEnabled)
             {
                 var conflict = _hotkeyService.RegisterSettingsHotkey(value);
                 if (conflict != null)
@@ -112,6 +112,7 @@ public class SettingsViewModel : ViewModelBase
             }
             OnPropertyChanged(nameof(SettingsHotkey));
             OnPropertyChanged(nameof(SettingsHotkeyDisplay));
+            OnPropertyChanged(nameof(SettingsHotkeyIsSet));
         }
     }
 
@@ -119,6 +120,34 @@ public class SettingsViewModel : ViewModelBase
         _configService.Current.SettingsHotkey is { IsEmpty: false } hk
             ? hk.ToDisplayString()
             : "None";
+
+    public bool SettingsHotkeyIsSet =>
+        _configService.Current.SettingsHotkey is { IsEmpty: false };
+
+    public bool SettingsHotkeyEnabled
+    {
+        get => _configService.Current.SettingsHotkeyEnabled;
+        set
+        {
+            if (_configService.Current.SettingsHotkeyEnabled == value) return;
+            _configService.Current.SettingsHotkeyEnabled = value;
+            _configService.SaveImmediate();
+            if (value)
+            {
+                var hk = _configService.Current.SettingsHotkey;
+                if (hk is { IsEmpty: false })
+                {
+                    var conflict = _hotkeyService.RegisterSettingsHotkey(hk);
+                    if (conflict != null) _onHotkeyConflict(conflict);
+                }
+            }
+            else
+            {
+                _hotkeyService.UnregisterSettingsHotkey();
+            }
+            OnPropertyChanged(nameof(SettingsHotkeyEnabled));
+        }
+    }
 
     public ICommand AddProfileCommand { get; }
 
@@ -283,9 +312,9 @@ public class SettingsViewModel : ViewModelBase
         foreach (var ex in conflicts)
             _onHotkeyConflict(ex);
 
-        // RegisterAll wipes all hotkeys including the settings hotkey — restore it.
+        // RegisterAll wipes all hotkeys including the settings hotkey — restore it if enabled.
         var settingsHotkey = _configService.Current.SettingsHotkey;
-        if (settingsHotkey is { IsEmpty: false })
+        if (settingsHotkey is { IsEmpty: false } && _configService.Current.SettingsHotkeyEnabled)
         {
             var conflict = _hotkeyService.RegisterSettingsHotkey(settingsHotkey);
             if (conflict != null)

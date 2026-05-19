@@ -40,8 +40,7 @@ public class DialogService : IDialogService
 
     public bool ShowHotkeyConflictRetry(string title, string message)
     {
-        return MessageBox.Show(OwnerWindow, message + "\n\nWould you like to try a different hotkey?",
-            title, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+        return new ConflictRetryDialog(title, message) { Owner = OwnerWindow }.ShowDialog() == true;
     }
 
     public ProfileMode? ShowProfileTypeDialog()

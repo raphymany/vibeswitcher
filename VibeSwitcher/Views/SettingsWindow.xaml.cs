@@ -235,10 +235,9 @@ public partial class SettingsWindow : Window
                     .FirstOrDefault(p => !p.Hotkey.IsEmpty && captured.Matches(p.Hotkey))?.Name;
                 if (ownerName != null)
                 {
-                    bool retry = MessageBox.Show(this,
-                        $"'{captured.ToDisplayString()}' is already assigned to \"{ownerName}\".\n\nWould you like to try a different hotkey?",
-                        "Hotkey Already in Use",
-                        MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes;
+                    bool retry = new ConflictRetryDialog("Hotkey Already in Use",
+                        $"'{captured.ToDisplayString()}' is already assigned to \"{ownerName}\".")
+                    { Owner = this }.ShowDialog() == true;
                     if (retry) { dialogSeed = captured; continue; }
                     break;
                 }

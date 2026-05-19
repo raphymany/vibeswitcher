@@ -118,7 +118,8 @@ public partial class App : Application
 
     private void RegisterSettingsHotkey()
     {
-        var hotkey = _configService!.Current.SettingsHotkey;
+        if (!_configService!.Current.SettingsHotkeyEnabled) return;
+        var hotkey = _configService.Current.SettingsHotkey;
         if (hotkey == null || hotkey.IsEmpty) return;
         var conflict = _hotkeyService!.RegisterSettingsHotkey(hotkey);
         if (conflict != null)

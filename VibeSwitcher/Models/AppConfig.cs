@@ -11,6 +11,7 @@ public class AppConfig
     public bool UseLegacySoundPanel { get; set; } = false;
 
     public HotkeyDefinition? SettingsHotkey { get; set; }
+    public bool SettingsHotkeyEnabled { get; set; } = true;
 
     // Persisted window geometry — null means "not yet saved, use defaults"
     public double WindowWidth  { get; set; } = 0;
