@@ -305,12 +305,21 @@
                                                Text="⠿" FontSize="20" Foreground="#CCCCCC"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
                                                Cursor="Hand" Margin="-4,0,4,0"
+                                               ToolTipService.InitialShowDelay="400"
+                                               ToolTipService.ShowDuration="10000"
                                                PreviewMouseLeftButtonDown="DragGrip_MouseDown"
                                                PreviewMouseLeftButtonUp="DragGrip_MouseUp"
                                                MouseMove="DragGrip_MouseMove">
                                         <TextBlock.ToolTip>
                                             <ToolTip>
-                                                <TextBlock Text="Drag to reorder"/>
+                                                <StackPanel>
+                                                    <TextBlock Text="Drag to reorder"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="#1A1A1A" Margin="0,0,0,4"/>
+                                                    <TextBlock Text="Hold and drag up or down to change the order profiles appear in the tray menu."
+                                                               FontSize="11" Foreground="#555555"
+                                                               TextWrapping="Wrap" MaxWidth="220"/>
+                                                </StackPanel>
                                             </ToolTip>
                                         </TextBlock.ToolTip>
                                     </TextBlock>

@@ -14,11 +14,36 @@ public class GalleryItem
     public string Label { get; }
     public string[] Keywords { get; }
 
+    // Non-null for items rendered via custom geometry rather than emoji.
+    internal Action<DrawingContext, int>? CustomRenderer { get; }
+
+    // Lazily-rendered preview bitmap for custom items; null for emoji items.
+    // Lazy defers WPF rendering until the gallery dialog opens on the UI thread.
+    private readonly Lazy<ImageSource?>? _previewLazy;
+    public ImageSource? GalleryPreview => _previewLazy?.Value;
+
     public GalleryItem(string emoji, string label, string[] keywords)
     {
         Emoji = emoji;
         Label = label;
         Keywords = keywords;
+    }
+
+    internal GalleryItem(string label, string[] keywords, Action<DrawingContext, int> renderer)
+    {
+        Emoji = "";
+        Label = label;
+        Keywords = keywords;
+        CustomRenderer = renderer;
+        _previewLazy = new Lazy<ImageSource?>(() =>
+        {
+            var visual = new DrawingVisual();
+            using (var dc = visual.RenderOpen()) renderer(dc, 64);
+            var rtb = new RenderTargetBitmap(64, 64, 96, 96, PixelFormats.Pbgra32);
+            rtb.Render(visual);
+            rtb.Freeze();
+            return rtb;
+        });
     }
 }
 
@@ -41,7 +66,7 @@ public static class GalleryIconHelper
         new GalleryItem("📞", "Calls",     new[] { "calls", "call", "phone", "meeting" }),
         new GalleryItem("🎤", "Mic",       new[] { "mic", "microphone", "recording" }),
         new GalleryItem("🏠", "Home",      new[] { "home", "house" }),
-        new GalleryItem("🔊", "Speakers",  new[] { "speakers", "speaker" }),
+        new GalleryItem("Speakers", new[] { "speakers", "speaker" }, DrawSpeaker),
         new GalleryItem("🌙", "Night",     new[] { "night", "sleep", "evening" }),
         new GalleryItem("🎙️", "Podcast",  new[] { "podcast", "podcasting" }),
         new GalleryItem("🖥️", "Desktop",  new[] { "desktop", "pc", "computer" }),
@@ -53,26 +78,68 @@ public static class GalleryIconHelper
         return Items.FirstOrDefault(i => i.Keywords.Any(k => string.Equals(k, lower, StringComparison.OrdinalIgnoreCase)));
     }
 
-    // Renders an emoji glyph to a 64×64 .ico file at destPath.
+    // Draws a physical bookshelf-speaker shape: rounded cabinet with a concentric-circle
+    // driver (basket ring + dustcap + center dot) punched out of the face.
+    // The hole in the cabinet is transparent, so Black/White color masks read correctly.
+    private static void DrawSpeaker(DrawingContext dc, int size)
+    {
+        double s = size;
+        double pad = s * 0.07;
+        double cx = s / 2, cy = s / 2;
+        double outerRadius  = s * 0.37;
+        double dustcapRadius = s * 0.13;
+        double cornerRadius  = s * 0.10;
+
+        var cabinetBrush  = new SolidColorBrush(Color.FromRgb(0x44, 0x44, 0x44));
+        var ringBrush     = new SolidColorBrush(Color.FromRgb(0x77, 0x77, 0x77));
+        var dustcapBrush  = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
+        var centerBrush   = new SolidColorBrush(Color.FromRgb(0x33, 0x33, 0x33));
+
+        // Cabinet with the driver opening punched out (transparent hole)
+        var cabinetRect = new RectangleGeometry(
+            new Rect(pad, pad, s - pad * 2, s - pad * 2), cornerRadius, cornerRadius);
+        var driverHole = new EllipseGeometry(new Point(cx, cy), outerRadius, outerRadius);
+        dc.DrawGeometry(cabinetBrush, null,
+            new CombinedGeometry(GeometryCombineMode.Exclude, cabinetRect, driverHole));
+
+        // Basket frame ring (border of the driver opening)
+        dc.DrawEllipse(null, new Pen(ringBrush, s * 0.04),
+            new Point(cx, cy), outerRadius, outerRadius);
+
+        // Dustcap (centre dome of the driver)
+        dc.DrawEllipse(dustcapBrush, null, new Point(cx, cy), dustcapRadius, dustcapRadius);
+
+        // Centre dot
+        dc.DrawEllipse(centerBrush, null, new Point(cx, cy), s * 0.04, s * 0.04);
+    }
+
+    // Renders a gallery item to a 64×64 .ico file at destPath.
     // Writes the ICO format directly (single PNG-embedded frame) to preserve full
     // 64×64 quality — avoids Bitmap.GetHicon() which scales to the system icon size.
     // Must be called on the STA (UI) thread — uses WPF rendering pipeline.
-    public static void SaveGalleryIcon(string emoji, string destPath, IconColor color = IconColor.Auto)
+    public static void SaveGalleryIcon(GalleryItem item, string destPath, IconColor color = IconColor.Black)
     {
         const int size = 64;
         const double dpi = 96.0;
-        const double pixelsPerDip = 1.0; // 96 DPI baseline
 
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
         {
-            var tf = new Typeface(new FontFamily("Segoe UI Emoji"),
-                FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
-            var ft = new FormattedText(emoji, CultureInfo.InvariantCulture,
-                FlowDirection.LeftToRight, tf, size * 0.72, Brushes.Black, pixelsPerDip);
-            var x = Math.Max(0, (size - ft.Width) / 2);
-            var y = Math.Max(0, (size - ft.Height) / 2);
-            dc.DrawText(ft, new Point(x, y));
+            if (item.CustomRenderer != null)
+            {
+                item.CustomRenderer(dc, size);
+            }
+            else
+            {
+                const double pixelsPerDip = 1.0;
+                var tf = new Typeface(new FontFamily("Segoe UI Emoji"),
+                    FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+                var ft = new FormattedText(item.Emoji, CultureInfo.InvariantCulture,
+                    FlowDirection.LeftToRight, tf, size * 0.72, Brushes.Black, pixelsPerDip);
+                var x = Math.Max(0, (size - ft.Width) / 2);
+                var y = Math.Max(0, (size - ft.Height) / 2);
+                dc.DrawText(ft, new Point(x, y));
+            }
         }
 
         var rtb = new RenderTargetBitmap(size, size, dpi, dpi, PixelFormats.Pbgra32);
@@ -96,7 +163,6 @@ public static class GalleryIconHelper
     }
 
     // Replaces all non-transparent pixels with the given color (pre-multiplied alpha preserved).
-    // Used to produce monochrome white or black versions of emoji icons for taskbar visibility.
     private static WriteableBitmap ApplyColorMask(RenderTargetBitmap source, Color color)
     {
         int width = source.PixelWidth, height = source.PixelHeight;

@@ -152,11 +152,40 @@
                                 Style="{StaticResource GalleryItemButton}"
                                 Click="GalleryItem_Click">
                             <StackPanel>
+                                <!-- Custom-rendered preview (e.g. geometric speaker icon) -->
+                                <Image Source="{Binding GalleryPreview}"
+                                       Width="36" Height="36"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,4"
+                                       RenderOptions.BitmapScalingMode="HighQuality">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding GalleryPreview}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                                <!-- Emoji (shown when no custom preview) -->
                                 <TextBlock Text="{Binding Emoji}"
                                            FontSize="34"
                                            FontFamily="Segoe UI Emoji"
                                            HorizontalAlignment="Center"
-                                           Margin="0,0,0,4"/>
+                                           Margin="0,0,0,4">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding GalleryPreview}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                                 <TextBlock Text="{Binding Label}"
                                            FontSize="11"
                                            Foreground="#555555"

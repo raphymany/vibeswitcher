@@ -339,7 +339,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         try
         {
-            GalleryIconHelper.SaveGalleryIcon(item.Emoji, dest, color);
+            GalleryIconHelper.SaveGalleryIcon(item, dest, color);
         }
         catch (Exception ex)
         {
