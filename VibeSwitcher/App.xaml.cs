@@ -139,12 +139,16 @@ public partial class App : Application
         if (!File.Exists(appDataConfig)) return;
 
         var result = MessageBox.Show(
-            "Portable mode is active, but no profiles are saved here yet.\n\n" +
-            "Would you like to import your existing profiles and settings from this PC?\n\n" +
-            "Choose Yes to import, or No to start fresh.",
-            "VibeSwitcher — Import Profiles?",
+            "Portable mode is active.\n\n" +
+            "In portable mode, VibeSwitcher stores your profiles and settings right here, " +
+            "next to the exe — not in the usual Windows location. This means you can copy " +
+            "this folder to a USB drive or another PC and everything travels with it.\n\n" +
+            "Existing profiles were found on this PC. What would you like to do?\n\n" +
+            "  Yes — import your current profiles and settings into this folder\n" +
+            "  No  — start fresh with no profiles",
+            "VibeSwitcher — Portable Mode",
             MessageBoxButton.YesNo,
-            MessageBoxImage.Question,
+            MessageBoxImage.Information,
             MessageBoxResult.Yes);
 
         if (result != MessageBoxResult.Yes) return;

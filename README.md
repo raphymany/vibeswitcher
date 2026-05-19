@@ -63,13 +63,24 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for IDE setup and project structure.
 
 ## Portable Mode
 
-VibeSwitcher can run in portable mode, storing all data (profiles, settings, and logs) next to the exe instead of in `%APPDATA%\VibeSwitcher`. This is useful for USB drives or installs where you want everything self-contained in one folder.
+In portable mode, VibeSwitcher stores all your profiles, settings, and logs right next to the exe — not in the usual Windows AppData location. This means the folder is fully self-contained: copy it anywhere and everything travels with it.
 
-**To activate:** Create an empty file named `portable.txt` in the same folder as `VibeSwitcher.exe`. The app detects it automatically on the next launch.
+**To activate:**
+1. Create an empty file named `portable.txt` in the same folder as `VibeSwitcher.exe`
+2. Launch `VibeSwitcher.exe`
+3. If you already have profiles set up on this PC, a dialog will appear asking whether to import them into the portable folder or start fresh — choose whichever you prefer. This dialog only appears once.
 
-**To deactivate:** Delete `portable.txt`. On the next launch the app returns to `%APPDATA%\VibeSwitcher` — your portable config stays in the folder and is not migrated automatically.
+**To move to a USB drive or another PC:**
 
-> **Note:** Existing profiles from `%APPDATA%` are not copied over when switching modes. If you want to carry your profiles to a portable install, use the config import/export feature (planned).
+After activating portable mode, copy the entire folder to your destination:
+- `VibeSwitcher.exe`
+- `portable.txt`
+- `config.json` (created automatically after first launch)
+- `Icons\` folder (only if you have custom profile icons)
+
+Run `VibeSwitcher.exe` from the new location — no installation required. On a brand new PC with no existing profiles, the app starts fresh with the settings window open.
+
+**To deactivate:** Delete `portable.txt`. On the next launch the app returns to `%APPDATA%\VibeSwitcher`. Your portable config stays in the folder and is not migrated back automatically.
 
 > **USB drives:** Do not enable "Start with Windows" when running from a USB drive. Windows assigns drive letters dynamically, so the registry path may point to a missing location after the next reboot. The option is disabled in Settings when portable mode is active.
 
