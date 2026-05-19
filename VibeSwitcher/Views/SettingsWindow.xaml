@@ -648,6 +648,7 @@
                                     Background="Transparent"
                                     BorderBrush="Transparent"
                                     BorderThickness="1"
+                                    CornerRadius="7,7,0,0"
                                     Padding="16,14,16,14">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -672,6 +673,7 @@
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="False">
                                     <Setter TargetName="Arrow" Property="Text" Value="▲"/>
+                                    <Setter TargetName="Bg" Property="CornerRadius" Value="7"/>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bg" Property="Background" Value="#F0F6FF"/>
