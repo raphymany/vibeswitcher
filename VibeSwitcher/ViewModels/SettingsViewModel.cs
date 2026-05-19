@@ -288,7 +288,7 @@ public class SettingsViewModel : ViewModelBase
         _onProfilesChanged();
     }
 
-    private void ReregisterHotkeys()
+    internal void ReregisterHotkeys()
     {
         var conflicts = _hotkeyService.RegisterAll(_configService.Current.Profiles);
         foreach (var ex in conflicts)

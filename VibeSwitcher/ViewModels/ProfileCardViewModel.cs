@@ -191,9 +191,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void CaptureHotkey()
     {
-        // Unregister this profile's hotkey so pressing it inside the dialog is detectable.
-        // Without this, Windows intercepts the registered key before WPF sees it.
-        _hotkeyService.UnregisterProfile(_model.Id);
+        // Unregister ALL hotkeys so no profile or settings hotkey can fire while the dialog is open.
+        // Without this, Windows intercepts registered keys before WPF sees them.
+        _hotkeyService.UnregisterAll();
 
         var captured = _dialogService.ShowHotkeyCapture(_model.Hotkey);
         bool applied = false;
@@ -217,7 +217,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 {
                     _model.Hotkey = captured;
                     HotkeyDisplay = _model.Hotkey.ToDisplayString();
-                    _onChanged(this); // triggers RegisterAll → re-registers all hotkeys with new value
+                    _onChanged(this); // triggers ReregisterHotkeys → re-registers all hotkeys
                     applied = true;
                 }
             }
@@ -231,7 +231,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
 
         if (!applied)
-            _hotkeyService.RegisterProfile(_model); // restore original on cancel / conflict
+        {
+            // Restore all hotkeys (profiles + Settings) that were unregistered above.
+            _hotkeyService.RegisterAll(_configService.Current.Profiles);
+            var settingsHk = _configService.Current.SettingsHotkey;
+            if (settingsHk is { IsEmpty: false })
+                _hotkeyService.RegisterSettingsHotkey(settingsHk);
+        }
     }
 
     private string? FindInternalConflictOwner(HotkeyDefinition hotkey)

@@ -17,6 +17,7 @@ public partial class SettingsWindow : Window
     private readonly SettingsViewModel _viewModel;
     private readonly TrayService _trayService;
     private readonly IConfigService _configService;
+    private readonly IHotkeyService _hotkeyService;
     private readonly EventHandler _errorAddedHandler;
 
     public SettingsWindow(
@@ -28,6 +29,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         _trayService = trayService;
         _configService = configService;
+        _hotkeyService = hotkeyService;
 
         var startupService = new StartupService();
         var dialogService = new DialogService();
@@ -217,9 +219,13 @@ public partial class SettingsWindow : Window
 
     private void SettingsHotkeyButton_Click(object sender, RoutedEventArgs e)
     {
+        // Unregister all hotkeys so profile hotkeys can't fire while the dialog is open.
+        _hotkeyService.UnregisterAll();
         var dialog = new HotkeyCaptureDialog(_viewModel.SettingsHotkey) { Owner = this };
         if (dialog.ShowDialog() == true && dialog.CapturedHotkey != null)
             _viewModel.SettingsHotkey = dialog.CapturedHotkey;
+        // Always re-register everything (profiles + Settings hotkey) after the dialog closes.
+        _viewModel.ReregisterHotkeys();
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
