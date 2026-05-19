@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — Branch 44 (`feat/settings-ux`) in review.
+**Last updated:** 2026-05-19 — Branch 44 merged (PR #64).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -298,7 +298,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 44: `feat/settings-ux`
+### ~~Branch 44: `feat/settings-ux`~~ ✅ Merged — PR #64
 **Theme:** Settings window UX polish — device visibility controls, collapsible settings card, tray menu clarity, and visual consistency.
 
 | # | Feature |

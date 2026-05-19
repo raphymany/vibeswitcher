@@ -732,6 +732,10 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~25~~ | ~~`test/additional-coverage`~~ | ✅ Done — PR #48 |
 | ~~26~~ | ~~`feat/app-icon-refresh`~~ | ✅ Done — PR #50 |
 | ~~27~~ | ~~`feat/toast-notifications`~~ | ✅ Done — PR #53 |
+| ~~28~~ | ~~`feat/tray-interactions`~~ | ✅ Done — PR #57 |
+| ~~29~~ | ~~`feat/profile-management`~~ | ✅ Done — PR #59 |
+| ~~30~~ | ~~`feat/device-enhancements`~~ | ✅ Done — PR #61 |
+| ~~44~~ | ~~`feat/settings-ux`~~ | ✅ Done — PR #64 |
 
 ---
 
@@ -1005,3 +1009,18 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | F3 ext | Mic test button — opens a level meter dialog that captures from the selected recording device for 5 seconds, showing real-time RMS and peak level | ✅ Done |
 | F26 | Device connectivity indicator — green dot for active, red dot for disabled or unplugged devices in Settings dropdowns; disabled devices now stay visible in the list instead of disappearing | ✅ Done |
 | F10 | Per-profile volume override | Dropped — user prefers Windows tray for volume control |
+
+---
+
+### ~~Branch 44: `feat/settings-ux`~~ ✅ Merged — PR #64
+**Theme:** Settings window UX polish — device visibility controls, collapsible settings card, tray menu clarity, and visual consistency.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| — | Show/hide disabled devices toggle — separate checkbox in Settings to include or exclude software-disabled audio devices from profile card dropdowns; persists to config | ✅ Done |
+| — | Show/hide disconnected devices toggle — separate checkbox to include or exclude unplugged devices from dropdowns; filters immediately without re-enumerating | ✅ Done |
+| — | Collapsible General Settings card — ToggleButton header with gear icon, title, and subtitle; card body collapses/expands on click; `SettingsCardExpanded` persisted in config | ✅ Done |
+| — | Window title simplified to "VibeSwitcher" | ✅ Done |
+| — | Tray right-click menu: VibeSwitcher header now clickable (opens app); ambiguous "Settings" item removed | ✅ Done |
+| — | Button corner radius unified to 7 across all button styles (`RoundedButtonTemplate`) | ✅ Done |
+| — | `SettingsCardExpanded` property guarded against same-value writes to prevent spurious config saves on window open | ✅ Done |

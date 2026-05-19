@@ -7,6 +7,16 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Device visibility toggles** — two new toggle switches under a "Devices" section in General Settings: one to show/hide software-disabled devices in profile card dropdowns, one for disconnected/unplugged devices; both settings persist across sessions and filter immediately without re-enumerating audio endpoints *(PR #64)*
+- **Collapsible General Settings card** — the settings card now has a clickable header with a gear icon, a "VibeSwitcher Settings" title, and a subtitle; clicking collapses or expands the card body; collapsed/expanded state is saved to config and restored on next launch *(PR #64)*
+- **Tray menu clarity** — the VibeSwitcher logo at the top of the right-click tray menu is now clickable to open the app; the separate "Settings" item (whose label was ambiguous) has been removed *(PR #64)*
+
+### Fixed
+- **Window title** — title bar now shows "VibeSwitcher" instead of "VibeSwitcher - Settings" *(PR #64)*
+- **Button corner radius unified** — all action buttons now use `CornerRadius="7"` to match the Settings card expander hover style *(PR #64)*
+- **Spurious config save on window open** — `SettingsCardExpanded` now guards against same-value writes, matching the pattern of every other settings property *(PR #64)*
+
+### Added
 - **Test sound button (F3)** — each profile card now has a speaker button next to the playback dropdown; clicking it plays a 440 Hz tone directly through the selected device via WASAPI, bypassing the Windows default so you can confirm which device is active *(PR #61)*
 - **Mic test dialog (F3 extension)** — a mic button next to the recording dropdown opens a live level meter dialog that captures audio from the selected device for 5 seconds, showing real-time RMS level and peak reading *(PR #61)*
 - **Device connectivity indicator (F26)** — playback and recording dropdowns now show a green dot for active devices and a red dot for disabled or unplugged devices; devices disabled in Windows Sound settings stay visible in the list instead of disappearing *(PR #61)*
