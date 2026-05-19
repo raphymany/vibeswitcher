@@ -1,5 +1,6 @@
 using Microsoft.Win32;
 using System.Windows;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Views;
 
@@ -31,6 +32,13 @@ public class DialogService : IDialogService
             CheckFileExists = true
         };
         return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
+    public GalleryPickResult? ShowIconGallery()
+    {
+        var dialog = new IconGalleryDialog { Owner = OwnerWindow };
+        if (dialog.ShowDialog() != true) return null;
+        return new GalleryPickResult { Item = dialog.SelectedItem, BrowseFromDisk = dialog.BrowseFromDisk };
     }
 
     public void ShowAlert(string title, string message)

@@ -1,0 +1,135 @@
+<Window x:Class="VibeSwitcher.Views.IconGalleryDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Choose an Icon"
+        Width="484" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="#F3F3F3"
+        ShowInTaskbar="False">
+
+    <Window.Resources>
+
+        <Style x:Key="GalleryItemButton" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="10,10"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#F0F6FF"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#0078D4"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#E3F0FF"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#005FA3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <ControlTemplate x:Key="RoundedBtn" TargetType="Button">
+            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="7"
+                    Padding="{TemplateBinding Padding}">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </ControlTemplate>
+
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="Template"        Value="{StaticResource RoundedBtn}"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Height"          Value="32"/>
+            <Setter Property="Padding"         Value="20,0"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="Background"      Value="White"/>
+            <Setter Property="BorderBrush"     Value="#DDDDDD"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background"  Value="#F0F6FF"/>
+                    <Setter Property="BorderBrush" Value="#0078D4"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+    </Window.Resources>
+
+    <StackPanel Margin="24,20,24,24">
+
+        <!-- Header -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+            <Border Width="36" Height="36" Background="#EEF4FF" CornerRadius="18"
+                    Margin="0,0,12,0" VerticalAlignment="Center">
+                <TextBlock Text="🖼️" FontSize="18"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Choose an Icon"
+                           FontSize="15" FontWeight="SemiBold" Foreground="#1A1A1A"/>
+                <TextBlock Text="Select a built-in icon or browse for a custom .ico file"
+                           FontSize="11" Foreground="#888888" Margin="0,2,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Gallery grid — 4 columns -->
+        <ItemsControl ItemsSource="{Binding Items}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="4"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Tag="{Binding}"
+                            Style="{StaticResource GalleryItemButton}"
+                            Click="GalleryItem_Click">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Emoji}"
+                                       FontSize="34"
+                                       FontFamily="Segoe UI Emoji"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding Label}"
+                                       FontSize="11"
+                                       Foreground="#555555"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Separator Margin="0,16"/>
+
+        <!-- Footer buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="Browse from disk..."
+                    Style="{StaticResource ActionBtn}"
+                    Margin="0,0,8,0"
+                    Click="BrowseFromDisk_Click"/>
+            <Button Content="Cancel"
+                    Style="{StaticResource ActionBtn}"
+                    IsCancel="True"
+                    Click="Cancel_Click"/>
+        </StackPanel>
+
+    </StackPanel>
+</Window>

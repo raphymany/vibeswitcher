@@ -156,31 +156,45 @@ public class ProfileCardViewModelTests
         Assert.Equal(1, _changedCount);
     }
 
-    // ── BrowseIcon ───────────────────────────────────────────────────────────
+    // ── PickIcon ─────────────────────────────────────────────────────────────
 
     [Fact]
-    public void BrowseIcon_Cancel_NoChange()
+    public void PickIcon_GalleryCancel_NoChange()
     {
-        _fakeDialog.BrowseIconFileResult = null; // user cancelled the file dialog
+        _fakeDialog.IconGalleryResult = null; // user cancelled the gallery dialog
         using var card = MakeCard();
 
-        card.BrowseIconCommand.Execute(null);
+        card.PickIconCommand.Execute(null);
 
         Assert.Null(card.IconPath);
         Assert.Equal(0, _changedCount);
     }
 
     [Fact]
-    public void BrowseIcon_CopySuccess_UpdatesIconPath()
+    public void PickIcon_BrowseThenCancel_NoChange()
+    {
+        _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { BrowseFromDisk = true };
+        _fakeDialog.BrowseIconFileResult = null; // user cancelled the file dialog
+        using var card = MakeCard();
+
+        card.PickIconCommand.Execute(null);
+
+        Assert.Null(card.IconPath);
+        Assert.Equal(0, _changedCount);
+    }
+
+    [Fact]
+    public void PickIcon_BrowseSuccess_UpdatesIconPath()
     {
         var sourceFile = Path.Combine(Path.GetTempPath(), $"vs-test-{Guid.NewGuid():N}.ico");
         File.WriteAllBytes(sourceFile, [0x00]);
         try
         {
+            _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { BrowseFromDisk = true };
             _fakeDialog.BrowseIconFileResult = sourceFile;
             using var card = MakeCard();
 
-            card.BrowseIconCommand.Execute(null);
+            card.PickIconCommand.Execute(null);
 
             Assert.NotNull(card.IconPath);
             Assert.StartsWith(_fakeConfig.IconsDir, card.IconPath, StringComparison.OrdinalIgnoreCase);
@@ -192,21 +206,20 @@ public class ProfileCardViewModelTests
     }
 
     [Fact]
-    public void BrowseIcon_CopyFailure_ShowsAlert()
+    public void PickIcon_BrowseCopyFailure_ShowsAlert()
     {
+        _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { BrowseFromDisk = true };
         _fakeDialog.BrowseIconFileResult = @"C:\DoesNotExist\missing.ico";
         using var card = MakeCard();
 
-        card.BrowseIconCommand.Execute(null);
+        card.PickIconCommand.Execute(null);
 
         Assert.Single(_fakeDialog.AlertsShown);
         Assert.Null(card.IconPath);
     }
 
-    // ── DeleteProfile ────────────────────────────────────────────────────────
-
     [Fact]
-    public void BrowseIcon_SamePath_SkipsCopyAndUpdatesPath()
+    public void PickIcon_BrowseSamePath_SkipsCopyAndUpdatesPath()
     {
         // If the user selects the file that is already in the icons dir, no File.Copy runs.
         var profile = new DeviceProfile { Name = "Test" };
@@ -215,10 +228,11 @@ public class ProfileCardViewModelTests
         File.WriteAllBytes(dest, [0x00]); // file already exists at the destination
         try
         {
+            _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { BrowseFromDisk = true };
             _fakeDialog.BrowseIconFileResult = dest; // source == dest → copy skipped
             using var card = MakeCard(profile);
 
-            card.BrowseIconCommand.Execute(null);
+            card.PickIconCommand.Execute(null);
 
             Assert.Equal(dest, card.IconPath, StringComparer.OrdinalIgnoreCase);
             Assert.Empty(_fakeDialog.AlertsShown); // no error shown
@@ -226,6 +240,69 @@ public class ProfileCardViewModelTests
         finally
         {
             try { File.Delete(dest); } catch { }
+        }
+    }
+
+    // ── ShowNameSuggestions / ApplyNameSuggestion ────────────────────────────
+
+    [Theory]
+    [InlineData("Profile 1",   true)]
+    [InlineData("Profile 99",  true)]
+    [InlineData("Profile 100", true)]
+    [InlineData("Profile ",    false)]  // no digit after space
+    [InlineData("Profile",     false)]  // no space
+    [InlineData("Gaming",      false)]
+    [InlineData("Profile 1 x", false)]  // extra chars
+    public void ShowNameSuggestions_MatchesDefaultNamePattern(string name, bool expected)
+    {
+        var profile = new DeviceProfile { Name = name };
+        using var card = MakeCard(profile);
+
+        Assert.Equal(expected, card.ShowNameSuggestions);
+    }
+
+    [Fact]
+    public void ApplyNameSuggestion_SetsName()
+    {
+        var profile = new DeviceProfile { Name = "Profile 1" };
+        using var card = MakeCard(profile);
+
+        card.ApplyNameSuggestionCommand.Execute("Gaming");
+
+        Assert.Equal("Gaming", card.Name);
+    }
+
+    [Fact]
+    public void ApplyNameSuggestion_HidesSuggestions()
+    {
+        var profile = new DeviceProfile { Name = "Profile 1" };
+        using var card = MakeCard(profile);
+        Assert.True(card.ShowNameSuggestions);
+
+        card.ApplyNameSuggestionCommand.Execute("Work");
+
+        Assert.False(card.ShowNameSuggestions);
+    }
+
+    [Fact]
+    public void ApplyNameSuggestion_WhenIconAlreadySet_DoesNotOverwriteIcon()
+    {
+        var profile = new DeviceProfile { Name = "Profile 1", IconPath = null };
+        var existingIcon = Path.Combine(_fakeConfig.IconsDir, "existing.ico");
+        Directory.CreateDirectory(_fakeConfig.IconsDir);
+        File.WriteAllBytes(existingIcon, [0x00]);
+        try
+        {
+            using var card = MakeCard(profile);
+            card.IconPath = existingIcon; // simulate pre-existing icon
+
+            card.ApplyNameSuggestionCommand.Execute("Gaming");
+
+            Assert.Equal(existingIcon, card.IconPath); // icon unchanged
+        }
+        finally
+        {
+            try { File.Delete(existingIcon); } catch { }
         }
     }
 
