@@ -512,7 +512,7 @@
                                                 <Border.ToolTip>
                                                     <ToolTip>
                                                         <TextBlock TextWrapping="Wrap" MaxWidth="240">
-                                                            When enabled, switching to this profile skips the balloon notification. Device-unavailable warnings still appear regardless of this setting.
+                                                            When enabled, switching to this profile skips the Windows notification banner. Device-unavailable warnings still appear regardless of this setting.
                                                         </TextBlock>
                                                     </ToolTip>
                                                 </Border.ToolTip>
