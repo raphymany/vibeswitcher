@@ -646,7 +646,8 @@
                         <ControlTemplate TargetType="ToggleButton">
                             <Border x:Name="Bg"
                                     Background="Transparent"
-                                    BorderThickness="0"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="1"
                                     Padding="16,14,16,14">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -674,6 +675,7 @@
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bg" Property="Background" Value="#F0F6FF"/>
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="#0078D4"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
