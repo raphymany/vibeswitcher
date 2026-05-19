@@ -643,21 +643,32 @@
                               Focusable="False" Cursor="Hand">
                     <ToggleButton.Template>
                         <ControlTemplate TargetType="ToggleButton">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="VibeSwitcher Settings"
-                                           FontWeight="SemiBold" FontSize="13"
-                                           Foreground="#1A1A1A" VerticalAlignment="Center"/>
-                                <TextBlock x:Name="Arrow" Grid.Column="1"
-                                           Text="▼" FontSize="10" Foreground="#888888"
-                                           VerticalAlignment="Center" Margin="8,0,0,0"/>
-                            </Grid>
+                            <Border x:Name="Bg"
+                                    Background="Transparent"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="1"
+                                    CornerRadius="4"
+                                    Padding="4,3">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="VibeSwitcher Settings"
+                                               FontWeight="SemiBold" FontSize="13"
+                                               Foreground="#1A1A1A" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="Arrow" Grid.Column="1"
+                                               Text="▼" FontSize="10" Foreground="#888888"
+                                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </Grid>
+                            </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="False">
-                                    <Setter TargetName="Arrow" Property="Text" Value="▶"/>
+                                    <Setter TargetName="Arrow" Property="Text" Value="▲"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="#F0F6FF"/>
+                                    <Setter TargetName="Bg" Property="BorderBrush" Value="#0078D4"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
