@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — drops portable mode (Branch 33 repurposed as config import/export).
+**Last updated:** 2026-05-19 — renumber planned branches 28–33 sequentially; drop F13 (duplicate of F1).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -97,27 +97,26 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 | # | Feature | Branch |
 |---|---------|--------|
-| F1 | Import/export `config.json` via Settings for backup and sharing | 31 |
+| F1 | Import/export `config.json` via Settings for backup and sharing | 32 |
 | F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) | 29 |
 | F3 | "Test sound" button to verify active device plays audio | 30 |
 | F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys | 28 |
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
 | F10 | Per-profile volume level — sets device default volume when switching to that profile | 30 |
-| F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 34 |
-| F13 | Config import/export — export all profiles and settings to a file; import on any other machine | 33 |
-| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 31 |
-| F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path | 32 |
-| F18 | Field feedback — brief green border flash on a card when a change is saved | 31 |
-| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 31 |
-| F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding | 32 |
+| F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
+| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 32 |
+| F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path | 31 |
+| F18 | Field feedback — brief green border flash on a card when a change is saved | 32 |
+| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 32 |
+| F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding | 31 |
 | F21 | Left-click tray cycles profiles — switches to the next profile in sort order, wrapping around; right-click still opens the menu | 28 |
-| F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 31 |
+| F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 32 |
 | F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile | 29 |
 | F24 | Global hotkey to open Settings — user-configurable, with option to disable entirely | 28 |
 | F25 | Per-profile silent switch — checkbox on each card to skip the balloon notification when switching to that profile | 29 |
 | F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 30 |
-| F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 32 |
+| F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 31 |
 | F30 | Tray icon switch flash — brief icon pulse when a profile switch completes; visual confirmation when balloon notifications are disabled | 28 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers") | 36 |
 | F32 | Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name | 35 |
@@ -141,15 +140,6 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 ## PLANNED BRANCHES
 
 Grouped by shared UI surface or implementation concern. Features within each branch can ship together without stepping on each other.
-
----
-
-### Branch 33: `feat/config-import-export`
-**Theme:** Move profiles and settings between machines — export to a file, import on any install.
-
-| # | Feature |
-|---|---------|
-| F13 | Config import/export — export all profiles and settings to a file; import on any other machine |
 
 ---
 
@@ -187,7 +177,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 32: `feat/profile-visual`
+### Branch 31: `feat/profile-visual`
 **Theme:** Visual identity features for profiles — icons, names, and colors.
 
 | # | Feature |
@@ -198,7 +188,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 31: `feat/settings-polish`
+### Branch 32: `feat/settings-polish`
 **Theme:** Settings window refinements that don't require new audio logic.
 
 | # | Feature |
@@ -211,7 +201,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 34: `feat/profile-scheduler`
+### Branch 33: `feat/profile-scheduler`
 **Theme:** Time-based automatic profile switching.
 
 | # | Feature |
