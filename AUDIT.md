@@ -181,34 +181,14 @@ See ~~1.8~~ / ~~2.1~~. Device enumeration is now fully async and shared.
 **~~4.6 — No keyboard navigation between profile cards~~** ✅ *Fixed — PR #28*
 `Views/SettingsWindow.xaml` — `KeyboardNavigation.DirectionalNavigation="Contained"` on the `ItemsControl`; read-only fields set `IsTabStop="False"`; explicit `TabIndex` on interactive controls.
 
-**4.7 — No way to reorder profiles** *(Medium)*
-`SortOrder` is set at creation and never updated via UI.
-Fix: add drag handles or up/down buttons.
-
-**4.8 — No "Test Sound" button** *(Low)*
-Users cannot verify the correct device is active without switching away.
-
 **~~4.9 — No hotkey summary visible without opening each card~~** ✅ *Fixed — fix/settings-ux-3*
 `Tray/TrayService.cs` — `BuildProfileHeader` now adds a third line below the mode label showing the hotkey (e.g. "Ctrl+Page Up") in 10 pt gray text when a hotkey is configured. The Settings card already shows the hotkey display field.
 
 **~~4.10 — Hotkey dialog does not show held modifiers before final key press~~** ✅ *Fixed — PR #17*
 `Views/HotkeyCaptureDialog.xaml.cs` — Holding any combination of Ctrl/Shift/Alt/Win now shows e.g. "Ctrl+Shift+" in real time before the final key is pressed.
 
-**4.11 — Dark mode not supported** *(Feature)*
-All colors hardcoded as light-mode hex values. On Windows dark mode, windows look out of place.
-Fix: use `SystemColors` brushes or a theme resource dictionary.
-
 **~~4.12 — Icon info popup not dismissable via Escape~~** ✅ *Fixed — fix/polish-and-compat*
 `SettingsWindow.xaml.cs` — `Window_KeyDown` now calls `CloseOpenIconPopups()` first; if any `IconInfoToggle` `ToggleButton` is checked it is unchecked and the Escape is consumed, so the window is only closed on a second Escape press.
-
-**4.13 — No config import/export** *(Low)*
-Users cannot back up or transfer their profiles.
-
-**4.14 — No middle-click tray handler** *(Low)*
-Convention: middle-click toggles between last two profiles.
-
-**4.15 — No high-contrast mode support** *(Low)*
-Custom-styled controls do not respond to Windows High Contrast mode.
 
 **~~4.16 — Delete dialog Cancel button not `IsDefault`~~** ✅ *Fixed — PR #17*
 `Views/ConfirmDeleteDialog.xaml` — Cancel button is now `IsDefault`; pressing Enter safely dismisses the dialog instead of triggering the delete.
@@ -221,6 +201,8 @@ Custom-styled controls do not respond to Windows High Contrast mode.
 
 **~~4.19 — `LoadDevicesAsync` not cancellable — concurrent calls overwrite each other~~** ✅ Done — PR #42
 `CancellationTokenSource? _loadCts` added; swapped atomically via `Interlocked.Exchange` on each call. Previous enumeration cancelled and disposed before a new one starts. `_playbackDevices` and `_recordingDevices` marked `volatile`.
+
+*Remaining open items (4.7 → F2, 4.8 → F3, 4.11/4.15 → F16, 4.13 → F1, 4.14 → F21) are tracked in Section 11 — Feature Additions.*
 
 ---
 
@@ -373,17 +355,7 @@ Six new tests: `_loadingDevices` guard (two tests), `ConfigService.Migrate()` as
 
 ## SECTION 8 — DEPLOYMENT & DISTRIBUTION
 
-**8.1 — No installer** *(High / pre-release blocker)*
-No installer project exists. Users must run the exe directly from any directory.
-Recommendation: Inno Setup (free, simple, excellent for single-dev projects) or WiX v4 (MSI, handles registry/shortcuts/uninstaller properly).
-
-**8.2 — No code signing** *(High / pre-release blocker)*
-Without Authenticode, Windows SmartScreen blocks the app on every first run for every user.
-Recommendation: Obtain an OV or EV certificate from Sectigo/DigiCert, or distribute via GitHub Releases to build SmartScreen reputation over time.
-
-**8.3 — No auto-updater** *(Medium)*
-No mechanism to notify users of or deliver new versions.
-Fix: add a GitHub Releases version check on startup (fetch latest release JSON, compare semantic version, show balloon if newer).
+*Open items 8.1/C2, 8.2/C3, 8.3/F8, 8.7 are deferred — tracked in Section 11 — Feature Additions / Deferred.*
 
 **~~8.4 — .NET runtime bundling not configured~~** ✅ *Fixed — v1.1.0 release*
 Release published with `--self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true` — single 163 MB exe, no .NET install required.
@@ -393,9 +365,6 @@ Release published with `--self-contained true -p:PublishSingleFile=true -p:Inclu
 
 **~~8.6 — Version format inconsistency in csproj~~** ✅ *Fixed — PR #16*
 `.csproj` — Redundant `<AssemblyVersion>` and `<FileVersion>` removed; MSBuild derives both from `<Version>` automatically.
-
-**8.7 — No winget or Chocolatey package** *(Low / post-release)*
-Submit to `winget-pkgs` and Chocolatey community for discoverability.
 
 **8.8 — Microsoft Store is not feasible** *(Info)*
 Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
@@ -436,9 +405,6 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 **~~10.2 — No CHANGELOG.md~~** ✅ *Done — 2026-05-17*
 `CHANGELOG.md` created covering all changes from v1.0.0 through current fixes.
 
-**10.3 — No in-app help** *(Feature — moved to F19)*
-No F1 help, no "?" button, no getting-started walkthrough.
-
 **~~10.4 — No developer docs / CONTRIBUTING.md~~** ✅ *Fixed — fix/polish-and-compat*
 `CONTRIBUTING.md` created at repo root: prerequisites (.NET 8 SDK, Visual Studio or Rider), getting started steps, project layout table, coding conventions, PR process, and bug reporting guidance.
 
@@ -449,8 +415,7 @@ No F1 help, no "?" button, no getting-started walkthrough.
 **~~10.7 — No build instructions documented~~** ✅ *Fixed — fix/polish-and-compat*
 `README.md` expanded with "Building from source" section: `dotnet restore`, `dotnet run`, and `dotnet publish --self-contained` commands documented; link added to `CONTRIBUTING.md`.
 
-**10.8 — Website labeled "coming soon"** *(Low)*
-Fine as placeholder; update when site launches.
+*Open items 10.3 → F19 (Branch 31) and 10.8 (Deferred) are tracked in Section 11 — Feature Additions.*
 
 ---
 

@@ -24,20 +24,9 @@ Only items **not yet marked ✅ Done** are listed here. Section numbers, letters
 
 ---
 
-## SECTION 4 — USER EXPERIENCE
+## ~~SECTION 4 — USER EXPERIENCE~~
 
-**4.7 — No way to reorder profiles** *(Medium)*
-`SortOrder` is set at creation and never updated via UI.
-Fix: drag handles (Spotify-style, 3-line grip on left of card).
-
-**4.8 — No "Test Sound" button** *(Low)*
-Users cannot verify the correct device is active without switching away.
-
-**4.13 — No config import/export** *(Low)*
-Users cannot back up or transfer their profiles.
-
-**4.14 — No middle-click tray handler** *(Low)*
-Convention: middle-click toggles between last two profiles.
+*(All remaining items tracked in Feature Additions table — 4.7 → F2, 4.8 → F3, 4.13 → F1, 4.14 → F21)*
 
 ---
 
@@ -60,19 +49,9 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 ---
 
-## SECTION 8 — DEPLOYMENT & DISTRIBUTION
+## ~~SECTION 8 — DEPLOYMENT & DISTRIBUTION~~
 
-**8.1 — No installer** *(High / pre-release blocker)*
-No installer project exists. Users must run the exe directly from any directory.
-Recommendation: Inno Setup (free, simple) or WiX v4.
-
-**8.2 — No code signing** *(High / pre-release blocker)*
-Without Authenticode, Windows SmartScreen blocks the app on every first run for every user.
-
-**8.3 — No auto-updater** *(Medium)*
-No mechanism to notify users of or deliver new versions.
-
-**8.7 — No winget or Chocolatey package** *(Low / post-release)*
+*(All remaining items tracked in Planned Branches / Deferred — 8.1/C2 → Deferred, 8.2/C3 → Deferred, 8.3 → F8 Deferred, 8.7 → Deferred)*
 
 ---
 
@@ -82,11 +61,9 @@ No mechanism to notify users of or deliver new versions.
 
 ---
 
-## SECTION 10 — DOCUMENTATION
+## ~~SECTION 10 — DOCUMENTATION~~
 
-**10.3 — No in-app help** *(Feature — F19)*
-
-**10.8 — Website labeled "coming soon"** *(Low)*
+*(All remaining items tracked in Feature Additions / Deferred — 10.3 → F19 Branch 31, 10.8 → Deferred)*
 
 ---
 
