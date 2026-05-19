@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — Branch 30 merged (PR #61); F3, F26 done.
+**Last updated:** 2026-05-19 — Branch 44 (`feat/settings-ux`) in review.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -298,13 +298,17 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 44: `feat/device-display-settings`
-**Theme:** User control over which devices appear in profile card dropdowns.
+### Branch 44: `feat/settings-ux`
+**Theme:** Settings window UX polish — device visibility controls, collapsible settings card, tray menu clarity, and visual consistency.
 
 | # | Feature |
 |---|---------|
-| — | Toggle to show/hide disabled devices in dropdowns |
-| — | Toggle to show/hide disconnected/unplugged devices in dropdowns |
+| — | Show/hide disabled devices toggle — separate toggle in Settings to include or exclude software-disabled audio devices from profile card dropdowns |
+| — | Show/hide disconnected devices toggle — separate toggle to include or exclude unplugged devices from dropdowns |
+| — | Collapsible General Settings card — clickable header with gear icon, title, and subtitle collapses/expands the settings body; state persists across sessions |
+| — | Window title simplified from "VibeSwitcher - Settings" to "VibeSwitcher" |
+| — | Tray right-click menu — VibeSwitcher header is now clickable to open the app; removed the separate ambiguous "Settings" item |
+| — | Button corner radius unified to 7 across all button styles to match the Settings card expander |
 
 ---
 
