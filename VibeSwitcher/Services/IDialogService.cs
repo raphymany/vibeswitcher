@@ -10,4 +10,5 @@ public interface IDialogService
     void ShowAlert(string title, string message);
     bool ShowHotkeyConflictRetry(string title, string message);
     ProfileMode? ShowProfileTypeDialog();
+    void ShowMicTest(string deviceId, string deviceName);
 }

@@ -41,4 +41,9 @@ public class DeviceProfile
     public int SortOrder { get; set; }
 
     public bool Silent { get; set; } = false;
+
+    public bool VolumeOverrideEnabled { get; set; } = false;
+
+    // Master volume applied to the playback device on switch (0–100). Only used when VolumeOverrideEnabled is true.
+    public int Volume { get; set; } = 50;
 }

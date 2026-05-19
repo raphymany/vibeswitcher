@@ -8,4 +8,5 @@ public interface IAudioService : IDisposable
     IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices();
     IReadOnlyList<AudioDeviceInfo> GetRecordingDevices();
     Task<ProfileSwitchResult> ApplyProfileAsync(DeviceProfile profile);
+    Task TestSoundAsync(string deviceId);
 }

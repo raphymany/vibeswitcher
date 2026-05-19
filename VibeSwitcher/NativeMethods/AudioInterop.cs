@@ -144,3 +144,87 @@ public interface IPolicyConfigVista
     [PreserveSig] int SetDefaultEndpoint([MarshalAs(UnmanagedType.LPWStr)] string dev, ERole role);
     [PreserveSig] int SetEndpointVisibility([MarshalAs(UnmanagedType.LPWStr)] string dev, bool bVisible);
 }
+
+// Minimal WAVEFORMATEX — only the fields needed to determine sample format and rate.
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct WAVEFORMATEX
+{
+    public ushort wFormatTag;
+    public ushort nChannels;
+    public uint   nSamplesPerSec;
+    public uint   nAvgBytesPerSec;
+    public ushort nBlockAlign;
+    public ushort wBitsPerSample;
+    public ushort cbSize;
+}
+
+// IAudioEndpointVolume — used to set per-device master volume level.
+[ComImport, Guid("5CDF2C82-841E-4546-9722-0CF74078229A"),
+ InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAudioEndpointVolume
+{
+    [PreserveSig] int RegisterControlChangeNotify(IntPtr pNotify);
+    [PreserveSig] int UnregisterControlChangeNotify(IntPtr pNotify);
+    [PreserveSig] int GetChannelCount(out uint pnChannelCount);
+    [PreserveSig] int SetMasterVolumeLevel(float fLevelDB, ref Guid pguidEventContext);
+    [PreserveSig] int SetMasterVolumeLevelScalar(float fLevel, ref Guid pguidEventContext);
+    [PreserveSig] int GetMasterVolumeLevel(out float pfLevelDB);
+    [PreserveSig] int GetMasterVolumeLevelScalar(out float pfLevel);
+    [PreserveSig] int SetChannelVolumeLevel(uint nChannel, float fLevelDB, ref Guid pguidEventContext);
+    [PreserveSig] int SetChannelVolumeLevelScalar(uint nChannel, float fLevel, ref Guid pguidEventContext);
+    [PreserveSig] int GetChannelVolumeLevel(uint nChannel, out float pfLevelDB);
+    [PreserveSig] int GetChannelVolumeLevelScalar(uint nChannel, out float pfLevel);
+    [PreserveSig] int SetMute([MarshalAs(UnmanagedType.Bool)] bool bMute, ref Guid pguidEventContext);
+    [PreserveSig] int GetMute([MarshalAs(UnmanagedType.Bool)] out bool pbMute);
+    [PreserveSig] int GetVolumeStepInfo(out uint pnStep, out uint pnStepCount);
+    [PreserveSig] int VolumeStepUp(ref Guid pguidEventContext);
+    [PreserveSig] int VolumeStepDown(ref Guid pguidEventContext);
+    [PreserveSig] int QueryHardwareSupport(out uint pdwHardwareSupportMask);
+    [PreserveSig] int GetVolumeRange(out float pflVolumeMindB, out float pflVolumeMaxdB, out float pflVolumeIncrementdB);
+}
+
+// IAudioClient — entry point for WASAPI render and capture streams (shared mode).
+[ComImport, Guid("1CB9AD4C-DBFA-4c32-B178-C2F568A703B2"),
+ InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAudioClient
+{
+    [PreserveSig] int Initialize(int ShareMode, uint StreamFlags, long hnsBufferDuration,
+                                  long hnsPeriodicity, IntPtr pFormat, ref Guid AudioSessionGuid);
+    [PreserveSig] int GetBufferSize(out uint pNumBufferFrames);
+    [PreserveSig] int GetStreamLatency(out long phnsLatency);
+    [PreserveSig] int GetCurrentPadding(out uint pNumPaddingFrames);
+    [PreserveSig] int IsFormatSupported(int ShareMode, IntPtr pFormat, out IntPtr ppClosestMatch);
+    [PreserveSig] int GetMixFormat(out IntPtr ppDeviceFormat);
+    [PreserveSig] int GetDevicePeriod(out long phnsDefaultDevicePeriod, out long phnsMinimumDevicePeriod);
+    [PreserveSig] int Start();
+    [PreserveSig] int Stop();
+    [PreserveSig] int Reset();
+    [PreserveSig] int SetEventHandle(IntPtr eventHandle);
+    [PreserveSig] int GetService(ref Guid riid, [MarshalAs(UnmanagedType.IUnknown)] out object ppv);
+}
+
+// IAudioRenderClient — fills the render buffer with PCM or float audio frames.
+[ComImport, Guid("F294ACFC-3146-4483-A7BF-ADDCA7C260E2"),
+ InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAudioRenderClient
+{
+    [PreserveSig] int GetBuffer(uint NumFramesRequested, out IntPtr ppData);
+    [PreserveSig] int ReleaseBuffer(uint NumFramesWritten, uint dwFlags);
+}
+
+// IAudioCaptureClient — reads frames from the capture endpoint buffer.
+[ComImport, Guid("C8ADBD64-E71E-48a0-A4DE-185C395CD317"),
+ InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAudioCaptureClient
+{
+    [PreserveSig] int GetBuffer(out IntPtr ppData, out uint pNumFramesToRead,
+                                 out uint pdwFlags, out ulong pu64DevicePosition, out ulong pu64QPCPosition);
+    [PreserveSig] int ReleaseBuffer(uint NumFramesRead);
+    [PreserveSig] int GetNextPacketSize(out uint pNumFramesInNextPacket);
+}
+
+internal static class Ole32
+{
+    [DllImport("ole32.dll")]
+    internal static extern void CoTaskMemFree(IntPtr pv);
+}

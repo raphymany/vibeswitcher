@@ -251,7 +251,8 @@ public class SettingsViewModel : ViewModelBase
             _recordingDevices,
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card),
-            onClone: card => CloneProfile(card));
+            onClone: card => CloneProfile(card),
+            onTestSound: deviceId => _audioService.TestSoundAsync(deviceId));
     }
 
     private void CloneProfile(ProfileCardViewModel card)
@@ -267,6 +268,8 @@ public class SettingsViewModel : ViewModelBase
             // cause DeleteOrphanedIcon to delete the icon for whichever profile is deleted first,
             // silently breaking the other. The user can re-browse the icon on the clone.
             Silent = original.Silent,
+            VolumeOverrideEnabled = original.VolumeOverrideEnabled,
+            Volume = original.Volume,
             SortOrder = Profiles.Count,
             // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
         };
