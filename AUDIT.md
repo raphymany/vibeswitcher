@@ -557,6 +557,17 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F26 | Device connectivity indicator — green dot next to connected devices and red dot next to disconnected devices in the Settings dropdowns, so you can see at a glance which are available without trying to switch |
 | F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
 | F30 | Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25 |
+| F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); stored as a `{deviceId → alias}` dictionary in config |
+| F32 | Profile notes — optional short description field on each profile card (e.g. "For work meetings — webcam mic disabled"); stored per profile, shown below the profile name |
+| F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray right-click menu above unpinned ones for quick access when the list grows long |
+| F34 | Profile validation warnings — inline warning flag on cards when a hotkey is duplicated across profiles, a selected device is missing or disabled, or an icon path is invalid; surfaces silent failures before they cause confusion |
+| F35 | Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, or hotkey; clears on Escape |
+| F36 | Optional switch sound — short audio cue when a profile switch completes; user picks from a set of built-in tones or supplies a custom .wav file; per-profile toggle to enable or disable; pairs with F25 (silent switch) and F30 (icon flash) for a fully configurable feedback system |
+| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes all recording devices system-wide; tray icon flashes red while active; pressing the hotkey again unmutes and restores previous levels |
+| F38 | Temporary / transient profile switch — optional app-wide feature with a configurable keybind; switches to a profile temporarily and auto-reverts to the previous profile when a timer expires or a linked app closes; useful for quick calls without forgetting to switch back |
+| F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable |
+| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups where undocking a laptop should switch to built-in speakers automatically |
+| F41 | App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable |
 
 ---
 
@@ -570,8 +581,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 28 | 6 | 22 |
-| **Total** | **101** | **75** | **26** |
+| Feature Additions | 39 | 6 | 33 |
+| **Total** | **112** | **75** | **37** |
 
 ---
 

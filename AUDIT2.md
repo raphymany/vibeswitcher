@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — reflects PR #53 (feat/toast-notifications).
+**Last updated:** 2026-05-19 — adds F31–F41 and planned branches 35–43.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -119,6 +119,17 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 30 |
 | F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 32 |
 | F30 | Tray icon switch flash — brief icon pulse when a profile switch completes; visual confirmation when balloon notifications are disabled | 28 |
+| F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers") | 36 |
+| F32 | Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name | 35 |
+| F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones | 35 |
+| F34 | Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths | 35 |
+| F35 | Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, or hotkey; clears on Escape | 37 |
+| F36 | Optional switch sound — short audio cue on profile switch; built-in tones or custom .wav; per-profile toggle; pairs with F25 and F30 for a fully configurable feedback system | 38 |
+| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes all recording devices; tray icon flashes red while active; press again to unmute | 39 |
+| F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | 40 |
+| F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle | 41 |
+| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | 42 |
+| F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle | 43 |
 
 ---
 
@@ -210,6 +221,89 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
+### Branch 35: `feat/profile-card-extras`
+**Theme:** Small per-profile additions to the Settings card that don't touch audio logic.
+
+| # | Feature |
+|---|---------|
+| F32 | Profile notes — optional short description field per card |
+| F33 | Favorite / pinned profiles — star flag; pinned profiles appear at the top of the tray menu |
+| F34 | Profile validation warnings — inline flags for duplicate hotkeys, missing/disabled devices, or invalid icon paths |
+
+---
+
+### Branch 36: `feat/device-aliases`
+**Theme:** Per-device friendly name display throughout the app.
+
+| # | Feature |
+|---|---------|
+| F31 | Audio endpoint aliases — user-defined friendly names shown in Settings dropdowns and profile cards instead of the raw Windows device name |
+
+---
+
+### Branch 37: `feat/settings-search`
+**Theme:** Profile search and filtering in the Settings window.
+
+| # | Feature |
+|---|---------|
+| F35 | Search / filter — text box at the top of the profile list; filters in real time by profile name, device name, or hotkey; clears on Escape |
+
+---
+
+### Branch 38: `feat/switch-sound`
+**Theme:** Audio feedback on profile switch.
+
+| # | Feature |
+|---|---------|
+| F36 | Optional switch sound — short audio cue on profile switch; built-in tones or custom .wav; per-profile toggle to enable or disable |
+
+---
+
+### Branch 39: `feat/panic-hotkey`
+**Theme:** Instant global mute for all recording devices.
+
+| # | Feature |
+|---|---------|
+| F37 | Deafen / panic hotkey — global configurable hotkey that mutes all recording devices instantly; tray icon flashes red while active; press again to unmute |
+
+---
+
+### Branch 40: `feat/transient-profile`
+**Theme:** Temporary profile switching with automatic revert.
+
+| # | Feature |
+|---|---------|
+| F38 | Temporary / transient profile switch — optional app-wide setting with configurable keybind; switches to a profile temporarily and auto-reverts when a timer expires or a linked app closes |
+
+---
+
+### Branch 41: `feat/device-triggers`
+**Theme:** Automatic profile activation when a specific audio device connects.
+
+| # | Feature |
+|---|---------|
+| F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle |
+
+---
+
+### Branch 42: `feat/dock-awareness`
+**Theme:** Automatic profile switching based on monitor or dock connection.
+
+| # | Feature |
+|---|---------|
+| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); useful for hybrid work setups |
+
+---
+
+### Branch 43: `feat/app-switching`
+**Theme:** Automatic profile switching based on running application.
+
+| # | Feature |
+|---|---------|
+| F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle |
+
+---
+
 ### Deferred — No branch planned yet
 
 | # | Feature | Why deferred |
@@ -220,3 +314,5 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | 8.7 | winget / Chocolatey package | Post-v1.0 distribution |
 | F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
 | 10.8 | Website ("coming soon") | External, not in this repo |
+| — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
+| — | Compact / mini Settings window | After UI/UX redesign |
