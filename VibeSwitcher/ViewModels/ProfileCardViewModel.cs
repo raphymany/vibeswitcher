@@ -367,7 +367,19 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
         }
 
-        IconPath = dest;
+        // When dest matches _iconPath the file has been overwritten but SetField won't
+        // detect a change (same path) — manually refresh the preview and notify bindings.
+        if (string.Equals(_iconPath, dest, StringComparison.OrdinalIgnoreCase))
+        {
+            _model.IconPath = dest;
+            UpdateIconPreview();
+            OnPropertyChanged(nameof(IconPath));
+            _onChanged(this);
+        }
+        else
+        {
+            IconPath = dest;
+        }
     }
 
     private void BrowseIconFromDisk()

@@ -199,8 +199,8 @@
             <Setter Property="Foreground"      Value="#3366CC"/>
             <Setter Property="FontSize"        Value="11"/>
             <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Padding"         Value="10,3"/>
-            <Setter Property="Margin"          Value="0,0,4,4"/>
+            <Setter Property="Padding"         Value="8,3"/>
+            <Setter Property="Margin"          Value="0,0,4,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -302,9 +302,9 @@
 
                                     <!-- Drag grip — spans full card height -->
                                     <TextBlock Grid.Column="0" Grid.RowSpan="8"
-                                               Text="⠿" FontSize="14" Foreground="#CCCCCC"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Cursor="SizeNS" Margin="0,0,6,0"
+                                               Text="⠿" FontSize="17" Foreground="#CCCCCC"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                                               Cursor="SizeNS" Margin="0,0,4,0"
                                                PreviewMouseLeftButtonDown="DragGrip_MouseDown"
                                                PreviewMouseLeftButtonUp="DragGrip_MouseUp"
                                                MouseMove="DragGrip_MouseMove">
@@ -362,8 +362,6 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </WrapPanel.Style>
-                                        <TextBlock Text="Quick start:" FontSize="11" Foreground="#888888"
-                                                   VerticalAlignment="Center" Margin="0,0,6,4"/>
                                         <Button Content="Gaming"    Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Gaming"/>
                                         <Button Content="Work"      Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Work"/>
                                         <Button Content="Music"     Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Music"/>
@@ -373,9 +371,6 @@
                                         <Button Content="Mic"       Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Mic"/>
                                         <Button Content="Home"      Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Home"/>
                                         <Button Content="Speakers"  Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Speakers"/>
-                                        <Button Content="Night"     Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Night"/>
-                                        <Button Content="Podcast"   Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Podcast"/>
-                                        <Button Content="Desktop"   Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Desktop"/>
                                     </WrapPanel>
 
                                     <!-- Playback -->
