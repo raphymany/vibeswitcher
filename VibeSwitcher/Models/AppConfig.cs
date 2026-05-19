@@ -9,6 +9,9 @@ public class AppConfig
     public bool CloseToTray { get; set; } = true;
     public bool ShowNotifications { get; set; } = true;
     public bool UseLegacySoundPanel { get; set; } = false;
+    public bool ShowDisabledDevices { get; set; } = true;
+    public bool ShowDisconnectedDevices { get; set; } = true;
+    public bool SettingsCardExpanded { get; set; } = true;
 
     public HotkeyDefinition? SettingsHotkey { get; set; }
     public bool SettingsHotkeyEnabled { get; set; } = true;

@@ -144,9 +144,9 @@ public class TrayService : IDisposable
             var headerItem = new MenuItem
             {
                 Header = BuildAppHeader(appIconSource),
-                IsEnabled = false,
                 Padding = new Thickness(12, 6, 16, 6),
             };
+            headerItem.Click += (_, _) => OpenSettings();
             _contextMenu.Items.Add(headerItem);
             _contextMenu.Items.Add(new Separator());
         }
@@ -175,10 +175,6 @@ public class TrayService : IDisposable
 
             _contextMenu.Items.Add(new Separator());
         }
-
-        var settingsItem = new MenuItem { Header = BuildActionHeader("⚙", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
-        settingsItem.Click += (_, _) => OpenSettings();
-        _contextMenu.Items.Add(settingsItem);
 
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>

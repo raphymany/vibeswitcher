@@ -5,7 +5,7 @@ using VibeSwitcher.NativeMethods;
 
 namespace VibeSwitcher.Services;
 
-public record AudioDeviceInfo(string Id, string FriendlyName, bool IsPlayback, bool IsConnected = true)
+public record AudioDeviceInfo(string Id, string FriendlyName, bool IsPlayback, bool IsConnected = true, bool IsDisabled = false)
 {
     public bool ShowDot => !string.IsNullOrEmpty(Id);
     public override string ToString() => FriendlyName;
@@ -119,7 +119,9 @@ public class AudioService : IAudioService
             PropVariant.PropVariantClear(ref pv);
 
             if (name == null) return null;
-            return new AudioDeviceInfo(id, name, isPlayback, IsConnected: state == AudioDeviceState.Active);
+            return new AudioDeviceInfo(id, name, isPlayback,
+                IsConnected: state == AudioDeviceState.Active,
+                IsDisabled: state == AudioDeviceState.Disabled);
         }
         catch (Exception ex)
         {
