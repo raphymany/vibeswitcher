@@ -10,4 +10,7 @@ public interface IHotkeyService : IDisposable
     void RegisterProfile(DeviceProfile profile);
     DeviceProfile? HandleHotkey(ushort atomId);
     bool TestHotkey(HotkeyDefinition hotkey);
+    HotkeyConflictException? RegisterSettingsHotkey(HotkeyDefinition hotkey);
+    void UnregisterSettingsHotkey();
+    bool IsSettingsHotkey(ushort atomId);
 }

@@ -66,6 +66,7 @@ public class ProfileSwitchOrchestrator : IDisposable
                 _configService.SaveImmediate();
                 _trayService.UpdateIcon(profile);
                 _trayService.SetActiveProfile(profile.Id);
+                _trayService.FlashSwitch(profile);
 
                 if (result.MissingPlaybackId != null)
                 {

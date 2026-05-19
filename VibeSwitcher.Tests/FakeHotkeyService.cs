@@ -28,5 +28,8 @@ internal sealed class FakeHotkeyService : IHotkeyService
 
     public DeviceProfile? HandleHotkey(ushort atomId) => null;
     public bool TestHotkey(HotkeyDefinition hotkey) => TestHotkeyResult;
+    public HotkeyConflictException? RegisterSettingsHotkey(HotkeyDefinition hotkey) => null;
+    public void UnregisterSettingsHotkey() { }
+    public bool IsSettingsHotkey(ushort atomId) => false;
     public void Dispose() { }
 }

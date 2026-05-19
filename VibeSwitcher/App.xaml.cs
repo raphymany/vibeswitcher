@@ -86,6 +86,7 @@ public partial class App : Application
 
         // 6. Register hotkeys
         RegisterHotkeys();
+        RegisterSettingsHotkey();
 
         // 7. Restore last active profile via the orchestrator so the single switch path is always used.
         // Guard: if ActiveProfileId is set but no matching profile exists (e.g. profile was deleted
@@ -115,6 +116,20 @@ public partial class App : Application
             OpenSettingsWindow();
     }
 
+    private void RegisterSettingsHotkey()
+    {
+        var hotkey = _configService!.Current.SettingsHotkey;
+        if (hotkey == null || hotkey.IsEmpty) return;
+        var conflict = _hotkeyService!.RegisterSettingsHotkey(hotkey);
+        if (conflict != null)
+        {
+            SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                $"Could not register Settings hotkey '{conflict.Hotkey.ToDisplayString()}' — another app is using it.");
+            _trayService!.ShowBalloon("Hotkey Conflict",
+                $"Settings hotkey '{conflict.Hotkey.ToDisplayString()}' is in use by another app.");
+        }
+    }
+
     private void RegisterHotkeys()
     {
         var conflicts = _hotkeyService!.RegisterAll(_configService!.Current.Profiles);
@@ -135,11 +150,19 @@ public partial class App : Application
         if (msg == WinApi.WM_HOTKEY)
         {
             ushort atomId = (ushort)wParam.ToInt32();
-            var profile = _hotkeyService!.HandleHotkey(atomId);
-            if (profile != null)
+            if (_hotkeyService!.IsSettingsHotkey(atomId))
             {
-                _orchestrator!.SwitchToProfile(profile);
+                OpenSettingsWindow();
                 handled = true;
+            }
+            else
+            {
+                var profile = _hotkeyService.HandleHotkey(atomId);
+                if (profile != null)
+                {
+                    _orchestrator!.SwitchToProfile(profile);
+                    handled = true;
+                }
             }
         }
         else if (msg == WM_TASKBARCREATED)

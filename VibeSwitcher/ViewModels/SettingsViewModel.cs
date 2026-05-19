@@ -96,6 +96,30 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public HotkeyDefinition SettingsHotkey
+    {
+        get => _configService.Current.SettingsHotkey ?? new HotkeyDefinition();
+        set
+        {
+            _configService.Current.SettingsHotkey = value;
+            _configService.SaveImmediate();
+            _hotkeyService.UnregisterSettingsHotkey();
+            if (!value.IsEmpty)
+            {
+                var conflict = _hotkeyService.RegisterSettingsHotkey(value);
+                if (conflict != null)
+                    _onHotkeyConflict(conflict);
+            }
+            OnPropertyChanged(nameof(SettingsHotkey));
+            OnPropertyChanged(nameof(SettingsHotkeyDisplay));
+        }
+    }
+
+    public string SettingsHotkeyDisplay =>
+        _configService.Current.SettingsHotkey is { IsEmpty: false } hk
+            ? hk.ToDisplayString()
+            : "None";
+
     public ICommand AddProfileCommand { get; }
 
     public SettingsViewModel(
@@ -258,5 +282,14 @@ public class SettingsViewModel : ViewModelBase
         var conflicts = _hotkeyService.RegisterAll(_configService.Current.Profiles);
         foreach (var ex in conflicts)
             _onHotkeyConflict(ex);
+
+        // RegisterAll wipes all hotkeys including the settings hotkey — restore it.
+        var settingsHotkey = _configService.Current.SettingsHotkey;
+        if (settingsHotkey is { IsEmpty: false })
+        {
+            var conflict = _hotkeyService.RegisterSettingsHotkey(settingsHotkey);
+            if (conflict != null)
+                _onHotkeyConflict(conflict);
+        }
     }
 }

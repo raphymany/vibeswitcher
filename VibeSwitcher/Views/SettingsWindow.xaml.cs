@@ -215,6 +215,13 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void SettingsHotkeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new HotkeyCaptureDialog(_viewModel.SettingsHotkey) { Owner = this };
+        if (dialog.ShowDialog() == true && dialog.CapturedHotkey != null)
+            _viewModel.SettingsHotkey = dialog.CapturedHotkey;
+    }
+
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
         try

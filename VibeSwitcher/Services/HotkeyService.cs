@@ -28,6 +28,8 @@ public class HotkeyService : IHotkeyService
     // Maps profile Guid → profile — rebuilt on every RegisterAll so WM_HOTKEY dispatch is O(1)
     private Dictionary<Guid, DeviceProfile> _profileById = new();
     private readonly IntPtr _hwnd;
+    private ushort _settingsAtom;
+    private HotkeyDefinition? _settingsHotkeyDef;
 
     public HotkeyService(IntPtr messageWindowHandle)
     {
@@ -92,6 +94,7 @@ public class HotkeyService : IHotkeyService
 
     public void UnregisterAll()
     {
+        UnregisterSettingsHotkey();
         foreach (var (atom, _) in _atomToProfile)
         {
             WinApi.UnregisterHotKey(_hwnd, atom);
@@ -101,6 +104,45 @@ public class HotkeyService : IHotkeyService
         _profileToAtom.Clear();
         _profileById.Clear();
     }
+
+    public HotkeyConflictException? RegisterSettingsHotkey(HotkeyDefinition hotkey)
+    {
+        UnregisterSettingsHotkey();
+        if (hotkey.IsEmpty || !hotkey.IsValid) return null;
+
+        ushort atom = WinApi.GlobalAddAtom("VibeSwitcher_Settings");
+        if (atom == 0)
+        {
+            AppLogger.Warning("HotkeyService.RegisterSettingsHotkey", "GlobalAddAtom returned 0 — atom table may be full.");
+            return null;
+        }
+
+        bool ok = WinApi.RegisterHotKey(_hwnd, atom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode);
+        if (!ok)
+        {
+            int err = Marshal.GetLastWin32Error();
+            WinApi.GlobalDeleteAtom(atom);
+            if (err == WinApi.ERROR_HOTKEY_ALREADY_REGISTERED)
+                return new HotkeyConflictException(hotkey);
+            AppLogger.Warning("HotkeyService.RegisterSettingsHotkey", $"RegisterHotKey failed (error {err})");
+            return null;
+        }
+
+        _settingsAtom = atom;
+        _settingsHotkeyDef = hotkey;
+        return null;
+    }
+
+    public void UnregisterSettingsHotkey()
+    {
+        if (_settingsAtom == 0) return;
+        WinApi.UnregisterHotKey(_hwnd, _settingsAtom);
+        WinApi.GlobalDeleteAtom(_settingsAtom);
+        _settingsAtom = 0;
+        _settingsHotkeyDef = null;
+    }
+
+    public bool IsSettingsHotkey(ushort atomId) => _settingsAtom != 0 && atomId == _settingsAtom;
 
     /// <summary>
     /// Returns true if the hotkey is in use by another application (not this one).
@@ -114,7 +156,9 @@ public class HotkeyService : IHotkeyService
 
         if (hotkey.IsEmpty || !hotkey.IsValid) return false;
 
-        // Unregister all our hotkeys temporarily so we don't detect our own registrations
+        // Unregister all our hotkeys (including settings) temporarily so we don't detect our own registrations
+        bool hadSettingsAtom = _settingsAtom != 0;
+        if (hadSettingsAtom) WinApi.UnregisterHotKey(_hwnd, _settingsAtom);
         foreach (var (atom, _) in _atomToProfile)
             WinApi.UnregisterHotKey(_hwnd, atom);
 
@@ -136,7 +180,19 @@ public class HotkeyService : IHotkeyService
             WinApi.GlobalDeleteAtom(testAtom);
         }
 
-        // Re-register all our own hotkeys
+        // Re-register the settings hotkey
+        if (hadSettingsAtom && _settingsHotkeyDef != null)
+        {
+            bool reOk = WinApi.RegisterHotKey(_hwnd, _settingsAtom, _settingsHotkeyDef.GetModifierFlags(), _settingsHotkeyDef.VirtualKeyCode);
+            if (!reOk)
+            {
+                WinApi.GlobalDeleteAtom(_settingsAtom);
+                _settingsAtom = 0;
+                _settingsHotkeyDef = null;
+            }
+        }
+
+        // Re-register all our own profile hotkeys
         var failedAtoms = new List<ushort>();
         foreach (var (_, (atom, hkDef)) in _profileToAtom)
         {
