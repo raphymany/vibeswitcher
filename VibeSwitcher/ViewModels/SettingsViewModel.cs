@@ -31,11 +31,15 @@ public class SettingsViewModel : ViewModelBase
 
     public bool HasNoProfiles => Profiles.Count == 0;
 
+    public bool IsPortable    => _configService.IsPortable;
+    public bool IsNotPortable => !_configService.IsPortable;
+
     public bool StartWithWindows
     {
         get => _startWithWindows;
         set
         {
+            if (_configService.IsPortable) return;
             if (SetField(ref _startWithWindows, value))
             {
                 if (value) _startupService.Enable();

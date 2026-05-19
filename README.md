@@ -61,6 +61,20 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for IDE setup and project structure.
 4. Optionally assign a global hotkey and a custom icon
 5. Switch profiles via the tray menu or your hotkey
 
+## Portable Mode
+
+VibeSwitcher can run in portable mode, storing all data (profiles, settings, and logs) next to the exe instead of in `%APPDATA%\VibeSwitcher`. This is useful for USB drives or installs where you want everything self-contained in one folder.
+
+**To activate:** Create an empty file named `portable.txt` in the same folder as `VibeSwitcher.exe`. The app detects it automatically on the next launch.
+
+**To deactivate:** Delete `portable.txt`. On the next launch the app returns to `%APPDATA%\VibeSwitcher` — your portable config stays in the folder and is not migrated automatically.
+
+> **Note:** Existing profiles from `%APPDATA%` are not copied over when switching modes. If you want to carry your profiles to a portable install, use the config import/export feature (planned).
+
+> **USB drives:** Do not enable "Start with Windows" when running from a USB drive. Windows assigns drive letters dynamically, so the registry path may point to a missing location after the next reboot. The option is disabled in Settings when portable mode is active.
+
+> **Protected directories:** If `VibeSwitcher.exe` is placed in a write-protected folder (e.g. `C:\Program Files`), you won't be able to create `portable.txt` there and portable mode will not activate. Run from a user-writable folder for portable mode to work.
+
 ## Known Limitations
 
 - **Remote Desktop (RDP):** Global hotkeys registered with `RegisterHotKey` act on the *local* machine, not the remote session. Hotkeys will not switch audio devices on the remote end while connected via RDP.

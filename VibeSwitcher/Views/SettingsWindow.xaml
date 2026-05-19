@@ -541,7 +541,11 @@
                     <TextBlock Text="Startup" FontWeight="SemiBold" FontSize="12"
                                Foreground="#444444" Margin="0,0,0,6"/>
                     <CheckBox Content="Start with Windows" Style="{StaticResource ToggleSwitchStyle}"
-                              IsChecked="{Binding StartWithWindows}" Margin="0,3"/>
+                              IsChecked="{Binding StartWithWindows}"
+                              IsEnabled="{Binding IsNotPortable}"
+                              ToolTipService.ShowOnDisabled="True"
+                              ToolTip="Not available in portable mode — the exe path may change between launches."
+                              Margin="0,3"/>
                     <CheckBox Content="Start minimized to tray" Style="{StaticResource ToggleSwitchStyle}"
                               IsChecked="{Binding StartMinimized}" Margin="0,3"/>
                     <CheckBox Content="Close to tray" Style="{StaticResource ToggleSwitchStyle}"

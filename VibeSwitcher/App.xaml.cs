@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using Microsoft.Win32;
@@ -22,6 +23,13 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Portable mode: if portable.txt exists next to the exe, store config and logs there
+        // instead of %APPDATA%\VibeSwitcher. Detected once here; null = use default AppData path.
+        var exeDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+        string? portableBaseDir = File.Exists(Path.Combine(exeDir, "portable.txt")) ? exeDir : null;
+        if (portableBaseDir != null)
+            AppLogger.Initialize(portableBaseDir);
 
         AppLogger.StartSession();
 
@@ -55,12 +63,14 @@ public partial class App : Application
             return;
         }
 
-        // 2. Load configuration
-        _configService = new ConfigService();
+        // 2. Load configuration (portableBaseDir is null in normal mode → uses %APPDATA% default)
+        _configService = new ConfigService(portableBaseDir);
         _configService.Load();
 
-        // 2b. Self-correct the startup registry path if the exe was moved since last enable
-        new StartupService().RefreshRegistryPath();
+        // 2b. Self-correct the startup registry path if the exe was moved since last enable.
+        // Skip in portable mode — the exe path is not stable (e.g. USB drive letter can change).
+        if (!_configService.IsPortable)
+            new StartupService().RefreshRegistryPath();
 
         // 3. Dedicated message-only HwndSource for WM_HOTKEY (never shown)
         _hwndSource = new HwndSource(new HwndSourceParameters("AudioSwitcherHotkeys")

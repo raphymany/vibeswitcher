@@ -16,6 +16,7 @@ public class ConfigService : IConfigService
     private readonly string _configTmpPath;
 
     public string IconsDir { get; }
+    public bool IsPortable { get; }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -29,6 +30,7 @@ public class ConfigService : IConfigService
     public ConfigService(string? baseDir = null)
     {
         _configDir    = baseDir ?? DefaultConfigDir;
+        IsPortable    = baseDir != null;
         IconsDir      = Path.Combine(_configDir, "Icons");
         _configPath   = Path.Combine(_configDir, "config.json");
         _configBakPath = Path.Combine(_configDir, "config.json.bak");

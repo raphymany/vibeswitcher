@@ -8,13 +8,19 @@ public static class AppLogger
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "VibeSwitcher", "error.log");
 
-    // Set by tests only — overrides LogPath for all writes in this process.
+    // Overrides LogPath — set by Initialize() for portable mode, or by tests.
     internal static volatile string? _logPathOverride;
 
     private static string EffectivePath => _logPathOverride ?? LogPath;
 
     private const long MaxLogBytes = 1 * 1024 * 1024; // 1 MB
     private const int BackupCount = 2;
+
+    // Call once at startup before StartSession() when running in portable mode.
+    public static void Initialize(string baseDir)
+    {
+        _logPathOverride = Path.Combine(baseDir, "error.log");
+    }
 
     // Truncate the log at startup so each session starts with a clean file.
     public static void StartSession()
