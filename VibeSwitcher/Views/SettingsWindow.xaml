@@ -633,7 +633,8 @@
         </ScrollViewer>
 
         <!-- ── General Settings card ── -->
-        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,14">
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,14"
+                Padding="0" ClipToBounds="True">
             <StackPanel>
                 <!-- Collapsible header — always visible -->
                 <ToggleButton x:Name="SettingsExpander"
@@ -645,19 +646,24 @@
                         <ControlTemplate TargetType="ToggleButton">
                             <Border x:Name="Bg"
                                     Background="Transparent"
-                                    BorderBrush="Transparent"
-                                    BorderThickness="1"
-                                    CornerRadius="4"
-                                    Padding="4,3">
+                                    BorderThickness="0"
+                                    Padding="16,14,16,14">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="32"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="VibeSwitcher Settings"
-                                               FontWeight="SemiBold" FontSize="13"
-                                               Foreground="#1A1A1A" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="Arrow" Grid.Column="1"
+                                    <TextBlock Grid.Column="0" Text="⚙" FontSize="16"
+                                               Foreground="#555555" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="VibeSwitcher Settings"
+                                                   FontWeight="SemiBold" FontSize="13"
+                                                   Foreground="#1A1A1A"/>
+                                        <TextBlock Text="Startup, notifications, devices, and shortcuts"
+                                                   Foreground="#888888" FontSize="11" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="Arrow" Grid.Column="2"
                                                Text="▼" FontSize="10" Foreground="#888888"
                                                VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </Grid>
@@ -668,7 +674,6 @@
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bg" Property="Background" Value="#F0F6FF"/>
-                                    <Setter TargetName="Bg" Property="BorderBrush" Value="#0078D4"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -676,7 +681,7 @@
                 </ToggleButton>
 
                 <!-- Collapsible body -->
-                <StackPanel Margin="0,12,0,0">
+                <StackPanel Margin="16,0,16,14">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
                             <Setter Property="Visibility" Value="Visible"/>
