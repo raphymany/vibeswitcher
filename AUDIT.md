@@ -531,14 +531,14 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 |---|---------|
 | F1 | Import/export `config.json` via Settings for backup and sharing |
 | ~~F2~~ | ~~Drag-and-drop profile reorder~~ | ✅ Done — PR #59 |
-| F3 | "Test sound" button to verify active device plays audio |
+| ~~F3~~ | ~~"Test sound" button to verify active device plays audio~~ | ✅ Done — PR #61 |
 | ~~F4~~ | ~~Middle-click tray to toggle between last two profiles~~ | Removed |
 | ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys (e.g. "Desktop Setup: Ctrl+PgUp / Gaming: Ctrl+PgDn") so you can see the full list without opening any window~~ | ✅ Done — PR #57 |
 | ~~F6~~ | ~~Re-apply active profile on system resume from sleep/hibernate~~ | ✅ Done — PR #18 |
 | ~~F7~~ | ~~`IMMNotificationClient` for real-time device plug/unplug in Settings~~ | ✅ Done — PR #30 |
 | F8 | Auto-updater with GitHub Releases version check |
 | F9 | Windows 11 Toast notifications — replace the current balloon tip with the modern Windows 10/11 Toast API so notifications persist in Action Center, support richer formatting, and stack/dismiss properly |
-| F10 | Per-profile volume level (set device default volume when switching) |
+| ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
 | ~~F12~~ | ~~Command-line interface: `VibeSwitcher.exe --switch "Profile Name"`~~ | Removed |
 | F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
@@ -554,7 +554,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F23~~ | ~~Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list~~ | ✅ Done — PR #59 |
 | ~~F24~~ | ~~Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere~~ | ✅ Done — PR #57 |
 | ~~F25~~ | ~~Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely~~ | ✅ Done — PR #59 |
-| F26 | Device connectivity indicator — green dot next to connected devices and red dot next to disconnected devices in the Settings dropdowns, so you can see at a glance which are available without trying to switch |
+| ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in Settings dropdowns~~ | ✅ Done — PR #61 |
 | F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
 | ~~F30~~ | ~~Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25~~ | ✅ Done — PR #57 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); stored as a `{deviceId → alias}` dictionary in config |
@@ -993,3 +993,15 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | F23 | Profile clone button — duplicates name+" (copy)", devices, mode, silent flag; hotkey and icon path not copied | ✅ Done |
 | F25 | Per-profile silent switch — checkbox skips the Windows notification banner on switch; device warnings always show | ✅ Done |
 | Fix | SortOrder re-compacted after every delete to prevent future collisions | ✅ Done |
+
+---
+
+### ~~Branch 30: `feat/device-enhancements`~~ ✅ Merged — PR #61
+**Theme:** Audio device interaction features — test sound, mic level test, and device connectivity indicator.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F3 | Test sound button on each profile — plays a 440 Hz tone directly through the selected playback device via WASAPI; supports float32 and PCM-16 | ✅ Done |
+| F3 ext | Mic test button — opens a level meter dialog that captures from the selected recording device for 5 seconds, showing real-time RMS and peak level | ✅ Done |
+| F26 | Device connectivity indicator — green dot for active, red dot for disabled or unplugged devices in Settings dropdowns; disabled devices now stay visible in the list instead of disappearing | ✅ Done |
+| F10 | Per-profile volume override | Dropped — user prefers Windows tray for volume control |

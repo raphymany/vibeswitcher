@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — Branch 29 merged (PR #59); F2, F23, F25 done.
+**Last updated:** 2026-05-19 — Branch 30 merged (PR #61); F3, F26 done.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -99,11 +99,11 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 |---|---------|--------|
 | F1 | Import/export `config.json` via Settings for backup and sharing | 32 |
 | ~~F2~~ | ~~Drag-and-drop profile reorder~~ | ✅ Done — PR #59 |
-| F3 | "Test sound" button to verify active device plays audio | 30 |
+| ~~F3~~ | ~~"Test sound" button to verify active device plays audio~~ | ✅ Done — PR #61 |
 | ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip~~ | ✅ Done — PR #57 |
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
-| F10 | Per-profile volume level — sets device default volume when switching to that profile | 30 |
+| ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
 | F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 32 |
 | F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path | 31 |
@@ -115,7 +115,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F23~~ | ~~Profile clone button~~ | ✅ Done — PR #59 |
 | ~~F24~~ | ~~Global hotkey to open Settings~~ | ✅ Done — PR #57 |
 | ~~F25~~ | ~~Per-profile silent switch — checkbox to skip the Windows notification banner~~ | ✅ Done — PR #59 |
-| F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 30 |
+| ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in the Settings dropdowns~~ | ✅ Done — PR #61 |
 | F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 31 |
 | ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ | ✅ Done — PR #57 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers") | 36 |
@@ -168,14 +168,14 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 30: `feat/device-enhancements`
+### ~~Branch 30: `feat/device-enhancements`~~ ✅ Merged — PR #61
 **Theme:** Audio device interaction features — all touch `AudioService` or the device dropdowns.
 
 | # | Feature |
 |---|---------|
-| F3 / 4.8 | "Test sound" button on each profile — plays a short tone through the selected playback device |
-| F10 | Per-profile volume level — sets the device default volume when switching to that profile |
-| F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns |
+| ~~F3 / 4.8~~ | ~~"Test sound" button on each profile — plays a short tone through the selected playback device~~ |
+| ~~F10~~ | ~~Per-profile volume level~~ — Dropped (user prefers Windows tray) |
+| ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in the Settings dropdowns~~ |
 
 ---
 

@@ -7,6 +7,11 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Test sound button (F3)** — each profile card now has a speaker button next to the playback dropdown; clicking it plays a 440 Hz tone directly through the selected device via WASAPI, bypassing the Windows default so you can confirm which device is active *(PR #61)*
+- **Mic test dialog (F3 extension)** — a mic button next to the recording dropdown opens a live level meter dialog that captures audio from the selected device for 5 seconds, showing real-time RMS level and peak reading *(PR #61)*
+- **Device connectivity indicator (F26)** — playback and recording dropdowns now show a green dot for active devices and a red dot for disabled or unplugged devices; devices disabled in Windows Sound settings stay visible in the list instead of disappearing *(PR #61)*
+
+### Added
 - **Drag-and-drop profile reorder (F2)** — each profile card has a ⠿ grip handle on the left; dragging it over another card reorders the list and saves the new order immediately *(PR #59)*
 - **Profile clone (F23)** — Clone button on each card duplicates the profile (name + " (copy)", same devices and mode); hotkey and icon are not copied to avoid conflicts and file-sharing issues *(PR #59)*
 - **Per-profile silent switch (F25)** — Silent switch checkbox on each card; when enabled, switching to that profile skips the Windows notification banner while device-unavailable warnings still appear *(PR #59)*
