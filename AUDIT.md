@@ -594,8 +594,9 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 
 This section captures the agreed grouping of remaining work into branches so it is not lost between sessions.
 
-**Explicitly deferred (not in any branch):**
-C2 (installer — after new design), C3 (code signing — needs certificate purchase), M11 (profile reorder), L17/F16 (dark mode/high-contrast), 7.9 (manual test checklist), 8.3/F8 (auto-updater), 8.7 (winget/Chocolatey), 10.8 (website), and all remaining feature additions (F1–F5, F8–F14, F16–F27).
+**All remaining work is tracked in AUDIT2.md — Planned Branches (Branches 28–43, in execution order).**
+
+**Explicitly deferred (no branch):** C2/8.1 (installer — saving for last), C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — needs installer first), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (winget/Chocolatey — post-v1.0), 10.8 (website), Mica/Acrylic + compact mode (UI/UX redesign phase).
 
 *(M16, M17 resolved PR #40; M18, M19 resolved PR #42; L21, L22, L23 resolved PR #44; L20/8.9 resolved PR #46; 7.16 resolved PR #48)*
 
