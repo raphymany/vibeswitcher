@@ -556,6 +556,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely |
 | F26 | Device connectivity indicator — green dot next to connected devices and red dot next to disconnected devices in the Settings dropdowns, so you can see at a glance which are available without trying to switch |
 | F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
+| F30 | Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25 |
 
 ---
 
@@ -569,8 +570,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 27 | 6 | 21 |
-| **Total** | **100** | **75** | **25** |
+| Feature Additions | 28 | 6 | 22 |
+| **Total** | **101** | **75** | **26** |
 
 ---
 
