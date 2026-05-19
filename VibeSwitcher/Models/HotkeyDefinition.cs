@@ -15,6 +15,11 @@ public class HotkeyDefinition
 
     public bool IsValid => VirtualKeyCode > 0 && VirtualKeyCode <= 254;
 
+    public bool Matches(HotkeyDefinition other) =>
+        VirtualKeyCode == other.VirtualKeyCode &&
+        UseAlt == other.UseAlt && UseCtrl == other.UseCtrl &&
+        UseShift == other.UseShift && UseWin == other.UseWin;
+
     public int GetModifierFlags()
     {
         int flags = 0;

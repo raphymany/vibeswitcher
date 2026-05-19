@@ -96,6 +96,59 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public HotkeyDefinition SettingsHotkey
+    {
+        get => _configService.Current.SettingsHotkey ?? new HotkeyDefinition();
+        set
+        {
+            _configService.Current.SettingsHotkey = value;
+            _configService.SaveImmediate();
+            _hotkeyService.UnregisterSettingsHotkey();
+            if (!value.IsEmpty && _configService.Current.SettingsHotkeyEnabled)
+            {
+                var conflict = _hotkeyService.RegisterSettingsHotkey(value);
+                if (conflict != null)
+                    _onHotkeyConflict(conflict);
+            }
+            OnPropertyChanged(nameof(SettingsHotkey));
+            OnPropertyChanged(nameof(SettingsHotkeyDisplay));
+            OnPropertyChanged(nameof(SettingsHotkeyIsSet));
+        }
+    }
+
+    public string SettingsHotkeyDisplay =>
+        _configService.Current.SettingsHotkey is { IsEmpty: false } hk
+            ? hk.ToDisplayString()
+            : "None";
+
+    public bool SettingsHotkeyIsSet =>
+        _configService.Current.SettingsHotkey is { IsEmpty: false };
+
+    public bool SettingsHotkeyEnabled
+    {
+        get => _configService.Current.SettingsHotkeyEnabled;
+        set
+        {
+            if (_configService.Current.SettingsHotkeyEnabled == value) return;
+            _configService.Current.SettingsHotkeyEnabled = value;
+            _configService.SaveImmediate();
+            if (value)
+            {
+                var hk = _configService.Current.SettingsHotkey;
+                if (hk is { IsEmpty: false })
+                {
+                    var conflict = _hotkeyService.RegisterSettingsHotkey(hk);
+                    if (conflict != null) _onHotkeyConflict(conflict);
+                }
+            }
+            else
+            {
+                _hotkeyService.UnregisterSettingsHotkey();
+            }
+            OnPropertyChanged(nameof(SettingsHotkeyEnabled));
+        }
+    }
+
     public ICommand AddProfileCommand { get; }
 
     public SettingsViewModel(
@@ -253,10 +306,19 @@ public class SettingsViewModel : ViewModelBase
         _onProfilesChanged();
     }
 
-    private void ReregisterHotkeys()
+    internal void ReregisterHotkeys()
     {
         var conflicts = _hotkeyService.RegisterAll(_configService.Current.Profiles);
         foreach (var ex in conflicts)
             _onHotkeyConflict(ex);
+
+        // RegisterAll wipes all hotkeys including the settings hotkey — restore it if enabled.
+        var settingsHotkey = _configService.Current.SettingsHotkey;
+        if (settingsHotkey is { IsEmpty: false } && _configService.Current.SettingsHotkeyEnabled)
+        {
+            var conflict = _hotkeyService.RegisterSettingsHotkey(settingsHotkey);
+            if (conflict != null)
+                _onHotkeyConflict(conflict);
+        }
     }
 }

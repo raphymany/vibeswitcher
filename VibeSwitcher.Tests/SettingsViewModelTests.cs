@@ -139,4 +139,5 @@ public class SettingsViewModelTests
         Assert.Equal(profile.Id, _fakeHotkey.RegisteredProfiles[0].Id);
         Assert.Equal(1, _profilesChangedCount);
     }
+
 }

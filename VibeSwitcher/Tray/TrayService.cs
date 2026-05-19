@@ -19,6 +19,7 @@ public class TrayService : IDisposable
     private readonly IConfigService _configService;
     // Caches the ImageSource for each profile's icon so RebuildMenu never reads from disk.
     private readonly Dictionary<Guid, ImageSource> _iconCache = new();
+    private CancellationTokenSource? _flashCts;
 
     // Wired up by App.xaml.cs after ProfileSwitchOrchestrator is created.
     internal Action<DeviceProfile>? SwitchRequested;
@@ -46,7 +47,7 @@ public class TrayService : IDisposable
                 $"The system tray icon failed to register: {ex.Message}");
         }
 
-        _taskbarIcon.TrayMouseDoubleClick += (_, _) => OpenSettings();
+        _taskbarIcon.TrayLeftMouseUp += (_, _) => CycleNextProfile();
 
         UpdateIcon(null);
         RebuildMenu();
@@ -59,11 +60,78 @@ public class TrayService : IDisposable
         var iconPath = activeProfile?.IconPath;
         var icon = IconHelper.LoadIcon(iconPath, _configService.IconsDir);
         _taskbarIcon.Icon = icon;
+        _taskbarIcon.ToolTipText = BuildTooltip(activeProfile);
+    }
 
-        var tooltip = activeProfile != null
-            ? $"VibeSwitcher — {activeProfile.Name}"
-            : "VibeSwitcher";
-        _taskbarIcon.ToolTipText = tooltip;
+    private string BuildTooltip(DeviceProfile? activeProfile)
+    {
+        var header = activeProfile != null ? $"VibeSwitcher — {activeProfile.Name}" : "VibeSwitcher";
+        if (header.Length > 127) return header[..127];
+
+        var profilesWithHotkeys = _configService.Current.Profiles
+            .OrderBy(p => p.SortOrder)
+            .Where(p => !p.Hotkey.IsEmpty)
+            .Select(p => $"{p.Name}: {p.Hotkey.ToDisplayString()}")
+            .ToList();
+
+        if (profilesWithHotkeys.Count == 0) return header;
+
+        var lines = new System.Text.StringBuilder(header);
+        foreach (var line in profilesWithHotkeys)
+        {
+            if (lines.Length + 1 + line.Length > 127) break;
+            lines.Append('\n');
+            lines.Append(line);
+        }
+        return lines.ToString();
+    }
+
+    private void CycleNextProfile()
+    {
+        var profiles = _configService.Current.Profiles.OrderBy(p => p.SortOrder).ToList();
+        if (profiles.Count <= 1) return;
+
+        var activeId = _configService.Current.ActiveProfileId;
+        var currentIndex = profiles.FindIndex(p => p.Id == activeId);
+        if (currentIndex == -1)
+            AppLogger.Warning("TrayService.CycleNextProfile", "Active profile not found — cycling from first profile.");
+        var nextIndex = (currentIndex + 1) % profiles.Count;
+        SwitchRequested?.Invoke(profiles[nextIndex]);
+    }
+
+    public void FlashSwitch(DeviceProfile restoredProfile)
+    {
+        var old = _flashCts;
+        var cts = new CancellationTokenSource();
+        _flashCts = cts;
+        old?.Cancel();
+        old?.Dispose();
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(80, cts.Token);
+                var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                if (dispatcher == null || cts.IsCancellationRequested) return;
+
+                await dispatcher.InvokeAsync(() =>
+                {
+                    if (cts.IsCancellationRequested) return;
+                    _taskbarIcon.Icon = IconHelper.LoadIcon(null, _configService.IconsDir);
+                });
+
+                await Task.Delay(320, cts.Token);
+                if (cts.IsCancellationRequested) return;
+
+                await dispatcher.InvokeAsync(() =>
+                {
+                    if (cts.IsCancellationRequested) return;
+                    UpdateIcon(restoredProfile);
+                });
+            }
+            catch (OperationCanceledException) { }
+        });
     }
 
     public void RebuildMenu()
@@ -144,6 +212,11 @@ public class TrayService : IDisposable
         var exitItem = new MenuItem { Header = BuildActionHeader("✕", "Exit"), Padding = new Thickness(12, 8, 16, 8) };
         exitItem.Click += (_, _) => Application.Current.Shutdown();
         _contextMenu.Items.Add(exitItem);
+
+        // Refresh tooltip so hotkey cheat-sheet stays in sync when profiles change.
+        var active = _configService.Current.Profiles
+            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+        _taskbarIcon.ToolTipText = BuildTooltip(active);
     }
 
     // Fast path: only flip IsChecked on profile items — no menu rebuild needed on a simple switch.
@@ -327,6 +400,8 @@ public class TrayService : IDisposable
 
     public void Dispose()
     {
+        _flashCts?.Cancel();
+        _flashCts?.Dispose();
         _taskbarIcon.Dispose();
     }
 }

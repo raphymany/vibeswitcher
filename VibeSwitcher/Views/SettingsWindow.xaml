@@ -531,40 +531,112 @@
 
         <!-- ── General Settings card ── -->
         <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,14">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Startup" FontWeight="SemiBold" FontSize="12"
-                               Foreground="#444444" Margin="0,0,0,6"/>
-                    <CheckBox Content="Start with Windows" Style="{StaticResource ToggleSwitchStyle}"
-                              IsChecked="{Binding StartWithWindows}" Margin="0,3"/>
-                    <CheckBox Content="Start minimized to tray" Style="{StaticResource ToggleSwitchStyle}"
-                              IsChecked="{Binding StartMinimized}" Margin="0,3"/>
-                    <CheckBox Content="Close to tray" Style="{StaticResource ToggleSwitchStyle}"
-                              IsChecked="{Binding CloseToTray}" Margin="0,3"/>
-                </StackPanel>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Startup" FontWeight="SemiBold" FontSize="12"
+                                   Foreground="#444444" Margin="0,0,0,6"/>
+                        <CheckBox Content="Start with Windows" Style="{StaticResource ToggleSwitchStyle}"
+                                  IsChecked="{Binding StartWithWindows}" Margin="0,3"/>
+                        <CheckBox Content="Start minimized to tray" Style="{StaticResource ToggleSwitchStyle}"
+                                  IsChecked="{Binding StartMinimized}" Margin="0,3"/>
+                        <CheckBox Content="Close to tray" Style="{StaticResource ToggleSwitchStyle}"
+                                  IsChecked="{Binding CloseToTray}" Margin="0,3"/>
+                    </StackPanel>
 
-                <StackPanel Grid.Column="1">
-                    <TextBlock Text="Notifications" FontWeight="SemiBold" FontSize="12"
-                               Foreground="#444444" Margin="0,0,0,6"/>
-                    <CheckBox Content="Show device switch alerts" Style="{StaticResource ToggleSwitchStyle}"
-                              IsChecked="{Binding ShowNotifications}" Margin="0,3"/>
-                    <CheckBox Content="Use classic Sound control panel" Style="{StaticResource ToggleSwitchStyle}"
-                              IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3"/>
-                    <Button x:Name="LogsButton"
-                            Style="{StaticResource ActionButton}"
-                            Margin="0,8,0,0"
-                            HorizontalAlignment="Left"
-                            Visibility="Collapsed"
-                            Click="LogsButton_Click">
-                        <TextBlock x:Name="LogsButtonText" FontSize="12"/>
-                    </Button>
-                </StackPanel>
-            </Grid>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Notifications" FontWeight="SemiBold" FontSize="12"
+                                   Foreground="#444444" Margin="0,0,0,6"/>
+                        <CheckBox Content="Show device switch alerts" Style="{StaticResource ToggleSwitchStyle}"
+                                  IsChecked="{Binding ShowNotifications}" Margin="0,3"/>
+                        <CheckBox Content="Use classic Sound control panel" Style="{StaticResource ToggleSwitchStyle}"
+                                  IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3"/>
+                        <Button x:Name="LogsButton"
+                                Style="{StaticResource ActionButton}"
+                                Margin="0,8,0,0"
+                                HorizontalAlignment="Left"
+                                Visibility="Collapsed"
+                                Click="LogsButton_Click">
+                            <TextBlock x:Name="LogsButtonText" FontSize="12"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Separator Margin="0,10,0,8"/>
+
+                <TextBlock Text="Shortcuts" FontWeight="SemiBold" FontSize="12"
+                           Foreground="#444444" Margin="0,0,0,8"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: feature name (left) + Enabled toggle (right) -->
+                    <TextBlock Grid.Row="0" Grid.Column="0"
+                               Text="Open / Close Settings" FontSize="13" FontWeight="SemiBold"
+                               Foreground="#1A1A1A" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Enabled" FontSize="11" Foreground="#777777"
+                                   VerticalAlignment="Center" Margin="0,0,6,0"/>
+                        <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                  IsChecked="{Binding SettingsHotkeyEnabled}"
+                                  IsEnabled="{Binding SettingsHotkeyIsSet}"
+                                  VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Row 1: description (left) + badge chip + Set hotkey button (right) -->
+                    <TextBlock Grid.Row="1" Grid.Column="0"
+                               Text="Global hotkey to toggle this window from anywhere"
+                               FontSize="11" Foreground="#888888" Margin="0,5,12,0"
+                               VerticalAlignment="Center"/>
+                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
+                                VerticalAlignment="Center" Margin="0,5,0,0">
+                        <!-- Keyboard badge chip showing the current shortcut -->
+                        <Border Background="#F5F5F5" BorderBrush="#D0D0D0" BorderThickness="1"
+                                CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
+                                MinWidth="74" VerticalAlignment="Center">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Opacity" Value="1"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
+                                            <Setter Property="Opacity" Value="0.45"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <TextBlock Text="{Binding SettingsHotkeyDisplay}"
+                                       FontFamily="Consolas" FontSize="12"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="#1A1A1A"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
+                                                <Setter Property="Foreground" Value="#AAAAAA"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Border>
+                        <Button Style="{StaticResource ActionButton}"
+                                Content="Set hotkey"
+                                Click="SettingsHotkeyButton_Click"/>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
         </Border>
 
         <!-- ── Footer: About (left) + Sound Settings (center) + Close (right) ── -->

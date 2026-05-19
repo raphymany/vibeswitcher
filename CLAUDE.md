@@ -113,7 +113,14 @@ After every branch is merged, update these three files before starting any new w
 
 ---
 
-## 6. Project Context
+## 6. UI and Dialog Rules
+
+- **Never use `MessageBox.Show` or any native OS dialog.** Always create a custom styled dialog window that matches the app's design (white card, `#F3F3F3` background, rounded buttons, icon). The existing `AlertDialog` and `ConflictRetryDialog` in `Views/` are the patterns to follow.
+- Every new dialog must: use `WindowStartupLocation="CenterOwner"`, set `Owner` before `ShowDialog()`, use `ShowInTaskbar="False"`, and use the global `ActionButton` / `PrimaryButton` / `DangerButton` styles from `App.xaml`.
+
+---
+
+## 7. Project Context
 
 - **What it is:** VibeSwitcher — a Windows system tray app for switching audio devices via profiles and global hotkeys. Built with WPF, .NET 8, C#.
 - **Config file:** `%APPDATA%\VibeSwitcher\config.json` (atomic write, backup on every save).

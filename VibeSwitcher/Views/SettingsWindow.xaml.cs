@@ -17,6 +17,7 @@ public partial class SettingsWindow : Window
     private readonly SettingsViewModel _viewModel;
     private readonly TrayService _trayService;
     private readonly IConfigService _configService;
+    private readonly IHotkeyService _hotkeyService;
     private readonly EventHandler _errorAddedHandler;
 
     public SettingsWindow(
@@ -28,6 +29,7 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         _trayService = trayService;
         _configService = configService;
+        _hotkeyService = hotkeyService;
 
         var startupService = new StartupService();
         var dialogService = new DialogService();
@@ -213,6 +215,40 @@ public partial class SettingsWindow : Window
             SessionErrorTracker.Record(ErrorCode.SoundSettingsOpenFailed, "Sound Settings Could Not Open",
                 $"Could not open Windows Sound settings: {ex.Message}");
         }
+    }
+
+    private void SettingsHotkeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Unregister all hotkeys so profile hotkeys can't fire while the dialog is open.
+        _hotkeyService.UnregisterAll();
+
+        var dialogSeed = _viewModel.SettingsHotkey;
+        while (true)
+        {
+            var dialog = new HotkeyCaptureDialog(dialogSeed) { Owner = this };
+            if (dialog.ShowDialog() != true || dialog.CapturedHotkey == null) break;
+
+            var captured = dialog.CapturedHotkey;
+            if (!captured.IsEmpty)
+            {
+                var ownerName = _configService.Current.Profiles
+                    .FirstOrDefault(p => !p.Hotkey.IsEmpty && captured.Matches(p.Hotkey))?.Name;
+                if (ownerName != null)
+                {
+                    bool retry = new ConflictRetryDialog("Hotkey Already in Use",
+                        $"'{captured.ToDisplayString()}' is already assigned to \"{ownerName}\".")
+                    { Owner = this }.ShowDialog() == true;
+                    if (retry) { dialogSeed = captured; continue; }
+                    break;
+                }
+            }
+
+            _viewModel.SettingsHotkey = captured;
+            break;
+        }
+
+        // Always re-register everything (profiles + Settings hotkey) after the dialog closes.
+        _viewModel.ReregisterHotkeys();
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
