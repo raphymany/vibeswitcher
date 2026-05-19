@@ -242,14 +242,18 @@
                               KeyboardNavigation.DirectionalNavigation="Contained">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:ProfileCardViewModel}">
-                            <Border Style="{StaticResource CardBorder}">
-                                <!-- Single grid — one column definition shared by every row,
-                                     guaranteeing all labels and inputs are pixel-aligned. -->
+                            <Border Style="{StaticResource CardBorder}"
+                                    AllowDrop="True"
+                                    DragEnter="Card_DragEnter"
+                                    DragLeave="Card_DragLeave"
+                                    DragOver="Card_DragOver"
+                                    Drop="Card_Drop">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="95"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="20"/>  <!-- drag grip -->
+                                        <ColumnDefinition Width="95"/>  <!-- labels -->
+                                        <ColumnDefinition Width="*"/>   <!-- inputs -->
+                                        <ColumnDefinition Width="Auto"/> <!-- actions -->
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
@@ -261,8 +265,23 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
+                                    <!-- Drag grip — spans full card height -->
+                                    <TextBlock Grid.Column="0" Grid.RowSpan="7"
+                                               Text="⠿" FontSize="14" Foreground="#CCCCCC"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                               Cursor="SizeNS" Margin="0,0,6,0"
+                                               PreviewMouseLeftButtonDown="DragGrip_MouseDown"
+                                               PreviewMouseLeftButtonUp="DragGrip_MouseUp"
+                                               MouseMove="DragGrip_MouseMove">
+                                        <TextBlock.ToolTip>
+                                            <ToolTip>
+                                                <TextBlock Text="Drag to reorder"/>
+                                            </ToolTip>
+                                        </TextBlock.ToolTip>
+                                    </TextBlock>
+
                                     <!-- Name -->
-                                    <StackPanel Grid.Row="0" Grid.Column="0"
+                                    <StackPanel Grid.Row="0" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Name" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                         <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
@@ -280,11 +299,11 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <TextBox Grid.Row="0" Grid.Column="1"
+                                    <TextBox Grid.Row="0" Grid.Column="2"
                                              Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                              MaxLength="20"
                                              Margin="0,0,0,10"/>
-                                    <Border Grid.Row="0" Grid.Column="2"
+                                    <Border Grid.Row="0" Grid.Column="3"
                                             Margin="8,0,0,10" VerticalAlignment="Center"
                                             Background="#EEF4FF" BorderBrush="#AACCFF"
                                             BorderThickness="1" CornerRadius="5"
@@ -295,8 +314,8 @@
                                                    VerticalAlignment="Center"/>
                                     </Border>
 
-                                    <!-- Playback (row collapses when both items are Collapsed) -->
-                                    <StackPanel Grid.Row="1" Grid.Column="0"
+                                    <!-- Playback -->
+                                    <StackPanel Grid.Row="1" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding PlaybackVisible}">
                                         <TextBlock Text="Playback" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
@@ -315,14 +334,14 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <ComboBox Grid.Row="1" Grid.Column="1"
+                                    <ComboBox Grid.Row="1" Grid.Column="2"
                                               ItemsSource="{Binding PlaybackDevices}"
                                               SelectedItem="{Binding SelectedPlaybackDevice}"
                                               Visibility="{Binding PlaybackVisible}"
                                               Margin="0,0,0,8"/>
 
                                     <!-- Recording -->
-                                    <StackPanel Grid.Row="2" Grid.Column="0"
+                                    <StackPanel Grid.Row="2" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding RecordingVisible}">
                                         <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
@@ -341,14 +360,14 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <ComboBox Grid.Row="2" Grid.Column="1"
+                                    <ComboBox Grid.Row="2" Grid.Column="2"
                                               ItemsSource="{Binding RecordingDevices}"
                                               SelectedItem="{Binding SelectedRecordingDevice}"
                                               Visibility="{Binding RecordingVisible}"
                                               Margin="0,0,0,8"/>
 
                                     <!-- Hotkey -->
-                                    <StackPanel Grid.Row="3" Grid.Column="0"
+                                    <StackPanel Grid.Row="3" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Hotkey" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                         <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
@@ -366,22 +385,21 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <TextBox Grid.Row="3" Grid.Column="1"
+                                    <TextBox Grid.Row="3" Grid.Column="2"
                                              Text="{Binding HotkeyDisplay, Mode=OneWay}"
                                              IsReadOnly="True"
                                              IsTabStop="False"
                                              Margin="0,0,0,8"/>
-                                    <Button Grid.Row="3" Grid.Column="2"
+                                    <Button Grid.Row="3" Grid.Column="3"
                                             Content="Set Hotkey"
                                             Margin="8,0,0,8" VerticalAlignment="Center"
                                             Style="{StaticResource ActionButton}"
                                             Command="{Binding CaptureHotkeyCommand}"/>
 
                                     <!-- Icon -->
-                                    <StackPanel Grid.Row="4" Grid.Column="0"
+                                    <StackPanel Grid.Row="4" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Icon" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <!-- ToggleButton + Popup so the links are actually clickable -->
                                         <ToggleButton x:Name="IconInfoToggle"
                                                       Width="15" Height="15"
                                                       VerticalAlignment="Center"
@@ -444,12 +462,12 @@
                                             </Border>
                                         </Popup>
                                     </StackPanel>
-                                    <TextBox Grid.Row="4" Grid.Column="1"
+                                    <TextBox Grid.Row="4" Grid.Column="2"
                                              Text="{Binding IconPath, Mode=OneWay, FallbackValue='(default)'}"
                                              IsReadOnly="True"
                                              IsTabStop="False"
                                              Margin="0,0,0,12"/>
-                                    <StackPanel Grid.Row="4" Grid.Column="2"
+                                    <StackPanel Grid.Row="4" Grid.Column="3"
                                                 Orientation="Horizontal"
                                                 VerticalAlignment="Center"
                                                 Margin="8,0,0,12">
@@ -473,16 +491,43 @@
                                     </StackPanel>
 
                                     <!-- Separator -->
-                                    <Border Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3"
+                                    <Border Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4"
                                             Height="1" Background="#F0F0F0" Margin="0,0,0,12"/>
 
-                                    <!-- Delete -->
-                                    <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3"
-                                                Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Content="Delete Profile"
-                                                Style="{StaticResource DangerButton}"
-                                                Command="{Binding DeleteCommand}"/>
-                                    </StackPanel>
+                                    <!-- Bottom row: Silent toggle (left) + Clone + Delete (right) -->
+                                    <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4">
+                                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal"
+                                                    VerticalAlignment="Center">
+                                            <CheckBox IsChecked="{Binding Silent}"
+                                                      Style="{StaticResource ToggleSwitchStyle}"
+                                                      VerticalAlignment="Center">
+                                                <TextBlock Text="Silent switch" FontSize="12" Foreground="#555555"/>
+                                            </CheckBox>
+                                            <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                                    VerticalAlignment="Center" Cursor="Help" Margin="6,0,0,0"
+                                                    ToolTipService.InitialShowDelay="400"
+                                                    ToolTipService.ShowDuration="12000">
+                                                <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
+                                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border.ToolTip>
+                                                    <ToolTip>
+                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                                            When enabled, switching to this profile skips the Windows notification banner. Device-unavailable warnings still appear regardless of this setting.
+                                                        </TextBlock>
+                                                    </ToolTip>
+                                                </Border.ToolTip>
+                                            </Border>
+                                        </StackPanel>
+                                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                            <Button Content="Clone"
+                                                    Style="{StaticResource ActionButton}"
+                                                    Command="{Binding CloneCommand}"
+                                                    Margin="0,0,8,0"/>
+                                            <Button Content="Delete Profile"
+                                                    Style="{StaticResource DangerButton}"
+                                                    Command="{Binding DeleteCommand}"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </Grid>
                             </Border>
                         </DataTemplate>

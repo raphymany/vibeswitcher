@@ -17,6 +17,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly IDialogService _dialogService;
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
+    private readonly Action<ProfileCardViewModel> _onClone;
 
     private string _name;
     private AudioDeviceInfo? _selectedPlaybackDevice;
@@ -114,8 +115,21 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         private set => SetField(ref _iconPreview, value);
     }
 
+    public bool Silent
+    {
+        get => _model.Silent;
+        set
+        {
+            if (_model.Silent == value) return;
+            _model.Silent = value;
+            OnPropertyChanged(nameof(Silent));
+            _onChanged(this);
+        }
+    }
+
     public ICommand CaptureHotkeyCommand { get; }
     public ICommand BrowseIconCommand { get; }
+    public ICommand CloneCommand { get; }
     public ICommand DeleteCommand { get; }
 
     public ProfileCardViewModel(
@@ -126,7 +140,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         IReadOnlyList<AudioDeviceInfo> playbackDevices,
         IReadOnlyList<AudioDeviceInfo> recordingDevices,
         Action<ProfileCardViewModel> onChanged,
-        Action<ProfileCardViewModel> onDelete)
+        Action<ProfileCardViewModel> onDelete,
+        Action<ProfileCardViewModel> onClone)
     {
         _model = model;
         _configService = configService;
@@ -134,6 +149,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _dialogService = dialogService;
         _onChanged = onChanged;
         _onDelete = onDelete;
+        _onClone = onClone;
 
         _name = model.Name;
         _hotkeyDisplay = model.Hotkey.ToDisplayString();
@@ -155,6 +171,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
         BrowseIconCommand = new RelayCommand(BrowseIcon);
+        CloneCommand = new RelayCommand(() => _onClone(this));
         DeleteCommand = new RelayCommand(DeleteProfile);
     }
 
