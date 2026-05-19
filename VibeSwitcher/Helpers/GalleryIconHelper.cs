@@ -6,6 +6,8 @@ using System.Windows.Media.Imaging;
 
 namespace VibeSwitcher.Helpers;
 
+public enum IconColor { Auto, Black, White }
+
 public class GalleryItem
 {
     public string Emoji { get; }
@@ -24,6 +26,7 @@ public class GalleryPickResult
 {
     public GalleryItem? Item { get; init; }
     public bool BrowseFromDisk { get; init; }
+    public IconColor IconColor { get; init; }
 }
 
 public static class GalleryIconHelper
@@ -54,7 +57,7 @@ public static class GalleryIconHelper
     // Writes the ICO format directly (single PNG-embedded frame) to preserve full
     // 64×64 quality — avoids Bitmap.GetHicon() which scales to the system icon size.
     // Must be called on the STA (UI) thread — uses WPF rendering pipeline.
-    public static void SaveGalleryIcon(string emoji, string destPath)
+    public static void SaveGalleryIcon(string emoji, string destPath, IconColor color = IconColor.Auto)
     {
         const int size = 64;
         const double dpi = 96.0;
@@ -75,14 +78,46 @@ public static class GalleryIconHelper
         var rtb = new RenderTargetBitmap(size, size, dpi, dpi, PixelFormats.Pbgra32);
         rtb.Render(visual);
 
+        BitmapSource bitmap = color switch
+        {
+            IconColor.Black => ApplyColorMask(rtb, Colors.Black),
+            IconColor.White => ApplyColorMask(rtb, Colors.White),
+            _               => rtb
+        };
+
         var encoder = new PngBitmapEncoder();
-        encoder.Frames.Add(BitmapFrame.Create(rtb));
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
         using var pngStream = new MemoryStream();
         encoder.Save(pngStream);
         var pngBytes = pngStream.ToArray();
 
         Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
         WriteSingleFrameIco(pngBytes, size, destPath);
+    }
+
+    // Replaces all non-transparent pixels with the given color (pre-multiplied alpha preserved).
+    // Used to produce monochrome white or black versions of emoji icons for taskbar visibility.
+    private static WriteableBitmap ApplyColorMask(RenderTargetBitmap source, Color color)
+    {
+        int width = source.PixelWidth, height = source.PixelHeight;
+        int stride = width * 4;
+        var pixels = new byte[stride * height];
+        source.CopyPixels(pixels, stride, 0);
+        byte r = color.R, g = color.G, b = color.B;
+        for (int i = 0; i < pixels.Length; i += 4)
+        {
+            byte alpha = pixels[i + 3];
+            if (alpha > 0)
+            {
+                // Pbgra32: B G R A — keep alpha, pre-multiply new color by alpha
+                pixels[i + 0] = (byte)(b * alpha / 255);
+                pixels[i + 1] = (byte)(g * alpha / 255);
+                pixels[i + 2] = (byte)(r * alpha / 255);
+            }
+        }
+        var wb = new WriteableBitmap(width, height, source.DpiX, source.DpiY, PixelFormats.Pbgra32, null);
+        wb.WritePixels(new Int32Rect(0, 0, width, height), pixels, stride, 0);
+        return wb;
     }
 
     // Writes a minimal single-frame ICO file with an embedded PNG image.

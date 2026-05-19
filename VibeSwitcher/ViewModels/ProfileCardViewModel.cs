@@ -328,10 +328,10 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
 
         if (result.Item != null)
-            ApplyGalleryIcon(result.Item);
+            ApplyGalleryIcon(result.Item, result.IconColor);
     }
 
-    private void ApplyGalleryIcon(GalleryItem item, bool silent = false)
+    private void ApplyGalleryIcon(GalleryItem item, IconColor color = IconColor.Auto, bool silent = false)
     {
         var namePrefix = SanitizeName(_model.Name);
         var guidPrefix = _model.Id.ToString("N")[..8];
@@ -339,7 +339,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         try
         {
-            GalleryIconHelper.SaveGalleryIcon(item.Emoji, dest);
+            GalleryIconHelper.SaveGalleryIcon(item.Emoji, dest, color);
         }
         catch (Exception ex)
         {
@@ -436,7 +436,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         {
             var item = GalleryIconHelper.FindByName(suggestion);
             if (item != null)
-                ApplyGalleryIcon(item, silent: true);
+                ApplyGalleryIcon(item, IconColor.Auto, silent: true);
         }
     }
 

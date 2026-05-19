@@ -9,6 +9,10 @@ public partial class IconGalleryDialog : Window
 
     public GalleryItem? SelectedItem { get; private set; }
     public bool BrowseFromDisk { get; private set; }
+    public IconColor SelectedColor =>
+        ColorBlack.IsChecked == true ? IconColor.Black :
+        ColorWhite.IsChecked == true ? IconColor.White :
+        IconColor.Auto;
 
     public IconGalleryDialog()
     {

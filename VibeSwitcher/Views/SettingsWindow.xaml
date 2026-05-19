@@ -300,11 +300,11 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Drag grip — spans Playback+Recording rows -->
-                                    <TextBlock Grid.Column="0" Grid.Row="2" Grid.RowSpan="2"
+                                    <!-- Drag grip — at Recording row level -->
+                                    <TextBlock Grid.Column="0" Grid.Row="3"
                                                Text="⠿" FontSize="20" Foreground="#CCCCCC"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
-                                               Cursor="SizeNS" Margin="0,0,4,0"
+                                               Cursor="SizeNS" Margin="-4,0,4,0"
                                                PreviewMouseLeftButtonDown="DragGrip_MouseDown"
                                                PreviewMouseLeftButtonUp="DragGrip_MouseUp"
                                                MouseMove="DragGrip_MouseMove">

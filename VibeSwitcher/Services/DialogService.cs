@@ -38,7 +38,7 @@ public class DialogService : IDialogService
     {
         var dialog = new IconGalleryDialog { Owner = OwnerWindow };
         if (dialog.ShowDialog() != true) return null;
-        return new GalleryPickResult { Item = dialog.SelectedItem, BrowseFromDisk = dialog.BrowseFromDisk };
+        return new GalleryPickResult { Item = dialog.SelectedItem, BrowseFromDisk = dialog.BrowseFromDisk, IconColor = dialog.SelectedColor };
     }
 
     public void ShowAlert(string title, string message)
