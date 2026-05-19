@@ -9,6 +9,7 @@ internal sealed class FakeConfigService : IConfigService
 
     public AppConfig Current => _config;
     public bool IsFirstRun { get; set; }
+    public bool IsPortable { get; set; }
     public string IconsDir { get; set; } =
         Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Icons");
 

@@ -67,6 +67,11 @@ public partial class App : Application
         _configService = new ConfigService(portableBaseDir);
         _configService.Load();
 
+        // 2a. First-time portable activation: offer to import existing profiles from %APPDATA%.
+        // Only shown when portable mode just activated and no portable config exists yet.
+        if (_configService.IsPortable && _configService.IsFirstRun)
+            TryOfferPortableImport(portableBaseDir!);
+
         // 2b. Self-correct the startup registry path if the exe was moved since last enable.
         // Skip in portable mode — the exe path is not stable (e.g. USB drive letter can change).
         if (!_configService.IsPortable)
@@ -123,6 +128,52 @@ public partial class App : Application
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
+    }
+
+    private void TryOfferPortableImport(string portableBaseDir)
+    {
+        var appDataDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher");
+        var appDataConfig = Path.Combine(appDataDir, "config.json");
+
+        if (!File.Exists(appDataConfig)) return;
+
+        var result = MessageBox.Show(
+            "Portable mode is active, but no profiles are saved here yet.\n\n" +
+            "Would you like to import your existing profiles and settings from this PC?\n\n" +
+            "Choose Yes to import, or No to start fresh.",
+            "VibeSwitcher — Import Profiles?",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question,
+            MessageBoxResult.Yes);
+
+        if (result != MessageBoxResult.Yes) return;
+
+        try
+        {
+            File.Copy(appDataConfig, Path.Combine(portableBaseDir, "config.json"), overwrite: true);
+
+            var srcIcons = Path.Combine(appDataDir, "Icons");
+            if (Directory.Exists(srcIcons))
+            {
+                var dstIcons = Path.Combine(portableBaseDir, "Icons");
+                Directory.CreateDirectory(dstIcons);
+                foreach (var file in Directory.GetFiles(srcIcons))
+                    File.Copy(file, Path.Combine(dstIcons, Path.GetFileName(file)), overwrite: true);
+            }
+
+            _configService!.Load();
+            AppLogger.Info("App.TryOfferPortableImport", "Profiles imported from AppData to portable location.");
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("App.TryOfferPortableImport", ex);
+            MessageBox.Show(
+                $"Import failed: {ex.Message}\n\nThe app will continue with a fresh start.",
+                "VibeSwitcher — Import Failed",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+        }
     }
 
     private void RegisterHotkeys()
