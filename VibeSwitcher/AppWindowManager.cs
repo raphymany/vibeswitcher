@@ -29,6 +29,11 @@ public class AppWindowManager
         var existing = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
         if (existing != null)
         {
+            if (existing.IsVisible && existing.IsActive)
+            {
+                existing.Hide();
+                return;
+            }
             existing.Show();
             existing.WindowState = WindowState.Normal;
             existing.Activate();
