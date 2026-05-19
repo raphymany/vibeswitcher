@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — renumber planned branches 28–33 sequentially; drop F13 (duplicate of F1).
+**Last updated:** 2026-05-19 — Branch 28 merged (PR #57); F5, F21, F24, F30 done.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -100,7 +100,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F1 | Import/export `config.json` via Settings for backup and sharing | 32 |
 | F2 | Drag-and-drop profile reorder (drag handles, Spotify-style) | 29 |
 | F3 | "Test sound" button to verify active device plays audio | 30 |
-| F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys | 28 |
+| ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip~~ | ✅ Done — PR #57 |
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
 | F10 | Per-profile volume level — sets device default volume when switching to that profile | 30 |
@@ -110,14 +110,14 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F18 | Field feedback — brief green border flash on a card when a change is saved | 32 |
 | F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 32 |
 | F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding | 31 |
-| F21 | Left-click tray cycles profiles — switches to the next profile in sort order, wrapping around; right-click still opens the menu | 28 |
+| ~~F21~~ | ~~Left-click tray cycles profiles~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 32 |
 | F23 | Profile clone button — duplicates name, devices, hotkey, and icon into a new profile | 29 |
-| F24 | Global hotkey to open Settings — user-configurable, with option to disable entirely | 28 |
+| ~~F24~~ | ~~Global hotkey to open Settings~~ | ✅ Done — PR #57 |
 | F25 | Per-profile silent switch — checkbox on each card to skip the balloon notification when switching to that profile | 29 |
 | F26 | Device connectivity indicator — green/red dot next to each device in the Settings dropdowns | 30 |
 | F27 | Profile color tag — small colored circle on each card and in the tray menu; user picks any color via color picker | 31 |
-| F30 | Tray icon switch flash — brief icon pulse when a profile switch completes; visual confirmation when balloon notifications are disabled | 28 |
+| ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ | ✅ Done — PR #57 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers") | 36 |
 | F32 | Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name | 35 |
 | F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones | 35 |
@@ -145,15 +145,15 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 28: `feat/tray-interactions`
-**Theme:** Tray icon and global hotkey UX — no Settings UI changes required.
+### ~~Branch 28: `feat/tray-interactions`~~ ✅ Merged — PR #57
+**Theme:** Tray icon and global hotkey UX — left-click cycle, hotkey tooltip, Settings hotkey, icon flash, hotkey conflict UX polish.
 
 | # | Feature |
 |---|---------|
-| F21 | Left-click tray icon cycles to the next profile in sort order (wraps around) |
-| F5 | Hotkey cheat sheet in tray tooltip — hover shows all profile hotkeys |
-| F24 | Global hotkey to open Settings — user-configurable, optional |
-| F30 | Tray icon switch flash — brief icon pulse when a profile switch completes |
+| ~~F21~~ | ~~Left-click tray icon cycles to the next profile in sort order (wraps around)~~ |
+| ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip — hover shows all profile hotkeys~~ |
+| ~~F24~~ | ~~Global hotkey to open Settings — user-configurable, optional~~ |
+| ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ |
 
 ---
 

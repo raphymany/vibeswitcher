@@ -533,7 +533,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F2 | Drag-and-drop profile reorder |
 | F3 | "Test sound" button to verify active device plays audio |
 | ~~F4~~ | ~~Middle-click tray to toggle between last two profiles~~ | Removed |
-| F5 | Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys (e.g. "Desktop Setup: Ctrl+PgUp / Gaming: Ctrl+PgDn") so you can see the full list without opening any window |
+| ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip — hover text shows all profiles with their assigned hotkeys (e.g. "Desktop Setup: Ctrl+PgUp / Gaming: Ctrl+PgDn") so you can see the full list without opening any window~~ | ✅ Done — PR #57 |
 | ~~F6~~ | ~~Re-apply active profile on system resume from sleep/hibernate~~ | ✅ Done — PR #18 |
 | ~~F7~~ | ~~`IMMNotificationClient` for real-time device plug/unplug in Settings~~ | ✅ Done — PR #30 |
 | F8 | Auto-updater with GitHub Releases version check |
@@ -549,14 +549,14 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F18 | Field feedback — green border flash when a field change is saved; inline validation message for invalid input |
 | F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
 | F20 | Pre-made profile names — quick-pick name suggestions ("Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", "Speakers", etc.) shown as chips or a dropdown below the name field; pairs with F17 built-in icons for a zero-typing onboarding path |
-| F21 | Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal |
+| ~~F21~~ | ~~Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
 | F23 | Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list |
-| F24 | Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere |
+| ~~F24~~ | ~~Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere~~ | ✅ Done — PR #57 |
 | F25 | Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely |
 | F26 | Device connectivity indicator — green dot next to connected devices and red dot next to disconnected devices in the Settings dropdowns, so you can see at a glance which are available without trying to switch |
 | F27 | Profile color tag — a small colored circle on each profile card and in the tray right-click menu next to the profile name; user picks any color via a color picker (not limited to presets) for visual distinction between profiles |
-| F30 | Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25 |
+| ~~F30~~ | ~~Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25~~ | ✅ Done — PR #57 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); stored as a `{deviceId → alias}` dictionary in config |
 | F32 | Profile notes — optional short description field on each profile card (e.g. "For work meetings — webcam mic disabled"); stored per profile, shown below the profile name |
 | F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray right-click menu above unpinned ones for quick access when the list grows long |
@@ -964,3 +964,20 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | F9 (partial) | `IconHelper.GetBalloonIconHandle()` — creates a cached 32×32 HICON from `app.ico` once; `DestroyIcon` called at process exit | ✅ Done |
 | F9 (partial) | `TrayService.ShowBalloon` updated to pass `customIconHandle` + `largeIcon: true` so the app icon appears in the balloon body | ✅ Done |
 | New | `AppLogger.StartSession()` truncates `error.log` at startup so logs from previous sessions do not accumulate | ✅ Done |
+
+---
+
+### ~~Branch 28: `feat/tray-interactions`~~ ✅ Merged — PR #57
+**Theme:** Tray icon and global hotkey UX — left-click cycle, hotkey tooltip, Settings hotkey, icon flash, and follow-up hotkey UX polish.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F21 | Left-click tray icon cycles to the next profile in sort order, wrapping around | ✅ Done |
+| F5 | Hotkey cheat sheet tooltip — hovering the tray icon shows all profile hotkeys | ✅ Done |
+| F24 | Global hotkey to open/close Settings — user-configurable, enable/disable toggle, keyboard badge chip in UI | ✅ Done |
+| F30 | Tray icon switch flash — brief icon blink (~300 ms) after each profile switch | ✅ Done |
+| New | Hotkey conflict notification names the owner profile instead of a generic rejection | ✅ Done |
+| New | Conflict retry dialog (custom styled) offers Try Again / Close instead of dismiss-only | ✅ Done |
+| New | All hotkeys unregistered before capture dialog opens so profile hotkeys can't fire during capture | ✅ Done |
+| New | `ReregisterHotkeys` re-registers the Settings hotkey after `RegisterAll` wipes it | ✅ Done |
+| New | Shortcuts section redesigned to a two-row grid — feature name + toggle on top, description + badge + button below | ✅ Done |

@@ -7,6 +7,18 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Left-click tray cycles profiles (F21)** — a single left-click on the tray icon advances to the next profile in sort order, wrapping around; right-click still opens the menu *(PR #57)*
+- **Hotkey cheat sheet tooltip (F5)** — hovering the tray icon shows a multi-line tooltip listing every profile with an assigned hotkey; updates automatically on every switch *(PR #57)*
+- **Global Settings hotkey (F24)** — a Shortcuts section in the General Settings card lets the user assign any key combo to toggle the Settings window from anywhere; includes an enable/disable toggle and a keyboard badge chip showing the current binding *(PR #57)*
+- **Tray icon flash on switch (F30)** — after each profile switch the tray icon briefly blinks to the default icon for ~300 ms as a subtle visual confirmation *(PR #57)*
+- **Hotkey conflict notification names the owner** — when a captured hotkey is already in use, the conflict message identifies which profile or setting owns it *(PR #57)*
+- **Conflict retry dialog** — after a conflict, a custom styled dialog offers Try Again or Close so the user can immediately try a different key without re-opening the capture dialog *(PR #57)*
+
+### Fixed
+- **Profile hotkeys no longer fire during capture** — all hotkeys are unregistered before any capture dialog opens and fully re-registered after *(PR #57)*
+- **Settings hotkey survives profile edits** — `ReregisterHotkeys` now re-registers the Settings hotkey after `RegisterAll` wipes it; previously it was silently lost on every profile add, edit, or delete *(PR #57)*
+
+### Added
 - **App icon in balloon notification body** — switching profiles now shows the VibeSwitcher app icon as the large icon in the notification banner body instead of the generic blue "i"; the 32×32 HICON is cached for the app's lifetime *(PR #53)*
 
 ### Fixed
