@@ -128,90 +128,39 @@
             <RadioButton x:Name="ColorWhite" Content="White" GroupName="IconColor" Margin="0" Style="{StaticResource ColorPill}"/>
         </StackPanel>
 
-        <!-- Gallery grid — background darkens when White is selected to preview on dark taskbar -->
-        <Border CornerRadius="8" Padding="4" Margin="0,0,0,4">
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Setter Property="Background" Value="Transparent"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsChecked, ElementName=ColorWhite}" Value="True">
-                            <Setter Property="Background" Value="#252525"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
-            <ItemsControl ItemsSource="{Binding Items}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Columns="4"/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Button Tag="{Binding}"
-                                Style="{StaticResource GalleryItemButton}"
-                                Click="GalleryItem_Click">
-                            <StackPanel>
-                                <!-- Custom-rendered preview (e.g. geometric speaker icon) -->
-                                <Image Source="{Binding GalleryPreview}"
-                                       Width="36" Height="36"
+        <!-- Gallery grid — 4 columns -->
+        <ItemsControl ItemsSource="{Binding Items}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="4"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Tag="{Binding}"
+                            Style="{StaticResource GalleryItemButton}"
+                            Click="GalleryItem_Click">
+                        <StackPanel>
+                            <TextBlock Text="{Binding Emoji}"
+                                       FontSize="34"
+                                       FontFamily="Segoe UI Emoji"
                                        HorizontalAlignment="Center"
-                                       Margin="0,0,0,4"
-                                       RenderOptions.BitmapScalingMode="HighQuality">
-                                    <Image.Style>
-                                        <Style TargetType="Image">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding GalleryPreview}" Value="{x:Null}">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Image.Style>
-                                </Image>
-                                <!-- Emoji (shown when no custom preview) -->
-                                <TextBlock Text="{Binding Emoji}"
-                                           FontSize="34"
-                                           FontFamily="Segoe UI Emoji"
-                                           HorizontalAlignment="Center"
-                                           Margin="0,0,0,4">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding GalleryPreview}" Value="{x:Null}">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                                <TextBlock Text="{Binding Label}"
-                                           FontSize="11"
-                                           Foreground="#555555"
-                                           HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </Border>
+                                       Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding Label}"
+                                       FontSize="11"
+                                       Foreground="#555555"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-        <!-- Hint shown when White mode is active -->
-        <TextBlock Text="Gallery shows original colors — saved icon will be white (best for dark taskbars)"
-                   FontSize="11" Foreground="#AAAAAA" HorizontalAlignment="Center"
-                   TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,4">
-            <TextBlock.Style>
-                <Style TargetType="TextBlock">
-                    <Setter Property="Visibility" Value="Collapsed"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsChecked, ElementName=ColorWhite}" Value="True">
-                            <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </TextBlock.Style>
-        </TextBlock>
+        <!-- Color hint -->
+        <TextBlock Text="Black works best on light taskbars · White works best on dark taskbars"
+                   FontSize="11" Foreground="#AAAAAA"
+                   HorizontalAlignment="Center" TextAlignment="Center"
+                   Margin="0,10,0,0"/>
 
         <Separator Margin="0,16"/>
 
