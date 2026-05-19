@@ -298,6 +298,16 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
+### Branch 44: `feat/device-display-settings`
+**Theme:** User control over which devices appear in profile card dropdowns.
+
+| # | Feature |
+|---|---------|
+| — | Toggle to show/hide disabled devices in dropdowns |
+| — | Toggle to show/hide disconnected/unplugged devices in dropdowns |
+
+---
+
 ### Deferred — No branch planned yet
 
 | # | Feature | Why deferred |
