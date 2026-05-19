@@ -131,6 +131,7 @@ public class SettingsViewModel : ViewModelBase
         get => _configService.Current.SettingsCardExpanded;
         set
         {
+            if (_configService.Current.SettingsCardExpanded == value) return;
             _configService.Current.SettingsCardExpanded = value;
             _configService.SaveImmediate();
             OnPropertyChanged();

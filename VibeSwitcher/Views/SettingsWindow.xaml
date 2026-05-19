@@ -666,13 +666,13 @@
                                                    Foreground="#888888" FontSize="11" Margin="0,2,0,0"/>
                                     </StackPanel>
                                     <TextBlock x:Name="Arrow" Grid.Column="2"
-                                               Text="▼" FontSize="10" Foreground="#888888"
+                                               Text="▲" FontSize="10" Foreground="#888888"
                                                VerticalAlignment="Center" Margin="8,0,0,0"/>
                                 </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsChecked" Value="False">
-                                    <Setter TargetName="Arrow" Property="Text" Value="▲"/>
+                                    <Setter TargetName="Arrow" Property="Text" Value="▼"/>
                                     <Setter TargetName="Bg" Property="CornerRadius" Value="7"/>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
