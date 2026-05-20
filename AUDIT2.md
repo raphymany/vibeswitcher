@@ -143,63 +143,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 Grouped by shared UI surface or implementation concern. Features within each branch can ship together without stepping on each other.
 
----
-
-### ~~Branch 28: `feat/tray-interactions`~~ ✅ Merged — PR #57
-**Theme:** Tray icon and global hotkey UX — left-click cycle, hotkey tooltip, Settings hotkey, icon flash, hotkey conflict UX polish.
-
-| # | Feature |
-|---|---------|
-| ~~F21~~ | ~~Left-click tray icon cycles to the next profile in sort order (wraps around)~~ |
-| ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip — hover shows all profile hotkeys~~ |
-| ~~F24~~ | ~~Global hotkey to open Settings — user-configurable, optional~~ |
-| ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ |
-
----
-
-### ~~Branch 29: `feat/profile-management`~~ ✅ Merged — PR #59
-**Theme:** Per-card controls in the Settings profile list — reorder, clone, silent switch.
-
-| # | Feature |
-|---|---------|
-| ~~F2~~ | ~~Drag-and-drop profile reorder — ⠿ grip on each card~~ |
-| ~~F23~~ | ~~Profile clone button~~ |
-| ~~F25~~ | ~~Per-profile silent switch~~ |
-
----
-
-### ~~Branch 30: `feat/device-enhancements`~~ ✅ Merged — PR #61
-**Theme:** Audio device interaction features — all touch `AudioService` or the device dropdowns.
-
-| # | Feature |
-|---|---------|
-| ~~F3 / 4.8~~ | ~~"Test sound" button on each profile — plays a short tone through the selected playback device~~ |
-| ~~F10~~ | ~~Per-profile volume level~~ — Dropped (user prefers Windows tray) |
-| ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in the Settings dropdowns~~ |
-
----
-
-### ~~Branch 31: `feat/profile-visual`~~ ✅ Merged — PR #66
-**Theme:** Visual identity features for profiles — icon gallery and name suggestions.
-
-| # | Feature |
-|---|---------|
-| ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ |
-| ~~F20~~ | ~~Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17~~ |
-
----
-
-### ~~Branch 32: `feat/settings-polish`~~ ✅ Merged — PR #68
-**Theme:** Settings window refinements — visual feedback, inner cards, info badges, tray toggle, backup/restore.
-
-| # | Feature |
-|---|---------|
-| ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ |
-| ~~F1 / 4.13~~ | ~~Config import/export — backup and transfer profiles via Settings~~ |
-| ~~F19 / 10.3~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ |
-| ~~F42~~ | ~~Settings sub-card layout — each group (Startup, Notifications, Shortcuts) in its own inner card~~ |
-| ~~F43~~ | ~~Card-based enable/disable — toggleable settings cards fade when disabled instead of using pill toggles~~ |
-| F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling (not delivered — pulled from branch) |
+*(Completed branches and their full item lists are documented in AUDIT.md — Section 12.)*
 
 ---
 
@@ -293,20 +237,6 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | # | Feature |
 |---|---------|
 | F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle |
-
----
-
-### ~~Branch 44: `feat/settings-ux`~~ ✅ Merged — PR #64
-**Theme:** Settings window UX polish — device visibility controls, collapsible settings card, tray menu clarity, and visual consistency.
-
-| # | Feature |
-|---|---------|
-| — | Show/hide disabled devices toggle — separate toggle in Settings to include or exclude software-disabled audio devices from profile card dropdowns |
-| — | Show/hide disconnected devices toggle — separate toggle to include or exclude unplugged devices from dropdowns |
-| — | Collapsible General Settings card — clickable header with gear icon, title, and subtitle collapses/expands the settings body; state persists across sessions |
-| — | Window title simplified from "VibeSwitcher - Settings" to "VibeSwitcher" |
-| — | Tray right-click menu — VibeSwitcher header is now clickable to open the app; removed the separate ambiguous "Settings" item |
-| — | Button corner radius unified to 7 across all button styles to match the Settings card expander |
 
 ---
 
