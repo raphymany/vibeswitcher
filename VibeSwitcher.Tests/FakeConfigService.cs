@@ -14,6 +14,8 @@ internal sealed class FakeConfigService : IConfigService
 
     public void Load() { }
     public void SaveImmediate() { }
+    public void ExportTo(string destinationPath) { }
+    public bool TryImport(string sourcePath, out string? error) { error = null; return false; }
 
     public void SetConfig(AppConfig config) => _config = config;
 }

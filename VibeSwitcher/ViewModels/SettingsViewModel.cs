@@ -413,8 +413,57 @@ public class SettingsViewModel : ViewModelBase
     private void OnProfileChanged(ProfileCardViewModel card)
     {
         _configService.SaveImmediate();
+        card.TriggerSaveFlash();
         ReregisterHotkeys();
         _onProfilesChanged();
+    }
+
+    public void ExportConfig(string destinationPath)
+    {
+        _configService.ExportTo(destinationPath);
+    }
+
+    public bool ImportConfig(string sourcePath, out string? error)
+    {
+        if (!_configService.TryImport(sourcePath, out error))
+            return false;
+
+        RebuildProfiles();
+
+        _startWithWindows    = _startupService.IsStartupEnabled();
+        _startMinimized      = _configService.Current.StartMinimized;
+        _closeToTray         = _configService.Current.CloseToTray;
+        _showNotifications   = _configService.Current.ShowNotifications;
+        _useLegacySoundPanel = _configService.Current.UseLegacySoundPanel;
+        _showDisabledDevices = _configService.Current.ShowDisabledDevices;
+        _showDisconnectedDevices = _configService.Current.ShowDisconnectedDevices;
+
+        OnPropertyChanged(nameof(StartWithWindows));
+        OnPropertyChanged(nameof(StartMinimized));
+        OnPropertyChanged(nameof(CloseToTray));
+        OnPropertyChanged(nameof(ShowNotifications));
+        OnPropertyChanged(nameof(UseLegacySoundPanel));
+        OnPropertyChanged(nameof(ShowDisabledDevices));
+        OnPropertyChanged(nameof(ShowDisconnectedDevices));
+        OnPropertyChanged(nameof(SettingsHotkeyDisplay));
+        OnPropertyChanged(nameof(SettingsHotkeyIsSet));
+        OnPropertyChanged(nameof(SettingsHotkeyEnabled));
+        OnPropertyChanged(nameof(SettingsCardExpanded));
+
+        ReregisterHotkeys();
+        _onProfilesChanged();
+        return true;
+    }
+
+    private void RebuildProfiles()
+    {
+        var oldCards = Profiles.ToList();
+        Profiles.Clear();
+        foreach (var card in oldCards)
+            card.Dispose();
+        foreach (var p in _configService.Current.Profiles.OrderBy(p => p.SortOrder))
+            Profiles.Add(CreateCard(p));
+        _ = LoadDevicesAsync();
     }
 
     internal void ReregisterHotkeys()

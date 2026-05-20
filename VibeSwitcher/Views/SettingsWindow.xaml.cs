@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using Microsoft.Win32;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -20,6 +21,10 @@ public partial class SettingsWindow : Window
     private readonly IConfigService _configService;
     private readonly IHotkeyService _hotkeyService;
     private readonly EventHandler _errorAddedHandler;
+
+    // Expand-to-fit state
+    private double _preExpandHeight;
+    private bool _isExpanded;
 
     // Drag-and-drop state for profile card reordering
     private Point _dragStart;
@@ -140,7 +145,7 @@ public partial class SettingsWindow : Window
         if (WindowState != WindowState.Normal) return;
         var cfg = _configService.Current;
         cfg.WindowWidth  = Width;
-        cfg.WindowHeight = Height;
+        cfg.WindowHeight = _isExpanded ? _preExpandHeight : Height;
         cfg.WindowLeft   = Left;
         cfg.WindowTop    = Top;
         _configService.SaveImmediate();
@@ -335,5 +340,75 @@ public partial class SettingsWindow : Window
         var source = e.Data.GetData(typeof(ProfileCardViewModel)) as ProfileCardViewModel;
         if (source == null || target == null || source == target) return;
         _viewModel.MoveProfile(source, target);
+    }
+
+    private void HelpButton_Click(object sender, RoutedEventArgs e)
+    {
+        new HelpDialog { Owner = this }.ShowDialog();
+    }
+
+    private void FitButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isExpanded)
+        {
+            Height = _preExpandHeight;
+            FitButton.Content = "↕ Fit";
+            FitButton.ToolTip = "Expand window to show all profiles";
+            _isExpanded = false;
+            return;
+        }
+
+        var needed = ActualHeight + (ProfilesScrollViewer.ExtentHeight - ProfilesScrollViewer.ActualHeight);
+        var maxH = SystemParameters.WorkArea.Height - 20;
+        var target = Math.Min(needed, maxH);
+        if (target <= ActualHeight) return;
+
+        _preExpandHeight = ActualHeight;
+        Height = target;
+        FitButton.Content = "↩ Reset";
+        FitButton.ToolTip = "Restore window to previous height";
+        _isExpanded = true;
+    }
+
+    private void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SaveFileDialog
+        {
+            Title = "Export VibeSwitcher Config",
+            Filter = "JSON Files (*.json)|*.json",
+            FileName = "vibeswitcher-backup.json",
+            DefaultExt = ".json"
+        };
+        if (dlg.ShowDialog() != true) return;
+        try
+        {
+            _viewModel.ExportConfig(dlg.FileName);
+            new AlertDialog("Export Successful", $"Configuration exported to:\n{dlg.FileName}") { Owner = this }.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            new AlertDialog("Export Failed", $"Could not export configuration:\n{ex.Message}") { Owner = this }.ShowDialog();
+        }
+    }
+
+    private void ImportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFileDialog
+        {
+            Title = "Import VibeSwitcher Config",
+            Filter = "JSON Files (*.json)|*.json",
+            CheckFileExists = true
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        var confirm = new ConfirmDialog(
+            "Replace Configuration?",
+            $"Importing '{System.IO.Path.GetFileName(dlg.FileName)}' will replace all current profiles and settings.",
+            "Import")
+        { Owner = this };
+        if (confirm.ShowDialog() != true) return;
+
+        if (!_viewModel.ImportConfig(dlg.FileName, out var error))
+            new AlertDialog("Import Failed", error ?? "The configuration could not be imported.") { Owner = this }.ShowDialog();
     }
 }
