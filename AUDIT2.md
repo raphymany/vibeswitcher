@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-20 — Branch 31 merged (PR #66).
+**Last updated:** 2026-05-20 — Branch 32 merged (PR #68).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -97,7 +97,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 | # | Feature | Branch |
 |---|---------|--------|
-| F1 | Import/export `config.json` via Settings for backup and sharing | 32 |
+| ~~F1~~ | ~~Import/export `config.json` via Settings for backup and sharing~~ | ✅ Done — PR #68 |
 | ~~F2~~ | ~~Drag-and-drop profile reorder~~ | ✅ Done — PR #59 |
 | ~~F3~~ | ~~"Test sound" button to verify active device plays audio~~ | ✅ Done — PR #61 |
 | ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip~~ | ✅ Done — PR #57 |
@@ -107,11 +107,11 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
 | F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 45 |
 | ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
-| F18 | Field feedback — brief green border flash on a card when a change is saved | 32 |
-| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 32 |
+| ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ | ✅ Done — PR #68 |
+| ~~F19~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ | ✅ Done — PR #68 |
 | ~~F20~~ | ~~Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding~~ | ✅ Done — PR #66 |
 | ~~F21~~ | ~~Left-click tray cycles profiles~~ | ✅ Done — PR #57 |
-| F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 32 |
+| F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | TBD |
 | ~~F23~~ | ~~Profile clone button~~ | ✅ Done — PR #59 |
 | ~~F24~~ | ~~Global hotkey to open Settings~~ | ✅ Done — PR #57 |
 | ~~F25~~ | ~~Per-profile silent switch — checkbox to skip the Windows notification banner~~ | ✅ Done — PR #59 |
@@ -129,8 +129,8 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle | 41 |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | 42 |
 | F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle | 43 |
-| F42 | Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping | 32 |
-| F43 | Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled | 32 |
+| ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping~~ | ✅ Done — PR #68 |
+| ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
 
 ---
 
@@ -189,17 +189,8 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 32: `feat/settings-polish`
-**Theme:** Settings window refinements that don't require new audio logic.
-
-| # | Feature |
-|---|---------|
-| F18 | Field feedback — brief green border flash on a card when a change is saved |
-| F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling |
-| F1 / 4.13 | Config import/export — backup and transfer profiles via Settings |
-| F19 / 10.3 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
-| F42 | Settings sub-card layout — each group (Startup, Notifications, Shortcuts) in its own inner card |
-| F43 | Card-based enable/disable — toggleable settings cards fade when disabled instead of using pill toggles |
+### ~~Branch 32: `feat/settings-polish`~~ ✅ Merged — PR #68
+**Theme:** Settings window refinements — visual feedback, inner cards, info badges, tray toggle, backup/restore.
 
 ---
 

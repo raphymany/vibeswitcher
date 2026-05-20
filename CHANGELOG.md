@@ -7,6 +7,21 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Backup & Restore (F1)** — Export writes the current config to a user-chosen `.json` file; Import reads it back with a confirmation dialog and rebuilds the entire profile list from the imported data; both operations give AlertDialog feedback on success or failure *(PR #68)*
+- **Save flash on profile cards (F18)** — each profile card briefly flashes green when a change is saved; each card uses its own `SolidColorBrush` instance so animations are independent, with a 250 ms `CancellationTokenSource` debounce to collapse rapid edits into a single flash *(PR #68)*
+- **Getting-started help dialog (F19)** — the `?` footer button opens a scrollable walkthrough dialog covering setup, profile switching, tray tips, what ⓘ icons mean, how Backup & Restore works, and where data is stored; button re-rendered with ClearType to eliminate blurriness *(PR #68)*
+- **Inner card layout for General Settings (F42)** — the flat settings card is now split into six labelled inner cards: Startup, Notifications, Tray, Devices, Backup & Restore, and Shortcuts; each has a subtle grey background and border *(PR #68)*
+- **Opacity fade for all settings toggles (F43)** — when any toggle is off, its label and ⓘ badge fade to 40% opacity; the Shortcuts hotkey assignment row fades independently so the enable toggle itself stays fully opaque *(PR #68)*
+- **ⓘ info badges on every toggle** — every settings toggle now has a small blue ⓘ circle with a plain-English tooltip; badge style unified with profile card info icons *(PR #68)*
+- **Left-click tray cycle toggle** — new "Left-click tray icon to cycle profiles" toggle in the Tray inner card; when disabled, left-clicking the tray icon opens VibeSwitcher instead of cycling profiles; `AppConfig.LeftClickCyclesProfiles` persists the setting *(PR #68)*
+- **ConfirmDialog** — new reusable modal (title, subtitle, message, configurable action label) used for the import confirmation; matches the existing `AlertDialog` / `ConflictRetryDialog` pattern *(PR #68)*
+- **Clone button tooltip** — hovering over the Clone button now shows an explanation of what cloning does *(PR #68)*
+
+### Fixed
+- **Settings header hover corner radius** — the blue hover highlight on the collapsible Settings card header now has rounded corners on all four sides when the card is expanded *(PR #68)*
+- **TrayLeftMouseUp thread safety** — `OpenSettings` is now marshalled via `Dispatcher.InvokeAsync` since `TrayLeftMouseUp` fires on a thread-pool thread *(PR #68)*
+
+### Added
 - **Built-in icon gallery (F17)** — 12 emoji profile icons (Gaming, Work, Music, Headset, Streaming, Calls, Mic, Home, Speakers, Night, Podcast, Desktop) accessible via "Pick Icon" on each profile card; icons are rendered and saved as proper 64×64 PNG-embedded ICO files, bypassing `GetHicon()` to preserve quality *(PR #66)*
 - **Black / White icon color toggle (F17)** — gallery dialog includes a color toggle; Black recolors the emoji pixels to black (best on light taskbars), White recolors to white; chosen color persists on the profile and is applied after restarts *(PR #66)*
 - **Dark background chip for white icons (F17)** — white icons display with a `#4A4A4A` rounded chip behind them in the tray right-click context menu and the settings card icon preview so they remain visible; the tray taskbar icon itself stays clean without a background *(PR #66)*

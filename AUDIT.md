@@ -529,7 +529,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 
 | # | Feature |
 |---|---------|
-| F1 | Import/export `config.json` via Settings for backup and sharing |
+| ~~F1~~ | ~~Import/export `config.json` via Settings for backup and sharing~~ | ✅ Done — PR #68 |
 | ~~F2~~ | ~~Drag-and-drop profile reorder~~ | ✅ Done — PR #59 |
 | ~~F3~~ | ~~"Test sound" button to verify active device plays audio~~ | ✅ Done — PR #61 |
 | ~~F4~~ | ~~Middle-click tray to toggle between last two profiles~~ | Removed |
@@ -546,8 +546,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
 | F16 | Dark mode + high-contrast mode — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting |
 | ~~F17~~ | ~~Built-in profile icons — emoji gallery picker with Black/White color toggle; renders 64×64 PNG-embedded ICO files; Browse button stays alongside gallery picker~~ | ✅ Done — PR #66 |
-| F18 | Field feedback — green border flash when a field change is saved; inline validation message for invalid input |
-| F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
+| ~~F18~~ | ~~Field feedback — green border flash when a field change is saved; inline validation message for invalid input~~ | ✅ Done — PR #68 |
+| ~~F19~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ | ✅ Done — PR #68 |
 | ~~F20~~ | ~~Pre-made profile names — name suggestion chips appear while the name is still the auto-assigned "Profile N"; picking a chip sets the name and silently applies the matching gallery icon~~ | ✅ Done — PR #66 |
 | ~~F21~~ | ~~Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
@@ -568,8 +568,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups where undocking a laptop should switch to built-in speakers automatically |
 | F41 | App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable |
-| F42 | Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign |
-| F43 | Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign |
+| ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
+| ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 
 ---
 
@@ -583,8 +583,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 39 | 6 | 33 |
-| **Total** | **112** | **75** | **37** |
+| Feature Additions | 39 | 11 | 28 |
+| **Total** | **112** | **80** | **32** |
 
 ---
 
@@ -737,6 +737,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~30~~ | ~~`feat/device-enhancements`~~ | ✅ Done — PR #61 |
 | ~~44~~ | ~~`feat/settings-ux`~~ | ✅ Done — PR #64 |
 | ~~31~~ | ~~`feat/profile-visual`~~ | ✅ Done — PR #66 |
+| ~~32~~ | ~~`feat/settings-polish`~~ | ✅ Done — PR #68 |
 
 ---
 
@@ -1040,3 +1041,21 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | F20 | Profile name suggestion chips — appear when name is still "Profile N"; picking a chip sets the name and silently auto-applies the matching gallery icon | ✅ Done |
 | — | Drag-to-reorder grip — six-dot (⠿) grip to the left of the Recording row; Hand cursor on hover; tooltip explains drag behavior | ✅ Done |
 | — | Bug fix: `IconColor.Auto` was persisted to model when name suggestion auto-applied an icon; now stores `Black` (the correct value for a natural-color emoji) | ✅ Done |
+
+---
+
+### ~~Branch 32: `feat/settings-polish`~~ ✅ Merged — PR #68
+**Theme:** Settings window refinements — visual feedback, inner card layout, info badges, tray behaviour toggle, and backup/restore.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F18 | Save flash — profile cards briefly flash green when a change is saved; per-card `SolidColorBrush` with `CancellationTokenSource` debounce (250 ms) | ✅ Done |
+| F42 | Inner card layout — General Settings split into six labelled inner cards: Startup, Notifications, Tray, Devices, Backup & Restore, Shortcuts | ✅ Done |
+| F43 | Opacity fade on all toggles — label and ⓘ badge fade to 40% when the toggle is off; Shortcuts hotkey row fades independently so the enable toggle stays fully opaque | ✅ Done |
+| F1 | Backup & Restore — Export writes config to a user-chosen `.json`; Import reads it back with a confirmation dialog and rebuilds the profile list; `IConfigService` extended with `ExportTo` and `TryImport` | ✅ Done |
+| F19 | Help dialog — `?` footer button opens a scrollable getting-started walkthrough covering setup, switching, tray tips, ⓘ icons, backup/restore, and data location | ✅ Done |
+| — | ⓘ info badges — every settings toggle has a blue ⓘ badge with a plain-English tooltip; badge style unified across settings and profile cards | ✅ Done |
+| — | Left-click tray toggle — new "Left-click tray icon to cycle profiles" toggle in the Tray inner card; when disabled, left-click opens VibeSwitcher instead; `TrayLeftMouseUp` made thread-safe via `Dispatcher.InvokeAsync` | ✅ Done |
+| — | Shortcuts section restructured — enable toggle moved to left of label matching all other toggles; "Enabled" text removed; ⓘ badge added | ✅ Done |
+| — | ConfirmDialog — new reusable modal used for the import confirmation; matches `AlertDialog` / `ConflictRetryDialog` pattern | ✅ Done |
+| — | Settings header hover corner radius — `CornerRadius="7"` added to `IsMouseOver` trigger so blue highlight has rounded corners on all sides when card is expanded | ✅ Done |
