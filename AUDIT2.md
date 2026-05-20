@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from AUDIT.md)
 
-**Last updated:** 2026-05-19 — Branch 44 merged (PR #64).
+**Last updated:** 2026-05-20 — Branch 31 merged (PR #66).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
 
@@ -106,10 +106,10 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
 | F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 32 |
-| F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path | 31 |
+| ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
 | F18 | Field feedback — brief green border flash on a card when a change is saved | 32 |
 | F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 32 |
-| F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding | 31 |
+| ~~F20~~ | ~~Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 for zero-typing onboarding~~ | ✅ Done — PR #66 |
 | ~~F21~~ | ~~Left-click tray cycles profiles~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — grows the window to show all cards without scrolling, capped at screen height | 32 |
 | ~~F23~~ | ~~Profile clone button~~ | ✅ Done — PR #59 |
@@ -179,13 +179,13 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 31: `feat/profile-visual`
+### ~~Branch 31: `feat/profile-visual`~~ ✅ Merged — PR #66
 **Theme:** Visual identity features for profiles — icon gallery and name suggestions.
 
 | # | Feature |
 |---|---------|
-| F17 | Built-in profile icons gallery picker — browse bundled icons instead of a file path |
-| F20 | Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17 |
+| ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ |
+| ~~F20~~ | ~~Pre-made profile name suggestions — chips or dropdown with common names; pairs with F17~~ |
 
 ---
 

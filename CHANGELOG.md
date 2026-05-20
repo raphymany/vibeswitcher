@@ -7,6 +7,16 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Built-in icon gallery (F17)** — 12 emoji profile icons (Gaming, Work, Music, Headset, Streaming, Calls, Mic, Home, Speakers, Night, Podcast, Desktop) accessible via "Pick Icon" on each profile card; icons are rendered and saved as proper 64×64 PNG-embedded ICO files, bypassing `GetHicon()` to preserve quality *(PR #66)*
+- **Black / White icon color toggle (F17)** — gallery dialog includes a color toggle; Black recolors the emoji pixels to black (best on light taskbars), White recolors to white; chosen color persists on the profile and is applied after restarts *(PR #66)*
+- **Dark background chip for white icons (F17)** — white icons display with a `#4A4A4A` rounded chip behind them in the tray right-click context menu and the settings card icon preview so they remain visible; the tray taskbar icon itself stays clean without a background *(PR #66)*
+- **Profile name suggestion chips (F20)** — while a profile still has its auto-assigned "Profile N" name, clickable name chips appear below the name field (Gaming, Work, Music, Headset, Streaming, Calls, Mic, Home, Speakers); picking a chip sets the name and silently auto-applies the matching gallery icon *(PR #66)*
+- **Drag-to-reorder grip tooltip** — hovering the six-dot grip now shows a tooltip explaining that it can be dragged to reorder profiles *(PR #66)*
+
+### Fixed
+- **IconColor.Auto not persisted** — when a name suggestion chip auto-applied an icon, `IconColor.Auto` was incorrectly stored on the profile; now stores `Black`, which matches the natural-color emoji render path *(PR #66)*
+
+### Added
 - **Device visibility toggles** — two new toggle switches under a "Devices" section in General Settings: one to show/hide software-disabled devices in profile card dropdowns, one for disconnected/unplugged devices; both settings persist across sessions and filter immediately without re-enumerating audio endpoints *(PR #64)*
 - **Collapsible General Settings card** — the settings card now has a clickable header with a gear icon, a "VibeSwitcher Settings" title, and a subtitle; clicking collapses or expands the card body; collapsed/expanded state is saved to config and restored on next launch *(PR #64)*
 - **Tray menu clarity** — the VibeSwitcher logo at the top of the right-click tray menu is now clickable to open the app; the separate "Settings" item (whose label was ambiguous) has been removed *(PR #64)*

@@ -545,10 +545,10 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F14~~ | ~~System tray scroll wheel for volume control~~ | Removed |
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
 | F16 | Dark mode + high-contrast mode — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting |
-| F17 | Built-in profile icons — GDI+-generated icons (speaker, headset, microphone, etc.) with an in-app gallery picker; Browse button stays alongside "Choose Built-in" |
+| ~~F17~~ | ~~Built-in profile icons — emoji gallery picker with Black/White color toggle; renders 64×64 PNG-embedded ICO files; Browse button stays alongside gallery picker~~ | ✅ Done — PR #66 |
 | F18 | Field feedback — green border flash when a field change is saved; inline validation message for invalid input |
 | F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
-| F20 | Pre-made profile names — quick-pick name suggestions ("Gaming Setup", "Home Office", "Music Studio", "Stream Mode", "Headphones", "Speakers", etc.) shown as chips or a dropdown below the name field; pairs with F17 built-in icons for a zero-typing onboarding path |
+| ~~F20~~ | ~~Pre-made profile names — name suggestion chips appear while the name is still the auto-assigned "Profile N"; picking a chip sets the name and silently applies the matching gallery icon~~ | ✅ Done — PR #66 |
 | ~~F21~~ | ~~Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
 | ~~F23~~ | ~~Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list~~ | ✅ Done — PR #59 |
@@ -736,6 +736,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~29~~ | ~~`feat/profile-management`~~ | ✅ Done — PR #59 |
 | ~~30~~ | ~~`feat/device-enhancements`~~ | ✅ Done — PR #61 |
 | ~~44~~ | ~~`feat/settings-ux`~~ | ✅ Done — PR #64 |
+| ~~31~~ | ~~`feat/profile-visual`~~ | ✅ Done — PR #66 |
 
 ---
 
@@ -1024,3 +1025,18 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | Tray right-click menu: VibeSwitcher header now clickable (opens app); ambiguous "Settings" item removed | ✅ Done |
 | — | Button corner radius unified to 7 across all button styles (`RoundedButtonTemplate`) | ✅ Done |
 | — | `SettingsCardExpanded` property guarded against same-value writes to prevent spurious config saves on window open | ✅ Done |
+
+---
+
+### ~~Branch 31: `feat/profile-visual`~~ ✅ Merged — PR #66
+**Theme:** Visual identity features for profiles — built-in icon gallery and profile name suggestion chips.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F17 | Icon gallery dialog — 12 emoji icons with Black/White color toggle; saves a 64×64 PNG-embedded ICO, bypassing `GetHicon()` to preserve quality | ✅ Done |
+| F17 | Color mask rendering — Pbgra32 pixel recolor with pre-multiplied alpha; Black/White paths recolor the emoji; Auto path leaves natural emoji colors | ✅ Done |
+| F17 | `IconColor` persisted on `DeviceProfile` — chosen color saved to config; dark background chip in context menu and settings card applied correctly after restarts | ✅ Done |
+| F17 | Dark background chip for white icons — `#4A4A4A` rounded border in tray right-click menu and settings card icon preview; tray icon itself stays clean | ✅ Done |
+| F20 | Profile name suggestion chips — appear when name is still "Profile N"; picking a chip sets the name and silently auto-applies the matching gallery icon | ✅ Done |
+| — | Drag-to-reorder grip — six-dot (⠿) grip to the left of the Recording row; Hand cursor on hover; tooltip explains drag behavior | ✅ Done |
+| — | Bug fix: `IconColor.Auto` was persisted to model when name suggestion auto-applied an icon; now stores `Black` (the correct value for a natural-color emoji) | ✅ Done |
