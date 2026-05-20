@@ -1059,3 +1059,4 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | Shortcuts section restructured — enable toggle moved to left of label matching all other toggles; "Enabled" text removed; ⓘ badge added | ✅ Done |
 | — | ConfirmDialog — new reusable modal used for the import confirmation; matches `AlertDialog` / `ConflictRetryDialog` pattern | ✅ Done |
 | — | Settings header hover corner radius — `CornerRadius="7"` added to `IsMouseOver` trigger so blue highlight has rounded corners on all sides when card is expanded | ✅ Done |
+| F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling | Not delivered — pulled from branch; may be revisited |
