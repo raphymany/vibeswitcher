@@ -828,7 +828,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray without showing the Settings window." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
