@@ -544,7 +544,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
 | ~~F14~~ | ~~System tray scroll wheel for volume control~~ | Removed |
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
-| F16 | Dark mode + high-contrast mode — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting |
+| F16 | Light / dark / high-contrast support — replace every hardcoded hex colour with the appropriate `SystemColors` brush so the app automatically follows the Windows OS theme (light, dark, or high-contrast accessibility mode) with no in-app toggle needed; covers all windows, dialogs, profile cards, tray menu, and icon chip backgrounds |
 | ~~F17~~ | ~~Built-in profile icons — emoji gallery picker with Black/White color toggle; renders 64×64 PNG-embedded ICO files; Browse button stays alongside gallery picker~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — green border flash when a field change is saved; inline validation message for invalid input~~ | ✅ Done — PR #68 |
 | ~~F19~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ | ✅ Done — PR #68 |

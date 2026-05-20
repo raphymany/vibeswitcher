@@ -105,7 +105,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
-| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 45 |
+| F16 | Light / dark / high-contrast support — replace hardcoded colours with `SystemColors` brushes so the app follows the Windows OS theme automatically | 45 |
 | ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ | ✅ Done — PR #68 |
 | ~~F19~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ | ✅ Done — PR #68 |
@@ -310,12 +310,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 45: `feat/dark-mode`
-**Theme:** OS theme awareness — dark mode and high-contrast accessibility support throughout the app.
+### Branch 45: `feat/appearance-modes`
+**Theme:** OS theme awareness — replace all hardcoded colours with `SystemColors` brushes so the app automatically follows the Windows light, dark, and high-contrast accessibility settings with no in-app toggle needed.
 
 | # | Feature |
 |---|---------|
-| F16 | Dark mode + high-contrast — detect OS light/dark toggle via registry; swap resource dictionaries; adapt icon chip backgrounds in Settings card and tray menu for both themes |
+| F16 | Light / dark / high-contrast support — replace every hardcoded hex colour (`#1A1A1A`, `#F3F3F3`, etc.) with the appropriate `SystemColors` brush so the app responds to the OS theme automatically; covers Settings window, tray menu, all dialogs, profile cards, and icon chip backgrounds; high-contrast is an accessibility mode for visual impairments (not the same as night mode, which is a display-level OS feature that apps don't implement) |
 
 ---
 
