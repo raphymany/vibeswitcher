@@ -11,6 +11,7 @@ public class AppConfig
     public bool UseLegacySoundPanel { get; set; } = false;
     public bool ShowDisabledDevices { get; set; } = true;
     public bool ShowDisconnectedDevices { get; set; } = true;
+    public bool LeftClickCyclesProfiles { get; set; } = true;
     public bool SettingsCardExpanded { get; set; } = true;
 
     public HotkeyDefinition? SettingsHotkey { get; set; }

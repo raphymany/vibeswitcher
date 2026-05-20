@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using Microsoft.Win32;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -335,5 +336,53 @@ public partial class SettingsWindow : Window
         var source = e.Data.GetData(typeof(ProfileCardViewModel)) as ProfileCardViewModel;
         if (source == null || target == null || source == target) return;
         _viewModel.MoveProfile(source, target);
+    }
+
+    private void HelpButton_Click(object sender, RoutedEventArgs e)
+    {
+        new HelpDialog { Owner = this }.ShowDialog();
+    }
+
+    private void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SaveFileDialog
+        {
+            Title = "Export VibeSwitcher Config",
+            Filter = "JSON Files (*.json)|*.json",
+            FileName = "vibeswitcher-backup.json",
+            DefaultExt = ".json"
+        };
+        if (dlg.ShowDialog() != true) return;
+        try
+        {
+            _viewModel.ExportConfig(dlg.FileName);
+            new AlertDialog("Export Successful", $"Configuration exported to:\n{dlg.FileName}") { Owner = this }.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            new AlertDialog("Export Failed", $"Could not export configuration:\n{ex.Message}") { Owner = this }.ShowDialog();
+        }
+    }
+
+    private void ImportButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new OpenFileDialog
+        {
+            Title = "Import VibeSwitcher Config",
+            Filter = "JSON Files (*.json)|*.json",
+            CheckFileExists = true
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        var confirm = new ConfirmDialog(
+            "Replace Configuration?",
+            $"Importing '{System.IO.Path.GetFileName(dlg.FileName)}' will replace all current profiles and settings.",
+            "Import",
+            subtitle: "Your current profiles and settings will be replaced.")
+        { Owner = this };
+        if (confirm.ShowDialog() != true) return;
+
+        if (!_viewModel.ImportConfig(dlg.FileName, out var error))
+            new AlertDialog("Import Failed", error ?? "The configuration could not be imported.") { Owner = this }.ShowDialog();
     }
 }

@@ -23,6 +23,7 @@ public class SettingsViewModel : ViewModelBase
     private bool _useLegacySoundPanel;
     private bool _showDisabledDevices;
     private bool _showDisconnectedDevices;
+    private bool _leftClickCyclesProfiles;
 
     // Device lists loaded once async and shared across all profile cards.
     private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
@@ -126,6 +127,19 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public bool LeftClickCyclesProfiles
+    {
+        get => _leftClickCyclesProfiles;
+        set
+        {
+            if (SetField(ref _leftClickCyclesProfiles, value))
+            {
+                _configService.Current.LeftClickCyclesProfiles = value;
+                _configService.SaveImmediate();
+            }
+        }
+    }
+
     public bool SettingsCardExpanded
     {
         get => _configService.Current.SettingsCardExpanded;
@@ -217,6 +231,7 @@ public class SettingsViewModel : ViewModelBase
         _useLegacySoundPanel = configService.Current.UseLegacySoundPanel;
         _showDisabledDevices = configService.Current.ShowDisabledDevices;
         _showDisconnectedDevices = configService.Current.ShowDisconnectedDevices;
+        _leftClickCyclesProfiles = configService.Current.LeftClickCyclesProfiles;
 
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(
@@ -413,8 +428,59 @@ public class SettingsViewModel : ViewModelBase
     private void OnProfileChanged(ProfileCardViewModel card)
     {
         _configService.SaveImmediate();
+        card.TriggerSaveFlash();
         ReregisterHotkeys();
         _onProfilesChanged();
+    }
+
+    public void ExportConfig(string destinationPath)
+    {
+        _configService.ExportTo(destinationPath);
+    }
+
+    public bool ImportConfig(string sourcePath, out string? error)
+    {
+        if (!_configService.TryImport(sourcePath, out error))
+            return false;
+
+        RebuildProfiles();
+
+        _startWithWindows    = _startupService.IsStartupEnabled();
+        _startMinimized      = _configService.Current.StartMinimized;
+        _closeToTray         = _configService.Current.CloseToTray;
+        _showNotifications   = _configService.Current.ShowNotifications;
+        _useLegacySoundPanel = _configService.Current.UseLegacySoundPanel;
+        _showDisabledDevices = _configService.Current.ShowDisabledDevices;
+        _showDisconnectedDevices = _configService.Current.ShowDisconnectedDevices;
+        _leftClickCyclesProfiles = _configService.Current.LeftClickCyclesProfiles;
+
+        OnPropertyChanged(nameof(StartWithWindows));
+        OnPropertyChanged(nameof(StartMinimized));
+        OnPropertyChanged(nameof(CloseToTray));
+        OnPropertyChanged(nameof(ShowNotifications));
+        OnPropertyChanged(nameof(UseLegacySoundPanel));
+        OnPropertyChanged(nameof(ShowDisabledDevices));
+        OnPropertyChanged(nameof(ShowDisconnectedDevices));
+        OnPropertyChanged(nameof(LeftClickCyclesProfiles));
+        OnPropertyChanged(nameof(SettingsHotkeyDisplay));
+        OnPropertyChanged(nameof(SettingsHotkeyIsSet));
+        OnPropertyChanged(nameof(SettingsHotkeyEnabled));
+        OnPropertyChanged(nameof(SettingsCardExpanded));
+
+        ReregisterHotkeys();
+        _onProfilesChanged();
+        return true;
+    }
+
+    private void RebuildProfiles()
+    {
+        var oldCards = Profiles.ToList();
+        Profiles.Clear();
+        foreach (var card in oldCards)
+            card.Dispose();
+        foreach (var p in _configService.Current.Profiles.OrderBy(p => p.SortOrder))
+            Profiles.Add(CreateCard(p));
+        _ = LoadDevicesAsync();
     }
 
     internal void ReregisterHotkeys()

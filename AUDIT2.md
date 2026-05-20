@@ -105,7 +105,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
-| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 32 |
+| F16 | Dark mode + high-contrast — `SystemColors` brushes so the app follows the OS light/dark/high-contrast setting | 45 |
 | ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
 | F18 | Field feedback — brief green border flash on a card when a change is saved | 32 |
 | F19 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog | 32 |
@@ -196,7 +196,6 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 |---|---------|
 | F18 | Field feedback — brief green border flash on a card when a change is saved |
 | F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling |
-| F16 | Dark mode + high-contrast — `SystemColors` brushes to follow the OS theme |
 | F1 / 4.13 | Config import/export — backup and transfer profiles via Settings |
 | F19 / 10.3 | In-app help — "?" button in Settings opens a getting-started walkthrough dialog |
 | F42 | Settings sub-card layout — each group (Startup, Notifications, Shortcuts) in its own inner card |
@@ -308,6 +307,15 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | — | Window title simplified from "VibeSwitcher - Settings" to "VibeSwitcher" |
 | — | Tray right-click menu — VibeSwitcher header is now clickable to open the app; removed the separate ambiguous "Settings" item |
 | — | Button corner radius unified to 7 across all button styles to match the Settings card expander |
+
+---
+
+### Branch 45: `feat/dark-mode`
+**Theme:** OS theme awareness — dark mode and high-contrast accessibility support throughout the app.
+
+| # | Feature |
+|---|---------|
+| F16 | Dark mode + high-contrast — detect OS light/dark toggle via registry; swap resource dictionaries; adapt icon chip backgrounds in Settings card and tray menu for both themes |
 
 ---
 

@@ -27,8 +27,38 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private string? _iconPath;
     private ImageSource? _iconPreview;
     private bool _loadingDevices;
+    private bool _saveFlash;
+    private CancellationTokenSource? _flashCts;
 
     public DeviceProfile Model => _model;
+
+    public bool SaveFlash
+    {
+        get => _saveFlash;
+        private set => SetField(ref _saveFlash, value);
+    }
+
+    internal void TriggerSaveFlash()
+    {
+        _flashCts?.Cancel();
+        _flashCts?.Dispose();
+        _flashCts = new CancellationTokenSource();
+        var token = _flashCts.Token;
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher == null) return;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(250, token); // debounce: ignore rapid successive changes
+                if (token.IsCancellationRequested) return;
+                await dispatcher.InvokeAsync(() => { if (!token.IsCancellationRequested) SaveFlash = true; });
+                await Task.Delay(800, token);
+                await dispatcher.InvokeAsync(() => { if (!token.IsCancellationRequested) SaveFlash = false; });
+            }
+            catch (OperationCanceledException) { }
+        });
+    }
 
     public string Name
     {
@@ -448,6 +478,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public void Dispose()
     {
+        _flashCts?.Cancel();
+        _flashCts?.Dispose();
+        _flashCts = null;
         _iconPreview = null;
     }
 

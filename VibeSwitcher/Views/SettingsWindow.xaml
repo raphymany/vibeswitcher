@@ -1,4 +1,4 @@
-﻿<Window x:Class="VibeSwitcher.Views.SettingsWindow"
+<Window x:Class="VibeSwitcher.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:VibeSwitcher.ViewModels"
@@ -22,6 +22,16 @@
             <Setter Property="CornerRadius"    Value="8"/>
             <Setter Property="Margin"          Value="0,0,0,10"/>
             <Setter Property="Padding"         Value="16,14"/>
+        </Style>
+
+        <!-- ── Inner card (nested within General Settings) ── -->
+        <Style x:Key="InnerCardBorder" TargetType="Border">
+            <Setter Property="Background"      Value="#F8F9FA"/>
+            <Setter Property="BorderBrush"     Value="#EBEBEB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius"    Value="6"/>
+            <Setter Property="Padding"         Value="14,10"/>
+            <Setter Property="Margin"          Value="0,0,0,8"/>
         </Style>
 
         <Style x:Key="LabelText" TargetType="TextBlock">
@@ -85,8 +95,6 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
                         <Grid x:Name="root">
-                            <!-- Visual border with ContentPresenter inside — mirrors TextBox
-                                 structure (border → padding → text) so offsets are identical. -->
                             <Border x:Name="bg"
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
@@ -100,7 +108,6 @@
                                                   VerticalAlignment="Center"
                                                   IsHitTestVisible="False"/>
                             </Border>
-                            <!-- Chevron overlaid at right (sits in the right-padding area) -->
                             <Path x:Name="arrow"
                                   Data="M0,0 L3.5,4 L7,0"
                                   Stroke="#777777" StrokeThickness="1.5"
@@ -109,7 +116,6 @@
                                   VerticalAlignment="Center"
                                   Margin="0,0,10,0"
                                   IsHitTestVisible="False"/>
-                            <!-- Transparent toggle — click target only, no visuals -->
                             <ToggleButton x:Name="toggleButton"
                                           IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
                                                       RelativeSource={RelativeSource TemplatedParent}}"
@@ -120,7 +126,6 @@
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
-                            <!-- Dropdown popup -->
                             <Popup x:Name="PART_Popup"
                                    AllowsTransparency="True"
                                    IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
@@ -247,7 +252,7 @@
 
     </Window.Resources>
 
-    <Grid Margin="18">
+    <Grid x:Name="MainGrid" Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -256,7 +261,7 @@
         </Grid.RowDefinitions>
 
         <!-- ── Header ── -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+        <StackPanel x:Name="HeaderPanel" Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
             <Image x:Name="HeaderIcon" Width="40" Height="40"
                    VerticalAlignment="Center" Margin="0,0,12,0"
                    RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -269,19 +274,50 @@
         </StackPanel>
 
         <!-- ── Profile cards ── -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
+        <ScrollViewer x:Name="ProfilesScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
             <StackPanel>
 
                 <ItemsControl ItemsSource="{Binding Profiles}"
                               KeyboardNavigation.DirectionalNavigation="Contained">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:ProfileCardViewModel}">
-                            <Border Style="{StaticResource CardBorder}"
-                                    AllowDrop="True"
+
+                            <!-- F18: save-flash animation on Background.Color -->
+                            <Border AllowDrop="True"
                                     DragEnter="Card_DragEnter"
                                     DragLeave="Card_DragLeave"
                                     DragOver="Card_DragOver"
                                     Drop="Card_Drop">
+                                <Border.Background>
+                                    <SolidColorBrush Color="White"/>
+                                </Border.Background>
+                                <Border.Style>
+                                    <Style TargetType="Border" BasedOn="{StaticResource CardBorder}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SaveFlash}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="#E8F5E9" Duration="0:0:0.15"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                                To="White" Duration="0:0:0.6"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="20"/>  <!-- drag grip -->
@@ -300,7 +336,7 @@
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Drag grip — at Recording row level -->
+                                    <!-- Drag grip -->
                                     <TextBlock Grid.Column="0" Grid.Row="3"
                                                Text="⠿" FontSize="20" Foreground="#CCCCCC"
                                                HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -328,12 +364,12 @@
                                     <StackPanel Grid.Row="0" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Name" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -358,7 +394,7 @@
                                                    VerticalAlignment="Center"/>
                                     </Border>
 
-                                    <!-- Name suggestions — visible only when name is still the default "Profile N" -->
+                                    <!-- Name suggestions -->
                                     <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
                                                HorizontalAlignment="Center"
                                                Orientation="Horizontal" Margin="0,0,0,8">
@@ -388,12 +424,12 @@
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding PlaybackVisible}">
                                         <TextBlock Text="Playback" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -442,12 +478,12 @@
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding RecordingVisible}">
                                         <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -495,12 +531,12 @@
                                     <StackPanel Grid.Row="4" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Hotkey" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -532,9 +568,9 @@
                                                       OverridesDefaultStyle="True">
                                             <ToggleButton.Template>
                                                 <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="#BDD0EE" CornerRadius="8">
-                                                        <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                                   Foreground="White"
+                                                    <Border Background="#E8F0FF" CornerRadius="8">
+                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                                   Foreground="#0078D4"
                                                                    HorizontalAlignment="Center"
                                                                    VerticalAlignment="Center"/>
                                                     </Border>
@@ -627,12 +663,12 @@
                                                       VerticalAlignment="Center">
                                                 <TextBlock Text="Silent switch" FontSize="12" Foreground="#555555"/>
                                             </CheckBox>
-                                            <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                            <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                     VerticalAlignment="Center" Cursor="Help" Margin="6,0,0,0"
                                                     ToolTipService.InitialShowDelay="400"
                                                     ToolTipService.ShowDuration="12000">
-                                                <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                           Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 <Border.ToolTip>
                                                     <ToolTip>
                                                         <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -646,7 +682,8 @@
                                             <Button Content="Clone"
                                                     Style="{StaticResource ActionButton}"
                                                     Command="{Binding CloneCommand}"
-                                                    Margin="0,0,8,0"/>
+                                                    Margin="0,0,8,0"
+                                                    ToolTip="Creates an exact copy of this profile with a new name, so you can customise it independently."/>
                                             <Button Content="Delete Profile"
                                                     Style="{StaticResource DangerButton}"
                                                     Command="{Binding DeleteCommand}"/>
@@ -654,11 +691,12 @@
                                     </Grid>
                                 </Grid>
                             </Border>
+
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <!-- Empty state — shown when there are no profiles -->
+                <!-- Empty state -->
                 <TextBlock HorizontalAlignment="Center" Foreground="#AAAAAA"
                            FontSize="13" Margin="0,32,0,24"
                            Text="No profiles yet — click Add New Profile to get started">
@@ -699,10 +737,10 @@
         </ScrollViewer>
 
         <!-- ── General Settings card ── -->
-        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,14"
+        <Border x:Name="SettingsCard" Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,14"
                 Padding="0" ClipToBounds="True">
             <StackPanel>
-                <!-- Collapsible header — always visible -->
+                <!-- Collapsible header -->
                 <ToggleButton x:Name="SettingsExpander"
                               IsChecked="{Binding SettingsCardExpanded, Mode=TwoWay}"
                               HorizontalContentAlignment="Stretch"
@@ -744,13 +782,14 @@
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bg" Property="Background" Value="#F0F6FF"/>
                                     <Setter TargetName="Bg" Property="BorderBrush" Value="#0078D4"/>
+                                    <Setter TargetName="Bg" Property="CornerRadius" Value="7"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </ToggleButton.Template>
                 </ToggleButton>
 
-                <!-- Collapsible body -->
+                <!-- Collapsible body with inner cards (F42) -->
                 <StackPanel Margin="16,0,16,14">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -763,138 +802,346 @@
                         </Style>
                     </StackPanel.Style>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
+                    <!-- Inner card: Startup -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Startup" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#444444" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding StartWithWindows}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding StartWithWindows}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Start with Windows" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="When your PC boots up, VibeSwitcher will start automatically, like a startup app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding StartMinimized}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding StartMinimized}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Start minimized to tray" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding CloseToTray}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding CloseToTray}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Close to tray" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray. To reopen Settings, right-click the tray icon and click the VibeSwitcher header." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                        </StackPanel>
+                    </Border>
 
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Startup" FontWeight="SemiBold" FontSize="12"
-                                   Foreground="#444444" Margin="0,0,0,6"/>
-                        <CheckBox Content="Start with Windows" Style="{StaticResource ToggleSwitchStyle}"
-                                  IsChecked="{Binding StartWithWindows}" Margin="0,3"/>
-                        <CheckBox Content="Start minimized to tray" Style="{StaticResource ToggleSwitchStyle}"
-                                  IsChecked="{Binding StartMinimized}" Margin="0,3"/>
-                        <CheckBox Content="Close to tray" Style="{StaticResource ToggleSwitchStyle}"
-                                  IsChecked="{Binding CloseToTray}" Margin="0,3"/>
-                    </StackPanel>
+                    <!-- Inner card: Notifications -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Notifications" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#444444" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding ShowNotifications}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowNotifications}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Show device switch alerts" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Shows a Windows notification banner when you switch profiles, confirming which profile was selected." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <Button x:Name="LogsButton"
+                                    Style="{StaticResource ActionButton}"
+                                    Margin="0,8,0,0"
+                                    HorizontalAlignment="Left"
+                                    Visibility="Collapsed"
+                                    Click="LogsButton_Click">
+                                <TextBlock x:Name="LogsButtonText" FontSize="12"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
 
-                    <StackPanel Grid.Column="1">
-                        <TextBlock Text="Notifications" FontWeight="SemiBold" FontSize="12"
-                                   Foreground="#444444" Margin="0,0,0,6"/>
-                        <CheckBox Content="Show device switch alerts" Style="{StaticResource ToggleSwitchStyle}"
-                                  IsChecked="{Binding ShowNotifications}" Margin="0,3"/>
-                        <CheckBox Content="Use classic Sound control panel" Style="{StaticResource ToggleSwitchStyle}"
-                                  IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3"/>
-                        <Button x:Name="LogsButton"
-                                Style="{StaticResource ActionButton}"
-                                Margin="0,8,0,0"
-                                HorizontalAlignment="Left"
-                                Visibility="Collapsed"
-                                Click="LogsButton_Click">
-                            <TextBlock x:Name="LogsButtonText" FontSize="12"/>
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                    <!-- Inner card: Tray -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Tray" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#444444" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding LeftClickCyclesProfiles}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LeftClickCyclesProfiles}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Left-click tray icon to cycle profiles" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Left-clicking the tray icon switches to the next profile in order. When disabled, left-click opens VibeSwitcher instead. Right-click always works normally." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                        </StackPanel>
+                    </Border>
 
-                <Separator Margin="0,10,0,8"/>
+                    <!-- Inner card: Devices -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Devices" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#444444" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UseLegacySoundPanel}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Use legacy sound panel" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="The 'Open Sound Settings' button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding ShowDisabledDevices}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowDisabledDevices}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Show disabled devices in dropdowns" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Includes devices marked as 'Disabled' in Windows Sound settings. Useful if you manually enable and disable devices between uses." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding ShowDisconnectedDevices}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowDisconnectedDevices}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Show disconnected devices in dropdowns" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Includes physically unplugged devices in profile dropdowns. Lets you assign a device that is not currently connected to the machine." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                        </StackPanel>
+                    </Border>
 
-                <TextBlock Text="Devices" FontWeight="SemiBold" FontSize="12"
-                           Foreground="#444444" Margin="0,0,0,6"/>
-                <CheckBox Content="Show disabled devices in dropdowns"
-                          Style="{StaticResource ToggleSwitchStyle}"
-                          IsChecked="{Binding ShowDisabledDevices}" Margin="0,3"/>
-                <CheckBox Content="Show disconnected devices in dropdowns"
-                          Style="{StaticResource ToggleSwitchStyle}"
-                          IsChecked="{Binding ShowDisconnectedDevices}" Margin="0,3"/>
+                    <!-- Inner card: Backup & Restore (F1) -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Backup &amp; Restore" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#444444" Margin="0,0,0,6"/>
+                            <TextBlock Text="Save your profiles to a file, or restore from a previous backup."
+                                       FontSize="11" Foreground="#777777" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Export Config"
+                                        Style="{StaticResource ActionButton}"
+                                        Margin="0,0,8,0"
+                                        Click="ExportButton_Click"/>
+                                <Button Content="Import Config"
+                                        Style="{StaticResource ActionButton}"
+                                        Click="ImportButton_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
 
-                <Separator Margin="0,10,0,8"/>
+                    <!-- Inner card: Shortcuts -->
+                    <Border Style="{StaticResource InnerCardBorder}" Margin="0">
+                        <StackPanel>
+                            <TextBlock Text="Shortcuts" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#444444" Margin="0,0,0,8"/>
 
-                <TextBlock Text="Shortcuts" FontWeight="SemiBold" FontSize="12"
-                           Foreground="#444444" Margin="0,0,0,8"/>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                            <!-- Toggle row: pill on left, always full opacity -->
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding SettingsHotkeyEnabled}"
+                                      IsEnabled="{Binding SettingsHotkeyIsSet}"
+                                      Margin="0,3,0,8">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Open / Close VibeSwitcher" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
 
-                    <!-- Row 0: feature name (left) + Enabled toggle (right) -->
-                    <TextBlock Grid.Row="0" Grid.Column="0"
-                               Text="Open / Close Settings" FontSize="13" FontWeight="SemiBold"
-                               Foreground="#1A1A1A" VerticalAlignment="Center"/>
-                    <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal"
-                                VerticalAlignment="Center">
-                        <TextBlock Text="Enabled" FontSize="11" Foreground="#777777"
-                                   VerticalAlignment="Center" Margin="0,0,6,0"/>
-                        <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                  IsChecked="{Binding SettingsHotkeyEnabled}"
-                                  IsEnabled="{Binding SettingsHotkeyIsSet}"
-                                  VerticalAlignment="Center"/>
-                    </StackPanel>
-
-                    <!-- Row 1: description (left) + badge chip + Set hotkey button (right) -->
-                    <TextBlock Grid.Row="1" Grid.Column="0"
-                               Text="Global hotkey to toggle this window from anywhere"
-                               FontSize="11" Foreground="#888888" Margin="0,5,12,0"
-                               VerticalAlignment="Center"/>
-                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal"
-                                VerticalAlignment="Center" Margin="0,5,0,0">
-                        <!-- Keyboard badge chip showing the current shortcut -->
-                        <Border Background="#F5F5F5" BorderBrush="#D0D0D0" BorderThickness="1"
-                                CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
-                                MinWidth="74" VerticalAlignment="Center">
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Opacity" Value="1"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
-                                            <Setter Property="Opacity" Value="0.45"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                            <TextBlock Text="{Binding SettingsHotkeyDisplay}"
-                                       FontFamily="Consolas" FontSize="12"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Foreground" Value="#1A1A1A"/>
+                            <!-- Hotkey assignment: fades when disabled (F43) -->
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Opacity" Value="1"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
-                                                <Setter Property="Foreground" Value="#AAAAAA"/>
+                                            <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
+                                                <Setter Property="Opacity" Value="0.4"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </Border>
-                        <Button Style="{StaticResource ActionButton}"
-                                Content="Set hotkey"
-                                Click="SettingsHotkeyButton_Click"/>
-                    </StackPanel>
-                </Grid>
+                                </StackPanel.Style>
+                                <Border Background="#F5F5F5" BorderBrush="#D0D0D0" BorderThickness="1"
+                                        CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
+                                        MinWidth="74" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SettingsHotkeyDisplay}"
+                                               FontFamily="Consolas" FontSize="12"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="#1A1A1A"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
+                                                        <Setter Property="Foreground" Value="#AAAAAA"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                                <Button Style="{StaticResource ActionButton}"
+                                        Content="Set hotkey"
+                                        Click="SettingsHotkeyButton_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
                 </StackPanel>
             </StackPanel>
         </Border>
 
-        <!-- ── Footer: About (left) + Sound Settings (center) + Close (right) ── -->
-        <Grid Grid.Row="3">
-            <Button Content="About"
-                    Style="{StaticResource ActionButton}"
-                    Width="80" HorizontalAlignment="Left"
-                    Click="AboutButton_Click"/>
+        <!-- ── Footer ── -->
+        <Grid x:Name="FooterGrid" Grid.Row="3">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="About"
+                        Style="{StaticResource ActionButton}"
+                        Width="72"
+                        Click="AboutButton_Click"/>
+                <Button Width="28" Height="28" Padding="0" Margin="8,0,0,0"
+                        Style="{StaticResource ActionButton}"
+                        Click="HelpButton_Click"
+                        ToolTip="Getting started &amp; help">
+                    <TextBlock Text="?" FontSize="14" FontWeight="SemiBold"
+                               TextOptions.TextFormattingMode="Display"
+                               TextOptions.TextRenderingMode="ClearType"/>
+                </Button>
+            </StackPanel>
             <Button Content="Open Sound Settings"
                     Style="{StaticResource ActionButton}"
                     HorizontalAlignment="Center"
                     Click="OpenSoundSettings_Click"/>
             <Button Content="Close"
                     Style="{StaticResource ActionButton}"
-                    Width="90" HorizontalAlignment="Right"
+                    Width="90"
+                    HorizontalAlignment="Right"
                     Click="CloseButton_Click"/>
         </Grid>
 

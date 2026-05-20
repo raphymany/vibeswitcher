@@ -118,6 +118,35 @@ public class ConfigService : IConfigService
         Save(_config);
     }
 
+    public void ExportTo(string destinationPath)
+    {
+        lock (_saveLock)
+        {
+            var json = JsonSerializer.Serialize(_config, JsonOptions);
+            File.WriteAllText(destinationPath, json);
+        }
+    }
+
+    public bool TryImport(string sourcePath, out string? error)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath))
+        {
+            error = "No file path was provided.";
+            return false;
+        }
+        if (!TryLoad(sourcePath, out var config) || config == null)
+        {
+            error = "The file could not be read or is not a valid VibeSwitcher configuration.";
+            return false;
+        }
+        config.Profiles ??= new();
+        Migrate(config);
+        _config = config;
+        SaveImmediate();
+        error = null;
+        return true;
+    }
+
     public void Save(AppConfig config)
     {
         lock (_saveLock)
