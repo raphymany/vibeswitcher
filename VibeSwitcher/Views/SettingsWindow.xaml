@@ -782,6 +782,7 @@
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="Bg" Property="Background" Value="#F0F6FF"/>
                                     <Setter TargetName="Bg" Property="BorderBrush" Value="#0078D4"/>
+                                    <Setter TargetName="Bg" Property="CornerRadius" Value="7"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -945,7 +946,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Left-clicking the tray icon switches to the next profile in order. Disable this if you want left-click to do nothing (right-click still works normally)." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <TextBlock Text="Left-clicking the tray icon switches to the next profile in order. When disabled, left-click opens VibeSwitcher instead. Right-click always works normally." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>

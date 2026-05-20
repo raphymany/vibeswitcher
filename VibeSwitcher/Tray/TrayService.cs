@@ -50,7 +50,7 @@ public class TrayService : IDisposable
         _taskbarIcon.TrayLeftMouseUp += (_, _) =>
         {
             if (_configService.Current.LeftClickCyclesProfiles) CycleNextProfile();
-            else OpenSettings();
+            else Application.Current?.Dispatcher.InvokeAsync(OpenSettings);
         };
 
         UpdateIcon(null);

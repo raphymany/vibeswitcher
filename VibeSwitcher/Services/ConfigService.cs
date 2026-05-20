@@ -129,6 +129,11 @@ public class ConfigService : IConfigService
 
     public bool TryImport(string sourcePath, out string? error)
     {
+        if (string.IsNullOrWhiteSpace(sourcePath))
+        {
+            error = "No file path was provided.";
+            return false;
+        }
         if (!TryLoad(sourcePath, out var config) || config == null)
         {
             error = "The file could not be read or is not a valid VibeSwitcher configuration.";

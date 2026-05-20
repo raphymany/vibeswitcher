@@ -377,7 +377,8 @@ public partial class SettingsWindow : Window
         var confirm = new ConfirmDialog(
             "Replace Configuration?",
             $"Importing '{System.IO.Path.GetFileName(dlg.FileName)}' will replace all current profiles and settings.",
-            "Import")
+            "Import",
+            subtitle: "Your current profiles and settings will be replaced.")
         { Owner = this };
         if (confirm.ShowDialog() != true) return;
 
