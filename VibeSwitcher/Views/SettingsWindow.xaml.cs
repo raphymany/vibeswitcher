@@ -22,10 +22,6 @@ public partial class SettingsWindow : Window
     private readonly IHotkeyService _hotkeyService;
     private readonly EventHandler _errorAddedHandler;
 
-    // Expand-to-fit state
-    private double _preExpandHeight;
-    private bool _isExpanded;
-
     // Drag-and-drop state for profile card reordering
     private Point _dragStart;
     private ProfileCardViewModel? _dragSource;
@@ -145,7 +141,7 @@ public partial class SettingsWindow : Window
         if (WindowState != WindowState.Normal) return;
         var cfg = _configService.Current;
         cfg.WindowWidth  = Width;
-        cfg.WindowHeight = _isExpanded ? _preExpandHeight : Height;
+        cfg.WindowHeight = Height;
         cfg.WindowLeft   = Left;
         cfg.WindowTop    = Top;
         _configService.SaveImmediate();
@@ -345,29 +341,6 @@ public partial class SettingsWindow : Window
     private void HelpButton_Click(object sender, RoutedEventArgs e)
     {
         new HelpDialog { Owner = this }.ShowDialog();
-    }
-
-    private void FitButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_isExpanded)
-        {
-            Height = _preExpandHeight;
-            FitButton.Content = "↕ Fit";
-            FitButton.ToolTip = "Expand window to show all profiles";
-            _isExpanded = false;
-            return;
-        }
-
-        var needed = ActualHeight + (ProfilesScrollViewer.ExtentHeight - ProfilesScrollViewer.ActualHeight);
-        var maxH = SystemParameters.WorkArea.Height - 20;
-        var target = Math.Min(needed, maxH);
-        if (target <= ActualHeight) return;
-
-        _preExpandHeight = ActualHeight;
-        Height = target;
-        FitButton.Content = "↩ Reset";
-        FitButton.ToolTip = "Restore window to previous height";
-        _isExpanded = true;
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)

@@ -805,12 +805,48 @@
                         <StackPanel>
                             <TextBlock Text="Startup" FontWeight="SemiBold" FontSize="12"
                                        Foreground="#444444" Margin="0,0,0,8"/>
-                            <CheckBox Content="Start with Windows" Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding StartWithWindows}" Margin="0,3"/>
-                            <CheckBox Content="Start minimized to tray" Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding StartMinimized}" Margin="0,3"/>
-                            <CheckBox Content="Close to tray" Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding CloseToTray}" Margin="0,3"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding StartWithWindows}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Start with Windows" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Launches VibeSwitcher automatically when you sign into Windows. Uses the standard HKCU startup registry key — no service or scheduled task required." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding StartMinimized}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Start minimized to tray" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="When launching automatically at startup, opens quietly in the system tray without showing the Settings window." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding CloseToTray}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Close to tray" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray and can be reopened by left-clicking the tray icon." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
                         </StackPanel>
                     </Border>
 
@@ -819,10 +855,20 @@
                         <StackPanel>
                             <TextBlock Text="Notifications" FontWeight="SemiBold" FontSize="12"
                                        Foreground="#444444" Margin="0,0,0,8"/>
-                            <CheckBox Content="Show device switch alerts" Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding ShowNotifications}" Margin="0,3"/>
-                            <CheckBox Content="Use classic Sound control panel" Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding ShowNotifications}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Show device switch alerts" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Shows a Windows tray notification when you switch profiles, confirming which playback and recording devices were activated." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
                             <Button x:Name="LogsButton"
                                     Style="{StaticResource ActionButton}"
                                     Margin="0,8,0,0"
@@ -839,12 +885,48 @@
                         <StackPanel>
                             <TextBlock Text="Devices" FontWeight="SemiBold" FontSize="12"
                                        Foreground="#444444" Margin="0,0,0,8"/>
-                            <CheckBox Content="Show disabled devices in dropdowns"
-                                      Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding ShowDisabledDevices}" Margin="0,3"/>
-                            <CheckBox Content="Show disconnected devices in dropdowns"
-                                      Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding ShowDisconnectedDevices}" Margin="0,3"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Use legacy sound panel" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="The 'Open Sound Settings' footer button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding ShowDisabledDevices}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Show disabled devices in dropdowns" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Includes devices marked as 'Disabled' in Windows Sound settings. Useful if you manually enable and disable devices between uses." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding ShowDisconnectedDevices}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Show disconnected devices in dropdowns" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Includes physically unplugged devices in profile dropdowns. Lets you assign a device that is not currently connected to the machine." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
                         </StackPanel>
                     </Border>
 
@@ -948,28 +1030,24 @@
                         Style="{StaticResource ActionButton}"
                         Width="72"
                         Click="AboutButton_Click"/>
-                <Button Content="?"
+                <Button Width="28" Height="28" Padding="0" Margin="8,0,0,0"
                         Style="{StaticResource ActionButton}"
-                        Width="30" Margin="8,0,0,0"
                         Click="HelpButton_Click"
-                        ToolTip="Getting started &amp; help"/>
+                        ToolTip="Getting started &amp; help">
+                    <TextBlock Text="?" FontSize="14" FontWeight="SemiBold"
+                               TextOptions.TextFormattingMode="Display"
+                               TextOptions.TextRenderingMode="ClearType"/>
+                </Button>
             </StackPanel>
             <Button Content="Open Sound Settings"
                     Style="{StaticResource ActionButton}"
                     HorizontalAlignment="Center"
                     Click="OpenSoundSettings_Click"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="FitButton"
-                        Content="↕ Fit"
-                        Style="{StaticResource ActionButton}"
-                        Margin="0,0,8,0"
-                        Click="FitButton_Click"
-                        ToolTip="Expand window to show all profiles"/>
-                <Button Content="Close"
-                        Style="{StaticResource ActionButton}"
-                        Width="90"
-                        Click="CloseButton_Click"/>
-            </StackPanel>
+            <Button Content="Close"
+                    Style="{StaticResource ActionButton}"
+                    Width="90"
+                    HorizontalAlignment="Right"
+                    Click="CloseButton_Click"/>
         </Grid>
 
     </Grid>
