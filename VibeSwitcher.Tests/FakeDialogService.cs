@@ -1,3 +1,4 @@
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
 
@@ -8,6 +9,7 @@ internal sealed class FakeDialogService : IDialogService
     public HotkeyDefinition? HotkeyCaptureResult { get; set; }
     public bool ConfirmDeleteResult { get; set; } = true;
     public string? BrowseIconFileResult { get; set; }
+    public GalleryPickResult? IconGalleryResult { get; set; }
     public ProfileMode? ProfileTypeResult { get; set; } = ProfileMode.Both;
 
     public List<(string Title, string Message)> AlertsShown { get; } = new();
@@ -17,6 +19,7 @@ internal sealed class FakeDialogService : IDialogService
     public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current) => HotkeyCaptureResult;
     public bool ShowConfirmDelete(string profileName) => ConfirmDeleteResult;
     public string? ShowBrowseIconFile() => BrowseIconFileResult;
+    public GalleryPickResult? ShowIconGallery() => IconGalleryResult;
     public void ShowAlert(string title, string message) => AlertsShown.Add((title, message));
     public bool ShowHotkeyConflictRetry(string title, string message)
     {

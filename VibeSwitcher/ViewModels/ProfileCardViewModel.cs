@@ -39,9 +39,16 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             {
                 _model.Name = value;
                 _onChanged(this);
+                OnPropertyChanged(nameof(ShowNameSuggestions));
             }
         }
     }
+
+    // True when the name is still the auto-assigned default "Profile N" — shows suggestion chips.
+    public bool ShowNameSuggestions =>
+        _name.Length > 8 &&
+        _name.StartsWith("Profile ", StringComparison.Ordinal) &&
+        int.TryParse(_name.AsSpan(8), out _);
 
     public System.Windows.Visibility PlaybackVisible =>
         _model.Mode is ProfileMode.Playback or ProfileMode.Both
@@ -137,7 +144,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     }
 
     public ICommand CaptureHotkeyCommand { get; }
-    public ICommand BrowseIconCommand { get; }
+    public ICommand PickIconCommand { get; }
+    public ICommand ApplyNameSuggestionCommand { get; }
     public ICommand CloneCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand TestSoundCommand { get; }
@@ -183,7 +191,11 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         UpdateIconPreview();
 
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
-        BrowseIconCommand = new RelayCommand(BrowseIcon);
+        PickIconCommand = new RelayCommand(PickIcon);
+        ApplyNameSuggestionCommand = new RelayCommand(param =>
+        {
+            if (param is string suggestion) ApplyNameSuggestion(suggestion);
+        });
         CloneCommand = new RelayCommand(() => _onClone(this));
         DeleteCommand = new RelayCommand(DeleteProfile);
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
@@ -304,7 +316,73 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         return null;
     }
 
-    private void BrowseIcon()
+    private void PickIcon()
+    {
+        var result = _dialogService.ShowIconGallery();
+        if (result == null) return;
+
+        if (result.BrowseFromDisk)
+        {
+            BrowseIconFromDisk();
+            return;
+        }
+
+        if (result.Item != null)
+            ApplyGalleryIcon(result.Item, result.IconColor);
+    }
+
+    private void ApplyGalleryIcon(GalleryItem item, IconColor color = IconColor.Auto, bool silent = false)
+    {
+        var namePrefix = SanitizeName(_model.Name);
+        var guidPrefix = _model.Id.ToString("N")[..8];
+        var dest = System.IO.Path.Combine(_configService.IconsDir, $"{namePrefix}-{guidPrefix}.ico");
+
+        try
+        {
+            GalleryIconHelper.SaveGalleryIcon(item, dest, color);
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Error("ProfileCardViewModel.ApplyGalleryIcon", ex);
+            SessionErrorTracker.Record(ErrorCode.IconCopyFailed, "Icon Render Failed",
+                $"Could not render gallery icon: {ex.Message}");
+            if (!silent)
+                _dialogService.ShowAlert("Icon Error", $"Could not save the gallery icon:\n{ex.Message}");
+            return;
+        }
+
+        // Delete the old icon if it was in iconsDir and is being replaced
+        var previous = _iconPath;
+        var iconsPrefix = _configService.IconsDir + System.IO.Path.DirectorySeparatorChar;
+        if (!string.IsNullOrEmpty(previous) &&
+            previous.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(previous, dest, StringComparison.OrdinalIgnoreCase))
+        {
+            try { System.IO.File.Delete(previous); }
+            catch (Exception ex)
+            {
+                AppLogger.Warning("ProfileCardViewModel.ApplyGalleryIcon", ex.Message);
+                SessionErrorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
+                    $"Could not delete old icon file (it may remain on disk): {ex.Message}");
+            }
+        }
+
+        // When dest matches _iconPath the file has been overwritten but SetField won't
+        // detect a change (same path) — manually refresh the preview and notify bindings.
+        if (string.Equals(_iconPath, dest, StringComparison.OrdinalIgnoreCase))
+        {
+            _model.IconPath = dest;
+            UpdateIconPreview();
+            OnPropertyChanged(nameof(IconPath));
+            _onChanged(this);
+        }
+        else
+        {
+            IconPath = dest;
+        }
+    }
+
+    private void BrowseIconFromDisk()
     {
         var source = _dialogService.ShowBrowseIconFile();
         if (source == null) return;
@@ -322,7 +400,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
             catch (Exception ex)
             {
-                AppLogger.Error("ProfileCardViewModel.BrowseIcon", ex);
+                AppLogger.Error("ProfileCardViewModel.BrowseIconFromDisk", ex);
                 SessionErrorTracker.Record(ErrorCode.IconCopyFailed, "Icon Copy Failed",
                     $"Could not copy icon file to app storage: {ex.Message}");
                 _dialogService.ShowAlert("Icon Error", $"Could not copy the icon file:\n{ex.Message}");
@@ -330,7 +408,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
         }
 
-        // Delete the old icon from IconsDir if we're replacing it with a new copy
+        // Delete the old icon from iconsDir if we're replacing it
         var previous = _iconPath;
         var iconsPrefix = _configService.IconsDir + System.IO.Path.DirectorySeparatorChar;
         if (!string.IsNullOrEmpty(previous) &&
@@ -340,13 +418,26 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             try { System.IO.File.Delete(previous); }
             catch (Exception ex)
             {
-                AppLogger.Warning("ProfileCardViewModel.BrowseIcon", ex.Message);
+                AppLogger.Warning("ProfileCardViewModel.BrowseIconFromDisk", ex.Message);
                 SessionErrorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
                     $"Could not delete old icon file (it may still be on disk): {ex.Message}");
             }
         }
 
         IconPath = dest;
+    }
+
+    private void ApplyNameSuggestion(string suggestion)
+    {
+        Name = suggestion;
+
+        // Auto-apply the matching gallery icon if no icon is currently set
+        if (string.IsNullOrEmpty(_iconPath))
+        {
+            var item = GalleryIconHelper.FindByName(suggestion);
+            if (item != null)
+                ApplyGalleryIcon(item, IconColor.Auto, silent: true);
+        }
     }
 
     private void DeleteProfile()

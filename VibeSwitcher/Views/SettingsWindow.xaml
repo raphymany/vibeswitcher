@@ -191,6 +191,38 @@
             </Setter>
         </Style>
 
+        <!-- ── Name suggestion chip pills ── -->
+        <Style x:Key="ChipButton" TargetType="Button">
+            <Setter Property="Background"      Value="#EEF4FF"/>
+            <Setter Property="BorderBrush"     Value="#AACCFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground"      Value="#3366CC"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Padding"         Value="8,3"/>
+            <Setter Property="Margin"          Value="0,0,4,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="#D4E6FF"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#0078D4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- ── Styled tooltip ── -->
         <Style TargetType="ToolTip">
             <Setter Property="Padding" Value="0"/>
@@ -265,19 +297,29 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
 
-                                    <!-- Drag grip — spans full card height -->
-                                    <TextBlock Grid.Column="0" Grid.RowSpan="7"
-                                               Text="⠿" FontSize="14" Foreground="#CCCCCC"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Cursor="SizeNS" Margin="0,0,6,0"
+                                    <!-- Drag grip — at Recording row level -->
+                                    <TextBlock Grid.Column="0" Grid.Row="3"
+                                               Text="⠿" FontSize="20" Foreground="#CCCCCC"
+                                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                                               Cursor="Hand" Margin="-4,0,4,0"
+                                               ToolTipService.InitialShowDelay="400"
+                                               ToolTipService.ShowDuration="10000"
                                                PreviewMouseLeftButtonDown="DragGrip_MouseDown"
                                                PreviewMouseLeftButtonUp="DragGrip_MouseUp"
                                                MouseMove="DragGrip_MouseMove">
                                         <TextBlock.ToolTip>
                                             <ToolTip>
-                                                <TextBlock Text="Drag to reorder"/>
+                                                <StackPanel>
+                                                    <TextBlock Text="Drag to reorder"
+                                                               FontSize="12" FontWeight="SemiBold"
+                                                               Foreground="#1A1A1A" Margin="0,0,0,4"/>
+                                                    <TextBlock Text="Hold and drag up or down to change the order profiles appear in the tray menu."
+                                                               FontSize="11" Foreground="#555555"
+                                                               TextWrapping="Wrap" MaxWidth="220"/>
+                                                </StackPanel>
                                             </ToolTip>
                                         </TextBlock.ToolTip>
                                     </TextBlock>
@@ -316,8 +358,33 @@
                                                    VerticalAlignment="Center"/>
                                     </Border>
 
+                                    <!-- Name suggestions — visible only when name is still the default "Profile N" -->
+                                    <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
+                                               HorizontalAlignment="Center"
+                                               Orientation="Horizontal" Margin="0,0,0,8">
+                                        <WrapPanel.Style>
+                                            <Style TargetType="WrapPanel">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ShowNameSuggestions}" Value="True">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </WrapPanel.Style>
+                                        <Button Content="Gaming"    Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Gaming"/>
+                                        <Button Content="Work"      Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Work"/>
+                                        <Button Content="Music"     Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Music"/>
+                                        <Button Content="Headset"   Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Headset"/>
+                                        <Button Content="Streaming" Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Streaming"/>
+                                        <Button Content="Calls"     Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Calls"/>
+                                        <Button Content="Mic"       Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Mic"/>
+                                        <Button Content="Home"      Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Home"/>
+                                        <Button Content="Speakers"  Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Speakers"/>
+                                    </WrapPanel>
+
                                     <!-- Playback -->
-                                    <StackPanel Grid.Row="1" Grid.Column="1"
+                                    <StackPanel Grid.Row="2" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding PlaybackVisible}">
                                         <TextBlock Text="Playback" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
@@ -336,64 +403,10 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <ComboBox Grid.Row="1" Grid.Column="2"
+                                    <ComboBox Grid.Row="2" Grid.Column="2"
                                               ItemsSource="{Binding PlaybackDevices}"
                                               SelectedItem="{Binding SelectedPlaybackDevice}"
                                               Visibility="{Binding PlaybackVisible}"
-                                              Margin="0,0,0,8">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
-                                                             Visibility="{Binding ShowDot, Converter={StaticResource BoolToVis}}">
-                                                        <Ellipse.Style>
-                                                            <Style TargetType="Ellipse">
-                                                                <Setter Property="Fill" Value="#2DB55D"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding IsConnected}" Value="False">
-                                                                        <Setter Property="Fill" Value="#CC3333"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Ellipse.Style>
-                                                    </Ellipse>
-                                                    <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                    <Button Grid.Row="1" Grid.Column="3"
-                                            Content="Test"
-                                            Margin="8,0,0,8" VerticalAlignment="Center"
-                                            Style="{StaticResource ActionButton}"
-                                            Command="{Binding TestSoundCommand}"
-                                            IsEnabled="{Binding IsPlaybackDeviceSet}"
-                                            Visibility="{Binding PlaybackVisible}"/>
-
-                                    <!-- Recording -->
-                                    <StackPanel Grid.Row="2" Grid.Column="1"
-                                                Orientation="Horizontal" VerticalAlignment="Center"
-                                                Visibility="{Binding RecordingVisible}">
-                                        <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
-                                                VerticalAlignment="Center" Cursor="Help"
-                                                ToolTipService.InitialShowDelay="400"
-                                                ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            <Border.ToolTip>
-                                                <ToolTip>
-                                                    <TextBlock TextWrapping="Wrap" MaxWidth="240">
-                                                        The microphone or audio input that will become the default when this profile is activated.
-                                                    </TextBlock>
-                                                </ToolTip>
-                                            </Border.ToolTip>
-                                        </Border>
-                                    </StackPanel>
-                                    <ComboBox Grid.Row="2" Grid.Column="2"
-                                              ItemsSource="{Binding RecordingDevices}"
-                                              SelectedItem="{Binding SelectedRecordingDevice}"
-                                              Visibility="{Binding RecordingVisible}"
                                               Margin="0,0,0,8">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
@@ -420,12 +433,66 @@
                                             Content="Test"
                                             Margin="8,0,0,8" VerticalAlignment="Center"
                                             Style="{StaticResource ActionButton}"
+                                            Command="{Binding TestSoundCommand}"
+                                            IsEnabled="{Binding IsPlaybackDeviceSet}"
+                                            Visibility="{Binding PlaybackVisible}"/>
+
+                                    <!-- Recording -->
+                                    <StackPanel Grid.Row="3" Grid.Column="1"
+                                                Orientation="Horizontal" VerticalAlignment="Center"
+                                                Visibility="{Binding RecordingVisible}">
+                                        <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
+                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                                VerticalAlignment="Center" Cursor="Help"
+                                                ToolTipService.InitialShowDelay="400"
+                                                ToolTipService.ShowDuration="12000">
+                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
+                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                                        The microphone or audio input that will become the default when this profile is activated.
+                                                    </TextBlock>
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                        </Border>
+                                    </StackPanel>
+                                    <ComboBox Grid.Row="3" Grid.Column="2"
+                                              ItemsSource="{Binding RecordingDevices}"
+                                              SelectedItem="{Binding SelectedRecordingDevice}"
+                                              Visibility="{Binding RecordingVisible}"
+                                              Margin="0,0,0,8">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                             Visibility="{Binding ShowDot, Converter={StaticResource BoolToVis}}">
+                                                        <Ellipse.Style>
+                                                            <Style TargetType="Ellipse">
+                                                                <Setter Property="Fill" Value="#2DB55D"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                                        <Setter Property="Fill" Value="#CC3333"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Ellipse.Style>
+                                                    </Ellipse>
+                                                    <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Button Grid.Row="3" Grid.Column="3"
+                                            Content="Test"
+                                            Margin="8,0,0,8" VerticalAlignment="Center"
+                                            Style="{StaticResource ActionButton}"
                                             Command="{Binding TestMicCommand}"
                                             IsEnabled="{Binding IsRecordingDeviceSet}"
                                             Visibility="{Binding RecordingVisible}"/>
 
                                     <!-- Hotkey -->
-                                    <StackPanel Grid.Row="3" Grid.Column="1"
+                                    <StackPanel Grid.Row="4" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Hotkey" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                         <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
@@ -443,19 +510,19 @@
                                             </Border.ToolTip>
                                         </Border>
                                     </StackPanel>
-                                    <TextBox Grid.Row="3" Grid.Column="2"
+                                    <TextBox Grid.Row="4" Grid.Column="2"
                                              Text="{Binding HotkeyDisplay, Mode=OneWay}"
                                              IsReadOnly="True"
                                              IsTabStop="False"
                                              Margin="0,0,0,8"/>
-                                    <Button Grid.Row="3" Grid.Column="3"
+                                    <Button Grid.Row="4" Grid.Column="3"
                                             Content="Set Hotkey"
                                             Margin="8,0,0,8" VerticalAlignment="Center"
                                             Style="{StaticResource ActionButton}"
                                             Command="{Binding CaptureHotkeyCommand}"/>
 
                                     <!-- Icon -->
-                                    <StackPanel Grid.Row="4" Grid.Column="1"
+                                    <StackPanel Grid.Row="5" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Icon" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                         <ToggleButton x:Name="IconInfoToggle"
@@ -520,40 +587,39 @@
                                             </Border>
                                         </Popup>
                                     </StackPanel>
-                                    <TextBox Grid.Row="4" Grid.Column="2"
+                                    <TextBox Grid.Row="5" Grid.Column="2"
                                              Text="{Binding IconPath, Mode=OneWay, FallbackValue='(default)'}"
                                              IsReadOnly="True"
                                              IsTabStop="False"
                                              Margin="0,0,0,12"/>
-                                    <StackPanel Grid.Row="4" Grid.Column="3"
+                                    <StackPanel Grid.Row="5" Grid.Column="3"
                                                 Orientation="Horizontal"
                                                 VerticalAlignment="Center"
                                                 Margin="8,0,0,12">
-                                        <Button Content="Browse"
+                                        <Button Content="Pick Icon"
                                                 Style="{StaticResource ActionButton}"
-                                                Command="{Binding BrowseIconCommand}"/>
-                                        <Image Source="{Binding IconPreview}"
-                                               Width="20" Height="20"
-                                               Margin="8,0,0,0"
-                                               VerticalAlignment="Center">
-                                            <Image.Style>
-                                                <Style TargetType="Image">
+                                                Command="{Binding PickIconCommand}"/>
+                                        <Border Background="#4A4A4A" CornerRadius="4" Padding="3"
+                                                Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IconPreview}" Value="{x:Null}">
                                                             <Setter Property="Visibility" Value="Collapsed"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </Image.Style>
-                                        </Image>
+                                            </Border.Style>
+                                            <Image Source="{Binding IconPreview}" Width="18" Height="18"/>
+                                        </Border>
                                     </StackPanel>
 
                                     <!-- Separator -->
-                                    <Border Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="4"
+                                    <Border Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4"
                                             Height="1" Background="#F0F0F0" Margin="0,0,0,12"/>
 
                                     <!-- Bottom row: Silent toggle (left) + Clone + Delete (right) -->
-                                    <Grid Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4">
+                                    <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4">
                                         <StackPanel HorizontalAlignment="Left" Orientation="Horizontal"
                                                     VerticalAlignment="Center">
                                             <CheckBox IsChecked="{Binding Silent}"
