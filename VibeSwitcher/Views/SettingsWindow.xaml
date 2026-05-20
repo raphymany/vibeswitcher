@@ -364,12 +364,12 @@
                                     <StackPanel Grid.Row="0" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Name" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -424,12 +424,12 @@
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding PlaybackVisible}">
                                         <TextBlock Text="Playback" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -478,12 +478,12 @@
                                                 Orientation="Horizontal" VerticalAlignment="Center"
                                                 Visibility="{Binding RecordingVisible}">
                                         <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -531,12 +531,12 @@
                                     <StackPanel Grid.Row="4" Grid.Column="1"
                                                 Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="Hotkey" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                        <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                        <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                 VerticalAlignment="Center" Cursor="Help"
                                                 ToolTipService.InitialShowDelay="400"
                                                 ToolTipService.ShowDuration="12000">
-                                            <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                       Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                       Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             <Border.ToolTip>
                                                 <ToolTip>
                                                     <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -568,9 +568,9 @@
                                                       OverridesDefaultStyle="True">
                                             <ToggleButton.Template>
                                                 <ControlTemplate TargetType="ToggleButton">
-                                                    <Border Background="#BDD0EE" CornerRadius="8">
-                                                        <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                                   Foreground="White"
+                                                    <Border Background="#E8F0FF" CornerRadius="8">
+                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                                   Foreground="#0078D4"
                                                                    HorizontalAlignment="Center"
                                                                    VerticalAlignment="Center"/>
                                                     </Border>
@@ -663,12 +663,12 @@
                                                       VerticalAlignment="Center">
                                                 <TextBlock Text="Silent switch" FontSize="12" Foreground="#555555"/>
                                             </CheckBox>
-                                            <Border Width="15" Height="15" Background="#BDD0EE" CornerRadius="8"
+                                            <Border Width="15" Height="15" Background="#E8F0FF" CornerRadius="8"
                                                     VerticalAlignment="Center" Cursor="Help" Margin="6,0,0,0"
                                                     ToolTipService.InitialShowDelay="400"
                                                     ToolTipService.ShowDuration="12000">
-                                                <TextBlock Text="i" FontSize="8" FontWeight="SemiBold"
-                                                           Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                           Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 <Border.ToolTip>
                                                     <ToolTip>
                                                         <TextBlock TextWrapping="Wrap" MaxWidth="240">
@@ -814,7 +814,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Launches VibeSwitcher automatically when you sign into Windows. Uses the standard HKCU startup registry key — no service or scheduled task required." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <TextBlock Text="When your PC boots up, VibeSwitcher will start automatically, like a startup app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -828,7 +828,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="When launching automatically at startup, opens quietly in the system tray without showing the Settings window." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray without showing the Settings window." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -842,7 +842,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray and can be reopened by left-clicking the tray icon." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray. To reopen Settings, right-click the tray icon and click the VibeSwitcher header." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -864,7 +864,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Shows a Windows tray notification when you switch profiles, confirming which playback and recording devices were activated." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <TextBlock Text="Shows a Windows notification banner when you switch profiles, confirming which profile was selected." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -877,6 +877,28 @@
                                     Click="LogsButton_Click">
                                 <TextBlock x:Name="LogsButtonText" FontSize="12"/>
                             </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Inner card: Tray -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Tray" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="#444444" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding LeftClickCyclesProfiles}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Left-click tray icon to cycle profiles" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="Left-clicking the tray icon switches to the next profile in order. Disable this if you want left-click to do nothing (right-click still works normally)." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
                         </StackPanel>
                     </Border>
 
@@ -894,7 +916,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="The 'Open Sound Settings' footer button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <TextBlock Text="The 'Open Sound Settings' button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -983,11 +1005,19 @@
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Grid.Column="0"
-                                           Text="Open / Close Settings" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="#1A1A1A" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Open / Close VibeSwitcher" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="#1A1A1A" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="#0078D4" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
                                 <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                     <Border Background="#F5F5F5" BorderBrush="#D0D0D0" BorderThickness="1"
                                             CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
@@ -1011,10 +1041,6 @@
                                             Content="Set hotkey"
                                             Click="SettingsHotkeyButton_Click"/>
                                 </StackPanel>
-                                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                                           Text="Global hotkey to toggle this window from anywhere"
-                                           FontSize="11" Foreground="#888888" Margin="0,5,0,0"
-                                           VerticalAlignment="Center"/>
                             </Grid>
                         </StackPanel>
                     </Border>

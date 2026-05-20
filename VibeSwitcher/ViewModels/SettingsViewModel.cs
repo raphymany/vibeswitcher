@@ -23,6 +23,7 @@ public class SettingsViewModel : ViewModelBase
     private bool _useLegacySoundPanel;
     private bool _showDisabledDevices;
     private bool _showDisconnectedDevices;
+    private bool _leftClickCyclesProfiles;
 
     // Device lists loaded once async and shared across all profile cards.
     private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
@@ -126,6 +127,19 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public bool LeftClickCyclesProfiles
+    {
+        get => _leftClickCyclesProfiles;
+        set
+        {
+            if (SetField(ref _leftClickCyclesProfiles, value))
+            {
+                _configService.Current.LeftClickCyclesProfiles = value;
+                _configService.SaveImmediate();
+            }
+        }
+    }
+
     public bool SettingsCardExpanded
     {
         get => _configService.Current.SettingsCardExpanded;
@@ -217,6 +231,7 @@ public class SettingsViewModel : ViewModelBase
         _useLegacySoundPanel = configService.Current.UseLegacySoundPanel;
         _showDisabledDevices = configService.Current.ShowDisabledDevices;
         _showDisconnectedDevices = configService.Current.ShowDisconnectedDevices;
+        _leftClickCyclesProfiles = configService.Current.LeftClickCyclesProfiles;
 
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(
@@ -437,6 +452,7 @@ public class SettingsViewModel : ViewModelBase
         _useLegacySoundPanel = _configService.Current.UseLegacySoundPanel;
         _showDisabledDevices = _configService.Current.ShowDisabledDevices;
         _showDisconnectedDevices = _configService.Current.ShowDisconnectedDevices;
+        _leftClickCyclesProfiles = _configService.Current.LeftClickCyclesProfiles;
 
         OnPropertyChanged(nameof(StartWithWindows));
         OnPropertyChanged(nameof(StartMinimized));
@@ -445,6 +461,7 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(UseLegacySoundPanel));
         OnPropertyChanged(nameof(ShowDisabledDevices));
         OnPropertyChanged(nameof(ShowDisconnectedDevices));
+        OnPropertyChanged(nameof(LeftClickCyclesProfiles));
         OnPropertyChanged(nameof(SettingsHotkeyDisplay));
         OnPropertyChanged(nameof(SettingsHotkeyIsSet));
         OnPropertyChanged(nameof(SettingsHotkeyEnabled));

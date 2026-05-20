@@ -47,7 +47,7 @@ public class TrayService : IDisposable
                 $"The system tray icon failed to register: {ex.Message}");
         }
 
-        _taskbarIcon.TrayLeftMouseUp += (_, _) => CycleNextProfile();
+        _taskbarIcon.TrayLeftMouseUp += (_, _) => { if (_configService.Current.LeftClickCyclesProfiles) CycleNextProfile(); };
 
         UpdateIcon(null);
         RebuildMenu();
