@@ -809,6 +809,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding StartWithWindows}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding StartWithWindows}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Start with Windows" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
@@ -823,6 +833,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding StartMinimized}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding StartMinimized}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Start minimized to tray" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
@@ -837,6 +857,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding CloseToTray}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding CloseToTray}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Close to tray" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
@@ -859,6 +889,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding ShowNotifications}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowNotifications}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Show device switch alerts" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
@@ -889,6 +929,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding LeftClickCyclesProfiles}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LeftClickCyclesProfiles}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Left-click tray icon to cycle profiles" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
@@ -911,6 +961,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding UseLegacySoundPanel}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Use legacy sound panel" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
@@ -925,6 +985,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding ShowDisabledDevices}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowDisabledDevices}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Show disabled devices in dropdowns" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
@@ -939,6 +1009,16 @@
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding ShowDisconnectedDevices}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShowDisconnectedDevices}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
                                     <TextBlock Text="Show disconnected devices in dropdowns" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="#E8F0FF" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
