@@ -192,6 +192,15 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 ### ~~Branch 32: `feat/settings-polish`~~ ✅ Merged — PR #68
 **Theme:** Settings window refinements — visual feedback, inner cards, info badges, tray toggle, backup/restore.
 
+| # | Feature |
+|---|---------|
+| ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ |
+| ~~F1 / 4.13~~ | ~~Config import/export — backup and transfer profiles via Settings~~ |
+| ~~F19 / 10.3~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ |
+| ~~F42~~ | ~~Settings sub-card layout — each group (Startup, Notifications, Shortcuts) in its own inner card~~ |
+| ~~F43~~ | ~~Card-based enable/disable — toggleable settings cards fade when disabled instead of using pill toggles~~ |
+| F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling (not delivered — pulled from branch) |
+
 ---
 
 ### Branch 33: `feat/profile-scheduler`
