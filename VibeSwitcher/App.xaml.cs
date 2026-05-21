@@ -18,6 +18,7 @@ public partial class App : Application
     private HwndSource? _hwndSource;
     private ProfileSwitchOrchestrator? _orchestrator;
     private AppWindowManager? _windowManager;
+    private ThemeService? _themeService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -59,6 +60,11 @@ public partial class App : Application
         _configService = new ConfigService();
         _configService.Load();
 
+        // 2a. Apply theme before any UI is shown
+        _themeService = new ThemeService(_configService);
+        _themeService.Apply();
+        _themeService.StartListening();
+
         // 2b. Self-correct the startup registry path if the exe was moved since last enable
         new StartupService().RefreshRegistryPath();
 
@@ -76,10 +82,11 @@ public partial class App : Application
         _audioService = new AudioService();
         _hotkeyService = new HotkeyService(_hwndSource.Handle);
         _trayService = new TrayService(_configService);
+        _themeService.ThemeApplied += () => _trayService.RebuildMenu();
 
         // 5. Initialise orchestrators
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, Dispatcher);
-        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService);
+        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply);
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
         _trayService.SwitchRequested = _orchestrator.SwitchToProfile;
@@ -183,6 +190,7 @@ public partial class App : Application
         // _orchestrator is null when a second instance exits early via Shutdown() before OnStartup completes.
         if (_orchestrator != null)
             SystemEvents.PowerModeChanged -= _orchestrator.OnPowerModeChanged;
+        _themeService?.StopListening();
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);
         _hwndSource?.Dispose();

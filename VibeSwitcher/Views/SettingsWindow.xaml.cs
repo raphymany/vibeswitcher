@@ -22,11 +22,12 @@ public partial class SettingsWindow : Window
     private readonly IHotkeyService _hotkeyService;
     private readonly EventHandler _errorAddedHandler;
 
+    private System.Windows.Threading.DispatcherTimer? _boundsTimer;
+
     // Drag-and-drop state for profile card reordering
     private Point _dragStart;
     private ProfileCardViewModel? _dragSource;
-    private static readonly Brush _normalCardBorder = MakeFrozenBrush(0xE0, 0xE0, 0xE0);
-    private static readonly Brush _dropTargetBorder = MakeFrozenBrush(0x00, 0x78, 0xD4);
+    private static readonly Brush _dropTargetBorder = MakeFrozenBrush(0xFF, 0x80, 0x00);
     private static SolidColorBrush MakeFrozenBrush(byte r, byte g, byte b)
     {
         var b2 = new SolidColorBrush(Color.FromRgb(r, g, b));
@@ -38,7 +39,8 @@ public partial class SettingsWindow : Window
         IConfigService configService,
         IAudioService audioService,
         IHotkeyService hotkeyService,
-        TrayService trayService)
+        TrayService trayService,
+        Action<string> applyTheme)
     {
         InitializeComponent();
         _trayService = trayService;
@@ -68,11 +70,17 @@ public partial class SettingsWindow : Window
                 trayService.ShowBalloon(
                     "Hotkey Conflict",
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
-            });
+            },
+            applyTheme: applyTheme);
 
         DataContext = _viewModel;
         RestoreWindowBounds();
-        try { HeaderIcon.Source = IconHelper.GetAppIconImageSource(); } catch { }
+        try { AppTitleBar.IconSource = IconHelper.GetAppIconImageSource(); } catch { }
+
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+
+        SizeChanged     += OnBoundsChanged;
+        LocationChanged += OnBoundsChanged;
 
         _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
 
@@ -91,6 +99,37 @@ public partial class SettingsWindow : Window
         };
     }
 
+    private void OnBoundsChanged(object? sender, EventArgs e)
+    {
+        if (_boundsTimer == null)
+        {
+            _boundsTimer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(400)
+            };
+            _boundsTimer.Tick += (_, _) => { _boundsTimer.Stop(); SaveWindowBounds(); };
+        }
+        _boundsTimer.Stop();
+        _boundsTimer.Start();
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded) && _viewModel.SettingsCardExpanded)
+            Dispatcher.InvokeAsync(EnsureFooterVisible, System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private void EnsureFooterVisible()
+    {
+        if (WindowState != WindowState.Normal) return;
+        var footerBottom = FooterGrid.TranslatePoint(new Point(0, FooterGrid.ActualHeight), this).Y;
+        // MainGrid has Margin="18" so its bottom edge sits 18px above the window bottom.
+        var overflow = footerBottom - (ActualHeight - 18);
+        if (overflow <= 0) return;
+        var newHeight = Math.Ceiling(ActualHeight + overflow + 12);
+        Height = Math.Min(newHeight, SystemParameters.WorkArea.Height - 40);
+    }
+
     private void UpdateLogsButton()
     {
         var count = SessionErrorTracker.Count;
@@ -101,7 +140,6 @@ public partial class SettingsWindow : Window
         else
         {
             LogsButtonText.Text = $"⚠ {count} Error{(count == 1 ? "" : "s")} This Session";
-            LogsButton.Foreground = new SolidColorBrush(Color.FromRgb(0xC0, 0x50, 0x00));
             LogsButton.Visibility = Visibility.Visible;
         }
     }
@@ -316,7 +354,7 @@ public partial class SettingsWindow : Window
         if (sender is not Border border) return;
         var pos = e.GetPosition(border);
         if (pos.X < 0 || pos.Y < 0 || pos.X > border.ActualWidth || pos.Y > border.ActualHeight)
-            border.BorderBrush = _normalCardBorder;
+            border.ClearValue(Border.BorderBrushProperty);
     }
 
     private void Card_DragOver(object sender, DragEventArgs e)
@@ -330,7 +368,7 @@ public partial class SettingsWindow : Window
     private void Card_Drop(object sender, DragEventArgs e)
     {
         if (sender is Border border)
-            border.BorderBrush = _normalCardBorder;
+            border.ClearValue(Border.BorderBrushProperty);
 
         var target = (sender as FrameworkElement)?.DataContext as ProfileCardViewModel;
         var source = e.Data.GetData(typeof(ProfileCardViewModel)) as ProfileCardViewModel;

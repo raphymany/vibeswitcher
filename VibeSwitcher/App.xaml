@@ -1,8 +1,13 @@
-﻿<Application x:Class="VibeSwitcher.App"
+<Application x:Class="VibeSwitcher.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
+
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Active theme is injected at runtime by ThemeService -->
+            </ResourceDictionary.MergedDictionaries>
 
         <!-- All windows default to Segoe UI -->
         <Style TargetType="Window">
@@ -27,20 +32,21 @@
             <Setter Property="Height"     Value="30"/>
             <Setter Property="Padding"    Value="12,0"/>
             <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="BorderBrush"     Value="#DDDDDD"/>
+            <Setter Property="Background" Value="{DynamicResource CardBg}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource InputBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground"      Value="{DynamicResource PrimaryText}"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background"  Value="#F0F6FF"/>
-                    <Setter Property="BorderBrush" Value="#0078D4"/>
+                    <Setter Property="Background"  Value="{DynamicResource HoverBg}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#DDEEFF"/>
+                    <Setter Property="Background" Value="{DynamicResource PressedBg}"/>
                 </Trigger>
                 <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="BorderBrush" Value="#0078D4"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -51,21 +57,21 @@
             <Setter Property="Height"     Value="30"/>
             <Setter Property="Padding"    Value="12,0"/>
             <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Foreground" Value="#C00000"/>
-            <Setter Property="Background" Value="#FFF0F0"/>
-            <Setter Property="BorderBrush"     Value="#FFBBBB"/>
+            <Setter Property="Foreground" Value="{DynamicResource ErrorText}"/>
+            <Setter Property="Background" Value="{DynamicResource ErrorBg}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource ErrorBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background"  Value="#FFE0E0"/>
-                    <Setter Property="BorderBrush" Value="#C00000"/>
+                    <Setter Property="Background"  Value="{DynamicResource ErrorBg}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource ErrorText}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#FFCCCC"/>
+                    <Setter Property="Background" Value="{DynamicResource ErrorBorder}"/>
                 </Trigger>
                 <Trigger Property="IsFocused" Value="True">
-                    <Setter Property="BorderBrush" Value="#C00000"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource ErrorText}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -78,21 +84,21 @@
             <Setter Property="FontSize"   Value="12"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="#0078D4"/>
-            <Setter Property="BorderBrush"     Value="#0078D4"/>
+            <Setter Property="Background" Value="{DynamicResource Accent}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource AccentHover}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background"  Value="#006CBF"/>
-                    <Setter Property="BorderBrush" Value="#006CBF"/>
+                    <Setter Property="Background"  Value="{DynamicResource AccentHover}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="#005AA3"/>
+                    <Setter Property="Background" Value="{DynamicResource AccentPressed}"/>
                 </Trigger>
                 <Trigger Property="IsFocused" Value="True">
                     <Setter Property="BorderBrush" Value="White"/>
-                    <Setter Property="Background"  Value="#006CBF"/>
+                    <Setter Property="Background"  Value="{DynamicResource AccentHover}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -100,6 +106,7 @@
         <!-- Toggle switch style for CheckBox — pill track + animated sliding thumb -->
         <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
@@ -115,11 +122,9 @@
                                 <Border x:Name="Track"
                                         Width="34" Height="18"
                                         CornerRadius="9">
-                                    <!-- Named brush so ColorAnimation can target it -->
                                     <Border.Background>
-                                        <SolidColorBrush x:Name="TrackBrush" Color="#CCCCCC"/>
+                                        <SolidColorBrush x:Name="TrackBrush" Color="{DynamicResource ToggleOffColor}"/>
                                     </Border.Background>
-                                    <!-- HorizontalAlignment stays Left always; Margin drives position -->
                                     <Border x:Name="Thumb"
                                             Width="12" Height="12"
                                             CornerRadius="6"
@@ -136,7 +141,6 @@
                                 <Trigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
-                                            <!-- Slide thumb right: track(34) - thumb(12) - right-pad(3) = 19 -->
                                             <ThicknessAnimation
                                                 Storyboard.TargetName="Thumb"
                                                 Storyboard.TargetProperty="Margin"
@@ -149,7 +153,7 @@
                                             <ColorAnimation
                                                 Storyboard.TargetName="TrackBrush"
                                                 Storyboard.TargetProperty="Color"
-                                                To="#0078D4"
+                                                To="#FF8000"
                                                 Duration="0:0:0.18"/>
                                         </Storyboard>
                                     </BeginStoryboard>
@@ -169,8 +173,8 @@
                                             <ColorAnimation
                                                 Storyboard.TargetName="TrackBrush"
                                                 Storyboard.TargetProperty="Color"
-                                                To="#CCCCCC"
-                                                Duration="0:0:0.18"/>
+                                                Duration="0:0:0.18"
+                                                FillBehavior="Stop"/>
                                         </Storyboard>
                                     </BeginStoryboard>
                                 </Trigger.ExitActions>
@@ -179,12 +183,22 @@
                                 <Setter TargetName="Track" Property="Opacity" Value="0.85"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="FocusRing" Property="BorderBrush" Value="#0078D4"/>
+                                <Setter TargetName="FocusRing" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Tooltip: theme-aware background + text -->
+        <Style TargetType="ToolTip">
+            <Setter Property="Background"      Value="{DynamicResource TooltipBg}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource TooltipBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground"      Value="{DynamicResource PrimaryText}"/>
+            <Setter Property="Padding"         Value="8,5"/>
+            <Setter Property="FontSize"        Value="11"/>
         </Style>
 
         <!-- Rounded popup with drop shadow -->
@@ -193,11 +207,10 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ContextMenu">
-                        <!-- Outer transparent padding gives the shadow room to render -->
                         <Border Padding="10" Background="Transparent">
-                            <Border Background="White"
+                            <Border Background="{DynamicResource MenuBg}"
                                     CornerRadius="10"
-                                    BorderBrush="#E0E0E0"
+                                    BorderBrush="{DynamicResource MenuBorder}"
                                     BorderThickness="1"
                                     SnapsToDevicePixels="True">
                                 <Border.Effect>
@@ -212,10 +225,10 @@
             </Setter>
         </Style>
 
-        <!-- Menu item: hover highlight + blue left bar when active -->
+        <!-- Menu item: hover highlight + orange left bar when active -->
         <Style TargetType="MenuItem">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#1A1A1A"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
             <Setter Property="FontFamily" Value="Segoe UI"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -227,7 +240,7 @@
                             <Rectangle x:Name="ActiveBar"
                                        Width="3" RadiusX="2" RadiusY="2"
                                        HorizontalAlignment="Left"
-                                       Fill="#0078D4"
+                                       Fill="{DynamicResource Accent}"
                                        Visibility="Collapsed"/>
                             <Border x:Name="Bg"
                                     Margin="5,1"
@@ -241,7 +254,7 @@
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="#F0F6FF"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource MenuItemHoverBg}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="ActiveBar" Property="Visibility" Value="Visible"/>
@@ -251,11 +264,16 @@
                                     <Condition Property="IsHighlighted" Value="True"/>
                                     <Condition Property="IsChecked" Value="True"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="Bg" Property="Background" Value="#E3F0FF"/>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource MenuItemSelHoverBg}"/>
                             </MultiTrigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="#AAAAAA"/>
+                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                 <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="sep">
+                                <Setter TargetName="Bg" Property="Margin" Value="0"/>
+                                <Setter TargetName="Bg" Property="Padding" Value="0"/>
+                                <Setter TargetName="Bg" Property="CornerRadius" Value="0"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -268,11 +286,13 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Separator">
-                        <Border Height="1" Background="#EFEFEF" Margin="10,5"/>
+                        <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,4"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
+        </ResourceDictionary>
 
     </Application.Resources>
 </Application>

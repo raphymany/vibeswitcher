@@ -15,6 +15,7 @@ public class SettingsViewModel : ViewModelBase
     private readonly IDialogService _dialogService;
     private readonly Action _onProfilesChanged;
     private readonly Action<HotkeyConflictException> _onHotkeyConflict;
+    private readonly Action<string> _applyTheme;
 
     private bool _startWithWindows;
     private bool _startMinimized;
@@ -140,6 +141,32 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public static IReadOnlyList<string> ThemeOptions { get; } = ["Follow Windows", "Light", "Dark"];
+
+    public string Theme
+    {
+        get => _configService.Current.Theme switch
+        {
+            "Light" => "Light",
+            "Dark"  => "Dark",
+            _       => "Follow Windows"
+        };
+        set
+        {
+            var stored = value switch
+            {
+                "Light" => "Light",
+                "Dark"  => "Dark",
+                _       => "Auto"
+            };
+            if (_configService.Current.Theme == stored) return;
+            _configService.Current.Theme = stored;
+            _configService.SaveImmediate();
+            _applyTheme(stored);
+            OnPropertyChanged();
+        }
+    }
+
     public bool SettingsCardExpanded
     {
         get => _configService.Current.SettingsCardExpanded;
@@ -214,7 +241,8 @@ public class SettingsViewModel : ViewModelBase
         IStartupService startupService,
         IDialogService dialogService,
         Action onProfilesChanged,
-        Action<HotkeyConflictException> onHotkeyConflict)
+        Action<HotkeyConflictException> onHotkeyConflict,
+        Action<string> applyTheme)
     {
         _configService = configService;
         _audioService = audioService;
@@ -223,6 +251,7 @@ public class SettingsViewModel : ViewModelBase
         _dialogService = dialogService;
         _onProfilesChanged = onProfilesChanged;
         _onHotkeyConflict = onHotkeyConflict;
+        _applyTheme = applyTheme;
 
         _startWithWindows = startupService.IsStartupEnabled();
         _startMinimized = configService.Current.StartMinimized;
@@ -466,6 +495,8 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(SettingsHotkeyIsSet));
         OnPropertyChanged(nameof(SettingsHotkeyEnabled));
         OnPropertyChanged(nameof(SettingsCardExpanded));
+        OnPropertyChanged(nameof(Theme));
+        _applyTheme(_configService.Current.Theme ?? "Auto");
 
         ReregisterHotkeys();
         _onProfilesChanged();

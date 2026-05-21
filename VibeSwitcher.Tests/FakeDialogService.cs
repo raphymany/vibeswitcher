@@ -8,6 +8,7 @@ internal sealed class FakeDialogService : IDialogService
 {
     public HotkeyDefinition? HotkeyCaptureResult { get; set; }
     public bool ConfirmDeleteResult { get; set; } = true;
+    public bool ConfirmCloneResult { get; set; } = true;
     public string? BrowseIconFileResult { get; set; }
     public GalleryPickResult? IconGalleryResult { get; set; }
     public ProfileMode? ProfileTypeResult { get; set; } = ProfileMode.Both;
@@ -18,6 +19,7 @@ internal sealed class FakeDialogService : IDialogService
 
     public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current) => HotkeyCaptureResult;
     public bool ShowConfirmDelete(string profileName) => ConfirmDeleteResult;
+    public bool ShowConfirmClone(string profileName) => ConfirmCloneResult;
     public string? ShowBrowseIconFile() => BrowseIconFileResult;
     public GalleryPickResult? ShowIconGallery() => IconGalleryResult;
     public void ShowAlert(string title, string message) => AlertsShown.Add((title, message));

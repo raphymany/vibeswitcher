@@ -1,112 +1,126 @@
-﻿<Window x:Class="VibeSwitcher.Views.AboutWindow"
+<Window x:Class="VibeSwitcher.Views.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:VibeSwitcher.Views"
         Title="About VibeSwitcher"
         Width="420"
         SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="#F3F3F3"
+        Background="{DynamicResource AppBg}"
         KeyDown="Window_KeyDown">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32" GlassFrameThickness="0"
+                      ResizeBorderThickness="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
 
         <Style x:Key="SectionLabel" TargetType="TextBlock">
             <Setter Property="FontSize"   Value="10"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="#999999"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
             <Setter Property="Margin"     Value="0,0,0,8"/>
         </Style>
 
     </Window.Resources>
 
-    <StackPanel Margin="24,20">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-        <!-- App identity -->
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-            <Image x:Name="AppIconImage" Width="48" Height="48"
-                   VerticalAlignment="Top" Margin="0,2,16,0"/>
-            <StackPanel VerticalAlignment="Center">
-                <TextBlock Text="VibeSwitcher"
-                           FontSize="22" FontWeight="Bold" Foreground="#1A1A1A"/>
-                <TextBlock x:Name="VersionText"
-                           FontSize="12" Foreground="#777777" Margin="0,2,0,0"/>
-                <TextBlock Text="Seamless audio device switching for Windows"
-                           FontSize="11" Foreground="#999999" Margin="0,4,0,0"/>
+        <views:TitleBar Grid.Row="0"/>
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,20">
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <Image x:Name="AppIconImage" Width="48" Height="48"
+                       VerticalAlignment="Top" Margin="0,2,16,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="VibeSwitcher"
+                               FontSize="22" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock x:Name="VersionText"
+                               FontSize="12" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0"/>
+                    <TextBlock Text="Seamless audio device switching for Windows"
+                               FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,4,0,0"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
 
-        <!-- Website -->
-        <Border Background="White" BorderBrush="#E8E8E8" BorderThickness="1"
-                CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock Text="WEBSITE" Style="{StaticResource SectionLabel}"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="🌐" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                    <TextBlock FontSize="12" VerticalAlignment="Center">
-                        <Hyperlink NavigateUri="https://vibeswitcher.app"
+            <!-- Website -->
+            <Border Background="{DynamicResource AboutSectionBg}" BorderBrush="{DynamicResource AboutSectionBorder}" BorderThickness="1"
+                    CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="WEBSITE" Style="{StaticResource SectionLabel}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🌐" FontSize="14" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock FontSize="12" VerticalAlignment="Center">
+                            <Hyperlink NavigateUri="https://vibeswitcher.app"
+                                       RequestNavigate="Hyperlink_RequestNavigate">
+                                vibeswitcher.app
+                            </Hyperlink>
+                            <Run Text=" — coming soon" Foreground="{DynamicResource DisabledText}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Development -->
+            <Border Background="{DynamicResource AboutSectionBg}" BorderBrush="{DynamicResource AboutSectionBorder}" BorderThickness="1"
+                    CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="DEVELOPMENT" Style="{StaticResource SectionLabel}"/>
+                    <StackPanel>
+                        <TextBlock Text="Designed &amp; built by" FontSize="11" Foreground="{DynamicResource SecondaryText}"/>
+                        <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource PrimaryText}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Support -->
+            <Border Background="{DynamicResource AboutSectionBg}" BorderBrush="{DynamicResource AboutSectionBorder}" BorderThickness="1"
+                    CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="SUPPORT" Style="{StaticResource SectionLabel}"/>
+                    <TextBlock Text="Found a bug or have a suggestion?" FontSize="12"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,0,0,10"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="View Issues"
+                                Style="{StaticResource ActionButton}"
+                                Click="ViewIssues_Click" Margin="0,0,8,0"/>
+                        <Button Content="Submit an Issue"
+                                Style="{StaticResource ActionButton}"
+                                Click="SubmitIssue_Click"/>
+                    </StackPanel>
+                    <TextBlock Margin="0,10,0,0" FontSize="12" Foreground="{DynamicResource SecondaryText}">
+                        GitHub:
+                        <Hyperlink NavigateUri="https://github.com/raphymany/vibeswitcher"
                                    RequestNavigate="Hyperlink_RequestNavigate">
-                            vibeswitcher.app
+                            github.com/raphymany/vibeswitcher
                         </Hyperlink>
-                        <Run Text=" — coming soon" Foreground="#AAAAAA"/>
                     </TextBlock>
                 </StackPanel>
-            </StackPanel>
-        </Border>
+            </Border>
 
-        <!-- Development -->
-        <Border Background="White" BorderBrush="#E8E8E8" BorderThickness="1"
-                CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock Text="DEVELOPMENT" Style="{StaticResource SectionLabel}"/>
-                <StackPanel>
-                    <TextBlock Text="Designed &amp; built by" FontSize="11" Foreground="#888888"/>
-                    <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
-                               Foreground="#1A1A1A" Margin="0,2,0,0"/>
+            <!-- Copyright + actions -->
+            <StackPanel Margin="0,6,0,0" HorizontalAlignment="Center">
+                <TextBlock Text="© 2026 Raphael Mansour. All rights reserved."
+                           FontSize="11" Foreground="{DynamicResource DisabledText}"
+                           HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button Content="Copy Diagnostic Info"
+                            Style="{StaticResource ActionButton}"
+                            Margin="0,0,8,0"
+                            Click="CopyDiagnostics_Click"/>
+                    <Button Content="Close"
+                            Style="{StaticResource PrimaryButton}"
+                            IsCancel="True" Click="Close_Click"/>
                 </StackPanel>
             </StackPanel>
-        </Border>
 
-        <!-- Support -->
-        <Border Background="White" BorderBrush="#E8E8E8" BorderThickness="1"
-                CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock Text="SUPPORT" Style="{StaticResource SectionLabel}"/>
-                <TextBlock Text="Found a bug or have a suggestion?" FontSize="12"
-                           Foreground="#555555" Margin="0,0,0,10"/>
-                <StackPanel Orientation="Horizontal">
-                    <Button Content="View Issues"
-                            Style="{StaticResource ActionButton}"
-                            Click="ViewIssues_Click" Margin="0,0,8,0"/>
-                    <Button Content="Submit an Issue"
-                            Style="{StaticResource ActionButton}"
-                            Click="SubmitIssue_Click"/>
-                </StackPanel>
-                <TextBlock Margin="0,10,0,0" FontSize="12" Foreground="#555555">
-                    GitHub:
-                    <Hyperlink NavigateUri="https://github.com/raphymany/vibeswitcher"
-                               RequestNavigate="Hyperlink_RequestNavigate">
-                        github.com/raphymany/vibeswitcher
-                    </Hyperlink>
-                </TextBlock>
-            </StackPanel>
-        </Border>
-
-        <!-- Copyright + actions -->
-        <StackPanel Margin="0,6,0,0" HorizontalAlignment="Center">
-            <TextBlock Text="© 2026 Raphael Mansour. All rights reserved."
-                       FontSize="11" Foreground="#AAAAAA"
-                       HorizontalAlignment="Center" Margin="0,0,0,10"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="Copy Diagnostic Info"
-                        Style="{StaticResource ActionButton}"
-                        Margin="0,0,8,0"
-                        Click="CopyDiagnostics_Click"/>
-                <Button Content="Close"
-                        Style="{StaticResource PrimaryButton}"
-                        IsCancel="True" Click="Close_Click"/>
-            </StackPanel>
         </StackPanel>
-
-    </StackPanel>
+    </Grid>
 </Window>

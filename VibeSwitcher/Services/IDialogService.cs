@@ -7,6 +7,7 @@ public interface IDialogService
 {
     HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current);
     bool ShowConfirmDelete(string profileName);
+    bool ShowConfirmClone(string profileName);
     string? ShowBrowseIconFile();
     GalleryPickResult? ShowIconGallery();
     void ShowAlert(string title, string message);

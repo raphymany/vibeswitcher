@@ -14,6 +14,9 @@ public class AppConfig
     public bool LeftClickCyclesProfiles { get; set; } = true;
     public bool SettingsCardExpanded { get; set; } = true;
 
+    // "Auto" = follow Windows, "Light" = always light, "Dark" = always dark
+    public string Theme { get; set; } = "Auto";
+
     public HotkeyDefinition? SettingsHotkey { get; set; }
     public bool SettingsHotkeyEnabled { get; set; } = true;
 
