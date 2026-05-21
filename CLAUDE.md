@@ -8,8 +8,8 @@ These rules apply to every session and every task. Read this file at the start o
 
 Before writing a single line of code or making any plan, always do these four things:
 
-1. **Read `AUDIT2.md`** — this is the live list of every open/uncompleted task. It tells you what is still left to do and which branches are planned or in progress.
-2. **Read `AUDIT.md`** — this is the full audit with all details, section numbers, and the branch execution log (Section 12). Use it for context and to understand the scope of any item.
+1. **Read `BACKLOG.md`** — this is the live list of every open/uncompleted task. It tells you what is still left to do and which branches are planned or in progress.
+2. **Read `RECORD.md`** — this is the full audit with all details, section numbers, and the branch execution log (Section 12). Use it for context and to understand the scope of any item.
 3. **Check GitHub** — run `gh pr list` (open and recently merged) and `gh issue list` to see the current state of PRs and issues. Never assume the repo state from memory alone.
 4. **Check `git log --oneline -10`** — confirm what is on `main` and what the last merged commit was.
 
@@ -24,7 +24,7 @@ Every non-trivial implementation task must follow this exact order. Never skip s
 ### Step 1 — Plan
 - Write out what you intend to do before touching any files.
 - For anything more than a one-line fix, confirm the plan with the user first.
-- Reference the relevant AUDIT.md section number and branch name.
+- Reference the relevant RECORD.md section number and branch name.
 
 ### Step 2 — Execute
 - Implement all changes.
@@ -97,12 +97,12 @@ Every non-trivial implementation task must follow this exact order. Never skip s
 
 After every branch is merged, update these three files before starting any new work. Do not defer this.
 
-### `AUDIT.md`
+### `RECORD.md`
 - Mark completed items as `✅ Done — PR #N`.
 - Add the branch as a numbered section under Section 12 with a brief summary.
 - Update the Recommended Execution Order table and summary counts.
 
-### `AUDIT2.md`
+### `BACKLOG.md`
 - Remove completed items from all open-item sections.
 - Mark the branch row in Section 12 as `✅ Merged — PR #N`.
 - Update the "Last updated" header date.
@@ -126,4 +126,4 @@ After every branch is merged, update these three files before starting any new w
 - **Config file:** `%APPDATA%\VibeSwitcher\config.json` (atomic write, backup on every save).
 - **Test project:** `VibeSwitcher.Tests` — xUnit, runs in ~2 seconds with `dotnet test`.
 - **Key architecture files:** `App.xaml.cs` (orchestration), `Services/`, `ViewModels/`, `Views/`.
-- **AUDIT.md** = full audit, all sections, branch log. **AUDIT2.md** = only open/incomplete items. Both must stay in sync.
+- **RECORD.md** = full audit, all sections, branch log. **BACKLOG.md** = only open/incomplete items. Both must stay in sync.

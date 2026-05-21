@@ -1,8 +1,8 @@
-# VibeSwitcher — Open Items (extracted from AUDIT.md)
+# VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-05-20 — Branch 32 merged (PR #68).
+**Last updated:** 2026-05-21 — renamed AUDIT.md → RECORD.md, AUDIT2.md → BACKLOG.md.
 
-Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match AUDIT.md exactly.
+Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
 ---
 
@@ -143,7 +143,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 Grouped by shared UI surface or implementation concern. Features within each branch can ship together without stepping on each other.
 
-*(Completed branches and their full item lists are documented in AUDIT.md — Section 12.)*
+*(Completed branches and their full item lists are documented in RECORD.md — Section 12.)*
 
 ---
 

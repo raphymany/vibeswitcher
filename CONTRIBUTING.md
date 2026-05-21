@@ -1,6 +1,8 @@
 # Contributing to VibeSwitcher
 
-Thanks for your interest in contributing! This document covers how to set up the project, the coding conventions used, and the pull request process.
+Thanks for your interest in contributing! VibeSwitcher is a personal project maintained by one developer, so PRs are welcome but response time is best-effort and changes must align with the roadmap in `BACKLOG.md`. Opening an issue to discuss your idea before writing code is strongly recommended — it avoids wasted effort if the change doesn't fit the project's direction.
+
+This document covers how to set up the project, the coding conventions used, and the pull request process.
 
 ---
 
@@ -46,11 +48,19 @@ Config and logs are written to `%APPDATA%\VibeSwitcher\`.
 
 ## Pull request process
 
-1. Fork the repo and create a branch from `main` (e.g. `fix/hotkey-conflict`, `feat/dark-mode`).
-2. Keep each PR focused on one concern — separate bug fixes from feature additions.
-3. Make sure the project builds cleanly: `dotnet build VibeSwitcher/VibeSwitcher.csproj -c Release`.
-4. Update `CHANGELOG.md` under `[Unreleased]` with a one-line entry for your change.
-5. Open a PR against `main` with a clear title and description of what changed and why.
+1. Open an issue first to discuss the change — PRs without a corresponding issue may be closed if they don't align with the project's direction.
+2. Fork the repo and create a branch from `main` (e.g. `fix/hotkey-conflict`, `feat/dark-mode`).
+3. Keep each PR focused on one concern — separate bug fixes from feature additions.
+4. Make sure the project builds cleanly: `dotnet build VibeSwitcher/VibeSwitcher.csproj -c Release`.
+5. Open a PR against `main` with a clear title and description of what changed and why. The maintainer updates `CHANGELOG.md` on merge.
+
+## What we do NOT accept
+
+- **Changes to the atomic config write pattern** — `ConfigService.SaveImmediate()` exists to prevent partial-write corruption; workarounds or direct file writes are rejected.
+- **New external API or NuGet dependencies** without prior discussion in an issue. The dependency footprint is intentionally small.
+- **Hotkey or audio switching behaviour changes** that could silently affect the user's active audio device without an explicit profile switch action.
+- **Features that require elevated privileges** (UAC, admin rights). The app runs as a normal user by design.
+- **PRs that skip the test suite** or break existing tests. Run `dotnet test` before submitting.
 
 ## Reporting bugs
 
