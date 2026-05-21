@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-05-21 — renamed AUDIT.md → RECORD.md, AUDIT2.md → BACKLOG.md.
+**Last updated:** 2026-05-22 — Branch 45 (`feat/appearance-modes`) merged as PR #70.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -105,7 +105,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
-| F16 | Light / dark / high-contrast support — replace hardcoded colours with `SystemColors` brushes so the app follows the Windows OS theme automatically | 45 |
+| ~~F16~~ | ~~Light / dark / high-contrast support — replace hardcoded colours with `SystemColors` brushes so the app follows the Windows OS theme automatically~~ | ✅ Done — PR #70 |
 | ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ | ✅ Done — PR #68 |
 | ~~F19~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ | ✅ Done — PR #68 |
@@ -240,12 +240,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 45: `feat/appearance-modes`
+### ~~Branch 45: `feat/appearance-modes`~~ ✅ Merged — PR #70
 **Theme:** OS theme awareness — replace all hardcoded colours with `SystemColors` brushes so the app automatically follows the Windows light, dark, and high-contrast accessibility settings with no in-app toggle needed.
 
 | # | Feature |
 |---|---------|
-| F16 | Light / dark / high-contrast support — replace every hardcoded hex colour (`#1A1A1A`, `#F3F3F3`, etc.) with the appropriate `SystemColors` brush so the app responds to the OS theme automatically; covers Settings window, tray menu, all dialogs, profile cards, and icon chip backgrounds; high-contrast is an accessibility mode for visual impairments (not the same as night mode, which is a display-level OS feature that apps don't implement) |
+| ~~F16~~ | ~~Light / dark / high-contrast support — replace every hardcoded hex colour (`#1A1A1A`, `#F3F3F3`, etc.) with the appropriate `SystemColors` brush so the app responds to the OS theme automatically; covers Settings window, tray menu, all dialogs, profile cards, and icon chip backgrounds; high-contrast is an accessibility mode for visual impairments (not the same as night mode, which is a display-level OS feature that apps don't implement)~~ |
 
 ---
 

@@ -7,6 +7,19 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Light / dark mode theming (F16)** — full resource-dictionary theming system with `LightTheme.xaml` and `DarkTheme.xaml` (each ~70 named brushes); `ThemeService` applies the chosen theme by swapping `MergedDictionaries`; an in-app toggle in General Settings persists the preference across launches; covers all windows, dialogs, profile cards, and tray menu *(PR #70)*
+- **Tray separator polish** — separators in the right-click tray menu now use a custom 2.5 px rounded `Border` element spanning the full menu width; replaced `new Separator()` with a tagged `MenuItem` to bypass the WPF ControlTemplate indent *(PR #70)*
+
+### Fixed
+- **Tray theme live update** — switching the app theme now immediately updates the tray context menu; `RebuildMenu` creates a fresh `ContextMenu` object each time so the new Popup visual tree reads current theme resources on open *(PR #70)*
+- **Tray icon switch flash speed** — blink hold time reduced from 350 ms to 150 ms for a snappier visual confirmation on profile switch *(PR #70)*
+- **Settings auto-expand when expander opens** — when the General Settings card opens, the window now measures the footer's position in window coordinates (accounting for the 18 px bottom margin) and grows to ensure the footer buttons are always fully visible *(PR #70)*
+- **Window size and position not persisting** — `SizeChanged` and `LocationChanged` events now write bounds to config via a 400 ms `DispatcherTimer` debounce; the previous `OnClosing`-only approach did not fire reliably for hidden windows during app shutdown *(PR #70)*
+- **Icon preview gray background** — the coloured `IconPreviewBg` background behind icons on profile cards replaced with a transparent background and a 1 px `InputBorder` outline *(PR #70)*
+- **Clone dialog icon** — warning triangle replaced with a WPF-drawn copy-overlap visual (two rounded rectangles on a `Canvas`); `ConfirmDialog` now accepts an optional `UIElement` icon override *(PR #70)*
+- **About window label colours in dark mode** — WEBSITE, DEVELOPMENT, and SUPPORT section labels changed from `SubtleText` to `SecondaryText` brush so they are readable in both themes *(PR #70)*
+
+### Added
 - **Backup & Restore (F1)** — Export writes the current config to a user-chosen `.json` file; Import reads it back with a confirmation dialog and rebuilds the entire profile list from the imported data; both operations give AlertDialog feedback on success or failure *(PR #68)*
 - **Save flash on profile cards (F18)** — each profile card briefly flashes green when a change is saved; each card uses its own `SolidColorBrush` instance so animations are independent, with a 250 ms `CancellationTokenSource` debounce to collapse rapid edits into a single flash *(PR #68)*
 - **Getting-started help dialog (F19)** — the `?` footer button opens a scrollable walkthrough dialog covering setup, profile switching, tray tips, what ⓘ icons mean, how Backup & Restore works, and where data is stored; button re-rendered with ClearType to eliminate blurriness *(PR #68)*
