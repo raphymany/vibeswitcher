@@ -17,7 +17,8 @@ public class SettingsViewModelTests
     private SettingsViewModel MakeViewModel() =>
         new(_fakeConfig, _fakeAudio, _fakeHotkey, _fakeStartup, _fakeDialog,
             onProfilesChanged: () => _profilesChangedCount++,
-            onHotkeyConflict: _ => { });
+            onHotkeyConflict: _ => { },
+            applyTheme: _ => { });
 
     [Fact]
     public void AddProfile_DialogConfirmed_AddsToProfiles()

@@ -15,7 +15,7 @@ namespace VibeSwitcher.Tray;
 public class TrayService : IDisposable
 {
     private readonly TaskbarIcon _taskbarIcon;
-    private readonly ContextMenu _contextMenu = new();
+    private ContextMenu _contextMenu = new();
     private readonly IConfigService _configService;
     // Caches the ImageSource for each profile's icon so RebuildMenu never reads from disk.
     private readonly Dictionary<Guid, ImageSource> _iconCache = new();
@@ -31,7 +31,6 @@ public class TrayService : IDisposable
         _taskbarIcon = new TaskbarIcon
         {
             ToolTipText = "VibeSwitcher",
-            ContextMenu = _contextMenu,
         };
 
         // Required when creating TaskbarIcon programmatically (not via XAML)
@@ -140,7 +139,8 @@ public class TrayService : IDisposable
 
     public void RebuildMenu()
     {
-        _contextMenu.Items.Clear();
+        _contextMenu = new ContextMenu();
+        _taskbarIcon.ContextMenu = _contextMenu;
 
         try
         {
@@ -152,7 +152,7 @@ public class TrayService : IDisposable
             };
             headerItem.Click += (_, _) => OpenSettings();
             _contextMenu.Items.Add(headerItem);
-            _contextMenu.Items.Add(new Separator());
+            _contextMenu.Items.Add(BuildSeparator());
         }
         catch (Exception ex) { AppLogger.Warning("TrayService.RebuildMenu", ex.Message); }
 
@@ -177,7 +177,7 @@ public class TrayService : IDisposable
                 _contextMenu.Items.Add(item);
             }
 
-            _contextMenu.Items.Add(new Separator());
+            _contextMenu.Items.Add(BuildSeparator());
         }
 
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
@@ -207,7 +207,7 @@ public class TrayService : IDisposable
         aboutItem.Click += (_, _) => OpenAbout();
         _contextMenu.Items.Add(aboutItem);
 
-        _contextMenu.Items.Add(new Separator());
+        _contextMenu.Items.Add(BuildSeparator());
 
         var exitItem = new MenuItem { Header = BuildActionHeader("✕", "Exit"), Padding = new Thickness(12, 8, 16, 8) };
         exitItem.Click += (_, _) => Application.Current.Shutdown();
@@ -270,6 +270,19 @@ public class TrayService : IDisposable
             app.OpenAboutWindow();
     }
 
+    private static MenuItem BuildSeparator()
+    {
+        var line = new Border { Height = 2.5, CornerRadius = new CornerRadius(1.25), Margin = new Thickness(8, 0, 8, 0) };
+        line.SetResourceReference(Border.BackgroundProperty, "SeparatorBrush");
+        return new MenuItem
+        {
+            Tag = "sep",
+            IsEnabled = false,
+            IsHitTestVisible = false,
+            Header = line,
+        };
+    }
+
     // Two-line profile item: [profile icon]  Name / Mode subtitle
     private UIElement BuildProfileHeader(DeviceProfile profile)
     {
@@ -318,32 +331,20 @@ public class TrayService : IDisposable
         }
         Grid.SetColumn(iconElement, 0);
 
-        var nameBlock = new TextBlock
-        {
-            Text = profile.Name,
-            FontSize = 13,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A)),
-        };
-        var subBlock = new TextBlock
-        {
-            Text = modeLabel,
-            FontSize = 11,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88)),
-            Margin = new Thickness(0, 1, 0, 0),
-        };
+        var nameBlock = new TextBlock { Text = profile.Name, FontSize = 13, FontWeight = FontWeights.SemiBold };
+        nameBlock.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryText");
+
+        var subBlock = new TextBlock { Text = modeLabel, FontSize = 11, Margin = new Thickness(0, 1, 0, 0) };
+        subBlock.SetResourceReference(TextBlock.ForegroundProperty, "SecondaryText");
+
         var stack = new StackPanel { Margin = new Thickness(12, 0, 0, 0) };
         stack.Children.Add(nameBlock);
         stack.Children.Add(subBlock);
         if (!profile.Hotkey.IsEmpty)
         {
-            stack.Children.Add(new TextBlock
-            {
-                Text = profile.Hotkey.ToDisplayString(),
-                FontSize = 10,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x99, 0x99, 0x99)),
-                Margin = new Thickness(0, 1, 0, 0),
-            });
+            var hkBlock = new TextBlock { Text = profile.Hotkey.ToDisplayString(), FontSize = 10, Margin = new Thickness(0, 1, 0, 0) };
+            hkBlock.SetResourceReference(TextBlock.ForegroundProperty, "TertiaryText");
+            stack.Children.Add(hkBlock);
         }
         Grid.SetColumn(stack, 1);
 
@@ -364,14 +365,15 @@ public class TrayService : IDisposable
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
         });
-        sp.Children.Add(new TextBlock
+        var label = new TextBlock
         {
             Text = "VibeSwitcher",
             FontSize = 13,
             FontWeight = FontWeights.SemiBold,
             VerticalAlignment = VerticalAlignment.Center,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A)),
-        });
+        };
+        label.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryText");
+        sp.Children.Add(label);
         return sp;
     }
 
@@ -379,22 +381,19 @@ public class TrayService : IDisposable
     private static UIElement BuildActionHeader(string icon, string label)
     {
         var sp = new StackPanel { Orientation = Orientation.Horizontal };
-        sp.Children.Add(new TextBlock
+        var iconBlock = new TextBlock
         {
             Text = icon,
             Width = 22,
             FontSize = 13,
             TextAlignment = TextAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x55, 0x55, 0x55)),
-        });
-        sp.Children.Add(new TextBlock
-        {
-            Text = label,
-            FontSize = 13,
-            VerticalAlignment = VerticalAlignment.Center,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A)),
-        });
+        };
+        iconBlock.SetResourceReference(TextBlock.ForegroundProperty, "SecondaryText");
+        var labelBlock = new TextBlock { Text = label, FontSize = 13, VerticalAlignment = VerticalAlignment.Center };
+        labelBlock.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryText");
+        sp.Children.Add(iconBlock);
+        sp.Children.Add(labelBlock);
         return sp;
     }
 

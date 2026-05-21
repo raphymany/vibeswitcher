@@ -1,10 +1,11 @@
 using System.Windows;
+using System.Windows.Controls;
 
 namespace VibeSwitcher.Views;
 
 public partial class ConfirmDialog : Window
 {
-    public ConfirmDialog(string title, string message, string actionLabel, string subtitle = "This action cannot be undone.")
+    public ConfirmDialog(string title, string message, string actionLabel, string subtitle = "This action cannot be undone.", string icon = "⚠", string iconBgResource = "WarningBg", UIElement? iconElement = null)
     {
         InitializeComponent();
         Title = title;
@@ -12,6 +13,11 @@ public partial class ConfirmDialog : Window
         SubtitleText.Text = subtitle;
         MessageText.Text = message;
         ActionBtn.Content = actionLabel;
+
+        IconContent.Content = iconElement ?? new TextBlock { Text = icon, FontSize = 17 };
+
+        if (TryFindResource(iconBgResource) is System.Windows.Media.Brush brush)
+            IconBadge.Background = brush;
     }
 
     private void Confirm_Click(object sender, RoutedEventArgs e) => DialogResult = true;

@@ -1,0 +1,116 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Backgrounds -->
+    <SolidColorBrush x:Key="AppBg"              Color="#F3F3F3"/>
+    <SolidColorBrush x:Key="CardBg"             Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="InnerCardBg"        Color="#F8F9FA"/>
+    <SolidColorBrush x:Key="InnerCardBorderBrush" Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="CardBorderBrush"    Color="#E0E0E0"/>
+
+    <!-- Text -->
+    <SolidColorBrush x:Key="PrimaryText"        Color="#1A1A1A"/>
+    <SolidColorBrush x:Key="SecondaryText"      Color="#555555"/>
+    <SolidColorBrush x:Key="TertiaryText"       Color="#777777"/>
+    <SolidColorBrush x:Key="MutedText"          Color="#888888"/>
+    <SolidColorBrush x:Key="SubtleText"         Color="#999999"/>
+    <SolidColorBrush x:Key="DisabledText"       Color="#AAAAAA"/>
+    <SolidColorBrush x:Key="ReadOnlyText"       Color="#666666"/>
+    <SolidColorBrush x:Key="SectionLabelText"   Color="#444444"/>
+
+    <!-- Accent (Papaya Orange) -->
+    <SolidColorBrush x:Key="Accent"             Color="#FF8000"/>
+    <SolidColorBrush x:Key="AccentHover"        Color="#E07200"/>
+    <SolidColorBrush x:Key="AccentPressed"      Color="#CC6600"/>
+    <Color           x:Key="AccentColor"               >#FF8000</Color>
+
+    <!-- Inputs -->
+    <SolidColorBrush x:Key="InputBg"            Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="InputBorder"        Color="#DDDDDD"/>
+    <SolidColorBrush x:Key="InputHoverBorder"   Color="#AAAAAA"/>
+
+    <!-- Hover / Selection -->
+    <SolidColorBrush x:Key="HoverBg"            Color="#FFF4E8"/>
+    <SolidColorBrush x:Key="SelectedBg"         Color="#FFE8CC"/>
+    <SolidColorBrush x:Key="PressedBg"          Color="#FFD9AA"/>
+    <SolidColorBrush x:Key="ReadOnlyBg"         Color="#F7F7F7"/>
+
+    <!-- Info badge (ⓘ) -->
+    <SolidColorBrush x:Key="InfoBadgeBg"        Color="#FFF0E0"/>
+    <SolidColorBrush x:Key="InfoBadgeText"      Color="#FF8000"/>
+
+    <!-- Name suggestion chips -->
+    <SolidColorBrush x:Key="ChipBg"             Color="#FFF4E8"/>
+    <SolidColorBrush x:Key="ChipBorder"         Color="#FFB366"/>
+    <SolidColorBrush x:Key="ChipText"           Color="#CC6600"/>
+    <SolidColorBrush x:Key="ChipHoverBg"        Color="#FFE8CC"/>
+
+    <!-- Separators -->
+    <SolidColorBrush x:Key="SeparatorBrush"     Color="#C8C8C8"/>
+    <SolidColorBrush x:Key="CardSeparator"      Color="#F0F0F0"/>
+
+    <!-- Error / Danger -->
+    <SolidColorBrush x:Key="ErrorText"          Color="#C00000"/>
+    <SolidColorBrush x:Key="ErrorBg"            Color="#FFF0F0"/>
+    <SolidColorBrush x:Key="ErrorBorder"        Color="#FFBBBB"/>
+    <SolidColorBrush x:Key="ErrorIconBg"        Color="#FFE8E8"/>
+    <SolidColorBrush x:Key="DangerBtnBg"        Color="#C00020"/>
+    <SolidColorBrush x:Key="DangerBtnBorder"    Color="#A00018"/>
+    <SolidColorBrush x:Key="DangerBtnHover"     Color="#A80018"/>
+    <SolidColorBrush x:Key="DangerBtnPressed"   Color="#900015"/>
+
+    <!-- Status dots -->
+    <SolidColorBrush x:Key="SuccessDot"         Color="#2DB55D"/>
+    <SolidColorBrush x:Key="ErrorDot"           Color="#CC3333"/>
+
+    <!-- Warning -->
+    <SolidColorBrush x:Key="WarningBg"          Color="#FFF8E0"/>
+
+    <!-- Toggle switch (Color resource for animation) -->
+    <SolidColorBrush x:Key="ToggleInactiveBg"   Color="#CCCCCC"/>
+    <Color           x:Key="ToggleOffColor"            >#CCCCCC</Color>
+
+    <!-- Icon preview background -->
+    <SolidColorBrush x:Key="IconPreviewBg"      Color="#4A4A4A"/>
+
+    <!-- Tray context menu -->
+    <SolidColorBrush x:Key="MenuBg"             Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="MenuBorder"         Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="MenuItemHoverBg"    Color="#FFF4E8"/>
+    <SolidColorBrush x:Key="MenuItemSelHoverBg" Color="#FFE8CC"/>
+
+    <!-- Tooltip -->
+    <SolidColorBrush x:Key="TooltipBg"          Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="TooltipBorder"      Color="#E0E0E0"/>
+
+    <!-- HelpDialog footer -->
+    <SolidColorBrush x:Key="FooterBg"           Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="FooterBorder"       Color="#DDDDDD"/>
+
+    <!-- Hotkey display box -->
+    <SolidColorBrush x:Key="HotkeyBg"           Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="HotkeyBorder"       Color="#D0D0D0"/>
+
+    <!-- About window section cards -->
+    <SolidColorBrush x:Key="AboutSectionBg"     Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="AboutSectionBorder" Color="#E8E8E8"/>
+
+    <!-- Session log -->
+    <SolidColorBrush x:Key="SessionListBg"      Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="SessionListBorder"  Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="SessionItemHoverBg" Color="#F8F8F8"/>
+    <SolidColorBrush x:Key="SessionSeparator"   Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="ErrorCodeText"      Color="#C00000"/>
+    <SolidColorBrush x:Key="SessionMsgText"     Color="#333333"/>
+
+    <!-- Save flash overlay -->
+    <SolidColorBrush x:Key="SaveFlashBg"        Color="#E8F5E9"/>
+
+    <!-- Icon gallery -->
+    <SolidColorBrush x:Key="GalleryItemBg"      Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="GalleryItemBorder"  Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="ColorPillBg"        Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="ColorPillBorder"    Color="#DDDDDD"/>
+    <SolidColorBrush x:Key="ColorPillText"      Color="#333333"/>
+
+</ResourceDictionary>

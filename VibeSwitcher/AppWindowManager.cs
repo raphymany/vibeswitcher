@@ -11,17 +11,20 @@ public class AppWindowManager
     private readonly IAudioService _audioService;
     private readonly IHotkeyService _hotkeyService;
     private readonly TrayService _trayService;
+    private readonly Action<string> _applyTheme;
 
     public AppWindowManager(
         IConfigService configService,
         IAudioService audioService,
         IHotkeyService hotkeyService,
-        TrayService trayService)
+        TrayService trayService,
+        Action<string> applyTheme)
     {
         _configService = configService;
-        _audioService = audioService;
+        _audioService  = audioService;
         _hotkeyService = hotkeyService;
-        _trayService = trayService;
+        _trayService   = trayService;
+        _applyTheme    = applyTheme;
     }
 
     public void OpenSettingsWindow()
@@ -40,7 +43,7 @@ public class AppWindowManager
             return;
         }
 
-        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService);
+        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme);
         window.Show();
     }
 

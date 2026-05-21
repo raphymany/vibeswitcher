@@ -50,10 +50,10 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         {
             try
             {
-                await Task.Delay(250, token); // debounce: ignore rapid successive changes
+                await Task.Delay(80, token); // debounce: ignore rapid successive changes
                 if (token.IsCancellationRequested) return;
                 await dispatcher.InvokeAsync(() => { if (!token.IsCancellationRequested) SaveFlash = true; });
-                await Task.Delay(800, token);
+                await Task.Delay(150, token);
                 await dispatcher.InvokeAsync(() => { if (!token.IsCancellationRequested) SaveFlash = false; });
             }
             catch (OperationCanceledException) { }
@@ -226,7 +226,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         {
             if (param is string suggestion) ApplyNameSuggestion(suggestion);
         });
-        CloneCommand = new RelayCommand(() => _onClone(this));
+        CloneCommand = new RelayCommand(CloneProfile);
         DeleteCommand = new RelayCommand(DeleteProfile);
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
@@ -468,6 +468,12 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             if (item != null)
                 ApplyGalleryIcon(item, IconColor.Auto, silent: true);
         }
+    }
+
+    private void CloneProfile()
+    {
+        if (_dialogService.ShowConfirmClone(_model.Name))
+            _onClone(this);
     }
 
     private void DeleteProfile()
