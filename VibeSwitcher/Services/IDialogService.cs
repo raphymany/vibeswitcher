@@ -14,6 +14,5 @@ public interface IDialogService
     bool ShowHotkeyConflictRetry(string title, string message);
     ProfileMode? ShowProfileTypeDialog();
     void ShowMicTest(string deviceId, string deviceName);
-    bool ShowScheduleConflict(IEnumerable<(string profileName, string conflictDesc)> conflicts);
-    int? ShowCustomReminder(int currentMinutes);
+    ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour);
 }

@@ -91,30 +91,21 @@
 
             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}"
                        TextWrapping="Wrap" Margin="0,0,0,20" LineHeight="18">
-                Both schedules will activate. VibeSwitcher will switch to whichever
-                profile's schedule fires last — behaviour may be unpredictable.
-                <LineBreak/>You can keep both or go back and choose a different time.
+                Two schedules cannot share the same time slot. Please choose a
+                different time for this schedule.
             </TextBlock>
 
             <!-- Buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="GoBackBtn"
-                        Content="Go Back"
-                        Style="{StaticResource ConflictBtn}"
-                        Background="{DynamicResource CardBg}"
-                        BorderBrush="{DynamicResource InputBorder}"
-                        Foreground="{DynamicResource PrimaryText}"
-                        Margin="0,0,8,0"
-                        IsCancel="True"
-                        Click="GoBack_Click"/>
-                <Button x:Name="KeepBothBtn"
-                        Content="Keep Both"
+                <Button x:Name="ChangeTimeBtn"
+                        Content="Change Time"
                         Style="{StaticResource ConflictBtn}"
                         Background="{DynamicResource Accent}"
                         BorderBrush="{DynamicResource AccentHover}"
                         Foreground="White"
                         IsDefault="True"
-                        Click="KeepBoth_Click"/>
+                        IsCancel="True"
+                        Click="ChangeTime_Click"/>
             </StackPanel>
 
         </StackPanel>

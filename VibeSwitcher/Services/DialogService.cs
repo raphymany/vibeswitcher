@@ -83,16 +83,10 @@ public class DialogService : IDialogService
         new MicTestDialog(deviceId, deviceName) { Owner = OwnerWindow }.ShowDialog();
     }
 
-    public bool ShowScheduleConflict(IEnumerable<(string profileName, string conflictDesc)> conflicts)
+    public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour)
     {
-        var dialog = new ScheduleConflictDialog(conflicts) { Owner = OwnerWindow };
-        return dialog.ShowDialog() == true;
-    }
-
-    public int? ShowCustomReminder(int currentMinutes)
-    {
-        var dialog = new CustomReminderDialog(currentMinutes) { Owner = OwnerWindow };
-        return dialog.ShowDialog() == true ? dialog.ResultMinutes : null;
+        var dialog = new ScheduleWizardDialog(source, use12Hour) { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.

@@ -33,9 +33,6 @@ internal sealed class FakeDialogService : IDialogService
     public List<string> MicTestCalledWith { get; } = new();
     public void ShowMicTest(string deviceId, string deviceName) => MicTestCalledWith.Add(deviceId);
 
-    public bool ScheduleConflictResult { get; set; } = true;
-    public bool ShowScheduleConflict(IEnumerable<(string profileName, string conflictDesc)> conflicts) => ScheduleConflictResult;
-
-    public int? CustomReminderResult { get; set; } = null;
-    public int? ShowCustomReminder(int currentMinutes) => CustomReminderResult;
+    public ScheduleEntry? ScheduleWizardResult { get; set; } = null;
+    public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour) => ScheduleWizardResult;
 }

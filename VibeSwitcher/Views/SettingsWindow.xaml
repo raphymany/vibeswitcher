@@ -748,34 +748,20 @@
                                                                     BorderThickness="1" CornerRadius="6"
                                                                     Padding="10,8" Margin="0,0,0,6">
                                                                 <StackPanel>
-
-                                                                    <!-- Collapsed summary row -->
                                                                     <DockPanel>
                                                                         <CheckBox IsChecked="{Binding Enabled}"
                                                                                   Style="{StaticResource ToggleSwitchStyle}"
-                                                                                  DockPanel.Dock="Left"
-                                                                                  VerticalAlignment="Center"/>
-                                                                        <Button DockPanel.Dock="Right"
-                                                                                VerticalAlignment="Center"
+                                                                                  DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                                                        <Button DockPanel.Dock="Right" Content="Remove"
+                                                                                Style="{StaticResource DangerButton}"
+                                                                                Command="{Binding DeleteCommand}"
+                                                                                FontSize="10" Padding="10,2" Height="26"
+                                                                                VerticalAlignment="Center"/>
+                                                                        <Button DockPanel.Dock="Right" Content="Edit"
                                                                                 Style="{StaticResource ActionButton}"
-                                                                                Command="{Binding ToggleExpandCommand}"
-                                                                                Padding="8,3" FontSize="10"
-                                                                                Margin="6,0,0,0">
-                                                                            <Button.Content>
-                                                                                <TextBlock>
-                                                                                    <TextBlock.Style>
-                                                                                        <Style TargetType="TextBlock">
-                                                                                            <Setter Property="Text" Value="▼"/>
-                                                                                            <Style.Triggers>
-                                                                                                <DataTrigger Binding="{Binding IsExpanded}" Value="True">
-                                                                                                    <Setter Property="Text" Value="▲"/>
-                                                                                                </DataTrigger>
-                                                                                            </Style.Triggers>
-                                                                                        </Style>
-                                                                                    </TextBlock.Style>
-                                                                                </TextBlock>
-                                                                            </Button.Content>
-                                                                        </Button>
+                                                                                Command="{Binding EditCommand}"
+                                                                                FontSize="10" Padding="12,2" Height="26"
+                                                                                Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                                         <TextBlock Text="{Binding Summary}"
                                                                                    FontSize="11"
                                                                                    Foreground="{DynamicResource SecondaryText}"
@@ -783,146 +769,20 @@
                                                                                    TextTrimming="CharacterEllipsis"
                                                                                    Margin="8,0,0,0"/>
                                                                     </DockPanel>
-
-                                                                    <!-- Expanded editor -->
-                                                                    <StackPanel Margin="0,10,0,0">
-                                                                        <StackPanel.Style>
-                                                                            <Style TargetType="StackPanel">
+                                                                    <TextBlock Text="{Binding ConflictMessage}"
+                                                                               FontSize="11" Foreground="#CC6600"
+                                                                               TextWrapping="Wrap" Margin="42,4,0,0">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
                                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                                                 <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding IsExpanded}" Value="True">
+                                                                                    <DataTrigger Binding="{Binding HasConflict}" Value="True">
                                                                                         <Setter Property="Visibility" Value="Visible"/>
                                                                                     </DataTrigger>
                                                                                 </Style.Triggers>
                                                                             </Style>
-                                                                        </StackPanel.Style>
-
-                                                                        <!-- Time -->
-                                                                        <DockPanel Margin="0,0,0,8">
-                                                                            <TextBlock DockPanel.Dock="Left"
-                                                                                       Text="Time"
-                                                                                       FontSize="11"
-                                                                                       Foreground="{DynamicResource SecondaryText}"
-                                                                                       Width="60" VerticalAlignment="Center"/>
-                                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                                <!-- Hour bubble -->
-                                                                                <ComboBox ItemsSource="{Binding HourOptions}"
-                                                                                          SelectedIndex="{Binding SelectedHourIndex}"
-                                                                                          HorizontalContentAlignment="Center"
-                                                                                          FontSize="12" Width="60" Height="30"/>
-                                                                                <!-- Colon separator -->
-                                                                                <Border Background="{DynamicResource ChipBg}"
-                                                                                        BorderBrush="{DynamicResource ChipBorder}"
-                                                                                        BorderThickness="1" CornerRadius="4"
-                                                                                        Padding="5,0" Margin="4,0"
-                                                                                        VerticalAlignment="Center" Height="30">
-                                                                                    <TextBlock Text=":" FontSize="15" FontWeight="Bold"
-                                                                                               Foreground="{DynamicResource SecondaryText}"
-                                                                                               HorizontalAlignment="Center"
-                                                                                               VerticalAlignment="Center"/>
-                                                                                </Border>
-                                                                                <!-- Minute bubble -->
-                                                                                <ComboBox ItemsSource="{x:Static vm:ScheduleEntryViewModel.MinuteOptions}"
-                                                                                          SelectedIndex="{Binding SelectedMinuteIndex}"
-                                                                                          HorizontalContentAlignment="Center"
-                                                                                          FontSize="12" Width="60" Height="30"/>
-                                                                                <!-- AM/PM toggle -->
-                                                                                <Button Content="{Binding AmPmLabel}"
-                                                                                        Command="{Binding ToggleAmPmCommand}"
-                                                                                        Height="30" Width="52" FontSize="11"
-                                                                                        Margin="6,0,0,0">
-                                                                                    <Button.Style>
-                                                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                                                                            <Style.Triggers>
-                                                                                                <DataTrigger Binding="{Binding ShowAmPmToggle}" Value="False">
-                                                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                                                </DataTrigger>
-                                                                                            </Style.Triggers>
-                                                                                        </Style>
-                                                                                    </Button.Style>
-                                                                                </Button>
-                                                                            </StackPanel>
-                                                                        </DockPanel>
-
-                                                                        <!-- Days -->
-                                                                        <DockPanel Margin="0,0,0,8">
-                                                                            <TextBlock Text="Days"
-                                                                                       FontSize="11"
-                                                                                       Foreground="{DynamicResource SecondaryText}"
-                                                                                       Width="60" VerticalAlignment="Center"/>
-                                                                            <WrapPanel>
-                                                                                <ToggleButton Content="Mon" IsChecked="{Binding Mon}" Style="{StaticResource DayPillStyle}" Margin="0,0,4,4"/>
-                                                                                <ToggleButton Content="Tue" IsChecked="{Binding Tue}" Style="{StaticResource DayPillStyle}" Margin="0,0,4,4"/>
-                                                                                <ToggleButton Content="Wed" IsChecked="{Binding Wed}" Style="{StaticResource DayPillStyle}" Margin="0,0,4,4"/>
-                                                                                <ToggleButton Content="Thu" IsChecked="{Binding Thu}" Style="{StaticResource DayPillStyle}" Margin="0,0,4,4"/>
-                                                                                <ToggleButton Content="Fri" IsChecked="{Binding Fri}" Style="{StaticResource DayPillStyle}" Margin="0,0,4,4"/>
-                                                                                <ToggleButton Content="Sat" IsChecked="{Binding Sat}" Style="{StaticResource DayPillStyle}" Margin="0,0,4,4"/>
-                                                                                <ToggleButton Content="Sun" IsChecked="{Binding Sun}" Style="{StaticResource DayPillStyle}" Margin="0,0,0,4"/>
-                                                                            </WrapPanel>
-                                                                        </DockPanel>
-
-                                                                        <!-- Reminder -->
-                                                                        <DockPanel Margin="0,0,0,8">
-                                                                            <TextBlock DockPanel.Dock="Left"
-                                                                                       Text="Reminder"
-                                                                                       FontSize="11"
-                                                                                       Foreground="{DynamicResource SecondaryText}"
-                                                                                       Width="60" VerticalAlignment="Center"/>
-                                                                            <Button DockPanel.Dock="Right"
-                                                                                    Content="Custom..."
-                                                                                    Command="{Binding SetCustomReminderCommand}"
-                                                                                    Style="{StaticResource ActionButton}"
-                                                                                    FontSize="10" Padding="8,2" Height="30"
-                                                                                    Margin="4,0,0,0"
-                                                                                    VerticalAlignment="Center"/>
-                                                                            <ComboBox ItemsSource="{Binding ReminderOptions}"
-                                                                                      SelectedIndex="{Binding SelectedReminderIndex}"
-                                                                                      FontSize="11" Height="30"/>
-                                                                        </DockPanel>
-
-                                                                        <!-- Silent per-schedule -->
-                                                                        <DockPanel Margin="0,0,0,8">
-                                                                            <TextBlock DockPanel.Dock="Left"
-                                                                                       Text="Silent"
-                                                                                       FontSize="11"
-                                                                                       Foreground="{DynamicResource SecondaryText}"
-                                                                                       Width="60" VerticalAlignment="Center"/>
-                                                                            <CheckBox IsChecked="{Binding Silent}"
-                                                                                      Style="{StaticResource ToggleSwitchStyle}"
-                                                                                      VerticalAlignment="Center">
-                                                                                <TextBlock Text="No notification for this switch"
-                                                                                           FontSize="11"
-                                                                                           Foreground="{DynamicResource SecondaryText}"
-                                                                                           VerticalAlignment="Center"/>
-                                                                            </CheckBox>
-                                                                        </DockPanel>
-
-                                                                        <!-- Conflict warning -->
-                                                                        <TextBlock Text="{Binding ConflictMessage}"
-                                                                                   FontSize="11"
-                                                                                   Foreground="#CC6600"
-                                                                                   TextWrapping="Wrap"
-                                                                                   Margin="0,0,0,8">
-                                                                            <TextBlock.Style>
-                                                                                <Style TargetType="TextBlock">
-                                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding HasConflict}" Value="True">
-                                                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </TextBlock.Style>
-                                                                        </TextBlock>
-
-                                                                        <!-- Delete -->
-                                                                        <Button Content="Remove Schedule"
-                                                                                Style="{StaticResource DangerButton}"
-                                                                                Command="{Binding DeleteCommand}"
-                                                                                HorizontalAlignment="Right"
-                                                                                FontSize="11" Padding="12,4"/>
-                                                                    </StackPanel>
-
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
                                                                 </StackPanel>
                                                             </Border>
                                                         </DataTemplate>

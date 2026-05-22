@@ -496,11 +496,26 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void AddSchedule()
     {
-        var entry = new ScheduleEntry();
-        _model.Schedules.Add(entry);
-        var vm = CreateScheduleEntry(entry);
-        vm.IsExpanded = true;
+        var newEntry = new ScheduleEntry();
+        var result = _dialogService.ShowScheduleWizard(newEntry, _use12Hour());
+        if (result == null) return;
+        _model.Schedules.Add(result);
+        var vm = CreateScheduleEntry(result);
         Schedules.Add(vm);
+        _onChanged(this);
+    }
+
+    private void EditSchedule(ScheduleEntryViewModel vm)
+    {
+        var result = _dialogService.ShowScheduleWizard(vm.Entry, _use12Hour());
+        if (result == null) return;
+        var entry = vm.Entry;
+        entry.Hour = result.Hour;
+        entry.Minute = result.Minute;
+        entry.Days = result.Days;
+        entry.ReminderMinutes = result.ReminderMinutes;
+        entry.Silent = result.Silent;
+        vm.RefreshFromEntry();
         _onChanged(this);
     }
 
@@ -516,9 +531,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 Schedules.Remove(vm);
                 _onChanged(this);
             },
+            onEdit: EditSchedule,
             checkConflicts: _conflictChecker,
-            showConflictDialog: conflicts => _dialogService.ShowScheduleConflict(conflicts),
-            showCustomReminderDialog: current => _dialogService.ShowCustomReminder(current));
+            showConflictAlert: msg => _dialogService.ShowAlert("Schedule Conflict", msg));
     }
 
     public void NotifyTimeFormatChanged()

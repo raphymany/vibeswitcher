@@ -12,8 +12,7 @@ public partial class ScheduleConflictDialog : Window
             .ToList();
     }
 
-    private void KeepBoth_Click(object sender, RoutedEventArgs e) => DialogResult = true;
-    private void GoBack_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+    private void ChangeTime_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
     public sealed record ConflictItem(string ProfileName, string ConflictDesc);
 }
