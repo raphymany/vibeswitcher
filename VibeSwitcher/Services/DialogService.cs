@@ -89,6 +89,12 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true;
     }
 
+    public int? ShowCustomReminder(int currentMinutes)
+    {
+        var dialog = new CustomReminderDialog(currentMinutes) { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true ? dialog.ResultMinutes : null;
+    }
+
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.
     // The front square's fill matches the badge background so it cleanly occludes the back square.
     private static UIElement BuildCopyIcon(Brush badgeBg, Brush stroke)

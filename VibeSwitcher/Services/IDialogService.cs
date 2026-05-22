@@ -15,4 +15,5 @@ public interface IDialogService
     ProfileMode? ShowProfileTypeDialog();
     void ShowMicTest(string deviceId, string deviceName);
     bool ShowScheduleConflict(IEnumerable<(string profileName, string conflictDesc)> conflicts);
+    int? ShowCustomReminder(int currentMinutes);
 }

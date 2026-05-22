@@ -8,4 +8,5 @@ public class ScheduleEntry
     public int Minute { get; set; } = 0;
     public List<DayOfWeek> Days { get; set; } = new();
     public int ReminderMinutes { get; set; } = 0;
+    public bool Silent { get; set; } = false;
 }

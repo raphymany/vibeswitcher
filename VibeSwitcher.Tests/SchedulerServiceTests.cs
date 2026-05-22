@@ -24,7 +24,7 @@ public class SchedulerServiceTests
     public void NoProfiles_NoSwitches()
     {
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0)); // Monday 09:00
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -35,7 +35,7 @@ public class SchedulerServiceTests
     {
         var entry = new ScheduleEntry { Enabled = false, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0));
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -46,7 +46,7 @@ public class SchedulerServiceTests
     {
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [] };
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0));
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -58,7 +58,7 @@ public class SchedulerServiceTests
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
         var profile = ProfileWithSchedule(entry);
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(profile), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(profile), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0)); // Monday 09:00
         svc.EvaluateNow();
         Assert.Single(switched);
@@ -70,7 +70,7 @@ public class SchedulerServiceTests
     {
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Tuesday] };
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0)); // Monday
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -81,7 +81,7 @@ public class SchedulerServiceTests
     {
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 10, 0, 0)); // 10:00, not 09:00
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -93,7 +93,7 @@ public class SchedulerServiceTests
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
         var switched = new List<DeviceProfile>();
         var now = new DateTime(2026, 1, 5, 9, 0, 30); // Monday 09:00:30
-        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => now);
         svc.EvaluateNow();
         svc.EvaluateNow(); // same minute, should not fire again
@@ -106,7 +106,7 @@ public class SchedulerServiceTests
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday, DayOfWeek.Wednesday] };
         var switched = new List<DeviceProfile>();
         var now = new DateTime(2026, 1, 5, 9, 0, 0); // Monday 09:00
-        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => now);
         svc.EvaluateNow();
         now = new DateTime(2026, 1, 7, 9, 0, 0); // Wednesday 09:00 (same time, different day — entry.Id still matches but >2 min ago)
@@ -125,7 +125,7 @@ public class SchedulerServiceTests
         };
         var reminders = new List<string>();
         var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)),
-            _ => { },
+            (_, _) => { },
             (_, msg) => reminders.Add(msg),
             clock: () => new DateTime(2026, 1, 5, 8, 50, 0)); // 8:50 AM — 10 min before 9:00
         svc.EvaluateNow();
@@ -145,7 +145,7 @@ public class SchedulerServiceTests
         var reminders = new List<string>();
         var now = new DateTime(2026, 1, 5, 8, 55, 0);
         var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)),
-            _ => { },
+            (_, _) => { },
             (_, msg) => reminders.Add(msg),
             clock: () => now);
         svc.EvaluateNow();
@@ -159,7 +159,7 @@ public class SchedulerServiceTests
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday], ReminderMinutes = 0 };
         var reminders = new List<string>();
         var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)),
-            _ => { },
+            (_, _) => { },
             (_, msg) => reminders.Add(msg),
             clock: () => new DateTime(2026, 1, 5, 8, 50, 0));
         svc.EvaluateNow();
@@ -178,7 +178,7 @@ public class SchedulerServiceTests
         };
         var reminders = new List<string>();
         var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)),
-            _ => { },
+            (_, _) => { },
             (_, msg) => reminders.Add(msg),
             clock: () => new DateTime(2026, 1, 3, 23, 35, 0)); // Saturday 23:35
         svc.EvaluateNow();
@@ -193,7 +193,7 @@ public class SchedulerServiceTests
         profile.Schedules.Add(new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Wednesday] });
 
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(profile), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(profile), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0)); // Monday
         svc.EvaluateNow();
         Assert.Single(switched); // only Monday entry fires
@@ -206,7 +206,7 @@ public class SchedulerServiceTests
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday], ReminderMinutes = 5 };
         var switched = new List<DeviceProfile>();
         var reminders = new List<string>();
-        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), switched.Add, (_, msg) => reminders.Add(msg),
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, msg) => reminders.Add(msg),
             clock: () => new DateTime(2026, 1, 5, 8, 55, 0));
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -226,7 +226,7 @@ public class SchedulerServiceTests
         var switched = new List<DeviceProfile>();
         var reminders = new List<string>();
         // At 8:55: entryB's reminder fires; entryA switch does not fire
-        var svc = new SchedulerService(MakeConfig(profile), switched.Add, (_, msg) => reminders.Add(msg),
+        var svc = new SchedulerService(MakeConfig(profile), (p, _) => switched.Add(p), (_, msg) => reminders.Add(msg),
             clock: () => new DateTime(2026, 1, 5, 8, 55, 0));
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -242,7 +242,7 @@ public class SchedulerServiceTests
         p2.Schedules.Add(new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] });
 
         var switched = new List<DeviceProfile>();
-        var svc = new SchedulerService(MakeConfig(p1, p2), switched.Add, (_, _) => { },
+        var svc = new SchedulerService(MakeConfig(p1, p2), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0));
         svc.EvaluateNow();
         Assert.Equal(2, switched.Count);
@@ -255,7 +255,7 @@ public class SchedulerServiceTests
         var profile = ProfileWithSchedule(entry);
         var switched = new List<DeviceProfile>();
         var now = new DateTime(2026, 1, 5, 9, 0, 0);
-        var svc = new SchedulerService(MakeConfig(profile), switched.Add, (_, _) => { }, clock: () => now);
+        var svc = new SchedulerService(MakeConfig(profile), (p, _) => switched.Add(p), (_, _) => { }, clock: () => now);
         entry.Enabled = false;
         svc.EvaluateNow();
         Assert.Empty(switched);
@@ -268,7 +268,7 @@ public class SchedulerServiceTests
         var profile = ProfileWithSchedule(entry);
         var switched = new List<DeviceProfile>();
         var now = new DateTime(2026, 1, 5, 9, 0, 0);
-        var svc = new SchedulerService(MakeConfig(profile), switched.Add, (_, _) => { }, clock: () => now);
+        var svc = new SchedulerService(MakeConfig(profile), (p, _) => switched.Add(p), (_, _) => { }, clock: () => now);
         svc.EvaluateNow(); // fires
         now = new DateTime(2026, 1, 5, 9, 2, 1); // 2m01s later — same day, past dedup window
         svc.EvaluateNow(); // should not fire — 09:02 != 09:00

@@ -8,7 +8,7 @@ namespace VibeSwitcher.Services;
 public class SchedulerService : IDisposable
 {
     private readonly IConfigService _configService;
-    private readonly Action<DeviceProfile> _switchCallback;
+    private readonly Action<DeviceProfile, bool> _switchCallback;
     private readonly Action<string, string> _notifyCallback;
     private readonly Func<DateTime> _clock;
 
@@ -18,7 +18,7 @@ public class SchedulerService : IDisposable
 
     public SchedulerService(
         IConfigService configService,
-        Action<DeviceProfile> switchCallback,
+        Action<DeviceProfile, bool> switchCallback,
         Action<string, string> notifyCallback,
         Func<DateTime>? clock = null)
     {
@@ -30,7 +30,7 @@ public class SchedulerService : IDisposable
 
     public void Start()
     {
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
         _timer.Tick += (_, _) => EvaluateNow();
         _timer.Start();
     }
@@ -64,7 +64,7 @@ public class SchedulerService : IDisposable
                         (now - last).TotalMinutes >= 2)
                     {
                         _lastSwitchFired[entry.Id] = now;
-                        _switchCallback(profile);
+                        _switchCallback(profile, entry.Silent);
                     }
                 }
 

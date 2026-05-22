@@ -35,4 +35,7 @@ internal sealed class FakeDialogService : IDialogService
 
     public bool ScheduleConflictResult { get; set; } = true;
     public bool ShowScheduleConflict(IEnumerable<(string profileName, string conflictDesc)> conflicts) => ScheduleConflictResult;
+
+    public int? CustomReminderResult { get; set; } = null;
+    public int? ShowCustomReminder(int currentMinutes) => CustomReminderResult;
 }

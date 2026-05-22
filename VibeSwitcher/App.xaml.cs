@@ -90,7 +90,7 @@ public partial class App : Application
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply);
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
-        _trayService.SwitchRequested = _orchestrator.SwitchToProfile;
+        _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);
 
         // 6. Register hotkeys
         RegisterHotkeys();
@@ -122,7 +122,7 @@ public partial class App : Application
         // 9b. Profile scheduler — evaluates on startup and every 30 seconds
         _schedulerService = new SchedulerService(
             _configService,
-            _orchestrator.SwitchToProfile,
+            (profile, silent) => _orchestrator.SwitchToProfile(profile, silent),
             (title, msg) => _trayService!.ShowBalloon(title, msg));
         SystemEvents.PowerModeChanged += _schedulerService.OnPowerModeChanged;
         _schedulerService.Start();

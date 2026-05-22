@@ -517,7 +517,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 _onChanged(this);
             },
             checkConflicts: _conflictChecker,
-            showConflictDialog: conflicts => _dialogService.ShowScheduleConflict(conflicts));
+            showConflictDialog: conflicts => _dialogService.ShowScheduleConflict(conflicts),
+            showCustomReminderDialog: current => _dialogService.ShowCustomReminder(current));
     }
 
     public void NotifyTimeFormatChanged()
