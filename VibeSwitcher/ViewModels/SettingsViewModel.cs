@@ -152,9 +152,16 @@ public class SettingsViewModel : ViewModelBase
             _configService.Current.Use12HourClock = value;
             _configService.SaveImmediate();
             OnPropertyChanged(nameof(Use12HourClock));
+            OnPropertyChanged(nameof(Use24HourClock));
             foreach (var card in Profiles)
                 card.NotifyTimeFormatChanged();
         }
+    }
+
+    public bool Use24HourClock
+    {
+        get => !_configService.Current.Use12HourClock;
+        set => Use12HourClock = !value;
     }
 
     public string Theme
@@ -535,6 +542,7 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(SettingsCardExpanded));
         OnPropertyChanged(nameof(Theme));
         OnPropertyChanged(nameof(Use12HourClock));
+        OnPropertyChanged(nameof(Use24HourClock));
         _applyTheme(_configService.Current.Theme ?? "Auto");
 
         ReregisterHotkeys();

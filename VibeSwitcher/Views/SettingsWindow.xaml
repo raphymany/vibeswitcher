@@ -731,7 +731,7 @@
                                             <StackPanel>
 
                                                 <!-- Section header -->
-                                                <DockPanel Margin="0,0,0,6">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                                     <TextBlock Text="Schedules"
                                                                FontSize="11" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SectionLabelText}"
@@ -740,8 +740,7 @@
                                                             Background="{DynamicResource InfoBadgeBg}"
                                                             Margin="5,0,0,0" VerticalAlignment="Center"
                                                             Cursor="Help"
-                                                            ToolTipService.ShowDuration="12000"
-                                                            DockPanel.Dock="Left">
+                                                            ToolTipService.ShowDuration="12000">
                                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                                    Foreground="{DynamicResource InfoBadgeText}"
                                                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -753,7 +752,7 @@
                                                             </ToolTip>
                                                         </Border.ToolTip>
                                                     </Border>
-                                                </DockPanel>
+                                                </StackPanel>
 
                                                 <!-- Schedule entries -->
                                                 <ItemsControl ItemsSource="{Binding Schedules}">
@@ -981,7 +980,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="When your PC boots up, VibeSwitcher will start automatically, like a startup app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="When your PC boots up, VibeSwitcher will start automatically, like a startup app." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1005,7 +1004,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1029,7 +1028,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray. To reopen Settings, right-click the tray icon and click the VibeSwitcher header." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray. To reopen Settings, right-click the tray icon and click the VibeSwitcher header." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1061,7 +1060,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Shows a Windows notification banner when you switch profiles, confirming which profile was selected." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Shows a Windows notification banner when you switch profiles, confirming which profile was selected." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1083,25 +1082,25 @@
                             <TextBlock Text="Schedules" FontWeight="SemiBold" FontSize="12"
                                        Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding Use12HourClock}" Margin="0,3">
+                                      IsChecked="{Binding Use24HourClock}" Margin="0,3">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <StackPanel.Style>
                                         <Style TargetType="StackPanel">
                                             <Setter Property="Opacity" Value="1"/>
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Use12HourClock}" Value="False">
+                                                <DataTrigger Binding="{Binding Use24HourClock}" Value="False">
                                                     <Setter Property="Opacity" Value="0.4"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Style>
-                                    <TextBlock Text="Use 12-hour clock (AM/PM)" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Use 24-hour clock" VerticalAlignment="Center"/>
                                     <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
                                             Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Controls how times are displayed in schedule entries. Off = 24-hour format (14:00). On = 12-hour format (2:00 PM)." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Off = 12-hour format (2:00 PM). On = 24-hour format (14:00)." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1133,7 +1132,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Left-clicking the tray icon switches to the next profile in order. When disabled, left-click opens VibeSwitcher instead. Right-click always works normally." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Left-clicking the tray icon switches to the next profile in order. When disabled, left-click opens VibeSwitcher instead. Right-click always works normally." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1183,7 +1182,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="The 'Open Sound Settings' button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="The 'Open Sound Settings' button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1207,7 +1206,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Includes devices marked as 'Disabled' in Windows Sound settings. Useful if you manually enable and disable devices between uses." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Includes devices marked as 'Disabled' in Windows Sound settings. Useful if you manually enable and disable devices between uses." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1231,7 +1230,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Includes physically unplugged devices in profile dropdowns. Lets you assign a device that is not currently connected to the machine." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Includes physically unplugged devices in profile dropdowns. Lets you assign a device that is not currently connected to the machine." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1284,7 +1283,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>

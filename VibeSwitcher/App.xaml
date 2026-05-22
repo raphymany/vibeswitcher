@@ -205,13 +205,14 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToolTip">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
+                        <Border Background="{DynamicResource TooltipBg}"
+                                BorderBrush="{DynamicResource TooltipBorder}"
+                                BorderThickness="1"
                                 CornerRadius="5"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}"
-                                              TextElement.FontSize="{TemplateBinding FontSize}"/>
+                                Padding="8,5"
+                                TextElement.Foreground="{DynamicResource PrimaryText}"
+                                TextElement.FontSize="11">
+                            <ContentPresenter/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
