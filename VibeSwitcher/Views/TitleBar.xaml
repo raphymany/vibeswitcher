@@ -94,10 +94,11 @@
                 <Button x:Name="MaxBtn"
                         Style="{StaticResource TitleBtn}"
                         FontSize="15"
-                        Content="&#x25A1;"
                         Visibility="Collapsed"
                         WindowChrome.IsHitTestVisibleInChrome="True"
-                        Click="Maximize_Click"/>
+                        Click="Maximize_Click">
+                    <TextBlock x:Name="MaxBtnText" Text="&#x25A1;" Margin="0,0,0,5"/>
+                </Button>
                 <Button Style="{StaticResource CloseTitleBtn}"
                         Content="&#x2715;"
                         WindowChrome.IsHitTestVisibleInChrome="True"

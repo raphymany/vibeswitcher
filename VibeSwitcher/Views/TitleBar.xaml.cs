@@ -96,7 +96,7 @@ public partial class TitleBar : UserControl
 
     private void UpdateMaxBtn(Window window)
     {
-        MaxBtn.Content = window.WindowState == WindowState.Maximized ? "❐" : "□";
+        MaxBtnText.Text = window.WindowState == WindowState.Maximized ? "❐" : "□";
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) =>
