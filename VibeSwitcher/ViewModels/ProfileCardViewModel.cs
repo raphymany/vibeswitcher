@@ -19,6 +19,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Action<ProfileCardViewModel> _onDelete;
     private readonly Action<ProfileCardViewModel> _onClone;
     private readonly Func<string, Task> _onTestSound;
+    private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
+    private readonly Func<bool> _use12Hour;
 
     private string _name;
     private AudioDeviceInfo? _selectedPlaybackDevice;
@@ -173,6 +175,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
+    public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
+
     public ICommand CaptureHotkeyCommand { get; }
     public ICommand PickIconCommand { get; }
     public ICommand ApplyNameSuggestionCommand { get; }
@@ -180,6 +184,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand DeleteCommand { get; }
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
+    public ICommand AddScheduleCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -191,7 +196,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         Action<ProfileCardViewModel> onChanged,
         Action<ProfileCardViewModel> onDelete,
         Action<ProfileCardViewModel> onClone,
-        Func<string, Task> onTestSound)
+        Func<string, Task> onTestSound,
+        Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null)
     {
         _model = model;
         _configService = configService;
@@ -201,6 +207,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _onDelete = onDelete;
         _onClone = onClone;
         _onTestSound = onTestSound;
+        _conflictChecker = conflictChecker ?? (_ => []);
+        _use12Hour = () => _configService.Current.Use12HourClock;
 
         _name = model.Name;
         _hotkeyDisplay = model.Hotkey.ToDisplayString();
@@ -220,6 +228,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         UpdateIconPreview();
 
+        Schedules = new ObservableCollection<ScheduleEntryViewModel>(
+            model.Schedules.Select(CreateScheduleEntry));
+
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
         PickIconCommand = new RelayCommand(PickIcon);
         ApplyNameSuggestionCommand = new RelayCommand(param =>
@@ -230,6 +241,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         DeleteCommand = new RelayCommand(DeleteProfile);
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
+        AddScheduleCommand = new RelayCommand(AddSchedule);
     }
 
     private async Task TestSound()
@@ -480,6 +492,38 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     {
         if (_dialogService.ShowConfirmDelete(_model.Name))
             _onDelete(this);
+    }
+
+    private void AddSchedule()
+    {
+        var entry = new ScheduleEntry();
+        _model.Schedules.Add(entry);
+        var vm = CreateScheduleEntry(entry);
+        vm.IsExpanded = true;
+        Schedules.Add(vm);
+        _onChanged(this);
+    }
+
+    private ScheduleEntryViewModel CreateScheduleEntry(ScheduleEntry entry)
+    {
+        return new ScheduleEntryViewModel(
+            entry,
+            use12Hour: _use12Hour,
+            onChanged: () => _onChanged(this),
+            onDelete: vm =>
+            {
+                _model.Schedules.Remove(vm.Entry);
+                Schedules.Remove(vm);
+                _onChanged(this);
+            },
+            checkConflicts: _conflictChecker,
+            showConflictDialog: conflicts => _dialogService.ShowScheduleConflict(conflicts));
+    }
+
+    public void NotifyTimeFormatChanged()
+    {
+        foreach (var s in Schedules)
+            s.NotifyTimeFormatChanged();
     }
 
     public void Dispose()

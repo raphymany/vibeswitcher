@@ -17,6 +17,8 @@ public class AppConfig
     // "Auto" = follow Windows, "Light" = always light, "Dark" = always dark
     public string Theme { get; set; } = "Auto";
 
+    public bool Use12HourClock { get; set; } = true;
+
     public HotkeyDefinition? SettingsHotkey { get; set; }
     public bool SettingsHotkeyEnabled { get; set; } = true;
 

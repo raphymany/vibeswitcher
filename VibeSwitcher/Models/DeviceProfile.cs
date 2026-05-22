@@ -42,4 +42,5 @@ public class DeviceProfile
 
     public bool Silent { get; set; } = false;
 
+    public List<ScheduleEntry> Schedules { get; set; } = new();
 }

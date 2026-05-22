@@ -32,4 +32,7 @@ internal sealed class FakeDialogService : IDialogService
 
     public List<string> MicTestCalledWith { get; } = new();
     public void ShowMicTest(string deviceId, string deviceName) => MicTestCalledWith.Add(deviceId);
+
+    public bool ScheduleConflictResult { get; set; } = true;
+    public bool ShowScheduleConflict(IEnumerable<(string profileName, string conflictDesc)> conflicts) => ScheduleConflictResult;
 }

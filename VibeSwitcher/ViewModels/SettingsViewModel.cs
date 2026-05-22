@@ -143,6 +143,20 @@ public class SettingsViewModel : ViewModelBase
 
     public static IReadOnlyList<string> ThemeOptions { get; } = ["Follow Windows", "Light", "Dark"];
 
+    public bool Use12HourClock
+    {
+        get => _configService.Current.Use12HourClock;
+        set
+        {
+            if (_configService.Current.Use12HourClock == value) return;
+            _configService.Current.Use12HourClock = value;
+            _configService.SaveImmediate();
+            OnPropertyChanged(nameof(Use12HourClock));
+            foreach (var card in Profiles)
+                card.NotifyTimeFormatChanged();
+        }
+    }
+
     public string Theme
     {
         get => _configService.Current.Theme switch
@@ -365,7 +379,29 @@ public class SettingsViewModel : ViewModelBase
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card),
             onClone: card => CloneProfile(card),
-            onTestSound: deviceId => _audioService.TestSoundAsync(deviceId));
+            onTestSound: deviceId => _audioService.TestSoundAsync(deviceId),
+            conflictChecker: entry => GetScheduleConflicts(profile, entry));
+    }
+
+    private IEnumerable<(string profileName, string conflictDesc)> GetScheduleConflicts(
+        DeviceProfile ownerProfile, ScheduleEntry entry)
+    {
+        if (!entry.Enabled || entry.Days.Count == 0) yield break;
+        var use12h = _configService.Current.Use12HourClock;
+        foreach (var other in _configService.Current.Profiles)
+        {
+            if (other.Id == ownerProfile.Id) continue;
+            foreach (var otherEntry in other.Schedules)
+            {
+                if (!otherEntry.Enabled || otherEntry.Days.Count == 0) continue;
+                if (otherEntry.Hour != entry.Hour || otherEntry.Minute != entry.Minute) continue;
+                var sharedDays = otherEntry.Days.Intersect(entry.Days).ToList();
+                if (sharedDays.Count == 0) continue;
+                var time = Helpers.ScheduleHelpers.FormatTime(entry.Hour, entry.Minute, use12h);
+                var days = Helpers.ScheduleHelpers.FormatDays(sharedDays);
+                yield return (other.Name, $"{days} at {time}");
+            }
+        }
     }
 
     private void CloneProfile(ProfileCardViewModel card)
@@ -383,6 +419,8 @@ public class SettingsViewModel : ViewModelBase
             Silent = original.Silent,
             SortOrder = Profiles.Count,
             // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
+            // Schedules intentionally not copied — cloned schedules at the same time as the
+            // original would immediately trigger schedule conflicts on every tick
         };
         _configService.Current.Profiles.Add(clone);
         _configService.SaveImmediate();
@@ -496,6 +534,7 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(SettingsHotkeyEnabled));
         OnPropertyChanged(nameof(SettingsCardExpanded));
         OnPropertyChanged(nameof(Theme));
+        OnPropertyChanged(nameof(Use12HourClock));
         _applyTheme(_configService.Current.Theme ?? "Auto");
 
         ReregisterHotkeys();

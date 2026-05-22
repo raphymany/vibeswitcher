@@ -19,6 +19,7 @@ public partial class App : Application
     private ProfileSwitchOrchestrator? _orchestrator;
     private AppWindowManager? _windowManager;
     private ThemeService? _themeService;
+    private SchedulerService? _schedulerService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -118,6 +119,15 @@ public partial class App : Application
         // 9. Re-apply active profile when the PC wakes from sleep/hibernate
         SystemEvents.PowerModeChanged += _orchestrator.OnPowerModeChanged;
 
+        // 9b. Profile scheduler — evaluates on startup and every 30 seconds
+        _schedulerService = new SchedulerService(
+            _configService,
+            _orchestrator.SwitchToProfile,
+            (title, msg) => _trayService!.ShowBalloon(title, msg));
+        SystemEvents.PowerModeChanged += _schedulerService.OnPowerModeChanged;
+        _schedulerService.Start();
+        _schedulerService.EvaluateNow();
+
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
@@ -190,6 +200,11 @@ public partial class App : Application
         // _orchestrator is null when a second instance exits early via Shutdown() before OnStartup completes.
         if (_orchestrator != null)
             SystemEvents.PowerModeChanged -= _orchestrator.OnPowerModeChanged;
+        if (_schedulerService != null)
+        {
+            SystemEvents.PowerModeChanged -= _schedulerService.OnPowerModeChanged;
+            _schedulerService.Dispose();
+        }
         _themeService?.StopListening();
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);
