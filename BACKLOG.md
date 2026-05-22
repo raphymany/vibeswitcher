@@ -249,6 +249,23 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
+### Branch 46: `fix/appearance-qa` — PR #72 open
+**Theme:** QA follow-ups and polish from the appearance-modes branch.
+
+| Fix |
+|-----|
+| `AccentColor` fallback added to App.xaml so toggle animation resolves at XAML parse time |
+| Dead `ToggleInactiveBg` brush removed from both theme files |
+| ConfirmDialog icon badge switched to `SetResourceReference` for live theme updates |
+| `AboutWindow` given `ShowInTaskbar="False"` to match all other dialogs |
+| TitleBar `StateChanged` handler stored and properly unsubscribed in `OnUnloaded` |
+| SettingsWindow `_boundsTimer` stopped before `SaveWindowBounds` on close |
+| Settings header app icon restored |
+| Title bar maximize button vertically aligned via TextBlock margin offset |
+| Tray separators equalized to a 1 px flat line with consistent height |
+
+---
+
 ### Deferred — No branch planned yet
 
 | # | Feature | Why deferred |
