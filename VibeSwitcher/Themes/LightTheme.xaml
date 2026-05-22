@@ -67,7 +67,6 @@
     <SolidColorBrush x:Key="WarningBg"          Color="#FFF8E0"/>
 
     <!-- Toggle switch (Color resource for animation) -->
-    <SolidColorBrush x:Key="ToggleInactiveBg"   Color="#CCCCCC"/>
     <Color           x:Key="ToggleOffColor"            >#CCCCCC</Color>
 
     <!-- Icon preview background -->

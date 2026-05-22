@@ -75,7 +75,13 @@ public partial class SettingsWindow : Window
 
         DataContext = _viewModel;
         RestoreWindowBounds();
-        try { AppTitleBar.IconSource = IconHelper.GetAppIconImageSource(); } catch { }
+        try
+        {
+            var icon = IconHelper.GetAppIconImageSource();
+            AppTitleBar.IconSource = icon;
+            AppHeaderIcon.Source   = icon;
+        }
+        catch { }
 
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -187,6 +193,7 @@ public partial class SettingsWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
+        _boundsTimer?.Stop();
         SaveWindowBounds();
 
         if (_viewModel.CloseToTray)

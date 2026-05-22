@@ -272,7 +272,7 @@ public class TrayService : IDisposable
 
     private static MenuItem BuildSeparator()
     {
-        var line = new Border { Height = 2.5, CornerRadius = new CornerRadius(1.25), Margin = new Thickness(8, 0, 8, 0) };
+        var line = new Border { Height = 1, Margin = new Thickness(8, 4, 8, 4) };
         line.SetResourceReference(Border.BackgroundProperty, "SeparatorBrush");
         return new MenuItem
         {

@@ -544,7 +544,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
 | ~~F14~~ | ~~System tray scroll wheel for volume control~~ | Removed |
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
-| F16 | Light / dark / high-contrast support — replace every hardcoded hex colour with the appropriate `SystemColors` brush so the app automatically follows the Windows OS theme (light, dark, or high-contrast accessibility mode) with no in-app toggle needed; covers all windows, dialogs, profile cards, tray menu, and icon chip backgrounds |
+| ~~F16~~ | ~~Light / dark / high-contrast support — replace every hardcoded hex colour with the appropriate `SystemColors` brush so the app automatically follows the Windows OS theme (light, dark, or high-contrast accessibility mode) with no in-app toggle needed; covers all windows, dialogs, profile cards, tray menu, and icon chip backgrounds~~ | ✅ Done — PR #70 |
 | ~~F17~~ | ~~Built-in profile icons — emoji gallery picker with Black/White color toggle; renders 64×64 PNG-embedded ICO files; Browse button stays alongside gallery picker~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — green border flash when a field change is saved; inline validation message for invalid input~~ | ✅ Done — PR #68 |
 | ~~F19~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ | ✅ Done — PR #68 |
@@ -738,6 +738,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~44~~ | ~~`feat/settings-ux`~~ | ✅ Done — PR #64 |
 | ~~31~~ | ~~`feat/profile-visual`~~ | ✅ Done — PR #66 |
 | ~~32~~ | ~~`feat/settings-polish`~~ | ✅ Done — PR #68 |
+| ~~45~~ | ~~`feat/appearance-modes`~~ | ✅ Done — PR #70 |
 
 ---
 
@@ -1060,3 +1061,21 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | ConfirmDialog — new reusable modal used for the import confirmation; matches `AlertDialog` / `ConflictRetryDialog` pattern | ✅ Done |
 | — | Settings header hover corner radius — `CornerRadius="7"` added to `IsMouseOver` trigger so blue highlight has rounded corners on all sides when card is expanded | ✅ Done |
 | F22 | Expand-to-fit button — toggle that grows the window to show all cards without scrolling | Not delivered — pulled from branch; may be revisited |
+
+---
+
+### ~~Branch 45: `feat/appearance-modes`~~ ✅ Done — PR #70
+**Theme:** Light / dark mode theming, tray polish, and window quality-of-life fixes.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F16 | Light / dark mode — full resource-dictionary theming system; LightTheme.xaml + DarkTheme.xaml with ~70 named brushes each; `ThemeService` with `Apply()` and `ThemeApplied` event; in-app toggle in General Settings | ✅ Done |
+| — | Tray separator indent fix — separator items rendered as custom `MenuItem` with `Tag="sep"` instead of `new Separator()`; ControlTemplate trigger zeroes margin/padding for separator items so the line spans the full menu width | ✅ Done |
+| — | Tray live theme update — `RebuildMenu()` now creates a fresh `ContextMenu` object each call so the new Popup visual tree reads the current theme resources on open; wired to `ThemeService.ThemeApplied` in `App.xaml.cs` | ✅ Done |
+| — | Tray separator styling — custom `Border` inside the separator `MenuItem`; height 2.5 px, rounded ends (CornerRadius 1.25), 8 px side margin; colour from `SeparatorBrush` resource (#C8C8C8 light / #505050 dark) | ✅ Done |
+| — | Tray icon switch flash speed — hold time reduced from 350 ms to 150 ms so the blink feels snappier | ✅ Done |
+| — | Settings auto-expand on open — when the General Settings expander opens, `EnsureFooterVisible` measures footer position via `TranslatePoint`, accounts for `MainGrid`'s 18 px bottom margin, and grows window height by the overflow amount so footer buttons are never hidden | ✅ Done |
+| — | Window size/position persistence — `SizeChanged` and `LocationChanged` events write bounds to config via a 400 ms `DispatcherTimer` debounce; replaces the unreliable `OnClosing`-only approach | ✅ Done |
+| — | Icon preview border — gray `IconPreviewBg` background replaced with a transparent background + 1 px `InputBorder` outline so the icon sits cleanly without a coloured chip | ✅ Done |
+| — | Clone dialog icon — warning triangle replaced with a WPF-drawn Canvas of two overlapping rounded rectangles (copy/paste visual) using `Accent` stroke and `HoverBg` fill; `ConfirmDialog` extended to accept a `UIElement? iconElement` override | ✅ Done |
+| — | About window label colours in dark mode — `SectionLabel` style and app subtitle changed from `SubtleText` to `SecondaryText` so labels (WEBSITE, DEVELOPMENT, SUPPORT) are visible in both themes | ✅ Done |

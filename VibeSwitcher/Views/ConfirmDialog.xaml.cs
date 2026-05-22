@@ -16,8 +16,7 @@ public partial class ConfirmDialog : Window
 
         IconContent.Content = iconElement ?? new TextBlock { Text = icon, FontSize = 17 };
 
-        if (TryFindResource(iconBgResource) is System.Windows.Media.Brush brush)
-            IconBadge.Background = brush;
+        IconBadge.SetResourceReference(Border.BackgroundProperty, iconBgResource);
     }
 
     private void Confirm_Click(object sender, RoutedEventArgs e) => DialogResult = true;

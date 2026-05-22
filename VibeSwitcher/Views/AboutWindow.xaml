@@ -8,6 +8,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBg}"
+        ShowInTaskbar="False"
         KeyDown="Window_KeyDown">
 
     <WindowChrome.WindowChrome>

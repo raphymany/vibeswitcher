@@ -9,6 +9,9 @@
                 <!-- Active theme is injected at runtime by ThemeService -->
             </ResourceDictionary.MergedDictionaries>
 
+        <!-- Fallback so StaticResource AccentColor resolves at parse time before any theme is loaded -->
+        <Color x:Key="AccentColor">#FF8000</Color>
+
         <!-- All windows default to Segoe UI -->
         <Style TargetType="Window">
             <Setter Property="FontFamily" Value="Segoe UI"/>
@@ -153,7 +156,7 @@
                                             <ColorAnimation
                                                 Storyboard.TargetName="TrackBrush"
                                                 Storyboard.TargetProperty="Color"
-                                                To="#FF8000"
+                                                To="{StaticResource AccentColor}"
                                                 Duration="0:0:0.18"/>
                                         </Storyboard>
                                     </BeginStoryboard>
