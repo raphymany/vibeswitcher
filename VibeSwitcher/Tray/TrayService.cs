@@ -280,6 +280,7 @@ public class TrayService : IDisposable
             IsEnabled = false,
             IsHitTestVisible = false,
             Header = line,
+            Height = 13,
         };
     }
 

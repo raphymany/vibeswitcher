@@ -87,12 +87,13 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="MinBtn"
                         Style="{StaticResource TitleBtn}"
-                        Content="&#x2014;"
+                        Content="&#x2212;"
                         Visibility="Collapsed"
                         WindowChrome.IsHitTestVisibleInChrome="True"
                         Click="Minimize_Click"/>
                 <Button x:Name="MaxBtn"
                         Style="{StaticResource TitleBtn}"
+                        FontSize="15"
                         Content="&#x25A1;"
                         Visibility="Collapsed"
                         WindowChrome.IsHitTestVisibleInChrome="True"

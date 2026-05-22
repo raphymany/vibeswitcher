@@ -65,21 +65,33 @@ public partial class TitleBar : UserControl
         set => SetValue(IconSourceProperty, value);
     }
 
+    private EventHandler? _stateChangedHandler;
+
     public TitleBar()
     {
         InitializeComponent();
-        Loaded += OnLoaded;
+        Loaded   += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         var window = Window.GetWindow(this);
         if (window == null) return;
-        window.StateChanged += (_, _) => UpdateMaxBtn(window);
+        _stateChangedHandler = (_, _) => UpdateMaxBtn(window);
+        window.StateChanged += _stateChangedHandler;
         UpdateMaxBtn(window);
 
         if (IconSource == null)
             try { IconSource = Helpers.IconHelper.GetAppIconImageSource(); } catch { }
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (_stateChangedHandler == null) return;
+        var window = Window.GetWindow(this);
+        if (window != null) window.StateChanged -= _stateChangedHandler;
+        _stateChangedHandler = null;
     }
 
     private void UpdateMaxBtn(Window window)
