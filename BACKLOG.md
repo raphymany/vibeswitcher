@@ -240,32 +240,6 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### ~~Branch 45: `feat/appearance-modes`~~ ✅ Merged — PR #70
-**Theme:** OS theme awareness — replace all hardcoded colours with `SystemColors` brushes so the app automatically follows the Windows light, dark, and high-contrast accessibility settings with no in-app toggle needed.
-
-| # | Feature |
-|---|---------|
-| ~~F16~~ | ~~Light / dark / high-contrast support — replace every hardcoded hex colour (`#1A1A1A`, `#F3F3F3`, etc.) with the appropriate `SystemColors` brush so the app responds to the OS theme automatically; covers Settings window, tray menu, all dialogs, profile cards, and icon chip backgrounds; high-contrast is an accessibility mode for visual impairments (not the same as night mode, which is a display-level OS feature that apps don't implement)~~ |
-
----
-
-### ~~Branch 46: `fix/appearance-qa`~~ ✅ Merged — PR #72
-**Theme:** QA follow-ups and polish from the appearance-modes branch.
-
-| Fix |
-|-----|
-| ~~`AccentColor` fallback added to App.xaml so toggle animation resolves at XAML parse time~~ |
-| ~~Dead `ToggleInactiveBg` brush removed from both theme files~~ |
-| ~~ConfirmDialog icon badge switched to `SetResourceReference` for live theme updates~~ |
-| ~~`AboutWindow` given `ShowInTaskbar="False"` to match all other dialogs~~ |
-| ~~TitleBar `StateChanged` handler stored and properly unsubscribed in `OnUnloaded`~~ |
-| ~~SettingsWindow `_boundsTimer` stopped before `SaveWindowBounds` on close~~ |
-| ~~Settings header app icon restored~~ |
-| ~~Title bar maximize button vertically aligned via TextBlock margin offset~~ |
-| ~~Tray separators equalized to a 1 px flat line with consistent height~~ |
-
----
-
 ### Deferred — No branch planned yet
 
 | # | Feature | Why deferred |
