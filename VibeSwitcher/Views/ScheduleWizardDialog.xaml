@@ -25,6 +25,7 @@
             <Setter Property="BorderBrush"     Value="{DynamicResource InputBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding"         Value="8,0,28,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ComboBox">
@@ -33,11 +34,11 @@
                                     Background="{TemplateBinding Background}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     BorderThickness="1" CornerRadius="6"
-                                    Padding="8,0,28,0">
+                                    Padding="{TemplateBinding Padding}">
                                 <ContentPresenter x:Name="contentPresenter"
                                                   Content="{TemplateBinding SelectionBoxItem}"
                                                   ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                  HorizontalAlignment="Stretch"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                   VerticalAlignment="Center"
                                                   IsHitTestVisible="False"/>
                             </Border>
@@ -194,6 +195,7 @@
                         <ComboBox x:Name="HourCombo"
                                   Width="76" Height="46"
                                   FontSize="20" FontWeight="SemiBold"
+                                  Padding="0"
                                   HorizontalContentAlignment="Center"/>
                         <TextBlock Text="hour" FontSize="10" HorizontalAlignment="Center"
                                    Foreground="{DynamicResource SecondaryText}" Margin="0,5,0,0"/>
@@ -205,6 +207,7 @@
                         <ComboBox x:Name="MinuteCombo"
                                   Width="76" Height="46"
                                   FontSize="20" FontWeight="SemiBold"
+                                  Padding="0"
                                   HorizontalContentAlignment="Center"/>
                         <TextBlock Text="min" FontSize="10" HorizontalAlignment="Center"
                                    Foreground="{DynamicResource SecondaryText}" Margin="0,5,0,0"/>
@@ -247,6 +250,7 @@
                         <StackPanel>
                             <ComboBox x:Name="ReminderHrCombo"
                                       Width="76" Height="42" FontSize="18" FontWeight="SemiBold"
+                                      Padding="0"
                                       HorizontalContentAlignment="Center"
                                       SelectionChanged="ReminderDropdowns_Changed"/>
                             <TextBlock Text="hours" FontSize="10" HorizontalAlignment="Center"
@@ -258,6 +262,7 @@
                         <StackPanel>
                             <ComboBox x:Name="ReminderMinCombo"
                                       Width="76" Height="42" FontSize="18" FontWeight="SemiBold"
+                                      Padding="0"
                                       HorizontalContentAlignment="Center"
                                       SelectionChanged="ReminderDropdowns_Changed"/>
                             <TextBlock Text="minutes" FontSize="10" HorizontalAlignment="Center"

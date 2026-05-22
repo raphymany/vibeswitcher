@@ -732,7 +732,24 @@
                                                                FontSize="11" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SectionLabelText}"
                                                                VerticalAlignment="Center"/>
-                                                    <Button Content="+ Add"
+                                                    <Border Width="16" Height="16" CornerRadius="8"
+                                                            Background="{DynamicResource InfoBadgeBg}"
+                                                            Margin="5,0,0,0" VerticalAlignment="Center"
+                                                            Cursor="Help"
+                                                            ToolTipService.ShowDuration="12000"
+                                                            DockPanel.Dock="Left">
+                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                                   Foreground="{DynamicResource InfoBadgeText}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Border.ToolTip>
+                                                            <ToolTip>
+                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                                                    Schedules automatically switch this profile at a set time on selected days. You can add multiple schedules per profile.
+                                                                </TextBlock>
+                                                            </ToolTip>
+                                                        </Border.ToolTip>
+                                                    </Border>
+                                                    <Button Content="Add Schedule"
                                                             Style="{StaticResource ActionButton}"
                                                             HorizontalAlignment="Right"
                                                             FontSize="11" Padding="10,3"

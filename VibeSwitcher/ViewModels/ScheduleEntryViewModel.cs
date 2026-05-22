@@ -39,13 +39,22 @@ public class ScheduleEntryViewModel : ViewModelBase
             if (_entry.Days.Count == 0)
                 return _entry.Enabled ? $"No days selected — {timeStr}" : "Disabled";
             var days = ScheduleHelpers.FormatDays(_entry.Days);
-            var reminder = _entry.ReminderMinutes > 0
-                ? $" · {_entry.ReminderMinutes} min reminder"
-                : "";
+            var reminder = FormatReminder(_entry.ReminderMinutes);
+            var silent = _entry.Silent ? " · Silent" : "";
             return _entry.Enabled
-                ? $"{days} at {timeStr}{reminder}"
-                : $"Off — {days} at {timeStr}{reminder}";
+                ? $"{days} at {timeStr}{reminder}{silent}"
+                : $"Off — {days} at {timeStr}{reminder}{silent}";
         }
+    }
+
+    private static string FormatReminder(int minutes)
+    {
+        if (minutes <= 0) return "";
+        var h = minutes / 60;
+        var m = minutes % 60;
+        if (h == 0) return $" · {m} min reminder";
+        if (m == 0) return $" · {h} h reminder";
+        return $" · {h} h {m:D2} min reminder";
     }
 
     public bool Enabled

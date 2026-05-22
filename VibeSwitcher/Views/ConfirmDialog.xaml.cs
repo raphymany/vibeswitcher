@@ -8,7 +8,7 @@ public partial class ConfirmDialog : Window
     public ConfirmDialog(string title, string message, string actionLabel, string subtitle = "This action cannot be undone.", string icon = "⚠", string iconBgResource = "WarningBg", UIElement? iconElement = null)
     {
         InitializeComponent();
-        Title = title;
+        Title = "VibeSwitcher";
         TitleText.Text = title;
         SubtitleText.Text = subtitle;
         MessageText.Text = message;

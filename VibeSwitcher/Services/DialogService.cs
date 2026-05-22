@@ -83,6 +83,19 @@ public class DialogService : IDialogService
         new MicTestDialog(deviceId, deviceName) { Owner = OwnerWindow }.ShowDialog();
     }
 
+    public bool ShowConfirmScheduleDelete(string scheduleSummary)
+    {
+        var dialog = new ConfirmDialog(
+            "Remove Schedule?",
+            $"Remove the schedule \"{scheduleSummary}\"?",
+            "Remove",
+            subtitle: "This action cannot be undone.",
+            icon: "🗑",
+            iconBgResource: "ErrorBg")
+        { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true;
+    }
+
     public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour)
     {
         var dialog = new ScheduleWizardDialog(source, use12Hour) { Owner = OwnerWindow };

@@ -527,6 +527,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             onChanged: () => _onChanged(this),
             onDelete: vm =>
             {
+                if (!_dialogService.ShowConfirmScheduleDelete(vm.Summary))
+                    return;
                 _model.Schedules.Remove(vm.Entry);
                 Schedules.Remove(vm);
                 _onChanged(this);
