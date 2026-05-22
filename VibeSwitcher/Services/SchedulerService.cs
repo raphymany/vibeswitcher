@@ -30,7 +30,7 @@ public class SchedulerService : IDisposable
 
     public void Start()
     {
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
+        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _timer.Tick += (_, _) => EvaluateNow();
         _timer.Start();
     }

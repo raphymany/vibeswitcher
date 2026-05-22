@@ -12,17 +12,15 @@ public partial class CustomReminderDialog : Window
     {
         InitializeComponent();
         MinutesBox.Text = currentMinutes > 0 ? currentMinutes.ToString() : "";
-        MinutesBox.SelectAll();
-        Loaded += (_, _) => MinutesBox.Focus();
+        Loaded += (_, _) => { MinutesBox.Focus(); MinutesBox.SelectAll(); };
     }
 
     private void MinutesBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var valid = int.TryParse(MinutesBox.Text.Trim(), out var v) && v >= 1 && v <= 1440;
+        var text = MinutesBox.Text.Trim();
+        var valid = int.TryParse(text, out var v) && v >= 1 && v <= 1440;
         OkButton.IsEnabled = valid;
-        ErrorText.Visibility = MinutesBox.Text.Length > 0 && !valid
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        ErrorText.Visibility = text.Length > 0 && !valid ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void MinutesBox_KeyDown(object sender, KeyEventArgs e)
@@ -33,15 +31,11 @@ public partial class CustomReminderDialog : Window
 
     private void Ok_Click(object sender, RoutedEventArgs e) => Confirm();
 
-    private void Cancel_Click(object sender, RoutedEventArgs e)
-    {
-        DialogResult = false;
-    }
+    private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape)
-            DialogResult = false;
+        if (e.Key == Key.Escape) DialogResult = false;
     }
 
     private void Confirm()
