@@ -496,27 +496,49 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void AddSchedule()
     {
-        var newEntry = new ScheduleEntry();
-        var result = _dialogService.ShowScheduleWizard(newEntry, _use12Hour());
-        if (result == null) return;
-        _model.Schedules.Add(result);
-        var vm = CreateScheduleEntry(result);
-        Schedules.Add(vm);
-        _onChanged(this);
+        ScheduleEntry source = new ScheduleEntry();
+        while (true)
+        {
+            var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
+            if (result == null) return;
+            var conflicts = _conflictChecker(result).ToList();
+            if (conflicts.Count > 0)
+            {
+                var desc = string.Join("; ", conflicts.Select(c => $"\"{c.profileName}\" ({c.conflictDesc})"));
+                if (_dialogService.ShowScheduleConflict(desc)) { source = result; continue; }
+                return;
+            }
+            _model.Schedules.Add(result);
+            Schedules.Add(CreateScheduleEntry(result));
+            _onChanged(this);
+            return;
+        }
     }
 
     private void EditSchedule(ScheduleEntryViewModel vm)
     {
-        var result = _dialogService.ShowScheduleWizard(vm.Entry, _use12Hour());
-        if (result == null) return;
-        var entry = vm.Entry;
-        entry.Hour = result.Hour;
-        entry.Minute = result.Minute;
-        entry.Days = result.Days;
-        entry.ReminderMinutes = result.ReminderMinutes;
-        entry.Silent = result.Silent;
-        vm.RefreshFromEntry();
-        _onChanged(this);
+        ScheduleEntry source = vm.Entry;
+        while (true)
+        {
+            var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
+            if (result == null) return;
+            var conflicts = _conflictChecker(result).ToList();
+            if (conflicts.Count > 0)
+            {
+                var desc = string.Join("; ", conflicts.Select(c => $"\"{c.profileName}\" ({c.conflictDesc})"));
+                if (_dialogService.ShowScheduleConflict(desc)) { source = result; continue; }
+                return;
+            }
+            var entry = vm.Entry;
+            entry.Hour = result.Hour;
+            entry.Minute = result.Minute;
+            entry.Days = result.Days;
+            entry.ReminderMinutes = result.ReminderMinutes;
+            entry.Silent = result.Silent;
+            vm.RefreshFromEntry();
+            _onChanged(this);
+            return;
+        }
     }
 
     private ScheduleEntryViewModel CreateScheduleEntry(ScheduleEntry entry)

@@ -15,5 +15,6 @@ public interface IDialogService
     ProfileMode? ShowProfileTypeDialog();
     void ShowMicTest(string deviceId, string deviceName);
     bool ShowConfirmScheduleDelete(string scheduleSummary);
+    bool ShowScheduleConflict(string conflictDescription);
     ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour);
 }

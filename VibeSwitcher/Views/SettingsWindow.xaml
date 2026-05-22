@@ -716,6 +716,10 @@
                                                         Command="{Binding CloneCommand}"
                                                         Margin="0,0,8,0"
                                                         ToolTip="Creates an exact copy of this profile with a new name, so you can customise it independently."/>
+                                                <Button Content="Add Schedule"
+                                                        Style="{StaticResource ActionButton}"
+                                                        Command="{Binding AddScheduleCommand}"
+                                                        Margin="0,0,8,0"/>
                                                 <Button Content="Delete Profile"
                                                         Style="{StaticResource DangerButton}"
                                                         Command="{Binding DeleteCommand}"/>
@@ -749,11 +753,6 @@
                                                             </ToolTip>
                                                         </Border.ToolTip>
                                                     </Border>
-                                                    <Button Content="Add Schedule"
-                                                            Style="{StaticResource ActionButton}"
-                                                            HorizontalAlignment="Right"
-                                                            FontSize="11" Padding="10,3"
-                                                            Command="{Binding AddScheduleCommand}"/>
                                                 </DockPanel>
 
                                                 <!-- Schedule entries -->

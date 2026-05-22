@@ -83,6 +83,14 @@ public class DialogService : IDialogService
         new MicTestDialog(deviceId, deviceName) { Owner = OwnerWindow }.ShowDialog();
     }
 
+    public bool ShowScheduleConflict(string conflictDescription)
+    {
+        return new ConflictRetryDialog(
+            "Schedule Conflict",
+            $"This schedule conflicts with an existing schedule:\n{conflictDescription}\n\nTry again with a different time or days?")
+        { Owner = OwnerWindow }.ShowDialog() == true;
+    }
+
     public bool ShowConfirmScheduleDelete(string scheduleSummary)
     {
         var dialog = new ConfirmDialog(

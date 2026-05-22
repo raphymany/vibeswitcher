@@ -52,9 +52,9 @@ public class ScheduleEntryViewModel : ViewModelBase
         if (minutes <= 0) return "";
         var h = minutes / 60;
         var m = minutes % 60;
-        if (h == 0) return $" · {m} min reminder";
-        if (m == 0) return $" · {h} h reminder";
-        return $" · {h} h {m:D2} min reminder";
+        if (h == 0) return $" · {m}min reminder";
+        if (m == 0) return $" · {h}hr reminder";
+        return $" · {h}hr {m}min reminder";
     }
 
     public bool Enabled

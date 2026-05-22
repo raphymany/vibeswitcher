@@ -7,7 +7,7 @@ public partial class ConflictRetryDialog : Window
     public ConflictRetryDialog(string title, string message)
     {
         InitializeComponent();
-        Title = title;
+        Title = "VibeSwitcher";
         TitleText.Text = title;
         MessageText.Text = message;
     }
