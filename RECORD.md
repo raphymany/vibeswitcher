@@ -739,6 +739,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~31~~ | ~~`feat/profile-visual`~~ | ✅ Done — PR #66 |
 | ~~32~~ | ~~`feat/settings-polish`~~ | ✅ Done — PR #68 |
 | ~~45~~ | ~~`feat/appearance-modes`~~ | ✅ Done — PR #70 |
+| ~~46~~ | ~~`fix/appearance-qa`~~ | ✅ Done — PR #72 |
 
 ---
 
@@ -1079,3 +1080,20 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | Icon preview border — gray `IconPreviewBg` background replaced with a transparent background + 1 px `InputBorder` outline so the icon sits cleanly without a coloured chip | ✅ Done |
 | — | Clone dialog icon — warning triangle replaced with a WPF-drawn Canvas of two overlapping rounded rectangles (copy/paste visual) using `Accent` stroke and `HoverBg` fill; `ConfirmDialog` extended to accept a `UIElement? iconElement` override | ✅ Done |
 | — | About window label colours in dark mode — `SectionLabel` style and app subtitle changed from `SubtleText` to `SecondaryText` so labels (WEBSITE, DEVELOPMENT, SUPPORT) are visible in both themes | ✅ Done |
+
+---
+
+### ~~Branch 46: `fix/appearance-qa`~~ ✅ Done — PR #72
+**Theme:** QA follow-ups and UI polish from the appearance-modes branch.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| — | `AccentColor` fallback in App.xaml — `<Color x:Key="AccentColor">#FF8000</Color>` added before any theme loads so `StaticResource AccentColor` resolves at XAML parse time; toggle `ColorAnimation.To` changed from hardcoded `#FF8000` to `{StaticResource AccentColor}` | ✅ Done |
+| — | Dead `ToggleInactiveBg` brush removed — unused `SolidColorBrush x:Key="ToggleInactiveBg"` deleted from both `LightTheme.xaml` and `DarkTheme.xaml`; the toggle animation uses `ToggleOffColor` (a `Color` resource) instead | ✅ Done |
+| — | `ConfirmDialog` icon badge live theme binding — badge background changed from `TryFindResource` (one-time static lookup) to `SetResourceReference` so it updates when the theme toggles while the dialog is open | ✅ Done |
+| — | `AboutWindow` given `ShowInTaskbar="False"` — it was the only dialog in the app missing the attribute, causing it to show as a separate taskbar button | ✅ Done |
+| — | TitleBar `StateChanged` handler stored for proper cleanup — anonymous lambda replaced with `_stateChangedHandler` field; new `OnUnloaded` handler unsubscribes it to prevent stale window references | ✅ Done |
+| — | `SettingsWindow` timer stopped before bounds save on close — `_boundsTimer?.Stop()` added at the top of `OnClosing` before `SaveWindowBounds()` to prevent a redundant debounced write | ✅ Done |
+| — | Settings header icon restored — `AppHeaderIcon.Source` now set alongside `AppTitleBar.IconSource` in the constructor; the app icon appears to the left of the "VibeSwitcher" heading | ✅ Done |
+| — | Title bar maximize button vertically aligned — `MaxBtn` content wrapped in a named `TextBlock` with `Margin="0,0,0,5"`; the 5 px bottom margin shifts the □ glyph up to sit level with − and ✕, which render at different font-metric baselines in Segoe UI | ✅ Done |
+| — | Tray separators equalized — changed from a 2.5 px rounded `Border` inside a `Height=13` `MenuItem` to a 1 px flat `Border` with 4 px top/bottom margin and no explicit `MenuItem` height; all three separators are now content-driven at the same 9 px total height | ✅ Done |

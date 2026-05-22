@@ -6,6 +6,17 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Fixed
+- **`AccentColor` fallback for toggle animation** — toggle switch `ColorAnimation.To` now references `{StaticResource AccentColor}` instead of a hardcoded hex; a `Color` fallback in `App.xaml` satisfies parse-time resolution and theme files override it at runtime *(PR #72)*
+- **ConfirmDialog icon badge updates with theme** — badge background switched from `TryFindResource` to `SetResourceReference` so it responds to theme changes while the dialog is open *(PR #72)*
+- **`AboutWindow` removed from taskbar** — `ShowInTaskbar="False"` added; it was the only dialog in the app missing the attribute *(PR #72)*
+- **TitleBar `StateChanged` handler no longer leaks** — stored in `_stateChangedHandler` field and unsubscribed in a new `OnUnloaded` handler *(PR #72)*
+- **SettingsWindow close-time bounds save** — `_boundsTimer` stopped at the top of `OnClosing` before `SaveWindowBounds()` to prevent a redundant debounced write *(PR #72)*
+- **Settings header app icon restored** — icon now appears to the left of the "VibeSwitcher" heading in the Settings window *(PR #72)*
+- **Title bar maximize button vertically aligned** — □ now sits level with − and ✕ via a `TextBlock` wrapper with a 5 px bottom margin, correcting the font-metric baseline difference in Segoe UI *(PR #72)*
+- **Tray separators equalized** — all three separators render at the same height; changed from a 2.5 px rounded border inside a fixed-height `MenuItem` to a 1 px flat line with 4 px top/bottom margin *(PR #72)*
+- **Dead `ToggleInactiveBg` brush removed** — unused resource deleted from both `LightTheme.xaml` and `DarkTheme.xaml` *(PR #72)*
+
 ### Added
 - **Light / dark mode theming (F16)** — full resource-dictionary theming system with `LightTheme.xaml` and `DarkTheme.xaml` (each ~70 named brushes); `ThemeService` applies the chosen theme by swapping `MergedDictionaries`; an in-app toggle in General Settings persists the preference across launches; covers all windows, dialogs, profile cards, and tray menu *(PR #70)*
 - **Tray separator polish** — separators in the right-click tray menu now use a custom 2.5 px rounded `Border` element spanning the full menu width; replaced `new Separator()` with a tagged `MenuItem` to bypass the WPF ControlTemplate indent *(PR #70)*
