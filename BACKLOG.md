@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-05-23 — Branch 35 (`feat/profile-card-extras`) merged as PR #76; Branch 48 (`perf/switch-optimizations`) open as PR #78.
+**Last updated:** 2026-05-23 — Branch 48 (`perf/switch-optimizations`) merged as PR #78.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -144,20 +144,6 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 Grouped by shared UI surface or implementation concern. Features within each branch can ship together without stepping on each other.
 
 *(Completed branches and their full item lists are documented in RECORD.md — Section 12.)*
-
----
-
-### Branch 48: `perf/switch-optimizations` — PR #78 open
-**Theme:** Micro-optimizations to reduce UI-thread pressure and disk I/O in the hot path and idle background.
-
-| # | Item |
-|---|------|
-| — | Config saves moved off the UI thread (SaveAsync via Task.Run) in ProfileSwitchOrchestrator and all SettingsViewModel call-sites |
-| — | Tray icon bytes cache — raw bytes cached per profile; fresh Icon reconstructed from MemoryStream on each switch; fixes ObjectDisposedException crash |
-| — | SchedulerService timer 1 s → 10 s (minute precision is sufficient) |
-| — | AppLogger.Write — Directory.CreateDirectory syscall removed from every write |
-| — | OnProfileChanged validation refresh narrowed to the changed card only |
-| — | SanitizeName — static HashSet replaces per-call Path.GetInvalidFileNameChars() allocation |
 
 ---
 

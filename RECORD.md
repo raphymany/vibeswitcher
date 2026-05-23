@@ -742,7 +742,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~46~~ | ~~`fix/appearance-qa`~~ | ✅ Done — PR #72 |
 | ~~33~~ | ~~`feat/profile-scheduler`~~ | ✅ Done — PR #74 |
 | ~~35~~ | ~~`feat/profile-card-extras`~~ | ✅ Done — PR #76 |
-| 48 | `perf/switch-optimizations` | PR #78 open |
+| ~~48~~ | ~~`perf/switch-optimizations`~~ | ✅ Done — PR #78 |
 | 47 | `refactor/code-quality` | Planned |
 
 ---
@@ -1134,17 +1134,17 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 48: `perf/switch-optimizations` — PR #78 open
+### ~~Branch 48: `perf/switch-optimizations`~~ ✅ Done — PR #78
 **Theme:** Micro-optimizations to reduce UI-thread pressure and disk I/O in the profile switch hot path and idle background.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| — | Config saves off UI thread — `SaveAsync` helper calls `Task.Run(_configService.SaveImmediate)`; applied in `ProfileSwitchOrchestrator` and all 18 `SettingsViewModel` call-sites; `_saveLock` serializes concurrent saves | PR #78 |
-| — | Tray icon bytes cache — `Dictionary<Guid, byte[]>` replaces disk reads on every switch; fresh `Icon` reconstructed from `MemoryStream` per assignment; fixes `ObjectDisposedException` when H.NotifyIcon disposed a cached `Icon` object | PR #78 |
-| — | `SchedulerService` timer 1 s → 10 s — minute precision is sufficient; eliminates 3,240 unnecessary UI-thread wakeups per hour | PR #78 |
-| — | `AppLogger.Write` — `Directory.CreateDirectory` syscall removed; directory is guaranteed after `StartSession()` | PR #78 |
-| — | `OnProfileChanged` validation scope narrowed — `card.RefreshValidation()` only, not all cards; `ValidationWarning` has no cross-card dependency | PR #78 |
-| — | `SanitizeName` static HashSet — `Path.GetInvalidFileNameChars()` allocated a new `char[]` on every call; replaced with `static readonly HashSet<char>` | PR #78 |
+| — | Config saves off UI thread — `SaveAsync` helper calls `Task.Run(_configService.SaveImmediate)`; applied in `ProfileSwitchOrchestrator` and all 18 `SettingsViewModel` call-sites; `_saveLock` serializes concurrent saves | ✅ Done |
+| — | Tray icon bytes cache — `Dictionary<Guid, byte[]>` replaces disk reads on every switch; fresh `Icon` reconstructed from `MemoryStream` per assignment; fixes `ObjectDisposedException` when H.NotifyIcon disposed a cached `Icon` object | ✅ Done |
+| — | `SchedulerService` timer 1 s → 10 s — minute precision is sufficient; eliminates 3,240 unnecessary UI-thread wakeups per hour | ✅ Done |
+| — | `AppLogger.Write` — `Directory.CreateDirectory` syscall removed; directory is guaranteed after `StartSession()` | ✅ Done |
+| — | `OnProfileChanged` validation scope narrowed — `card.RefreshValidation()` only, not all cards; `ValidationWarning` has no cross-card dependency | ✅ Done |
+| — | `SanitizeName` static HashSet — `Path.GetInvalidFileNameChars()` allocated a new `char[]` on every call; replaced with `static readonly HashSet<char>` | ✅ Done |
 
 ---
 
