@@ -11,53 +11,12 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Pinned / favorite profiles (F33)** — star toggle in each profile card footer; pinned profiles sort above unpinned ones in both the Settings list and the tray right-click menu; `SortOrder` is renumbered after each pin change to keep ordering stable *(PR #76)*
 - **Profile validation warnings (F34)** — inline warning badge on cards for disconnected or unavailable audio devices and missing icon files; device check is suppressed until the first device enumeration completes to avoid false warnings at startup *(PR #76)*
 - **Real-time icon file watcher** — a `FileSystemWatcher` in `ProfileCardViewModel` re-validates the icon path when the file is created or deleted while the Settings window is open *(PR #76)*
-
-### Performance
-- **Config saves moved off the UI thread** — all config saves (profile switch and settings edits) now run on a background thread via `Task.Run`; no longer blocks the UI thread during disk writes *(PR #78)*
-- **Tray icon bytes cache** — raw icon bytes cached per profile after the first load; a fresh `Icon` object is reconstructed from memory on each switch so no disk I/O is needed on repeat switches *(PR #78)*
-- **Scheduler timer reduced** — `SchedulerService` background tick interval changed from 1 second to 10 seconds; minute-level precision is sufficient and eliminates over 3,000 unnecessary UI-thread wakeups per hour *(PR #78)*
-- **`AppLogger` write path optimized** — removed `Directory.CreateDirectory` syscall from every log write; the directory is guaranteed to exist after session start *(PR #78)*
-- **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
-
-### Fixed
-- **`ObjectDisposedException` on tray icon** — H.NotifyIcon disposes the old `Icon` object on each assignment; the previous icon object cache caused a crash when switching back to a profile whose icon had already been disposed. Fixed by caching raw bytes and always providing a fresh `Icon` instance *(PR #78)*
-
-### Fixed
-- **`AccentColor` fallback for toggle animation** — toggle switch `ColorAnimation.To` now references `{StaticResource AccentColor}` instead of a hardcoded hex; a `Color` fallback in `App.xaml` satisfies parse-time resolution and theme files override it at runtime *(PR #72)*
-- **ConfirmDialog icon badge updates with theme** — badge background switched from `TryFindResource` to `SetResourceReference` so it responds to theme changes while the dialog is open *(PR #72)*
-- **`AboutWindow` removed from taskbar** — `ShowInTaskbar="False"` added; it was the only dialog in the app missing the attribute *(PR #72)*
-- **TitleBar `StateChanged` handler no longer leaks** — stored in `_stateChangedHandler` field and unsubscribed in a new `OnUnloaded` handler *(PR #72)*
-- **SettingsWindow close-time bounds save** — `_boundsTimer` stopped at the top of `OnClosing` before `SaveWindowBounds()` to prevent a redundant debounced write *(PR #72)*
-- **Settings header app icon restored** — icon now appears to the left of the "VibeSwitcher" heading in the Settings window *(PR #72)*
-- **Title bar maximize button vertically aligned** — □ now sits level with − and ✕ via a `TextBlock` wrapper with a 5 px bottom margin, correcting the font-metric baseline difference in Segoe UI *(PR #72)*
-- **Tray separators equalized** — all three separators render at the same height; changed from a 2.5 px rounded border inside a fixed-height `MenuItem` to a 1 px flat line with 4 px top/bottom margin *(PR #72)*
-- **Dead `ToggleInactiveBg` brush removed** — unused resource deleted from both `LightTheme.xaml` and `DarkTheme.xaml` *(PR #72)*
-
-### Added
-- **Profile scheduler (F11)** — each profile card has an "Add Schedule" button that opens a four-step wizard (day selector, time picker, reminder, silent toggle); a `SchedulerService` running a 1-second background timer switches the active profile automatically when a schedule matches the current day and time; re-evaluates after sleep/wake *(PR #74)*
+- **Profile scheduler (F11)** — each profile card has an "Add Schedule" button that opens a four-step wizard (day selector, time picker, reminder, silent toggle); a `SchedulerService` switches the active profile automatically when a schedule matches the current day and time; re-evaluates after sleep/wake *(PR #74)*
 - **Pre-switch reminder** — each schedule entry has an optional lead-time notification (5, 10, 15, 30 min or custom); fires a balloon tip N minutes before the switch so the user can finish what they're doing or override *(PR #74)*
 - **Per-schedule Silent toggle** — independent of the profile card Silent toggle; profile Silent applies only to manual switches (hotkey, tray, Activate button), schedule Silent applies only to scheduled switches *(PR #74)*
 - **Activate button on profile cards** — switches to a profile directly from the Settings window; displays a green "✓ Active" state when the profile is currently active; refreshes automatically when the Settings window is opened *(PR #74)*
-
-### Fixed
-- **Profile Silent incorrectly suppressed scheduled switch notifications** — `scheduleSilent` changed from `bool` to `bool?` in `ProfileSwitchOrchestrator`; null means manual (use `profile.Silent`), a value means scheduled (use that value, ignoring `profile.Silent`) *(PR #74)*
-- **Scheduler dedup blocked same-minute edits** — replaced the 2-minute elapsed-time guard with slot-based comparison (stored hour:minute:day); editing a schedule time now fires correctly within the same 2-minute window *(PR #74)*
-- **Dark-mode tooltip text unreadable** — `Foreground` setter added to the local `ToolTip` style in `SettingsWindow.xaml` and explicit `Foreground` on each tooltip `TextBlock` *(PR #74)*
-
-### Added
 - **Light / dark mode theming (F16)** — full resource-dictionary theming system with `LightTheme.xaml` and `DarkTheme.xaml` (each ~70 named brushes); `ThemeService` applies the chosen theme by swapping `MergedDictionaries`; an in-app toggle in General Settings persists the preference across launches; covers all windows, dialogs, profile cards, and tray menu *(PR #70)*
 - **Tray separator polish** — separators in the right-click tray menu now use a custom 2.5 px rounded `Border` element spanning the full menu width; replaced `new Separator()` with a tagged `MenuItem` to bypass the WPF ControlTemplate indent *(PR #70)*
-
-### Fixed
-- **Tray theme live update** — switching the app theme now immediately updates the tray context menu; `RebuildMenu` creates a fresh `ContextMenu` object each time so the new Popup visual tree reads current theme resources on open *(PR #70)*
-- **Tray icon switch flash speed** — blink hold time reduced from 350 ms to 150 ms for a snappier visual confirmation on profile switch *(PR #70)*
-- **Settings auto-expand when expander opens** — when the General Settings card opens, the window now measures the footer's position in window coordinates (accounting for the 18 px bottom margin) and grows to ensure the footer buttons are always fully visible *(PR #70)*
-- **Window size and position not persisting** — `SizeChanged` and `LocationChanged` events now write bounds to config via a 400 ms `DispatcherTimer` debounce; the previous `OnClosing`-only approach did not fire reliably for hidden windows during app shutdown *(PR #70)*
-- **Icon preview gray background** — the coloured `IconPreviewBg` background behind icons on profile cards replaced with a transparent background and a 1 px `InputBorder` outline *(PR #70)*
-- **Clone dialog icon** — warning triangle replaced with a WPF-drawn copy-overlap visual (two rounded rectangles on a `Canvas`); `ConfirmDialog` now accepts an optional `UIElement` icon override *(PR #70)*
-- **About window label colours in dark mode** — WEBSITE, DEVELOPMENT, and SUPPORT section labels changed from `SubtleText` to `SecondaryText` brush so they are readable in both themes *(PR #70)*
-
-### Added
 - **Backup & Restore (F1)** — Export writes the current config to a user-chosen `.json` file; Import reads it back with a confirmation dialog and rebuilds the entire profile list from the imported data; both operations give AlertDialog feedback on success or failure *(PR #68)*
 - **Save flash on profile cards (F18)** — each profile card briefly flashes green when a change is saved; each card uses its own `SolidColorBrush` instance so animations are independent, with a 250 ms `CancellationTokenSource` debounce to collapse rapid edits into a single flash *(PR #68)*
 - **Getting-started help dialog (F19)** — the `?` footer button opens a scrollable walkthrough dialog covering setup, profile switching, tray tips, what ⓘ icons mean, how Backup & Restore works, and where data is stored; button re-rendered with ClearType to eliminate blurriness *(PR #68)*
@@ -100,6 +59,13 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Switching tooltip** — tray tooltip shows "Switching to {profile}..." while a switch is in progress; restores to the correct profile name on both success and failure *(PR #28)*
 - **Keyboard navigation in Settings** — arrow keys move focus between profile cards; read-only fields are excluded from the Tab order *(PR #28)*
 
+### Performance
+- **Config saves moved off the UI thread** — all config saves (profile switch and settings edits) now run on a background thread via `Task.Run`; no longer blocks the UI thread during disk writes *(PR #78)*
+- **Tray icon bytes cache** — raw icon bytes cached per profile after the first load; a fresh `Icon` object is reconstructed from memory on each switch so no disk I/O is needed on repeat switches *(PR #78)*
+- **Scheduler timer reduced** — `SchedulerService` background tick interval changed from 1 second to 10 seconds; minute-level precision is sufficient and eliminates over 3,000 unnecessary UI-thread wakeups per hour *(PR #78)*
+- **`AppLogger` write path optimized** — removed `Directory.CreateDirectory` syscall from every log write; the directory is guaranteed to exist after session start *(PR #78)*
+- **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
+
 ### Changed
 - **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume *(PR #40)*
 - **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
@@ -107,6 +73,26 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ### Fixed
+- **`ObjectDisposedException` on tray icon** — H.NotifyIcon disposes the old `Icon` object on each assignment; the previous icon object cache caused a crash when switching back to a profile whose icon had already been disposed. Fixed by caching raw bytes and always providing a fresh `Icon` instance *(PR #78)*
+- **`AccentColor` fallback for toggle animation** — toggle switch `ColorAnimation.To` now references `{StaticResource AccentColor}` instead of a hardcoded hex; a `Color` fallback in `App.xaml` satisfies parse-time resolution and theme files override it at runtime *(PR #72)*
+- **ConfirmDialog icon badge updates with theme** — badge background switched from `TryFindResource` to `SetResourceReference` so it responds to theme changes while the dialog is open *(PR #72)*
+- **`AboutWindow` removed from taskbar** — `ShowInTaskbar="False"` added; it was the only dialog in the app missing the attribute *(PR #72)*
+- **TitleBar `StateChanged` handler no longer leaks** — stored in `_stateChangedHandler` field and unsubscribed in a new `OnUnloaded` handler *(PR #72)*
+- **SettingsWindow close-time bounds save** — `_boundsTimer` stopped at the top of `OnClosing` before `SaveWindowBounds()` to prevent a redundant debounced write *(PR #72)*
+- **Settings header app icon restored** — icon now appears to the left of the "VibeSwitcher" heading in the Settings window *(PR #72)*
+- **Title bar maximize button vertically aligned** — □ now sits level with − and ✕ via a `TextBlock` wrapper with a 5 px bottom margin, correcting the font-metric baseline difference in Segoe UI *(PR #72)*
+- **Tray separators equalized** — all three separators render at the same height; changed from a 2.5 px rounded border inside a fixed-height `MenuItem` to a 1 px flat line with 4 px top/bottom margin *(PR #72)*
+- **Dead `ToggleInactiveBg` brush removed** — unused resource deleted from both `LightTheme.xaml` and `DarkTheme.xaml` *(PR #72)*
+- **Profile Silent incorrectly suppressed scheduled switch notifications** — `scheduleSilent` changed from `bool` to `bool?` in `ProfileSwitchOrchestrator`; null means manual (use `profile.Silent`), a value means scheduled (use that value, ignoring `profile.Silent`) *(PR #74)*
+- **Scheduler dedup blocked same-minute edits** — replaced the 2-minute elapsed-time guard with slot-based comparison (stored hour:minute:day); editing a schedule time now fires correctly within the same 2-minute window *(PR #74)*
+- **Dark-mode tooltip text unreadable** — `Foreground` setter added to the local `ToolTip` style in `SettingsWindow.xaml` and explicit `Foreground` on each tooltip `TextBlock` *(PR #74)*
+- **Tray theme live update** — switching the app theme now immediately updates the tray context menu; `RebuildMenu` creates a fresh `ContextMenu` object each time so the new Popup visual tree reads current theme resources on open *(PR #70)*
+- **Tray icon switch flash speed** — blink hold time reduced from 350 ms to 150 ms for a snappier visual confirmation on profile switch *(PR #70)*
+- **Settings auto-expand when expander opens** — when the General Settings card opens, the window now measures the footer's position in window coordinates (accounting for the 18 px bottom margin) and grows to ensure the footer buttons are always fully visible *(PR #70)*
+- **Window size and position not persisting** — `SizeChanged` and `LocationChanged` events now write bounds to config via a 400 ms `DispatcherTimer` debounce; the previous `OnClosing`-only approach did not fire reliably for hidden windows during app shutdown *(PR #70)*
+- **Icon preview gray background** — the coloured `IconPreviewBg` background behind icons on profile cards replaced with a transparent background and a 1 px `InputBorder` outline *(PR #70)*
+- **Clone dialog icon** — warning triangle replaced with a WPF-drawn copy-overlap visual (two rounded rectangles on a `Canvas`); `ConfirmDialog` now accepts an optional `UIElement` icon override *(PR #70)*
+- **About window label colours in dark mode** — WEBSITE, DEVELOPMENT, and SUPPORT section labels changed from `SubtleText` to `SecondaryText` brush so they are readable in both themes *(PR #70)*
 - **Settings header hover corner radius** — the blue hover highlight on the collapsible Settings card header now has rounded corners on all four sides when the card is expanded *(PR #68)*
 - **TrayLeftMouseUp thread safety** — `OpenSettings` is now marshalled via `Dispatcher.InvokeAsync` since `TrayLeftMouseUp` fires on a thread-pool thread *(PR #68)*
 - **IconColor.Auto not persisted** — when a name suggestion chip auto-applied an icon, `IconColor.Auto` was incorrectly stored on the profile; now stores `Black`, which matches the natural-color emoji render path *(PR #66)*
