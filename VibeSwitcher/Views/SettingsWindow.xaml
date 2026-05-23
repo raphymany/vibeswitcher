@@ -676,11 +676,27 @@
                                         </StackPanel>
 
                                         <!-- Notes -->
-                                        <TextBlock Grid.Row="1" Grid.Column="1"
-                                                   Text="Notes" Style="{StaticResource LabelText}"/>
+                                        <StackPanel Grid.Row="1" Grid.Column="1"
+                                                    Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="Notes" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
+                                            <Border Width="15" Height="15" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                                    VerticalAlignment="Center" Cursor="Help"
+                                                    ToolTipService.InitialShowDelay="400"
+                                                    ToolTipService.ShowDuration="12000">
+                                                <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                           Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border.ToolTip>
+                                                    <ToolTip>
+                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
+                                                            A short note for this profile. Use it to remember what it's for — e.g. "Gaming headset + Blue Yeti mic" or "Work calls only".
+                                                        </TextBlock>
+                                                    </ToolTip>
+                                                </Border.ToolTip>
+                                            </Border>
+                                        </StackPanel>
                                         <Grid Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Margin="0,0,0,8">
                                             <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
-                                                     MaxLength="200"/>
+                                                     MaxLength="61"/>
                                             <TextBlock Text="Add a note about this profile..."
                                                        IsHitTestVisible="False"
                                                        Foreground="{DynamicResource TertiaryText}"
