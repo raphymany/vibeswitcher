@@ -31,6 +31,7 @@ public class SettingsViewModel : ViewModelBase
     private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
     private volatile IReadOnlyList<AudioDeviceInfo> _recordingDevices = [];
     private CancellationTokenSource? _loadCts;
+    private System.IO.FileSystemWatcher? _iconWatcher;
 
     public ObservableCollection<ProfileCardViewModel> Profiles { get; }
 
@@ -302,6 +303,30 @@ public class SettingsViewModel : ViewModelBase
         // Enumerate audio devices once on a background STA thread, then populate all cards.
         // Cards start with empty device dropdowns and populate within a fraction of a second.
         _ = LoadDevicesAsync();
+
+        InitIconWatcher();
+    }
+
+    private void InitIconWatcher()
+    {
+        var dir = _configService.IconsDir;
+        if (!System.IO.Directory.Exists(dir)) return;
+        _iconWatcher = new System.IO.FileSystemWatcher(dir)
+        {
+            NotifyFilter = System.IO.NotifyFilters.FileName,
+            Filter = "*.ico",
+            EnableRaisingEvents = true
+        };
+        _iconWatcher.Deleted += OnIconFileChanged;
+        _iconWatcher.Renamed += OnIconFileChanged;
+    }
+
+    private void OnIconFileChanged(object sender, System.IO.FileSystemEventArgs e)
+    {
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
+        {
+            foreach (var c in Profiles) c.RefreshValidation();
+        });
     }
 
     private void OnDevicesChanged()

@@ -211,16 +211,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
             var warnings = new List<string>();
 
-            if (!_model.Hotkey.IsEmpty)
-            {
-                var conflictName = _configService.Current.Profiles
-                    .Where(p => p.Id != _model.Id && !p.Hotkey.IsEmpty && _model.Hotkey.Matches(p.Hotkey))
-                    .Select(p => p.Name)
-                    .FirstOrDefault();
-                if (conflictName != null)
-                    warnings.Add($"Hotkey conflicts with \"{conflictName}\".");
-            }
-
             // Skip device connectivity checks until the first device load completes — avoids
             // false "disconnected" warnings during the brief startup window before enumeration.
             if (_devicesLoaded)

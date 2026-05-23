@@ -702,7 +702,7 @@
                                                        Foreground="{DynamicResource TertiaryText}"
                                                        FontStyle="Italic"
                                                        VerticalAlignment="Center"
-                                                       Margin="5,0,0,0">
+                                                       Margin="9,0,0,0">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Collapsed"/>
@@ -1010,6 +1010,7 @@
                 Padding="0" ClipToBounds="True">
             <StackPanel>
                 <!-- Collapsible header -->
+                <Grid>
                 <ToggleButton x:Name="SettingsExpander"
                               IsChecked="{Binding SettingsCardExpanded, Mode=TwoWay}"
                               HorizontalContentAlignment="Stretch"
@@ -1057,6 +1058,16 @@
                         </ControlTemplate>
                     </ToggleButton.Template>
                 </ToggleButton>
+                <Button x:Name="LogsButton"
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Margin="0,0,44,0"
+                        Padding="10,4"
+                        Visibility="Collapsed"
+                        Style="{StaticResource ActionButton}"
+                        Click="LogsButton_Click">
+                    <TextBlock x:Name="LogsButtonText" FontSize="11" Foreground="{DynamicResource WarningText}"/>
+                </Button>
+                </Grid>
 
                 <!-- Collapsible body -->
                 <StackPanel Margin="16,0,16,14">
@@ -1180,14 +1191,6 @@
                                     </Border>
                                 </StackPanel>
                             </CheckBox>
-                            <Button x:Name="LogsButton"
-                                    Style="{StaticResource ActionButton}"
-                                    Margin="0,8,0,0"
-                                    HorizontalAlignment="Left"
-                                    Visibility="Collapsed"
-                                    Click="LogsButton_Click">
-                                <TextBlock x:Name="LogsButtonText" FontSize="12" Foreground="{DynamicResource Accent}"/>
-                            </Button>
                         </StackPanel>
                     </Border>
 
