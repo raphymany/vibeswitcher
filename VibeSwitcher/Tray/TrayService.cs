@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,6 +21,9 @@ public class TrayService : IDisposable
     private readonly IConfigService _configService;
     // Caches the ImageSource for each profile's icon so RebuildMenu never reads from disk.
     private readonly Dictionary<Guid, ImageSource> _iconCache = new();
+    // Caches raw icon bytes per profile so UpdateIcon avoids disk reads on repeat switches.
+    // Bytes (not Icon objects) are cached because H.NotifyIcon disposes the Icon it holds on each change.
+    private readonly Dictionary<Guid, byte[]> _trayIconBytesCache = new();
     private CancellationTokenSource? _flashCts;
 
     // Wired up by App.xaml.cs after ProfileSwitchOrchestrator is created.
@@ -56,12 +61,35 @@ public class TrayService : IDisposable
         RebuildMenu();
     }
 
-    public void ClearIconCache() => _iconCache.Clear();
+    public void ClearIconCache()
+    {
+        _trayIconBytesCache.Clear();
+        _iconCache.Clear();
+    }
 
     public void UpdateIcon(DeviceProfile? activeProfile)
     {
-        var iconPath = activeProfile?.IconPath;
-        var icon = IconHelper.LoadIcon(iconPath, _configService.IconsDir);
+        Icon icon;
+        if (activeProfile == null || string.IsNullOrEmpty(activeProfile.IconPath))
+        {
+            // LoadIcon with null path returns CopyIcon(GetDefaultIcon()) — no disk I/O.
+            // A fresh copy is required because H.NotifyIcon disposes the icon it previously held.
+            icon = IconHelper.LoadIcon(null, _configService.IconsDir);
+        }
+        else if (_trayIconBytesCache.TryGetValue(activeProfile.Id, out var cachedBytes))
+        {
+            // Reconstruct from cached bytes — no disk I/O.
+            using var ms = new MemoryStream(cachedBytes, writable: false);
+            icon = new Icon(ms);
+        }
+        else
+        {
+            // First load: read from disk once and cache the bytes.
+            icon = IconHelper.LoadIcon(activeProfile.IconPath, _configService.IconsDir);
+            using var ms = new MemoryStream();
+            icon.Save(ms);
+            _trayIconBytesCache[activeProfile.Id] = ms.ToArray();
+        }
         _taskbarIcon.Icon = icon;
         _taskbarIcon.ToolTipText = BuildTooltip(activeProfile);
     }

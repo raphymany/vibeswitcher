@@ -659,10 +659,11 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _iconPreview = null;
     }
 
+    private static readonly HashSet<char> _invalidFileNameChars = new(System.IO.Path.GetInvalidFileNameChars());
+
     private static string SanitizeName(string name)
     {
-        var invalid = System.IO.Path.GetInvalidFileNameChars();
-        var sanitized = string.Concat(name.Select(c => Array.IndexOf(invalid, c) >= 0 ? '_' : c));
+        var sanitized = string.Concat(name.Select(c => _invalidFileNameChars.Contains(c) ? '_' : c));
         return sanitized.Length > 20 ? sanitized[..20] : sanitized;
     }
 

@@ -741,6 +741,8 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~45~~ | ~~`feat/appearance-modes`~~ | ✅ Done — PR #70 |
 | ~~46~~ | ~~`fix/appearance-qa`~~ | ✅ Done — PR #72 |
 | ~~33~~ | ~~`feat/profile-scheduler`~~ | ✅ Done — PR #74 |
+| ~~35~~ | ~~`feat/profile-card-extras`~~ | ✅ Done — PR #76 |
+| 48 | `perf/switch-optimizations` | PR #78 open |
 | 47 | `refactor/code-quality` | Planned |
 
 ---
@@ -1116,6 +1118,33 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | Silent logic fix — `scheduleSilent` changed from `bool` to `bool?` in `ProfileSwitchOrchestrator`; null = manual (use profile.Silent), value = scheduled (use that value) | ✅ Done |
 | — | Scheduler dedup fix — slot-based comparison (stored hour:minute:day) replaces the 2-min elapsed-time guard; editing a schedule time now fires correctly the same minute | ✅ Done |
 | — | Dark-mode tooltip text — `Foreground` setter added to the local `ToolTip` style in `SettingsWindow` plus explicit `Foreground` on each tooltip `TextBlock` | ✅ Done |
+
+---
+
+### ~~Branch 35: `feat/profile-card-extras`~~ ✅ Done — PR #76
+**Theme:** Small per-profile additions to the Settings card that don't touch audio logic.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F32 | Profile notes — optional short description field below the profile name on each card; `MaxLength=61`; stored in model; info badge tooltip explains character limit | ✅ Done |
+| F33 | Favorite / pinned profiles — star toggle in the card footer; pinned profiles sort above unpinned ones in both Settings and the tray menu; `SortOrder` renumbered after each pin-sort | ✅ Done |
+| F34 | Profile validation warnings — inline warning badge on cards for disconnected/unavailable devices or invalid icon paths; device check deferred until first enumeration completes | ✅ Done |
+| — | Real-time icon file watcher — `FileSystemWatcher` in `ProfileCardViewModel` re-validates the icon path when the file is created or deleted while Settings is open | ✅ Done |
+| — | Hotkey warning removed from card header; error button removed from header | ✅ Done |
+
+---
+
+### Branch 48: `perf/switch-optimizations` — PR #78 open
+**Theme:** Micro-optimizations to reduce UI-thread pressure and disk I/O in the profile switch hot path and idle background.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| — | Config saves off UI thread — `SaveAsync` helper calls `Task.Run(_configService.SaveImmediate)`; applied in `ProfileSwitchOrchestrator` and all 18 `SettingsViewModel` call-sites; `_saveLock` serializes concurrent saves | PR #78 |
+| — | Tray icon bytes cache — `Dictionary<Guid, byte[]>` replaces disk reads on every switch; fresh `Icon` reconstructed from `MemoryStream` per assignment; fixes `ObjectDisposedException` when H.NotifyIcon disposed a cached `Icon` object | PR #78 |
+| — | `SchedulerService` timer 1 s → 10 s — minute precision is sufficient; eliminates 3,240 unnecessary UI-thread wakeups per hour | PR #78 |
+| — | `AppLogger.Write` — `Directory.CreateDirectory` syscall removed; directory is guaranteed after `StartSession()` | PR #78 |
+| — | `OnProfileChanged` validation scope narrowed — `card.RefreshValidation()` only, not all cards; `ValidationWarning` has no cross-card dependency | PR #78 |
+| — | `SanitizeName` static HashSet — `Path.GetInvalidFileNameChars()` allocated a new `char[]` on every call; replaced with `static readonly HashSet<char>` | PR #78 |
 
 ---
 

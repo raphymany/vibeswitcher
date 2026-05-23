@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-05-23 — Branch 33 (`feat/profile-scheduler`) merged as PR #74.
+**Last updated:** 2026-05-23 — Branch 35 (`feat/profile-card-extras`) merged as PR #76; Branch 48 (`perf/switch-optimizations`) open as PR #78.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -119,9 +119,9 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F27~~ | ~~Profile color tag~~ | Dropped — profiles already have icons; color adds no value |
 | ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ | ✅ Done — PR #57 |
 | F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers") | 36 |
-| F32 | Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name | 35 |
-| F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones | 35 |
-| F34 | Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths | 35 |
+| ~~F32~~ | ~~Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name~~ | ✅ Done — PR #76 |
+| ~~F33~~ | ~~Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones~~ | ✅ Done — PR #76 |
+| ~~F34~~ | ~~Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ | ✅ Done — PR #76 |
 | F35 | Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, or hotkey; clears on Escape | 37 |
 | F36 | Optional switch sound — short audio cue on profile switch; built-in tones or custom .wav; per-profile toggle; pairs with F25 and F30 for a fully configurable feedback system | 38 |
 | F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes all recording devices; tray icon flashes red while active; press again to unmute | 39 |
@@ -152,14 +152,28 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 35: `feat/profile-card-extras`
+### ~~Branch 35: `feat/profile-card-extras`~~ ✅ Merged — PR #76
 **Theme:** Small per-profile additions to the Settings card that don't touch audio logic.
 
 | # | Feature |
 |---|---------|
-| F32 | Profile notes — optional short description field per card |
-| F33 | Favorite / pinned profiles — star flag; pinned profiles appear at the top of the tray menu |
-| F34 | Profile validation warnings — inline flags for duplicate hotkeys, missing/disabled devices, or invalid icon paths |
+| ~~F32~~ | ~~Profile notes — optional short description field per card~~ |
+| ~~F33~~ | ~~Favorite / pinned profiles — star flag; pinned profiles appear at the top of the tray menu~~ |
+| ~~F34~~ | ~~Profile validation warnings — inline flags for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ |
+
+---
+
+### Branch 48: `perf/switch-optimizations` — PR #78 open
+**Theme:** Micro-optimizations to reduce UI-thread pressure and disk I/O in the hot path and idle background.
+
+| # | Item |
+|---|------|
+| — | Config saves moved off the UI thread (SaveAsync via Task.Run) in ProfileSwitchOrchestrator and all SettingsViewModel call-sites |
+| — | Tray icon bytes cache — raw bytes cached per profile; fresh Icon reconstructed from MemoryStream on each switch; fixes ObjectDisposedException crash |
+| — | SchedulerService timer 1 s → 10 s (minute precision is sufficient) |
+| — | AppLogger.Write — Directory.CreateDirectory syscall removed from every write |
+| — | OnProfileChanged validation refresh narrowed to the changed card only |
+| — | SanitizeName — static HashSet replaces per-call Path.GetInvalidFileNameChars() allocation |
 
 ---
 
