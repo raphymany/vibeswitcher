@@ -40,7 +40,8 @@ public partial class SettingsWindow : Window
         IAudioService audioService,
         IHotkeyService hotkeyService,
         TrayService trayService,
-        Action<string> applyTheme)
+        Action<string> applyTheme,
+        Action<Models.DeviceProfile>? switchProfile = null)
     {
         InitializeComponent();
         _trayService = trayService;
@@ -71,7 +72,8 @@ public partial class SettingsWindow : Window
                     "Hotkey Conflict",
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             },
-            applyTheme: applyTheme);
+            applyTheme: applyTheme,
+            switchProfile: switchProfile);
 
         DataContext = _viewModel;
         RestoreWindowBounds();
@@ -97,6 +99,7 @@ public partial class SettingsWindow : Window
             {
                 SessionErrorTracker.ErrorAdded += _errorAddedHandler;
                 UpdateLogsButton();
+                _viewModel.RefreshActiveStates();
             }
             else
             {

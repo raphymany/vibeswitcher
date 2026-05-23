@@ -198,6 +198,42 @@
             </Setter>
         </Style>
 
+        <Style x:Key="DayPillStyle" TargetType="ToggleButton">
+            <Setter Property="Background"      Value="{DynamicResource ChipBg}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource ChipBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground"      Value="{DynamicResource ChipText}"/>
+            <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Padding"         Value="8,3"/>
+            <Setter Property="Height"          Value="26"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bg"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="12"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="ChipButton" TargetType="Button">
             <Setter Property="Background"      Value="{DynamicResource ChipBg}"/>
             <Setter Property="BorderBrush"     Value="{DynamicResource ChipBorder}"/>
@@ -230,6 +266,7 @@
         </Style>
 
         <Style TargetType="ToolTip">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -314,6 +351,7 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- Drag grip -->
@@ -352,7 +390,7 @@
                                                            Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 <Border.ToolTip>
                                                     <ToolTip>
-                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
                                                             A short display name for this profile. It appears in the tray menu and at the top of the settings card.
                                                         </TextBlock>
                                                     </ToolTip>
@@ -410,7 +448,7 @@
                                                            Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 <Border.ToolTip>
                                                     <ToolTip>
-                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
                                                             The output audio device (speakers or headphones) that will become the default when this profile is activated.
                                                         </TextBlock>
                                                     </ToolTip>
@@ -464,7 +502,7 @@
                                                            Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 <Border.ToolTip>
                                                     <ToolTip>
-                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
                                                             The microphone or audio input that will become the default when this profile is activated.
                                                         </TextBlock>
                                                     </ToolTip>
@@ -517,7 +555,7 @@
                                                            Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                 <Border.ToolTip>
                                                     <ToolTip>
-                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240">
+                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
                                                             A global keyboard shortcut that switches to this profile instantly from anywhere, even when the app is minimized. Supports combinations like Ctrl+Shift+F1.
                                                         </TextBlock>
                                                     </ToolTip>
@@ -543,7 +581,9 @@
                                                           Width="15" Height="15"
                                                           VerticalAlignment="Center"
                                                           Cursor="Hand" Focusable="False"
-                                                          OverridesDefaultStyle="True">
+                                                          OverridesDefaultStyle="True"
+                                                          ToolTip="Click for custom icon creation guide"
+                                                          ToolTipService.InitialShowDelay="400">
                                                 <ToggleButton.Template>
                                                     <ControlTemplate TargetType="ToggleButton">
                                                         <Border Background="{DynamicResource InfoBadgeBg}" CornerRadius="8">
@@ -571,7 +611,7 @@
                                                     <StackPanel>
                                                         <TextBlock FontSize="12" TextWrapping="Wrap" Margin="0,0,0,10"
                                                                    Foreground="{DynamicResource PrimaryText}">
-                                                            Custom tray icon shown when this profile is active.
+                                                            Custom tray icon displayed when this profile is active.
                                                             Must be <Run FontWeight="SemiBold">.ico format</Run> only.
                                                         </TextBlock>
                                                         <TextBlock Text="💡 How to create a custom icon:"
@@ -581,7 +621,7 @@
                                                                    Foreground="{DynamicResource PrimaryText}">
                                                             1. Remove the background from your image:
                                                         </TextBlock>
-                                                        <TextBlock FontSize="12" Margin="0,0,0,10">
+                                                        <TextBlock FontSize="12" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryText}">
                                                             <Hyperlink NavigateUri="https://www.pixelcut.ai/t/background-remover"
                                                                        RequestNavigate="Hyperlink_RequestNavigate">
                                                                 pixelcut.ai/t/background-remover
@@ -591,7 +631,7 @@
                                                                    Foreground="{DynamicResource PrimaryText}">
                                                             2. Convert the image to .ico:
                                                         </TextBlock>
-                                                        <TextBlock FontSize="12" Margin="0,0,0,10">
+                                                        <TextBlock FontSize="12" Margin="0,0,0,10" Foreground="{DynamicResource PrimaryText}">
                                                             <Hyperlink NavigateUri="https://image.online-convert.com/convert-to-ico"
                                                                        RequestNavigate="Hyperlink_RequestNavigate">
                                                                 image.online-convert.com/convert-to-ico
@@ -663,8 +703,8 @@
                                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         <Border.ToolTip>
                                                             <ToolTip>
-                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240">
-                                                                    When enabled, switching to this profile skips the Windows notification banner. Device-unavailable warnings still appear regardless of this setting.
+                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
+                                                                    Hides the notification banner when you switch to this profile manually — using a hotkey, the tray menu, or the Settings window. It does not affect scheduled switches; each schedule has its own silent option.
                                                                 </TextBlock>
                                                             </ToolTip>
                                                         </Border.ToolTip>
@@ -672,16 +712,117 @@
                                                 </StackPanel>
                                             </CheckBox>
                                             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                                <Button Command="{Binding ActivateCommand}"
+                                                        Margin="0,0,8,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                            <Setter Property="Content" Value="Activate"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                    <Setter Property="Content" Value="✓ Active"/>
+                                                                    <Setter Property="Foreground" Value="#4CAF50"/>
+                                                                    <Setter Property="BorderBrush" Value="#4CAF50"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
                                                 <Button Content="Clone"
                                                         Style="{StaticResource ActionButton}"
                                                         Command="{Binding CloneCommand}"
                                                         Margin="0,0,8,0"
                                                         ToolTip="Creates an exact copy of this profile with a new name, so you can customise it independently."/>
+                                                <Button Content="Add Schedule"
+                                                        Style="{StaticResource ActionButton}"
+                                                        Command="{Binding AddScheduleCommand}"
+                                                        Margin="0,0,8,0"/>
                                                 <Button Content="Delete Profile"
                                                         Style="{StaticResource DangerButton}"
                                                         Command="{Binding DeleteCommand}"/>
                                             </StackPanel>
                                         </Grid>
+                                        <!-- Schedule section -->
+                                        <Border Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4"
+                                                Margin="0,8,0,0">
+                                            <StackPanel>
+
+                                                <!-- Section header -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                    <TextBlock Text="Schedules"
+                                                               FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource SectionLabelText}"
+                                                               VerticalAlignment="Center"/>
+                                                    <Border Width="16" Height="16" CornerRadius="8"
+                                                            Background="{DynamicResource InfoBadgeBg}"
+                                                            Margin="5,0,0,0" VerticalAlignment="Center"
+                                                            Cursor="Help"
+                                                            ToolTipService.ShowDuration="12000">
+                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                                   Foreground="{DynamicResource InfoBadgeText}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Border.ToolTip>
+                                                            <ToolTip>
+                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
+                                                                    Schedules automatically switch this profile at a set time on selected days. You can add multiple schedules per profile.
+                                                                </TextBlock>
+                                                            </ToolTip>
+                                                        </Border.ToolTip>
+                                                    </Border>
+                                                </StackPanel>
+
+                                                <!-- Schedule entries -->
+                                                <ItemsControl ItemsSource="{Binding Schedules}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate DataType="{x:Type vm:ScheduleEntryViewModel}">
+                                                            <Border Background="{DynamicResource InnerCardBg}"
+                                                                    BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                                                                    BorderThickness="1" CornerRadius="6"
+                                                                    Padding="10,8" Margin="0,0,0,6">
+                                                                <StackPanel>
+                                                                    <DockPanel>
+                                                                        <CheckBox IsChecked="{Binding Enabled}"
+                                                                                  Style="{StaticResource ToggleSwitchStyle}"
+                                                                                  DockPanel.Dock="Left" VerticalAlignment="Center"/>
+                                                                        <Button DockPanel.Dock="Right" Content="Remove Schedule"
+                                                                                Style="{StaticResource DangerButton}"
+                                                                                Command="{Binding DeleteCommand}"
+                                                                                FontSize="10" Padding="10,2" Height="26"
+                                                                                VerticalAlignment="Center"/>
+                                                                        <Button DockPanel.Dock="Right" Content="Edit"
+                                                                                Style="{StaticResource ActionButton}"
+                                                                                Command="{Binding EditCommand}"
+                                                                                FontSize="10" Padding="12,2" Height="26"
+                                                                                Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                                        <TextBlock Text="{Binding Summary}"
+                                                                                   FontSize="11"
+                                                                                   Foreground="{DynamicResource SecondaryText}"
+                                                                                   VerticalAlignment="Center"
+                                                                                   TextTrimming="CharacterEllipsis"
+                                                                                   Margin="8,0,0,0"/>
+                                                                    </DockPanel>
+                                                                    <TextBlock Text="{Binding ConflictMessage}"
+                                                                               FontSize="11" Foreground="#CC6600"
+                                                                               TextWrapping="Wrap" Margin="42,4,0,0">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding HasConflict}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </StackPanel>
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+
+                                            </StackPanel>
+                                        </Border>
+
                                     </Grid>
                                 </Border>
 
@@ -855,7 +996,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="When your PC boots up, VibeSwitcher will start automatically, like a startup app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="When your PC boots up, VibeSwitcher will start automatically, like a startup app." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -879,7 +1020,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="When VibeSwitcher starts with Windows, it opens quietly in the tray." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -903,7 +1044,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray. To reopen Settings, right-click the tray icon and click the VibeSwitcher header." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Clicking the Close button hides this window instead of exiting. VibeSwitcher keeps running in the tray. To reopen Settings, right-click the tray icon and click the VibeSwitcher header." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -935,7 +1076,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Shows a Windows notification banner when you switch profiles, confirming which profile was selected." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Shows a Windows notification banner when you switch profiles, confirming which profile was selected." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -948,6 +1089,38 @@
                                     Click="LogsButton_Click">
                                 <TextBlock x:Name="LogsButtonText" FontSize="12" Foreground="{DynamicResource Accent}"/>
                             </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Schedules -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Schedules" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding Use24HourClock}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Use24HourClock}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Use 24-hour clock" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <ToolTip><TextBlock Text="Off = 12-hour format (2:00 PM). On = 24-hour format (14:00)." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
                         </StackPanel>
                     </Border>
 
@@ -975,7 +1148,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Left-clicking the tray icon switches to the next profile in order. When disabled, left-click opens VibeSwitcher instead. Right-click always works normally." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Left-clicking the tray icon switches to the next profile in order. When disabled, left-click opens VibeSwitcher instead. Right-click always works normally." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1025,7 +1198,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="The 'Open Sound Settings' button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="The 'Open Sound Settings' button will open the classic Windows Sound Control Panel instead of the modern Windows Settings app." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1049,7 +1222,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Includes devices marked as 'Disabled' in Windows Sound settings. Useful if you manually enable and disable devices between uses." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Includes devices marked as 'Disabled' in Windows Sound settings. Useful if you manually enable and disable devices between uses." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1073,7 +1246,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="Includes physically unplugged devices in profile dropdowns. Lets you assign a device that is not currently connected to the machine." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="Includes physically unplugged devices in profile dropdowns. Lets you assign a device that is not currently connected to the machine." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>
@@ -1126,7 +1299,7 @@
                                         <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
-                                            <TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" FontSize="11"/>
+                                            <ToolTip><TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>

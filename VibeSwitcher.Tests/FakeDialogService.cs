@@ -32,4 +32,13 @@ internal sealed class FakeDialogService : IDialogService
 
     public List<string> MicTestCalledWith { get; } = new();
     public void ShowMicTest(string deviceId, string deviceName) => MicTestCalledWith.Add(deviceId);
+
+    public bool ConfirmScheduleDeleteResult { get; set; } = true;
+    public bool ShowConfirmScheduleDelete(string scheduleSummary) => ConfirmScheduleDeleteResult;
+
+    public bool ScheduleConflictResult { get; set; } = false;
+    public bool ShowScheduleConflict(string conflictDescription) => ScheduleConflictResult;
+
+    public ScheduleEntry? ScheduleWizardResult { get; set; } = null;
+    public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour) => ScheduleWizardResult;
 }

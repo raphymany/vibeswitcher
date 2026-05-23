@@ -1,0 +1,330 @@
+<Window x:Class="VibeSwitcher.Views.ScheduleWizardDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:VibeSwitcher.Views"
+        Title="VibeSwitcher"
+        Width="420" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource AppBg}"
+        ShowInTaskbar="False"
+        KeyDown="Window_KeyDown">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32" GlassFrameThickness="0"
+                      ResizeBorderThickness="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <!-- ComboBox — themed (same template as SettingsWindow) -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Height"          Value="30"/>
+            <Setter Property="FontSize"        Value="12"/>
+            <Setter Property="Foreground"      Value="{DynamicResource PrimaryText}"/>
+            <Setter Property="Background"      Value="{DynamicResource InputBg}"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource InputBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding"         Value="8,0,28,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid x:Name="root">
+                            <Border x:Name="bg"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="1" CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter x:Name="contentPresenter"
+                                                  Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="Center"
+                                                  IsHitTestVisible="False"/>
+                            </Border>
+                            <Path x:Name="arrow"
+                                  Data="M0,0 L3.5,4 L7,0"
+                                  Stroke="{DynamicResource SecondaryText}" StrokeThickness="1.5"
+                                  Fill="Transparent"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  Margin="0,0,10,0" IsHitTestVisible="False"/>
+                            <ToggleButton x:Name="toggleButton"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
+                                                      RelativeSource={RelativeSource TemplatedParent}}"
+                                          Focusable="False" OverridesDefaultStyle="True">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent"/>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Placement="Bottom" PopupAnimation="Fade" VerticalOffset="2">
+                                <Border Background="{DynamicResource CardBg}"
+                                        BorderBrush="{DynamicResource InputBorder}"
+                                        BorderThickness="1" CornerRadius="6"
+                                        MinWidth="{Binding ActualWidth, ElementName=root}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" Opacity="0.12"
+                                                          BlurRadius="10" ShadowDepth="3"/>
+                                    </Border.Effect>
+                                    <ScrollViewer Padding="4,4">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger SourceName="toggleButton" Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="arrow" Property="Stroke"   Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                            <Trigger SourceName="toggleButton" Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="arrow" Property="Stroke"   Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Padding"    Value="10,6"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <Border x:Name="bg" Background="Transparent"
+                                CornerRadius="4" Margin="2,1"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource SelectedBg}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Day pill toggle buttons -->
+        <Style x:Key="DayPillStyle" TargetType="ToggleButton">
+            <Setter Property="Background"       Value="{DynamicResource ChipBg}"/>
+            <Setter Property="BorderBrush"      Value="{DynamicResource ChipBorder}"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Foreground"       Value="{DynamicResource ChipText}"/>
+            <Setter Property="FontSize"         Value="11"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Padding"          Value="10,4"/>
+            <Setter Property="Height"           Value="28"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bg"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="13" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <views:TitleBar Grid.Row="0"/>
+
+        <StackPanel Grid.Row="1" Margin="28,18,28,24">
+
+            <!-- Step progress dots -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                <Ellipse x:Name="Dot0" Width="9" Height="9" Margin="5,0"/>
+                <Ellipse x:Name="Dot1" Width="9" Height="9" Margin="5,0"/>
+                <Ellipse x:Name="Dot2" Width="9" Height="9" Margin="5,0"/>
+                <Ellipse x:Name="Dot3" Width="9" Height="9" Margin="5,0"/>
+            </StackPanel>
+
+            <!-- Step title and subtitle -->
+            <TextBlock x:Name="StepTitle"
+                       FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource PrimaryText}"
+                       Margin="0,0,0,4"/>
+            <TextBlock x:Name="StepSubtitle"
+                       FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                       TextWrapping="Wrap" LineHeight="18"
+                       Margin="0,0,0,20"/>
+
+            <!-- ── Step 0: Time ──────────────────────────────── -->
+            <StackPanel x:Name="Step0Panel" MinHeight="80">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel>
+                        <ComboBox x:Name="HourCombo"
+                                  Width="76" Height="46"
+                                  FontSize="20" FontWeight="SemiBold"
+                                  Padding="0"
+                                  HorizontalContentAlignment="Center"/>
+                        <TextBlock Text="hour" FontSize="10" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SecondaryText}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <TextBlock Text=":" FontSize="26" FontWeight="Bold"
+                               Foreground="{DynamicResource PrimaryText}"
+                               VerticalAlignment="Top" Margin="10,8,10,0"/>
+                    <StackPanel>
+                        <ComboBox x:Name="MinuteCombo"
+                                  Width="76" Height="46"
+                                  FontSize="20" FontWeight="SemiBold"
+                                  Padding="0"
+                                  HorizontalContentAlignment="Center"/>
+                        <TextBlock Text="min" FontSize="10" HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SecondaryText}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <Button x:Name="AmPmButton"
+                            Width="58" Height="46" FontSize="13" FontWeight="SemiBold"
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource ActionButton}"
+                            Click="AmPm_Click"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ── Step 1: Days ──────────────────────────────── -->
+            <StackPanel x:Name="Step1Panel" Visibility="Collapsed" MinHeight="80">
+                <WrapPanel HorizontalAlignment="Center">
+                    <ToggleButton x:Name="MonBtn" Content="Mon" Style="{StaticResource DayPillStyle}" Margin="4" Click="DayBtn_Changed"/>
+                    <ToggleButton x:Name="TueBtn" Content="Tue" Style="{StaticResource DayPillStyle}" Margin="4" Click="DayBtn_Changed"/>
+                    <ToggleButton x:Name="WedBtn" Content="Wed" Style="{StaticResource DayPillStyle}" Margin="4" Click="DayBtn_Changed"/>
+                    <ToggleButton x:Name="ThuBtn" Content="Thu" Style="{StaticResource DayPillStyle}" Margin="4" Click="DayBtn_Changed"/>
+                    <ToggleButton x:Name="FriBtn" Content="Fri" Style="{StaticResource DayPillStyle}" Margin="4" Click="DayBtn_Changed"/>
+                    <ToggleButton x:Name="SatBtn" Content="Sat" Style="{StaticResource DayPillStyle}" Margin="4" Click="DayBtn_Changed"/>
+                    <ToggleButton x:Name="SunBtn" Content="Sun" Style="{StaticResource DayPillStyle}" Margin="4" Click="DayBtn_Changed"/>
+                </WrapPanel>
+                <TextBlock x:Name="NoDaysHint"
+                           Text="No days selected — this schedule won't activate"
+                           FontSize="11" HorizontalAlignment="Center"
+                           Foreground="#CC6600" Margin="0,12,0,0"
+                           Visibility="Collapsed"/>
+            </StackPanel>
+
+            <!-- ── Step 2: Reminder ──────────────────────────── -->
+            <StackPanel x:Name="Step2Panel" Visibility="Collapsed" MinHeight="80">
+                <ComboBox x:Name="ReminderCombo"
+                          HorizontalAlignment="Center" Width="210"
+                          SelectionChanged="ReminderCombo_Changed"/>
+                <!-- Custom reminder HR:MIN pickers (shown only for Custom option) -->
+                <StackPanel x:Name="CustomReminderPanel" Visibility="Collapsed" Margin="0,18,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <StackPanel>
+                            <ComboBox x:Name="ReminderHrCombo"
+                                      Width="76" Height="42" FontSize="18" FontWeight="SemiBold"
+                                      Padding="0"
+                                      HorizontalContentAlignment="Center"
+                                      SelectionChanged="ReminderDropdowns_Changed"/>
+                            <TextBlock Text="hours" FontSize="10" HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource SecondaryText}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <TextBlock Text=":" FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource PrimaryText}"
+                                   VerticalAlignment="Top" Margin="10,5,10,0"/>
+                        <StackPanel>
+                            <ComboBox x:Name="ReminderMinCombo"
+                                      Width="76" Height="42" FontSize="18" FontWeight="SemiBold"
+                                      Padding="0"
+                                      HorizontalContentAlignment="Center"
+                                      SelectionChanged="ReminderDropdowns_Changed"/>
+                            <TextBlock Text="minutes" FontSize="10" HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource SecondaryText}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBlock x:Name="ReminderTotalHint"
+                               FontSize="11" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SecondaryText}"
+                               Margin="0,10,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ── Step 3: Silent ────────────────────────────── -->
+            <StackPanel x:Name="Step3Panel" Visibility="Collapsed" MinHeight="80">
+                <Border Background="{DynamicResource InnerCardBg}"
+                        BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                        BorderThickness="1" CornerRadius="10"
+                        Padding="20,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                            <TextBlock Text="Silent schedule"
+                                       FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource PrimaryText}"/>
+                                            <TextBlock Text="Hides the notification banner and reminder for this scheduled switch. To silence manual switches instead, use the Silent toggle on the profile card."
+                                                       FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                                                       TextWrapping="Wrap" LineHeight="16" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <CheckBox x:Name="SilentCheck" Grid.Column="1"
+                                  Style="{StaticResource ToggleSwitchStyle}"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- ── Footer ────────────────────────────────────── -->
+            <DockPanel Margin="0,24,0,0">
+                <Button Content="Cancel" DockPanel.Dock="Left"
+                        Style="{StaticResource ActionButton}"
+                        Padding="16,0"
+                        Click="Cancel_Click"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BackBtn" Content="← Back"
+                            Style="{StaticResource ActionButton}"
+                            Padding="14,0" Margin="0,0,8,0"
+                            Visibility="Collapsed"
+                            Click="Back_Click"/>
+                    <Button x:Name="SkipBtn" Content="Skip"
+                            Style="{StaticResource ActionButton}"
+                            Padding="14,0" Margin="0,0,8,0"
+                            Click="Skip_Click"/>
+                    <Button x:Name="NextBtn" Content="Next →"
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="18,0"
+                            Click="Next_Click"/>
+                </StackPanel>
+            </DockPanel>
+
+        </StackPanel>
+    </Grid>
+</Window>

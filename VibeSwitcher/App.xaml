@@ -196,12 +196,31 @@
 
         <!-- Tooltip: theme-aware background + text -->
         <Style TargetType="ToolTip">
+            <Style.Resources>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                    <Setter Property="FontSize"   Value="11"/>
+                </Style>
+            </Style.Resources>
             <Setter Property="Background"      Value="{DynamicResource TooltipBg}"/>
             <Setter Property="BorderBrush"     Value="{DynamicResource TooltipBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground"      Value="{DynamicResource PrimaryText}"/>
             <Setter Property="Padding"         Value="8,5"/>
             <Setter Property="FontSize"        Value="11"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolTip">
+                        <Border Background="{DynamicResource TooltipBg}"
+                                BorderBrush="{DynamicResource TooltipBorder}"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="8,5">
+                            <ContentPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <!-- Rounded popup with drop shadow -->

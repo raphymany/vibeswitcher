@@ -83,6 +83,33 @@ public class DialogService : IDialogService
         new MicTestDialog(deviceId, deviceName) { Owner = OwnerWindow }.ShowDialog();
     }
 
+    public bool ShowScheduleConflict(string conflictDescription)
+    {
+        return new ConflictRetryDialog(
+            "Schedule Conflict",
+            $"This schedule conflicts with an existing schedule:\n{conflictDescription}\n\nTry again with a different time or days?")
+        { Owner = OwnerWindow }.ShowDialog() == true;
+    }
+
+    public bool ShowConfirmScheduleDelete(string scheduleSummary)
+    {
+        var dialog = new ConfirmDialog(
+            "Remove Schedule?",
+            $"Remove the schedule \"{scheduleSummary}\"?",
+            "Remove",
+            subtitle: "This action cannot be undone.",
+            icon: "🗑",
+            iconBgResource: "ErrorBg")
+        { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true;
+    }
+
+    public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour)
+    {
+        var dialog = new ScheduleWizardDialog(source, use12Hour) { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true ? dialog.Result : null;
+    }
+
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.
     // The front square's fill matches the badge background so it cleanly occludes the back square.
     private static UIElement BuildCopyIcon(Brush badgeBg, Brush stroke)

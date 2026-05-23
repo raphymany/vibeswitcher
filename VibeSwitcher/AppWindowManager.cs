@@ -12,19 +12,22 @@ public class AppWindowManager
     private readonly IHotkeyService _hotkeyService;
     private readonly TrayService _trayService;
     private readonly Action<string> _applyTheme;
+    private readonly Action<Models.DeviceProfile>? _switchProfile;
 
     public AppWindowManager(
         IConfigService configService,
         IAudioService audioService,
         IHotkeyService hotkeyService,
         TrayService trayService,
-        Action<string> applyTheme)
+        Action<string> applyTheme,
+        Action<Models.DeviceProfile>? switchProfile = null)
     {
         _configService = configService;
         _audioService  = audioService;
         _hotkeyService = hotkeyService;
         _trayService   = trayService;
         _applyTheme    = applyTheme;
+        _switchProfile = switchProfile;
     }
 
     public void OpenSettingsWindow()
@@ -43,7 +46,7 @@ public class AppWindowManager
             return;
         }
 
-        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme);
+        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme, _switchProfile);
         window.Show();
     }
 

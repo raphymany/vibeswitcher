@@ -18,7 +18,10 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
     private readonly Action<ProfileCardViewModel> _onClone;
+    private readonly Action<ProfileCardViewModel>? _onActivate;
     private readonly Func<string, Task> _onTestSound;
+    private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
+    private readonly Func<bool> _use12Hour;
 
     private string _name;
     private AudioDeviceInfo? _selectedPlaybackDevice;
@@ -173,6 +176,11 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
+    public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
+
+    public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
+
+    public ICommand ActivateCommand { get; }
     public ICommand CaptureHotkeyCommand { get; }
     public ICommand PickIconCommand { get; }
     public ICommand ApplyNameSuggestionCommand { get; }
@@ -180,6 +188,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand DeleteCommand { get; }
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
+    public ICommand AddScheduleCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -191,7 +200,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         Action<ProfileCardViewModel> onChanged,
         Action<ProfileCardViewModel> onDelete,
         Action<ProfileCardViewModel> onClone,
-        Func<string, Task> onTestSound)
+        Func<string, Task> onTestSound,
+        Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null,
+        Action<ProfileCardViewModel>? onActivate = null)
     {
         _model = model;
         _configService = configService;
@@ -200,7 +211,10 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _onChanged = onChanged;
         _onDelete = onDelete;
         _onClone = onClone;
+        _onActivate = onActivate;
         _onTestSound = onTestSound;
+        _conflictChecker = conflictChecker ?? (_ => []);
+        _use12Hour = () => _configService.Current.Use12HourClock;
 
         _name = model.Name;
         _hotkeyDisplay = model.Hotkey.ToDisplayString();
@@ -220,6 +234,10 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         UpdateIconPreview();
 
+        Schedules = new ObservableCollection<ScheduleEntryViewModel>(
+            model.Schedules.Select(CreateScheduleEntry));
+
+        ActivateCommand = new RelayCommand(() => _onActivate?.Invoke(this), () => !IsActive);
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
         PickIconCommand = new RelayCommand(PickIcon);
         ApplyNameSuggestionCommand = new RelayCommand(param =>
@@ -230,6 +248,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         DeleteCommand = new RelayCommand(DeleteProfile);
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
+        AddScheduleCommand = new RelayCommand(AddSchedule);
     }
 
     private async Task TestSound()
@@ -480,6 +499,84 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     {
         if (_dialogService.ShowConfirmDelete(_model.Name))
             _onDelete(this);
+    }
+
+    private void AddSchedule()
+    {
+        ScheduleEntry source = new ScheduleEntry();
+        while (true)
+        {
+            var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
+            if (result == null) return;
+            var conflicts = _conflictChecker(result).ToList();
+            if (conflicts.Count > 0)
+            {
+                var desc = string.Join("; ", conflicts.Select(c => $"\"{c.profileName}\" ({c.conflictDesc})"));
+                if (_dialogService.ShowScheduleConflict(desc)) { source = result; continue; }
+                return;
+            }
+            _model.Schedules.Add(result);
+            Schedules.Add(CreateScheduleEntry(result));
+            _onChanged(this);
+            return;
+        }
+    }
+
+    private void EditSchedule(ScheduleEntryViewModel vm)
+    {
+        ScheduleEntry source = vm.Entry;
+        while (true)
+        {
+            var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
+            if (result == null) return;
+            var conflicts = _conflictChecker(result).ToList();
+            if (conflicts.Count > 0)
+            {
+                var desc = string.Join("; ", conflicts.Select(c => $"\"{c.profileName}\" ({c.conflictDesc})"));
+                if (_dialogService.ShowScheduleConflict(desc)) { source = result; continue; }
+                return;
+            }
+            var entry = vm.Entry;
+            entry.Hour = result.Hour;
+            entry.Minute = result.Minute;
+            entry.Days = result.Days;
+            entry.ReminderMinutes = result.ReminderMinutes;
+            entry.Silent = result.Silent;
+            vm.RefreshFromEntry();
+            _onChanged(this);
+            return;
+        }
+    }
+
+    private ScheduleEntryViewModel CreateScheduleEntry(ScheduleEntry entry)
+    {
+        return new ScheduleEntryViewModel(
+            entry,
+            use12Hour: _use12Hour,
+            onChanged: () => _onChanged(this),
+            onDelete: vm =>
+            {
+                if (!_dialogService.ShowConfirmScheduleDelete(vm.Summary))
+                    return;
+                _model.Schedules.Remove(vm.Entry);
+                Schedules.Remove(vm);
+                _onChanged(this);
+            },
+            onEdit: EditSchedule,
+            checkConflicts: _conflictChecker,
+            showConflictAlert: msg => _dialogService.ShowAlert("Schedule Conflict", msg));
+    }
+
+    public void RefreshActiveState()
+    {
+        OnPropertyChanged(nameof(IsActive));
+        CommandManager.InvalidateRequerySuggested();
+    }
+
+    public void NotifyTimeFormatChanged()
+    {
+        foreach (var s in Schedules)
+            s.NotifyTimeFormatChanged();
     }
 
     public void Dispose()

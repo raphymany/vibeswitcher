@@ -18,6 +18,17 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Dead `ToggleInactiveBg` brush removed** — unused resource deleted from both `LightTheme.xaml` and `DarkTheme.xaml` *(PR #72)*
 
 ### Added
+- **Profile scheduler (F11)** — each profile card has an "Add Schedule" button that opens a four-step wizard (day selector, time picker, reminder, silent toggle); a `SchedulerService` running a 1-second background timer switches the active profile automatically when a schedule matches the current day and time; re-evaluates after sleep/wake *(PR #74)*
+- **Pre-switch reminder** — each schedule entry has an optional lead-time notification (5, 10, 15, 30 min or custom); fires a balloon tip N minutes before the switch so the user can finish what they're doing or override *(PR #74)*
+- **Per-schedule Silent toggle** — independent of the profile card Silent toggle; profile Silent applies only to manual switches (hotkey, tray, Activate button), schedule Silent applies only to scheduled switches *(PR #74)*
+- **Activate button on profile cards** — switches to a profile directly from the Settings window; displays a green "✓ Active" state when the profile is currently active; refreshes automatically when the Settings window is opened *(PR #74)*
+
+### Fixed
+- **Profile Silent incorrectly suppressed scheduled switch notifications** — `scheduleSilent` changed from `bool` to `bool?` in `ProfileSwitchOrchestrator`; null means manual (use `profile.Silent`), a value means scheduled (use that value, ignoring `profile.Silent`) *(PR #74)*
+- **Scheduler dedup blocked same-minute edits** — replaced the 2-minute elapsed-time guard with slot-based comparison (stored hour:minute:day); editing a schedule time now fires correctly within the same 2-minute window *(PR #74)*
+- **Dark-mode tooltip text unreadable** — `Foreground` setter added to the local `ToolTip` style in `SettingsWindow.xaml` and explicit `Foreground` on each tooltip `TextBlock` *(PR #74)*
+
+### Added
 - **Light / dark mode theming (F16)** — full resource-dictionary theming system with `LightTheme.xaml` and `DarkTheme.xaml` (each ~70 named brushes); `ThemeService` applies the chosen theme by swapping `MergedDictionaries`; an in-app toggle in General Settings persists the preference across launches; covers all windows, dialogs, profile cards, and tray menu *(PR #70)*
 - **Tray separator polish** — separators in the right-click tray menu now use a custom 2.5 px rounded `Border` element spanning the full menu width; replaced `new Separator()` with a tagged `MenuItem` to bypass the WPF ControlTemplate indent *(PR #70)*
 
