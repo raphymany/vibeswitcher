@@ -42,5 +42,9 @@ public class DeviceProfile
 
     public bool Silent { get; set; } = false;
 
+    public bool IsPinned { get; set; } = false;
+
+    public string? Notes { get; set; }
+
     public List<ScheduleEntry> Schedules { get; set; } = new();
 }

@@ -65,6 +65,8 @@
 
     <!-- Warning -->
     <SolidColorBrush x:Key="WarningBg"          Color="#FFF8E0"/>
+    <SolidColorBrush x:Key="WarningBorder"       Color="#FFE082"/>
+    <SolidColorBrush x:Key="WarningText"         Color="#7A5800"/>
 
     <!-- Toggle switch (Color resource for animation) -->
     <Color           x:Key="ToggleOffColor"            >#CCCCCC</Color>

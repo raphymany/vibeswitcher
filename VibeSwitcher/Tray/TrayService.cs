@@ -72,7 +72,7 @@ public class TrayService : IDisposable
         if (header.Length > 127) return header[..127];
 
         var profilesWithHotkeys = _configService.Current.Profiles
-            .OrderBy(p => p.SortOrder)
+            .OrderByDescending(p => p.IsPinned).ThenBy(p => p.SortOrder)
             .Where(p => !p.Hotkey.IsEmpty)
             .Select(p => $"{p.Name}: {p.Hotkey.ToDisplayString()}")
             .ToList();
@@ -91,7 +91,8 @@ public class TrayService : IDisposable
 
     private void CycleNextProfile()
     {
-        var profiles = _configService.Current.Profiles.OrderBy(p => p.SortOrder).ToList();
+        var profiles = _configService.Current.Profiles
+            .OrderByDescending(p => p.IsPinned).ThenBy(p => p.SortOrder).ToList();
         if (profiles.Count <= 1) return;
 
         var activeId = _configService.Current.ActiveProfileId;
@@ -157,23 +158,40 @@ public class TrayService : IDisposable
         catch (Exception ex) { AppLogger.Warning("TrayService.RebuildMenu", ex.Message); }
 
         var activeId = _configService.Current.ActiveProfileId;
-        var profiles = _configService.Current.Profiles.OrderBy(p => p.SortOrder).ToList();
+        var allProfiles = _configService.Current.Profiles.OrderBy(p => p.SortOrder).ToList();
+        var pinned   = allProfiles.Where(p => p.IsPinned).ToList();
+        var unpinned = allProfiles.Where(p => !p.IsPinned).ToList();
 
-        if (profiles.Count > 0)
+        if (allProfiles.Count > 0)
         {
-            foreach (var profile in profiles)
+            foreach (var profile in pinned)
             {
                 var item = new MenuItem
                 {
-                    Header = BuildProfileHeader(profile),
+                    Header = BuildProfileHeader(profile, pinned: true),
                     IsChecked = activeId.HasValue && profile.Id == activeId.Value,
                     Padding = new Thickness(12, 8, 16, 8),
                     Tag = profile.Id,
                 };
-
                 var capturedProfile = profile;
                 item.Click += (_, _) => SwitchRequested?.Invoke(capturedProfile);
+                _contextMenu.Items.Add(item);
+            }
 
+            if (pinned.Count > 0 && unpinned.Count > 0)
+                _contextMenu.Items.Add(BuildSeparator());
+
+            foreach (var profile in unpinned)
+            {
+                var item = new MenuItem
+                {
+                    Header = BuildProfileHeader(profile, pinned: false),
+                    IsChecked = activeId.HasValue && profile.Id == activeId.Value,
+                    Padding = new Thickness(12, 8, 16, 8),
+                    Tag = profile.Id,
+                };
+                var capturedProfile = profile;
+                item.Click += (_, _) => SwitchRequested?.Invoke(capturedProfile);
                 _contextMenu.Items.Add(item);
             }
 
@@ -284,7 +302,7 @@ public class TrayService : IDisposable
     }
 
     // Two-line profile item: [profile icon]  Name / Mode subtitle
-    private UIElement BuildProfileHeader(DeviceProfile profile)
+    private UIElement BuildProfileHeader(DeviceProfile profile, bool pinned = false)
     {
         var modeLabel = profile.Mode switch
         {
@@ -331,7 +349,8 @@ public class TrayService : IDisposable
         }
         Grid.SetColumn(iconElement, 0);
 
-        var nameBlock = new TextBlock { Text = profile.Name, FontSize = 13, FontWeight = FontWeights.SemiBold };
+        var nameText = pinned ? $"★ {profile.Name}" : profile.Name;
+        var nameBlock = new TextBlock { Text = nameText, FontSize = 13, FontWeight = FontWeights.SemiBold };
         nameBlock.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryText");
 
         var subBlock = new TextBlock { Text = modeLabel, FontSize = 11, Margin = new Thickness(0, 1, 0, 0) };

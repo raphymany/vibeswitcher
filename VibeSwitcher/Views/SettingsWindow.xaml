@@ -352,6 +352,8 @@
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
                                         </Grid.RowDefinitions>
 
                                         <!-- Drag grip -->
@@ -401,14 +403,44 @@
                                                  Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                                  MaxLength="20"
                                                  Margin="0,0,0,10"/>
-                                        <Border Grid.Row="0" Grid.Column="3"
-                                                Margin="8,0,0,10" VerticalAlignment="Center"
-                                                Background="{DynamicResource ChipBg}" BorderBrush="{DynamicResource ChipBorder}"
-                                                BorderThickness="1" CornerRadius="5" Padding="10,4">
-                                            <TextBlock Text="{Binding ModeLabel}"
-                                                       FontSize="11" Foreground="{DynamicResource ChipText}"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
+                                        <StackPanel Grid.Row="0" Grid.Column="3"
+                                                    Orientation="Vertical" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <Border Background="{DynamicResource ChipBg}" BorderBrush="{DynamicResource ChipBorder}"
+                                                    BorderThickness="1" CornerRadius="5" Padding="10,4" Margin="0,0,0,6">
+                                                <TextBlock Text="{Binding ModeLabel}"
+                                                           FontSize="11" Foreground="{DynamicResource ChipText}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <ToggleButton IsChecked="{Binding IsPinned}"
+                                                          HorizontalAlignment="Center"
+                                                          Margin="0,0,0,10"
+                                                          ToolTip="Pin this profile to the top of the tray menu"
+                                                          ToolTipService.InitialShowDelay="400">
+                                                <ToggleButton.Style>
+                                                    <Style TargetType="ToggleButton">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Cursor" Value="Hand"/>
+                                                        <Setter Property="Content" Value="☆"/>
+                                                        <Setter Property="FontSize" Value="16"/>
+                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                                <Setter Property="Content" Value="★"/>
+                                                                <Setter Property="Foreground" Value="#FFB300"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ToggleButton.Style>
+                                            </ToggleButton>
+                                        </StackPanel>
 
                                         <!-- Name suggestions -->
                                         <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
@@ -673,12 +705,67 @@
                                             </Border>
                                         </StackPanel>
 
+                                        <!-- Notes -->
+                                        <TextBlock Grid.Row="6" Grid.Column="1"
+                                                   Text="Notes" Style="{StaticResource LabelText}"
+                                                   VerticalAlignment="Top" Margin="0,4,0,0"/>
+                                        <Grid Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                            <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
+                                                     MaxLength="200"/>
+                                            <TextBlock Text="Add a note about this profile..."
+                                                       IsHitTestVisible="False"
+                                                       Foreground="{DynamicResource TertiaryText}"
+                                                       FontStyle="Italic"
+                                                       VerticalAlignment="Center"
+                                                       Margin="5,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Notes}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Notes}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+
+                                        <!-- Validation warning -->
+                                        <Border Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4"
+                                                Margin="0,0,0,8" Padding="10,7" CornerRadius="5"
+                                                Background="{DynamicResource WarningBg}"
+                                                BorderBrush="{DynamicResource WarningBorder}"
+                                                BorderThickness="1">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasValidationWarning}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="⚠" FontSize="12" Margin="0,0,8,0"
+                                                           Foreground="{DynamicResource WarningText}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding ValidationWarning}"
+                                                           FontSize="11" TextWrapping="Wrap"
+                                                           Foreground="{DynamicResource WarningText}"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Separator -->
-                                        <Border Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="4"
+                                        <Border Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Height="1" Background="{DynamicResource CardSeparator}" Margin="0,0,0,12"/>
 
                                         <!-- Bottom row: Silent toggle + Clone + Delete -->
-                                        <Grid Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4">
+                                        <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4">
                                             <CheckBox IsChecked="{Binding Silent}"
                                                       Style="{StaticResource ToggleSwitchStyle}"
                                                       HorizontalAlignment="Left"
@@ -742,7 +829,7 @@
                                             </StackPanel>
                                         </Grid>
                                         <!-- Schedule section -->
-                                        <Border Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4"
+                                        <Border Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Margin="0,8,0,0">
                                             <StackPanel>
 

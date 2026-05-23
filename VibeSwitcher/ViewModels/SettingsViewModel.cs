@@ -521,6 +521,7 @@ public class SettingsViewModel : ViewModelBase
         _configService.SaveImmediate();
         card.TriggerSaveFlash();
         ReregisterHotkeys();
+        foreach (var c in Profiles) c.RefreshValidation();
         _onProfilesChanged();
     }
 
