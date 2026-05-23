@@ -539,7 +539,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F8 | Auto-updater with GitHub Releases version check |
 | F9 | Windows 11 Toast notifications — replace the current balloon tip with the modern Windows 10/11 Toast API so notifications persist in Action Center, support richer formatting, and stack/dismiss properly |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
-| F11 | Profile scheduler (e.g., work headset 9-5, speakers evenings) |
+| ~~F11~~ | ~~Profile scheduler (e.g., work headset 9-5, speakers evenings)~~ | ✅ Done — PR #74 |
 | ~~F12~~ | ~~Command-line interface: `VibeSwitcher.exe --switch "Profile Name"`~~ | Removed |
 | F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
 | ~~F14~~ | ~~System tray scroll wheel for volume control~~ | Removed |
@@ -740,6 +740,8 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~32~~ | ~~`feat/settings-polish`~~ | ✅ Done — PR #68 |
 | ~~45~~ | ~~`feat/appearance-modes`~~ | ✅ Done — PR #70 |
 | ~~46~~ | ~~`fix/appearance-qa`~~ | ✅ Done — PR #72 |
+| ~~33~~ | ~~`feat/profile-scheduler`~~ | ✅ Done — PR #74 |
+| 47 | `refactor/code-quality` | Planned |
 
 ---
 
@@ -1097,3 +1099,32 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | Settings header icon restored — `AppHeaderIcon.Source` now set alongside `AppTitleBar.IconSource` in the constructor; the app icon appears to the left of the "VibeSwitcher" heading | ✅ Done |
 | — | Title bar maximize button vertically aligned — `MaxBtn` content wrapped in a named `TextBlock` with `Margin="0,0,0,5"`; the 5 px bottom margin shifts the □ glyph up to sit level with − and ✕, which render at different font-metric baselines in Segoe UI | ✅ Done |
 | — | Tray separators equalized — changed from a 2.5 px rounded `Border` inside a `Height=13` `MenuItem` to a 1 px flat `Border` with 4 px top/bottom margin and no explicit `MenuItem` height; all three separators are now content-driven at the same 9 px total height | ✅ Done |
+
+---
+
+### ~~Branch 33: `feat/profile-scheduler`~~ ✅ Done — PR #74
+**Theme:** Time-based automatic profile switching with optional pre-switch reminder.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F11 | `SchedulerService` — 1-second `DispatcherTimer` evaluates every profile's schedule entries on each tick; switches automatically when day + hour + minute match; re-evaluates on power-mode resume after sleep | ✅ Done |
+| F11 (wizard) | Four-step schedule wizard (`ScheduleWizardDialog`) — day selector, time picker, reminder picker, silent toggle; replaces the previous inline row editor | ✅ Done |
+| F11 (reminder) | Optional pre-switch reminder — configurable lead time per entry (5, 10, 15, 30 min or custom); fires a balloon tip N minutes before the switch | ✅ Done |
+| F11 (silent) | Per-schedule Silent toggle — independent of the profile card Silent toggle; profile Silent applies to manual switches only, schedule Silent applies to scheduled switches only | ✅ Done |
+| F11 (conflict) | Schedule conflict detection — `ScheduleConflictDialog` prompts when a new schedule time conflicts with an existing entry on the same profile | ✅ Done |
+| — | Activate button on profile cards — switches to a profile directly from Settings; shows green "✓ Active" state; refreshes on window show | ✅ Done |
+| — | Silent logic fix — `scheduleSilent` changed from `bool` to `bool?` in `ProfileSwitchOrchestrator`; null = manual (use profile.Silent), value = scheduled (use that value) | ✅ Done |
+| — | Scheduler dedup fix — slot-based comparison (stored hour:minute:day) replaces the 2-min elapsed-time guard; editing a schedule time now fires correctly the same minute | ✅ Done |
+| — | Dark-mode tooltip text — `Foreground` setter added to the local `ToolTip` style in `SettingsWindow` plus explicit `Foreground` on each tooltip `TextBlock` | ✅ Done |
+
+---
+
+### Branch 47: `refactor/code-quality`
+**Theme:** Code quality improvements identified during internal review of the scheduler branch.
+
+| # | Item | Status |
+|---|------|--------|
+| R7 | `AudioService` god class — splits into focused services: enumeration, switching, test-tone, mic-level monitor, device notifications | Open |
+| R8 | `ProfileCardViewModel` hotkey conflict `while(true)` loop — workflow logic belongs in a service or orchestrator, not a ViewModel | Open |
+| R9 | `AppLogger._logPathOverride` static hatch — used only in tests; correct fix is injecting a logger interface (`IAppLogger`) rather than bolting a test escape onto a static class | Open |
+| R10 | Icon deletion copy-paste — `DeleteOrphanedIcon` logic is duplicated verbatim between two methods in `ProfileCardViewModel`; extract to a single private helper | Open |

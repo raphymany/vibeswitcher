@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-05-22 — Branch 46 (`fix/appearance-qa`) merged as PR #72.
+**Last updated:** 2026-05-23 — Branch 33 (`feat/profile-scheduler`) merged as PR #74.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -104,7 +104,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
 | F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
-| F11 | Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override | 33 |
+| ~~F11~~ | ~~Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override~~ | ✅ Done — PR #74 |
 | ~~F16~~ | ~~Light / dark / high-contrast support — replace hardcoded colours with `SystemColors` brushes so the app follows the Windows OS theme automatically~~ | ✅ Done — PR #70 |
 | ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ | ✅ Done — PR #68 |
@@ -147,13 +147,8 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 33: `feat/profile-scheduler`
+### ~~Branch 33: `feat/profile-scheduler`~~ ✅ Merged — PR #74
 **Theme:** Time-based automatic profile switching.
-
-| # | Feature |
-|---|---------|
-| F11 | Profile scheduler — per-profile schedule (time + days of week); background timer checks current time and switches automatically; integrates with the existing power-mode wake handler so schedules re-evaluate correctly after sleep/wake |
-| F11 (reminder) | Optional pre-switch reminder notification — each schedule entry has a configurable lead time (e.g. 5 min before, or disabled); fires a balloon tip like "Gaming Setup activates in 5 minutes" so the user can finish what they're doing or manually override before the switch happens |
 
 ---
 
@@ -237,6 +232,18 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | # | Feature |
 |---|---------|
 | F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle |
+
+---
+
+### Branch 47: `refactor/code-quality`
+**Theme:** Code quality improvements identified during review of the scheduler branch.
+
+| # | Item |
+|---|------|
+| R7 | `AudioService` god class — splits into focused services (enumeration, switching, test-tone, mic-level, device notifications) |
+| R8 | `ProfileCardViewModel` hotkey conflict `while(true)` loop — move workflow logic out of the ViewModel into a service or orchestrator |
+| R9 | `AppLogger._logPathOverride` static hatch — extract `IAppLogger` interface and inject it so tests don't need a secret escape hatch |
+| R10 | Icon deletion copy-paste — `DeleteOrphanedIcon` logic duplicated verbatim between two methods; extract to a single private helper |
 
 ---
 
