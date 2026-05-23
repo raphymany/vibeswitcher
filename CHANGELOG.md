@@ -6,6 +6,22 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **Profile notes (F32)** — optional short description field on each profile card, placed below the profile name; `MaxLength` of 61 characters; stored per profile with an ⓘ badge tooltip explaining the limit *(PR #76)*
+- **Pinned / favorite profiles (F33)** — star toggle in each profile card footer; pinned profiles sort above unpinned ones in both the Settings list and the tray right-click menu; `SortOrder` is renumbered after each pin change to keep ordering stable *(PR #76)*
+- **Profile validation warnings (F34)** — inline warning badge on cards for disconnected or unavailable audio devices and missing icon files; device check is suppressed until the first device enumeration completes to avoid false warnings at startup *(PR #76)*
+- **Real-time icon file watcher** — a `FileSystemWatcher` in `ProfileCardViewModel` re-validates the icon path when the file is created or deleted while the Settings window is open *(PR #76)*
+
+### Performance
+- **Config saves moved off the UI thread** — all config saves (profile switch and settings edits) now run on a background thread via `Task.Run`; no longer blocks the UI thread during disk writes *(PR #78)*
+- **Tray icon bytes cache** — raw icon bytes cached per profile after the first load; a fresh `Icon` object is reconstructed from memory on each switch so no disk I/O is needed on repeat switches *(PR #78)*
+- **Scheduler timer reduced** — `SchedulerService` background tick interval changed from 1 second to 10 seconds; minute-level precision is sufficient and eliminates over 3,000 unnecessary UI-thread wakeups per hour *(PR #78)*
+- **`AppLogger` write path optimized** — removed `Directory.CreateDirectory` syscall from every log write; the directory is guaranteed to exist after session start *(PR #78)*
+- **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
+
+### Fixed
+- **`ObjectDisposedException` on tray icon** — H.NotifyIcon disposes the old `Icon` object on each assignment; the previous icon object cache caused a crash when switching back to a profile whose icon had already been disposed. Fixed by caching raw bytes and always providing a fresh `Icon` instance *(PR #78)*
+
 ### Fixed
 - **`AccentColor` fallback for toggle animation** — toggle switch `ColorAnimation.To` now references `{StaticResource AccentColor}` instead of a hardcoded hex; a `Color` fallback in `App.xaml` satisfies parse-time resolution and theme files override it at runtime *(PR #72)*
 - **ConfirmDialog icon badge updates with theme** — badge background switched from `TryFindResource` to `SetResourceReference` so it responds to theme changes while the dialog is open *(PR #72)*
