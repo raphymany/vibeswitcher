@@ -147,22 +147,6 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### ~~Branch 33: `feat/profile-scheduler`~~ ✅ Merged — PR #74
-**Theme:** Time-based automatic profile switching.
-
----
-
-### ~~Branch 35: `feat/profile-card-extras`~~ ✅ Merged — PR #76
-**Theme:** Small per-profile additions to the Settings card that don't touch audio logic.
-
-| # | Feature |
-|---|---------|
-| ~~F32~~ | ~~Profile notes — optional short description field per card~~ |
-| ~~F33~~ | ~~Favorite / pinned profiles — star flag; pinned profiles appear at the top of the tray menu~~ |
-| ~~F34~~ | ~~Profile validation warnings — inline flags for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ |
-
----
-
 ### Branch 48: `perf/switch-optimizations` — PR #78 open
 **Theme:** Micro-optimizations to reduce UI-thread pressure and disk I/O in the hot path and idle background.
 
