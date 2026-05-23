@@ -16,6 +16,7 @@ public class SettingsViewModel : ViewModelBase
     private readonly Action _onProfilesChanged;
     private readonly Action<HotkeyConflictException> _onHotkeyConflict;
     private readonly Action<string> _applyTheme;
+    private readonly Action<Models.DeviceProfile>? _switchProfile;
 
     private bool _startWithWindows;
     private bool _startMinimized;
@@ -263,7 +264,8 @@ public class SettingsViewModel : ViewModelBase
         IDialogService dialogService,
         Action onProfilesChanged,
         Action<HotkeyConflictException> onHotkeyConflict,
-        Action<string> applyTheme)
+        Action<string> applyTheme,
+        Action<Models.DeviceProfile>? switchProfile = null)
     {
         _configService = configService;
         _audioService = audioService;
@@ -273,6 +275,7 @@ public class SettingsViewModel : ViewModelBase
         _onProfilesChanged = onProfilesChanged;
         _onHotkeyConflict = onHotkeyConflict;
         _applyTheme = applyTheme;
+        _switchProfile = switchProfile;
 
         _startWithWindows = startupService.IsStartupEnabled();
         _startMinimized = configService.Current.StartMinimized;
@@ -387,7 +390,21 @@ public class SettingsViewModel : ViewModelBase
             onDelete: card => DeleteProfile(card),
             onClone: card => CloneProfile(card),
             onTestSound: deviceId => _audioService.TestSoundAsync(deviceId),
-            conflictChecker: entry => GetScheduleConflicts(profile, entry));
+            conflictChecker: entry => GetScheduleConflicts(profile, entry),
+            onActivate: card => ActivateProfile(card));
+    }
+
+    private void ActivateProfile(ProfileCardViewModel card)
+    {
+        _configService.Current.ActiveProfileId = card.Model.Id;
+        RefreshActiveStates();
+        _switchProfile?.Invoke(card.Model);
+    }
+
+    public void RefreshActiveStates()
+    {
+        foreach (var card in Profiles)
+            card.RefreshActiveState();
     }
 
     private IEnumerable<(string profileName, string conflictDesc)> GetScheduleConflicts(

@@ -291,9 +291,9 @@
                             <TextBlock Text="Silent schedule"
                                        FontSize="13" FontWeight="SemiBold"
                                        Foreground="{DynamicResource PrimaryText}"/>
-                            <TextBlock Text="Switch the profile without showing a notification banner."
-                                       FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                       TextWrapping="Wrap" LineHeight="16" Margin="0,4,0,0"/>
+                                            <TextBlock Text="Hides the notification banner and reminder for this scheduled switch. To silence manual switches instead, use the Silent toggle on the profile card."
+                                                       FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                                                       TextWrapping="Wrap" LineHeight="16" Margin="0,4,0,0"/>
                         </StackPanel>
                         <CheckBox x:Name="SilentCheck" Grid.Column="1"
                                   Style="{StaticResource ToggleSwitchStyle}"

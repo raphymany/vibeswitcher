@@ -43,7 +43,7 @@ public class ProfileSwitchOrchestrator : IDisposable
 
     // async void is intentional: called as fire-and-forget from WndProc, PowerModeChanged, and tray click.
     // The try/catch ensures exceptions are always handled, so the async void is safe.
-    public async void SwitchToProfile(DeviceProfile profile, bool scheduleSilent = false)
+    public async void SwitchToProfile(DeviceProfile profile, bool? scheduleSilent = null)
     {
         // Drop concurrent switch requests — spamming the hotkey or tray menu cannot queue overlapping
         // ApplyProfileAsync calls, which would leave audio devices in an undefined state.
@@ -85,7 +85,8 @@ public class ProfileSwitchOrchestrator : IDisposable
                 {
                     if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
                     {
-                        if (!profile.Silent && !scheduleSilent)
+                        bool effectiveSilent = scheduleSilent.HasValue ? scheduleSilent.Value : profile.Silent;
+                        if (!effectiveSilent)
                             _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
                     }
                     else

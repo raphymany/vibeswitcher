@@ -18,6 +18,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
     private readonly Action<ProfileCardViewModel> _onClone;
+    private readonly Action<ProfileCardViewModel>? _onActivate;
     private readonly Func<string, Task> _onTestSound;
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
     private readonly Func<bool> _use12Hour;
@@ -177,6 +178,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
 
+    public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
+
+    public ICommand ActivateCommand { get; }
     public ICommand CaptureHotkeyCommand { get; }
     public ICommand PickIconCommand { get; }
     public ICommand ApplyNameSuggestionCommand { get; }
@@ -197,7 +201,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         Action<ProfileCardViewModel> onDelete,
         Action<ProfileCardViewModel> onClone,
         Func<string, Task> onTestSound,
-        Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null)
+        Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null,
+        Action<ProfileCardViewModel>? onActivate = null)
     {
         _model = model;
         _configService = configService;
@@ -206,6 +211,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _onChanged = onChanged;
         _onDelete = onDelete;
         _onClone = onClone;
+        _onActivate = onActivate;
         _onTestSound = onTestSound;
         _conflictChecker = conflictChecker ?? (_ => []);
         _use12Hour = () => _configService.Current.Use12HourClock;
@@ -231,6 +237,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         Schedules = new ObservableCollection<ScheduleEntryViewModel>(
             model.Schedules.Select(CreateScheduleEntry));
 
+        ActivateCommand = new RelayCommand(() => _onActivate?.Invoke(this), () => !IsActive);
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
         PickIconCommand = new RelayCommand(PickIcon);
         ApplyNameSuggestionCommand = new RelayCommand(param =>
@@ -558,6 +565,12 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             onEdit: EditSchedule,
             checkConflicts: _conflictChecker,
             showConflictAlert: msg => _dialogService.ShowAlert("Schedule Conflict", msg));
+    }
+
+    public void RefreshActiveState()
+    {
+        OnPropertyChanged(nameof(IsActive));
+        CommandManager.InvalidateRequerySuggested();
     }
 
     public void NotifyTimeFormatChanged()

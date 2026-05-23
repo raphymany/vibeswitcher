@@ -60,10 +60,10 @@ public class SchedulerService : IDisposable
                 if (entry.Days.Contains(now.DayOfWeek) &&
                     entry.Hour == now.Hour && entry.Minute == now.Minute)
                 {
-                    if (!_lastSwitchFired.TryGetValue(entry.Id, out var last) ||
-                        (now - last).TotalMinutes >= 2)
+                    var slot = new DateTime(now.Year, now.Month, now.Day, entry.Hour, entry.Minute, 0);
+                    if (!_lastSwitchFired.TryGetValue(entry.Id, out var last) || last != slot)
                     {
-                        _lastSwitchFired[entry.Id] = now;
+                        _lastSwitchFired[entry.Id] = slot;
                         _switchCallback(profile, entry.Silent);
                     }
                 }
@@ -75,10 +75,10 @@ public class SchedulerService : IDisposable
                         reminderTarget.Hour == entry.Hour &&
                         reminderTarget.Minute == entry.Minute)
                     {
-                        if (!_lastReminderFired.TryGetValue(entry.Id, out var lastReminder) ||
-                            (now - lastReminder).TotalMinutes >= 2)
+                        var reminderSlot = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
+                        if (!_lastReminderFired.TryGetValue(entry.Id, out var lastReminder) || lastReminder != reminderSlot)
                         {
-                            _lastReminderFired[entry.Id] = now;
+                            _lastReminderFired[entry.Id] = reminderSlot;
                             _notifyCallback("VibeSwitcher",
                                 $"{profile.Name} activates in {entry.ReminderMinutes} minutes");
                         }
