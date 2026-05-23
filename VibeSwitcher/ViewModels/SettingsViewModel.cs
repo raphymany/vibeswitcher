@@ -58,7 +58,7 @@ public class SettingsViewModel : ViewModelBase
             if (SetField(ref _startMinimized, value))
             {
                 _configService.Current.StartMinimized = value;
-                _configService.SaveImmediate();
+                SaveAsync();
             }
         }
     }
@@ -71,7 +71,7 @@ public class SettingsViewModel : ViewModelBase
             if (SetField(ref _closeToTray, value))
             {
                 _configService.Current.CloseToTray = value;
-                _configService.SaveImmediate();
+                SaveAsync();
             }
         }
     }
@@ -84,7 +84,7 @@ public class SettingsViewModel : ViewModelBase
             if (SetField(ref _showNotifications, value))
             {
                 _configService.Current.ShowNotifications = value;
-                _configService.SaveImmediate();
+                SaveAsync();
             }
         }
     }
@@ -97,7 +97,7 @@ public class SettingsViewModel : ViewModelBase
             if (SetField(ref _useLegacySoundPanel, value))
             {
                 _configService.Current.UseLegacySoundPanel = value;
-                _configService.SaveImmediate();
+                SaveAsync();
             }
         }
     }
@@ -110,7 +110,7 @@ public class SettingsViewModel : ViewModelBase
             if (SetField(ref _showDisabledDevices, value))
             {
                 _configService.Current.ShowDisabledDevices = value;
-                _configService.SaveImmediate();
+                SaveAsync();
                 PushFilteredDevices();
             }
         }
@@ -124,7 +124,7 @@ public class SettingsViewModel : ViewModelBase
             if (SetField(ref _showDisconnectedDevices, value))
             {
                 _configService.Current.ShowDisconnectedDevices = value;
-                _configService.SaveImmediate();
+                SaveAsync();
                 PushFilteredDevices();
             }
         }
@@ -138,7 +138,7 @@ public class SettingsViewModel : ViewModelBase
             if (SetField(ref _leftClickCyclesProfiles, value))
             {
                 _configService.Current.LeftClickCyclesProfiles = value;
-                _configService.SaveImmediate();
+                SaveAsync();
             }
         }
     }
@@ -152,7 +152,7 @@ public class SettingsViewModel : ViewModelBase
         {
             if (_configService.Current.Use12HourClock == value) return;
             _configService.Current.Use12HourClock = value;
-            _configService.SaveImmediate();
+            SaveAsync();
             OnPropertyChanged(nameof(Use12HourClock));
             OnPropertyChanged(nameof(Use24HourClock));
             foreach (var card in Profiles)
@@ -184,7 +184,7 @@ public class SettingsViewModel : ViewModelBase
             };
             if (_configService.Current.Theme == stored) return;
             _configService.Current.Theme = stored;
-            _configService.SaveImmediate();
+            SaveAsync();
             _applyTheme(stored);
             OnPropertyChanged();
         }
@@ -197,7 +197,7 @@ public class SettingsViewModel : ViewModelBase
         {
             if (_configService.Current.SettingsCardExpanded == value) return;
             _configService.Current.SettingsCardExpanded = value;
-            _configService.SaveImmediate();
+            SaveAsync();
             OnPropertyChanged();
         }
     }
@@ -208,7 +208,7 @@ public class SettingsViewModel : ViewModelBase
         set
         {
             _configService.Current.SettingsHotkey = value;
-            _configService.SaveImmediate();
+            SaveAsync();
             _hotkeyService.UnregisterSettingsHotkey();
             if (!value.IsEmpty && _configService.Current.SettingsHotkeyEnabled)
             {
@@ -237,7 +237,7 @@ public class SettingsViewModel : ViewModelBase
         {
             if (_configService.Current.SettingsHotkeyEnabled == value) return;
             _configService.Current.SettingsHotkeyEnabled = value;
-            _configService.SaveImmediate();
+            SaveAsync();
             if (value)
             {
                 var hk = _configService.Current.SettingsHotkey;
@@ -256,6 +256,8 @@ public class SettingsViewModel : ViewModelBase
     }
 
     public ICommand AddProfileCommand { get; }
+
+    private void SaveAsync() => Task.Run(_configService.SaveImmediate);
 
     public SettingsViewModel(
         IConfigService configService,
@@ -474,7 +476,7 @@ public class SettingsViewModel : ViewModelBase
             // original would immediately trigger schedule conflicts on every tick
         };
         _configService.Current.Profiles.Add(clone);
-        _configService.SaveImmediate();
+        SaveAsync();
         var newCard = CreateCard(clone);
         newCard.LoadDevices(FilterDevices(_playbackDevices), FilterDevices(_recordingDevices));
         Profiles.Add(newCard);
@@ -489,7 +491,7 @@ public class SettingsViewModel : ViewModelBase
         Profiles.Move(oldIndex, newIndex);
         for (int i = 0; i < Profiles.Count; i++)
             Profiles[i].Model.SortOrder = i;
-        _configService.SaveImmediate();
+        SaveAsync();
         _onProfilesChanged();
     }
 
@@ -506,7 +508,7 @@ public class SettingsViewModel : ViewModelBase
         };
 
         _configService.Current.Profiles.Add(profile);
-        _configService.SaveImmediate();
+        SaveAsync();
 
         var card = CreateCard(profile);
         Profiles.Add(card);
@@ -523,7 +525,7 @@ public class SettingsViewModel : ViewModelBase
         // later assign SortOrder = Profiles.Count after a delete has left gaps.
         for (int i = 0; i < Profiles.Count; i++)
             Profiles[i].Model.SortOrder = i;
-        _configService.SaveImmediate();
+        SaveAsync();
         DeleteOrphanedIcon(iconPath, _configService.IconsDir);
         ReregisterHotkeys();
         _onProfilesChanged();
@@ -545,10 +547,10 @@ public class SettingsViewModel : ViewModelBase
 
     private void OnProfileChanged(ProfileCardViewModel card)
     {
-        _configService.SaveImmediate();
+        SaveAsync();
         card.TriggerSaveFlash();
         ReregisterHotkeys();
-        foreach (var c in Profiles) c.RefreshValidation();
+        card.RefreshValidation();
         MaybeSortProfiles();
         _onProfilesChanged();
     }
@@ -574,7 +576,7 @@ public class SettingsViewModel : ViewModelBase
         }
         for (int i = 0; i < Profiles.Count; i++)
             Profiles[i].Model.SortOrder = i;
-        _configService.SaveImmediate();
+        SaveAsync();
     }
 
     public void ExportConfig(string destinationPath)

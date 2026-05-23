@@ -40,7 +40,6 @@ public static class AppLogger
 
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(EffectivePath)!);
             RotateIfNeeded();
             File.AppendAllText(EffectivePath, line + Environment.NewLine);
         }
