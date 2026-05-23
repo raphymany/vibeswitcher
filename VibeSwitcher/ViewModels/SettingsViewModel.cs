@@ -31,6 +31,7 @@ public class SettingsViewModel : ViewModelBase
     private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
     private volatile IReadOnlyList<AudioDeviceInfo> _recordingDevices = [];
     private CancellationTokenSource? _loadCts;
+    private System.IO.FileSystemWatcher? _iconWatcher;
 
     public ObservableCollection<ProfileCardViewModel> Profiles { get; }
 
@@ -302,6 +303,30 @@ public class SettingsViewModel : ViewModelBase
         // Enumerate audio devices once on a background STA thread, then populate all cards.
         // Cards start with empty device dropdowns and populate within a fraction of a second.
         _ = LoadDevicesAsync();
+
+        InitIconWatcher();
+    }
+
+    private void InitIconWatcher()
+    {
+        var dir = _configService.IconsDir;
+        if (!System.IO.Directory.Exists(dir)) return;
+        _iconWatcher = new System.IO.FileSystemWatcher(dir)
+        {
+            NotifyFilter = System.IO.NotifyFilters.FileName,
+            Filter = "*.ico",
+            EnableRaisingEvents = true
+        };
+        _iconWatcher.Deleted += OnIconFileChanged;
+        _iconWatcher.Renamed += OnIconFileChanged;
+    }
+
+    private void OnIconFileChanged(object sender, System.IO.FileSystemEventArgs e)
+    {
+        System.Windows.Application.Current?.Dispatcher.InvokeAsync(() =>
+        {
+            foreach (var c in Profiles) c.RefreshValidation();
+        });
     }
 
     private void OnDevicesChanged()
@@ -440,8 +465,10 @@ public class SettingsViewModel : ViewModelBase
             // IconPath intentionally not copied — both profiles sharing the same file path would
             // cause DeleteOrphanedIcon to delete the icon for whichever profile is deleted first,
             // silently breaking the other. The user can re-browse the icon on the clone.
+            Notes = original.Notes,
             Silent = original.Silent,
             SortOrder = Profiles.Count,
+            // IsPinned intentionally not copied — clone starts unpinned
             // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
             // Schedules intentionally not copied — cloned schedules at the same time as the
             // original would immediately trigger schedule conflicts on every tick
@@ -521,7 +548,33 @@ public class SettingsViewModel : ViewModelBase
         _configService.SaveImmediate();
         card.TriggerSaveFlash();
         ReregisterHotkeys();
+        foreach (var c in Profiles) c.RefreshValidation();
+        MaybeSortProfiles();
         _onProfilesChanged();
+    }
+
+    private void MaybeSortProfiles()
+    {
+        var sorted = Profiles
+            .OrderByDescending(c => c.Model.IsPinned)
+            .ThenBy(c => c.Model.SortOrder)
+            .ToList();
+
+        bool inOrder = true;
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            if (!ReferenceEquals(Profiles[i], sorted[i])) { inOrder = false; break; }
+        }
+        if (inOrder) return;
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            int cur = Profiles.IndexOf(sorted[i]);
+            if (cur != i) Profiles.Move(cur, i);
+        }
+        for (int i = 0; i < Profiles.Count; i++)
+            Profiles[i].Model.SortOrder = i;
+        _configService.SaveImmediate();
     }
 
     public void ExportConfig(string destinationPath)

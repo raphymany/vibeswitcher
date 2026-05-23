@@ -30,7 +30,10 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private string? _iconPath;
     private ImageSource? _iconPreview;
     private bool _loadingDevices;
+    private bool _devicesLoaded;
     private bool _saveFlash;
+    private string? _cachedWarning;
+    private bool _warningCacheValid;
     private CancellationTokenSource? _flashCts;
 
     public DeviceProfile Model => _model;
@@ -176,6 +179,66 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
+    public bool IsPinned
+    {
+        get => _model.IsPinned;
+        set
+        {
+            if (_model.IsPinned == value) return;
+            _model.IsPinned = value;
+            OnPropertyChanged(nameof(IsPinned));
+            _onChanged(this);
+        }
+    }
+
+    public string? Notes
+    {
+        get => _model.Notes;
+        set
+        {
+            if (_model.Notes == value) return;
+            _model.Notes = value;
+            OnPropertyChanged(nameof(Notes));
+            _onChanged(this);
+        }
+    }
+
+    public string? ValidationWarning
+    {
+        get
+        {
+            if (_warningCacheValid) return _cachedWarning;
+
+            var warnings = new List<string>();
+
+            // Skip device connectivity checks until the first device load completes — avoids
+            // false "disconnected" warnings during the brief startup window before enumeration.
+            if (_devicesLoaded)
+            {
+                // NoneDevice has Id="" — all real devices have a non-empty Id, so record
+                // equality against NoneDevice means "saved device ID not found in the enum list".
+                if (!string.IsNullOrEmpty(_model.PlaybackDeviceId) &&
+                    (_selectedPlaybackDevice == NoneDevice ||
+                     (_selectedPlaybackDevice != null && !_selectedPlaybackDevice.IsConnected)))
+                    warnings.Add("Playback device is disconnected or unavailable.");
+
+                if (!string.IsNullOrEmpty(_model.RecordingDeviceId) &&
+                    (_selectedRecordingDevice == NoneDevice ||
+                     (_selectedRecordingDevice != null && !_selectedRecordingDevice.IsConnected)))
+                    warnings.Add("Recording device is disconnected or unavailable.");
+            }
+
+            if (!string.IsNullOrEmpty(_model.IconPath) && !System.IO.File.Exists(_model.IconPath))
+                warnings.Add("Icon file not found.");
+
+            _cachedWarning = warnings.Count > 0 ? string.Join(" ", warnings) : null;
+            _warningCacheValid = true;
+            return _cachedWarning;
+        }
+    }
+
+    public bool HasValidationWarning => ValidationWarning != null;
+
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
 
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
@@ -294,10 +357,12 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         {
             _loadingDevices = false;
         }
+        _devicesLoaded = true;
         OnPropertyChanged(nameof(SelectedPlaybackDevice));
         OnPropertyChanged(nameof(SelectedRecordingDevice));
         OnPropertyChanged(nameof(IsPlaybackDeviceSet));
         OnPropertyChanged(nameof(IsRecordingDeviceSet));
+        RefreshValidation();
     }
 
     private void CaptureHotkey()
@@ -571,6 +636,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     {
         OnPropertyChanged(nameof(IsActive));
         CommandManager.InvalidateRequerySuggested();
+    }
+
+    public void RefreshValidation()
+    {
+        _warningCacheValid = false;
+        OnPropertyChanged(nameof(ValidationWarning));
+        OnPropertyChanged(nameof(HasValidationWarning));
     }
 
     public void NotifyTimeFormatChanged()
