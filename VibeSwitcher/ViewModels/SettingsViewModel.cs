@@ -440,8 +440,10 @@ public class SettingsViewModel : ViewModelBase
             // IconPath intentionally not copied — both profiles sharing the same file path would
             // cause DeleteOrphanedIcon to delete the icon for whichever profile is deleted first,
             // silently breaking the other. The user can re-browse the icon on the clone.
+            Notes = original.Notes,
             Silent = original.Silent,
             SortOrder = Profiles.Count,
+            // IsPinned intentionally not copied — clone starts unpinned
             // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
             // Schedules intentionally not copied — cloned schedules at the same time as the
             // original would immediately trigger schedule conflicts on every tick
@@ -545,6 +547,9 @@ public class SettingsViewModel : ViewModelBase
             int cur = Profiles.IndexOf(sorted[i]);
             if (cur != i) Profiles.Move(cur, i);
         }
+        for (int i = 0; i < Profiles.Count; i++)
+            Profiles[i].Model.SortOrder = i;
+        _configService.SaveImmediate();
     }
 
     public void ExportConfig(string destinationPath)

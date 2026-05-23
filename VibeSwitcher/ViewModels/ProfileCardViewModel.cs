@@ -225,6 +225,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             // false "disconnected" warnings during the brief startup window before enumeration.
             if (_devicesLoaded)
             {
+                // NoneDevice has Id="" — all real devices have a non-empty Id, so record
+                // equality against NoneDevice means "saved device ID not found in the enum list".
                 if (!string.IsNullOrEmpty(_model.PlaybackDeviceId) &&
                     (_selectedPlaybackDevice == NoneDevice ||
                      (_selectedPlaybackDevice != null && !_selectedPlaybackDevice.IsConnected)))
