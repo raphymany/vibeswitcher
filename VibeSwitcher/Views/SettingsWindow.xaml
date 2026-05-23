@@ -357,7 +357,7 @@
                                         </Grid.RowDefinitions>
 
                                         <!-- Drag grip -->
-                                        <TextBlock Grid.Column="0" Grid.Row="3"
+                                        <TextBlock Grid.Column="0" Grid.Row="4"
                                                    Text="⠿" FontSize="20" Foreground="{DynamicResource DisabledText}"
                                                    HorizontalAlignment="Left" VerticalAlignment="Center"
                                                    Cursor="Hand" Margin="-4,0,4,0"
@@ -403,47 +403,17 @@
                                                  Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
                                                  MaxLength="20"
                                                  Margin="0,0,0,10"/>
-                                        <StackPanel Grid.Row="0" Grid.Column="3"
-                                                    Orientation="Vertical" Margin="8,0,0,0" VerticalAlignment="Center">
-                                            <Border Background="{DynamicResource ChipBg}" BorderBrush="{DynamicResource ChipBorder}"
-                                                    BorderThickness="1" CornerRadius="5" Padding="10,4" Margin="0,0,0,6">
-                                                <TextBlock Text="{Binding ModeLabel}"
-                                                           FontSize="11" Foreground="{DynamicResource ChipText}"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                            <ToggleButton IsChecked="{Binding IsPinned}"
-                                                          HorizontalAlignment="Center"
-                                                          Margin="0,0,0,10"
-                                                          ToolTip="Pin this profile to the top of the tray menu"
-                                                          ToolTipService.InitialShowDelay="400">
-                                                <ToggleButton.Style>
-                                                    <Style TargetType="ToggleButton">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Setter Property="BorderThickness" Value="0"/>
-                                                        <Setter Property="Cursor" Value="Hand"/>
-                                                        <Setter Property="Content" Value="☆"/>
-                                                        <Setter Property="FontSize" Value="16"/>
-                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
-                                                        <Setter Property="Template">
-                                                            <Setter.Value>
-                                                                <ControlTemplate TargetType="ToggleButton">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </ControlTemplate>
-                                                            </Setter.Value>
-                                                        </Setter>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsPinned}" Value="True">
-                                                                <Setter Property="Content" Value="★"/>
-                                                                <Setter Property="Foreground" Value="#FFB300"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </ToggleButton.Style>
-                                            </ToggleButton>
-                                        </StackPanel>
+                                        <Border Grid.Row="0" Grid.Column="3"
+                                                Margin="8,0,0,10" VerticalAlignment="Center"
+                                                Background="{DynamicResource ChipBg}" BorderBrush="{DynamicResource ChipBorder}"
+                                                BorderThickness="1" CornerRadius="5" Padding="10,4">
+                                            <TextBlock Text="{Binding ModeLabel}"
+                                                       FontSize="11" Foreground="{DynamicResource ChipText}"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
 
                                         <!-- Name suggestions -->
-                                        <WrapPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4"
+                                        <WrapPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4"
                                                    HorizontalAlignment="Center"
                                                    Orientation="Horizontal" Margin="0,0,0,8">
                                             <WrapPanel.Style>
@@ -468,7 +438,7 @@
                                         </WrapPanel>
 
                                         <!-- Playback -->
-                                        <StackPanel Grid.Row="2" Grid.Column="1"
+                                        <StackPanel Grid.Row="3" Grid.Column="1"
                                                     Orientation="Horizontal" VerticalAlignment="Center"
                                                     Visibility="{Binding PlaybackVisible}">
                                             <TextBlock Text="Playback" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
@@ -487,64 +457,10 @@
                                                 </Border.ToolTip>
                                             </Border>
                                         </StackPanel>
-                                        <ComboBox Grid.Row="2" Grid.Column="2"
+                                        <ComboBox Grid.Row="3" Grid.Column="2"
                                                   ItemsSource="{Binding PlaybackDevices}"
                                                   SelectedItem="{Binding SelectedPlaybackDevice}"
                                                   Visibility="{Binding PlaybackVisible}"
-                                                  Margin="0,0,0,8">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
-                                                                 Visibility="{Binding ShowDot, Converter={StaticResource BoolToVis}}">
-                                                            <Ellipse.Style>
-                                                                <Style TargetType="Ellipse">
-                                                                    <Setter Property="Fill" Value="{DynamicResource SuccessDot}"/>
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsConnected}" Value="False">
-                                                                            <Setter Property="Fill" Value="{DynamicResource ErrorDot}"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Ellipse.Style>
-                                                        </Ellipse>
-                                                        <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                        <Button Grid.Row="2" Grid.Column="3"
-                                                Content="Test"
-                                                Margin="8,0,0,8" VerticalAlignment="Center"
-                                                Style="{StaticResource ActionButton}"
-                                                Command="{Binding TestSoundCommand}"
-                                                IsEnabled="{Binding IsPlaybackDeviceSet}"
-                                                Visibility="{Binding PlaybackVisible}"/>
-
-                                        <!-- Recording -->
-                                        <StackPanel Grid.Row="3" Grid.Column="1"
-                                                    Orientation="Horizontal" VerticalAlignment="Center"
-                                                    Visibility="{Binding RecordingVisible}">
-                                            <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
-                                            <Border Width="15" Height="15" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                                    VerticalAlignment="Center" Cursor="Help"
-                                                    ToolTipService.InitialShowDelay="400"
-                                                    ToolTipService.ShowDuration="12000">
-                                                <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                           Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                <Border.ToolTip>
-                                                    <ToolTip>
-                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                            The microphone or audio input that will become the default when this profile is activated.
-                                                        </TextBlock>
-                                                    </ToolTip>
-                                                </Border.ToolTip>
-                                            </Border>
-                                        </StackPanel>
-                                        <ComboBox Grid.Row="3" Grid.Column="2"
-                                                  ItemsSource="{Binding RecordingDevices}"
-                                                  SelectedItem="{Binding SelectedRecordingDevice}"
-                                                  Visibility="{Binding RecordingVisible}"
                                                   Margin="0,0,0,8">
                                             <ComboBox.ItemTemplate>
                                                 <DataTemplate>
@@ -571,12 +487,66 @@
                                                 Content="Test"
                                                 Margin="8,0,0,8" VerticalAlignment="Center"
                                                 Style="{StaticResource ActionButton}"
+                                                Command="{Binding TestSoundCommand}"
+                                                IsEnabled="{Binding IsPlaybackDeviceSet}"
+                                                Visibility="{Binding PlaybackVisible}"/>
+
+                                        <!-- Recording -->
+                                        <StackPanel Grid.Row="4" Grid.Column="1"
+                                                    Orientation="Horizontal" VerticalAlignment="Center"
+                                                    Visibility="{Binding RecordingVisible}">
+                                            <TextBlock Text="Recording" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
+                                            <Border Width="15" Height="15" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                                    VerticalAlignment="Center" Cursor="Help"
+                                                    ToolTipService.InitialShowDelay="400"
+                                                    ToolTipService.ShowDuration="12000">
+                                                <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                           Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                <Border.ToolTip>
+                                                    <ToolTip>
+                                                        <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
+                                                            The microphone or audio input that will become the default when this profile is activated.
+                                                        </TextBlock>
+                                                    </ToolTip>
+                                                </Border.ToolTip>
+                                            </Border>
+                                        </StackPanel>
+                                        <ComboBox Grid.Row="4" Grid.Column="2"
+                                                  ItemsSource="{Binding RecordingDevices}"
+                                                  SelectedItem="{Binding SelectedRecordingDevice}"
+                                                  Visibility="{Binding RecordingVisible}"
+                                                  Margin="0,0,0,8">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Width="7" Height="7" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                                 Visibility="{Binding ShowDot, Converter={StaticResource BoolToVis}}">
+                                                            <Ellipse.Style>
+                                                                <Style TargetType="Ellipse">
+                                                                    <Setter Property="Fill" Value="{DynamicResource SuccessDot}"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                                            <Setter Property="Fill" Value="{DynamicResource ErrorDot}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Ellipse.Style>
+                                                        </Ellipse>
+                                                        <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <Button Grid.Row="4" Grid.Column="3"
+                                                Content="Test"
+                                                Margin="8,0,0,8" VerticalAlignment="Center"
+                                                Style="{StaticResource ActionButton}"
                                                 Command="{Binding TestMicCommand}"
                                                 IsEnabled="{Binding IsRecordingDeviceSet}"
                                                 Visibility="{Binding RecordingVisible}"/>
 
                                         <!-- Hotkey -->
-                                        <StackPanel Grid.Row="4" Grid.Column="1"
+                                        <StackPanel Grid.Row="5" Grid.Column="1"
                                                     Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="Hotkey" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                             <Border Width="15" Height="15" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
@@ -594,19 +564,19 @@
                                                 </Border.ToolTip>
                                             </Border>
                                         </StackPanel>
-                                        <TextBox Grid.Row="4" Grid.Column="2"
+                                        <TextBox Grid.Row="5" Grid.Column="2"
                                                  Text="{Binding HotkeyDisplay, Mode=OneWay}"
                                                  IsReadOnly="True"
                                                  IsTabStop="False"
                                                  Margin="0,0,0,8"/>
-                                        <Button Grid.Row="4" Grid.Column="3"
+                                        <Button Grid.Row="5" Grid.Column="3"
                                                 Content="Set Hotkey"
                                                 Margin="8,0,0,8" VerticalAlignment="Center"
                                                 Style="{StaticResource ActionButton}"
                                                 Command="{Binding CaptureHotkeyCommand}"/>
 
                                         <!-- Icon -->
-                                        <StackPanel Grid.Row="5" Grid.Column="1"
+                                        <StackPanel Grid.Row="6" Grid.Column="1"
                                                     Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBlock Text="Icon" Style="{StaticResource LabelText}" Margin="0,0,4,0"/>
                                             <ToggleButton x:Name="IconInfoToggle"
@@ -676,12 +646,12 @@
                                                 </Border>
                                             </Popup>
                                         </StackPanel>
-                                        <TextBox Grid.Row="5" Grid.Column="2"
+                                        <TextBox Grid.Row="6" Grid.Column="2"
                                                  Text="{Binding IconPath, Mode=OneWay, FallbackValue='(default)'}"
                                                  IsReadOnly="True"
                                                  IsTabStop="False"
                                                  Margin="0,0,0,12"/>
-                                        <StackPanel Grid.Row="5" Grid.Column="3"
+                                        <StackPanel Grid.Row="6" Grid.Column="3"
                                                     Orientation="Horizontal"
                                                     VerticalAlignment="Center"
                                                     Margin="8,0,0,12">
@@ -706,10 +676,9 @@
                                         </StackPanel>
 
                                         <!-- Notes -->
-                                        <TextBlock Grid.Row="6" Grid.Column="1"
-                                                   Text="Notes" Style="{StaticResource LabelText}"
-                                                   VerticalAlignment="Top" Margin="0,4,0,0"/>
-                                        <Grid Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="2" Margin="0,0,0,8">
+                                        <TextBlock Grid.Row="1" Grid.Column="1"
+                                                   Text="Notes" Style="{StaticResource LabelText}"/>
+                                        <Grid Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Margin="0,0,0,8">
                                             <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
                                                      MaxLength="200"/>
                                             <TextBlock Text="Add a note about this profile..."
@@ -799,6 +768,33 @@
                                                 </StackPanel>
                                             </CheckBox>
                                             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <ToggleButton IsChecked="{Binding IsPinned}"
+                                                                  Cursor="Hand" Focusable="False"
+                                                                  OverridesDefaultStyle="True"
+                                                                  ToolTip="Pin to top of list and tray menu">
+                                                        <ToggleButton.Template>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="star" Text="☆" FontSize="14"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsChecked" Value="True">
+                                                                        <Setter TargetName="star" Property="Text" Value="★"/>
+                                                                        <Setter TargetName="star" Property="Foreground" Value="#FFB300"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </ToggleButton.Template>
+                                                    </ToggleButton>
+                                                </Border>
                                                 <Button Command="{Binding ActivateCommand}"
                                                         Margin="0,0,8,0">
                                                     <Button.Style>

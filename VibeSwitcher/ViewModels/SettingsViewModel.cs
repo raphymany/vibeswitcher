@@ -522,7 +522,29 @@ public class SettingsViewModel : ViewModelBase
         card.TriggerSaveFlash();
         ReregisterHotkeys();
         foreach (var c in Profiles) c.RefreshValidation();
+        MaybeSortProfiles();
         _onProfilesChanged();
+    }
+
+    private void MaybeSortProfiles()
+    {
+        var sorted = Profiles
+            .OrderByDescending(c => c.Model.IsPinned)
+            .ThenBy(c => c.Model.SortOrder)
+            .ToList();
+
+        bool inOrder = true;
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            if (!ReferenceEquals(Profiles[i], sorted[i])) { inOrder = false; break; }
+        }
+        if (inOrder) return;
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            int cur = Profiles.IndexOf(sorted[i]);
+            if (cur != i) Profiles.Move(cur, i);
+        }
     }
 
     public void ExportConfig(string destinationPath)
