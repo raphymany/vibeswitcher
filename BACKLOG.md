@@ -122,9 +122,9 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F32~~ | ~~Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name~~ | ✅ Done — PR #76 |
 | ~~F33~~ | ~~Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones~~ | ✅ Done — PR #76 |
 | ~~F34~~ | ~~Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ | ✅ Done — PR #76 |
-| F35 | Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, or hotkey; clears on Escape | 37 |
-| F36 | Optional switch sound — short audio cue on profile switch; built-in tones or custom .wav; per-profile toggle; pairs with F25 and F30 for a fully configurable feedback system | 38 |
-| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes all recording devices; tray icon flashes red while active; press again to unmute | 39 |
+| F35 | Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape | 37 |
+| F36 | Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30 | 38 |
+| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording only (mic mute), playback only (deafen), or both; distinct activate/deactivate sounds (pre-made or custom .wav); tray icon flashes red while active; press again to unmute | 39 |
 | F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | 40 |
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle | 41 |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | 42 |
@@ -161,7 +161,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 | # | Feature |
 |---|---------|
-| F35 | Search / filter — text box at the top of the profile list; filters in real time by profile name, device name, or hotkey; clears on Escape |
+| F35 | Search / filter — text box at the top of the profile list; filters in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape |
 
 ---
 
@@ -170,16 +170,16 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 | # | Feature |
 |---|---------|
-| F36 | Optional switch sound — short audio cue on profile switch; built-in tones or custom .wav; per-profile toggle to enable or disable |
+| F36 | Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav file at both levels; adjustable volume slider (0–100%) at both global and per-profile level; per-profile silent toggle to disable entirely |
 
 ---
 
 ### Branch 39: `feat/panic-hotkey`
-**Theme:** Instant global mute for all recording devices.
+**Theme:** Instant global mute with configurable scope and audio feedback.
 
 | # | Feature |
 |---|---------|
-| F37 | Deafen / panic hotkey — global configurable hotkey that mutes all recording devices instantly; tray icon flashes red while active; press again to unmute |
+| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording devices only (mic mute), playback devices only (deafen), or both; distinct activate and deactivate sounds (pre-made tones or custom .wav); tray icon flashes red while active; press again to unmute and restore previous levels |
 
 ---
 
