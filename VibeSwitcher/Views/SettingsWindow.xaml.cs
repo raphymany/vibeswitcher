@@ -213,6 +213,13 @@ public partial class SettingsWindow : Window
 
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
+    private void ManageAliasesButton_Click(object sender, RoutedEventArgs e)
+    {
+        var vm = (ViewModels.SettingsViewModel)DataContext;
+        var dialog = new DeviceAliasesDialog(vm.DeviceAliases) { Owner = this };
+        dialog.ShowDialog();
+    }
+
     private void AboutButton_Click(object sender, RoutedEventArgs e)
     {
         if (Application.Current is App app)

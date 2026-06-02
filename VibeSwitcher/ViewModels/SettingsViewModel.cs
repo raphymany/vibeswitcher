@@ -34,8 +34,11 @@ public class SettingsViewModel : ViewModelBase
     private System.IO.FileSystemWatcher? _iconWatcher;
 
     public ObservableCollection<ProfileCardViewModel> Profiles { get; }
+    public ObservableCollection<DeviceAliasItem> DeviceAliases { get; } = new();
 
     public bool HasNoProfiles => Profiles.Count == 0;
+    // True when at least one audio device is known — used to show/hide the empty-state label.
+    public bool HasKnownDevices => DeviceAliases.Count > 0;
 
     public bool StartWithWindows
     {
@@ -348,16 +351,71 @@ public class SettingsViewModel : ViewModelBase
         ).ToList();
     }
 
+    internal IReadOnlyList<AudioDeviceInfo> ApplyAliases(IReadOnlyList<AudioDeviceInfo> devices)
+    {
+        var aliases = _configService.Current.DeviceAliases;
+        if (aliases.Count == 0) return devices;
+        return devices.Select(d =>
+            aliases.TryGetValue(d.Id, out var alias) && !string.IsNullOrWhiteSpace(alias)
+                ? d with { FriendlyName = alias }
+                : d
+        ).ToList();
+    }
+
+    private IReadOnlyList<AudioDeviceInfo> GetDevicesForDisplay(IReadOnlyList<AudioDeviceInfo> devices) =>
+        ApplyAliases(FilterDevices(devices));
+
     private void PushFilteredDevices()
     {
-        var pb  = FilterDevices(_playbackDevices);
-        var rec = FilterDevices(_recordingDevices);
+        var pb  = GetDevicesForDisplay(_playbackDevices);
+        var rec = GetDevicesForDisplay(_recordingDevices);
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         dispatcher?.InvokeAsync(() =>
         {
             foreach (var card in Profiles)
                 card.LoadDevices(pb, rec);
         });
+    }
+
+    private void RefreshDeviceAliasList(IReadOnlyList<AudioDeviceInfo> pb, IReadOnlyList<AudioDeviceInfo> rec)
+    {
+        var aliases = _configService.Current.DeviceAliases;
+        var allDevices = pb.Concat(rec)
+            .Where(d => !string.IsNullOrEmpty(d.Id))
+            .GroupBy(d => d.Id)
+            .Select(g => g.First())
+            .OrderBy(d => d.FriendlyName)
+            .ToList();
+
+        var currentIds = new HashSet<string>(allDevices.Select(d => d.Id));
+        foreach (var item in DeviceAliases.ToList().Where(item => !currentIds.Contains(item.DeviceId)))
+        {
+            item.AliasChanged -= OnAliasChanged;
+            DeviceAliases.Remove(item);
+        }
+
+        var existingIds = new HashSet<string>(DeviceAliases.Select(x => x.DeviceId));
+        foreach (var device in allDevices.Where(d => !existingIds.Contains(d.Id)))
+        {
+            var alias = aliases.TryGetValue(device.Id, out var a) ? a : "";
+            var item = new DeviceAliasItem(device.Id, device.FriendlyName, alias);
+            item.AliasChanged += OnAliasChanged;
+            DeviceAliases.Add(item);
+        }
+
+        OnPropertyChanged(nameof(HasKnownDevices));
+    }
+
+    private void OnAliasChanged(string deviceId, string alias)
+    {
+        var aliases = _configService.Current.DeviceAliases;
+        // alias is already trimmed by DeviceAliasItem's setter
+        if (string.IsNullOrEmpty(alias))
+            aliases.Remove(deviceId);
+        else
+            aliases[deviceId] = alias;
+        SaveAsync();
+        PushFilteredDevices();
     }
 
     private async Task LoadDevicesAsync()
@@ -382,8 +440,8 @@ public class SettingsViewModel : ViewModelBase
             _playbackDevices = pb;
             _recordingDevices = rec;
 
-            var filteredPb = FilterDevices(pb);
-            var filteredRec = FilterDevices(rec);
+            var displayPb  = GetDevicesForDisplay(pb);
+            var displayRec = GetDevicesForDisplay(rec);
 
             // ObservableCollection is not thread-safe; must populate on the UI thread.
             // Application.Current is null in headless test environments; skip dispatch there.
@@ -392,8 +450,10 @@ public class SettingsViewModel : ViewModelBase
             await dispatcher.InvokeAsync(() =>
             {
                 if (token.IsCancellationRequested) return;
+                // Pass raw (unfiltered) lists so aliases cover all devices, not just currently visible ones.
+                RefreshDeviceAliasList(pb, rec);
                 foreach (var card in Profiles)
-                    card.LoadDevices(filteredPb, filteredRec);
+                    card.LoadDevices(displayPb, displayRec);
             });
         }
         catch (Exception ex) when (!token.IsCancellationRequested)
@@ -411,8 +471,8 @@ public class SettingsViewModel : ViewModelBase
             _configService,
             _hotkeyService,
             _dialogService,
-            FilterDevices(_playbackDevices),
-            FilterDevices(_recordingDevices),
+            GetDevicesForDisplay(_playbackDevices),
+            GetDevicesForDisplay(_recordingDevices),
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card),
             onClone: card => CloneProfile(card),
@@ -478,7 +538,7 @@ public class SettingsViewModel : ViewModelBase
         _configService.Current.Profiles.Add(clone);
         SaveAsync();
         var newCard = CreateCard(clone);
-        newCard.LoadDevices(FilterDevices(_playbackDevices), FilterDevices(_recordingDevices));
+        newCard.LoadDevices(GetDevicesForDisplay(_playbackDevices), GetDevicesForDisplay(_recordingDevices));
         Profiles.Add(newCard);
         _onProfilesChanged();
     }
@@ -624,6 +684,11 @@ public class SettingsViewModel : ViewModelBase
 
     private void RebuildProfiles()
     {
+        // Clear alias items so RefreshDeviceAliasList rebuilds from the new config on next load.
+        foreach (var item in DeviceAliases)
+            item.AliasChanged -= OnAliasChanged;
+        DeviceAliases.Clear();
+
         var oldCards = Profiles.ToList();
         Profiles.Clear();
         foreach (var card in oldCards)

@@ -1442,6 +1442,26 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Device Aliases -->
+                    <Border Style="{StaticResource InnerCardBorder}" Margin="0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="Device Aliases" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{DynamicResource SectionLabelText}"/>
+                                <TextBlock Text="Give your audio devices custom friendly names."
+                                           FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Manage…"
+                                    Style="{StaticResource ActionButton}"
+                                    VerticalAlignment="Center"
+                                    Click="ManageAliasesButton_Click"/>
+                        </Grid>
+                    </Border>
+
                 </StackPanel>
             </StackPanel>
         </Border>
