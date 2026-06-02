@@ -15,8 +15,19 @@
     </WindowChrome.WindowChrome>
 
     <Window.Resources>
-        <!-- Tab button style: ghost when unselected, accent-filled when selected -->
-        <Style x:Key="TabButton" TargetType="Button">
+        <!-- Shared control template for both tab buttons -->
+        <ControlTemplate x:Key="TabButtonTemplate" TargetType="Button">
+            <Border x:Name="Bg"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="6">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </ControlTemplate>
+
+        <!-- Playback tab button — accent when IsPlaybackTab=True -->
+        <Style x:Key="PlaybackTabStyle" TargetType="Button">
             <Setter Property="Cursor"     Value="Hand"/>
             <Setter Property="FontSize"   Value="12"/>
             <Setter Property="Height"     Value="30"/>
@@ -26,25 +37,37 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Foreground"      Value="{DynamicResource SecondaryText}"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Template"   Value="{StaticResource TabButtonTemplate}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsPlaybackTab}" Value="True">
+                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                    <Setter Property="Foreground"  Value="White"/>
+                    <Setter Property="FontWeight"  Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
-        <Style x:Key="TabButtonActive" TargetType="Button" BasedOn="{StaticResource TabButton}">
-            <Setter Property="Background"  Value="{DynamicResource Accent}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-            <Setter Property="Foreground"  Value="White"/>
-            <Setter Property="FontWeight"  Value="SemiBold"/>
+        <!-- Recording tab button — accent when IsRecordingTab=True -->
+        <Style x:Key="RecordingTabStyle" TargetType="Button">
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Height"     Value="30"/>
+            <Setter Property="Padding"    Value="16,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource InputBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground"      Value="{DynamicResource SecondaryText}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Template"   Value="{StaticResource TabButtonTemplate}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsRecordingTab}" Value="True">
+                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                    <Setter Property="Foreground"  Value="White"/>
+                    <Setter Property="FontWeight"  Value="SemiBold"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -68,34 +91,10 @@
 
             <!-- Tab buttons: Playback / Recording -->
             <UniformGrid Rows="1" Margin="0,0,0,12" Height="30">
-                <Button Click="PlaybackTab_Click" Content="Playback" Margin="0,0,4,0">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsPlaybackTab}" Value="True">
-                                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
-                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                    <Setter Property="Foreground"  Value="White"/>
-                                    <Setter Property="FontWeight"  Value="SemiBold"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
-                <Button Click="RecordingTab_Click" Content="Recording" Margin="4,0,0,0">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsRecordingTab}" Value="True">
-                                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
-                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                    <Setter Property="Foreground"  Value="White"/>
-                                    <Setter Property="FontWeight"  Value="SemiBold"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
+                <Button Style="{StaticResource PlaybackTabStyle}"
+                        Click="PlaybackTab_Click" Content="Playback" Margin="0,0,4,0"/>
+                <Button Style="{StaticResource RecordingTabStyle}"
+                        Click="RecordingTab_Click" Content="Recording" Margin="4,0,0,0"/>
             </UniformGrid>
 
             <!-- Playback list -->
