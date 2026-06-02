@@ -1082,6 +1082,24 @@
                         </Style>
                     </StackPanel.Style>
 
+                    <!-- Appearance -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Appearance" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Theme" Style="{StaticResource LabelText}"/>
+                                <ComboBox Grid.Column="1"
+                                          ItemsSource="{Binding Source={x:Static vm:SettingsViewModel.ThemeOptions}}"
+                                          SelectedItem="{Binding Theme, Mode=TwoWay}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Startup -->
                     <Border Style="{StaticResource InnerCardBorder}">
                         <StackPanel>
@@ -1258,24 +1276,6 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Appearance -->
-                    <Border Style="{StaticResource InnerCardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="Appearance" FontWeight="SemiBold" FontSize="12"
-                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="80"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Theme" Style="{StaticResource LabelText}"/>
-                                <ComboBox Grid.Column="1"
-                                          ItemsSource="{Binding Source={x:Static vm:SettingsViewModel.ThemeOptions}}"
-                                          SelectedItem="{Binding Theme, Mode=TwoWay}"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
-
                     <!-- Devices -->
                     <Border Style="{StaticResource InnerCardBorder}">
                         <StackPanel>
@@ -1356,27 +1356,8 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Backup & Restore -->
-                    <Border Style="{StaticResource InnerCardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="Backup &amp; Restore" FontWeight="SemiBold" FontSize="12"
-                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,6"/>
-                            <TextBlock Text="Save your profiles to a file, or restore from a previous backup."
-                                       FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="Export Config"
-                                        Style="{StaticResource ActionButton}"
-                                        Margin="0,0,8,0"
-                                        Click="ExportButton_Click"/>
-                                <Button Content="Import Config"
-                                        Style="{StaticResource ActionButton}"
-                                        Click="ImportButton_Click"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
                     <!-- Shortcuts -->
-                    <Border Style="{StaticResource InnerCardBorder}" Margin="0">
+                    <Border Style="{StaticResource InnerCardBorder}">
                         <StackPanel>
                             <TextBlock Text="Shortcuts" FontWeight="SemiBold" FontSize="12"
                                        Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
@@ -1443,7 +1424,7 @@
                     </Border>
 
                     <!-- Device Aliases -->
-                    <Border Style="{StaticResource InnerCardBorder}" Margin="0">
+                    <Border Style="{StaticResource InnerCardBorder}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
@@ -1460,6 +1441,25 @@
                                     VerticalAlignment="Center"
                                     Click="ManageAliasesButton_Click"/>
                         </Grid>
+                    </Border>
+
+                    <!-- Backup & Restore -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Backup &amp; Restore" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,6"/>
+                            <TextBlock Text="Save your profiles to a file, or restore from a previous backup."
+                                       FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Export Config"
+                                        Style="{StaticResource ActionButton}"
+                                        Margin="0,0,8,0"
+                                        Click="ExportButton_Click"/>
+                                <Button Content="Import Config"
+                                        Style="{StaticResource ActionButton}"
+                                        Click="ImportButton_Click"/>
+                            </StackPanel>
+                        </StackPanel>
                     </Border>
 
                 </StackPanel>
