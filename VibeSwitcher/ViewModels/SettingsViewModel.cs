@@ -379,7 +379,11 @@ public class SettingsViewModel : ViewModelBase
 
     private void RefreshDeviceAliasList(IReadOnlyList<AudioDeviceInfo> pb, IReadOnlyList<AudioDeviceInfo> rec)
     {
-        var aliases = _configService.Current.DeviceAliases;
+        var aliases  = _configService.Current.DeviceAliases;
+        var profiles = _configService.Current.Profiles;
+
+        var pbSet = new HashSet<string>(pb.Where(d => !string.IsNullOrEmpty(d.Id)).Select(d => d.Id));
+
         var allDevices = pb.Concat(rec)
             .Where(d => !string.IsNullOrEmpty(d.Id))
             .GroupBy(d => d.Id)
@@ -398,7 +402,18 @@ public class SettingsViewModel : ViewModelBase
         foreach (var device in allDevices.Where(d => !existingIds.Contains(d.Id)))
         {
             var alias = aliases.TryGetValue(device.Id, out var a) ? a : "";
-            var item = new DeviceAliasItem(device.Id, device.FriendlyName, alias);
+            var usage = profiles
+                .Where(p => p.PlaybackDeviceId == device.Id || p.RecordingDeviceId == device.Id)
+                .Select(p => p.Name)
+                .ToList();
+            var item = new DeviceAliasItem(
+                device.Id,
+                device.FriendlyName,
+                alias,
+                isPlayback:   pbSet.Contains(device.Id),
+                isConnected:  device.IsConnected,
+                isDisabled:   device.IsDisabled,
+                profileUsage: string.Join(", ", usage));
             item.AliasChanged += OnAliasChanged;
             DeviceAliases.Add(item);
         }

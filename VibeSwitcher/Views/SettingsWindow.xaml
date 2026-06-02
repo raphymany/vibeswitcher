@@ -45,46 +45,6 @@
             <Setter Property="Margin"            Value="0,0,10,0"/>
         </Style>
 
-        <Style TargetType="TextBox">
-            <Setter Property="Height"                   Value="30"/>
-            <Setter Property="FontSize"                 Value="12"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding"                  Value="8,0"/>
-            <Setter Property="Background"               Value="{DynamicResource InputBg}"/>
-            <Setter Property="Foreground"               Value="{DynamicResource PrimaryText}"/>
-            <Setter Property="BorderBrush"              Value="{DynamicResource InputBorder}"/>
-            <Setter Property="BorderThickness"          Value="1"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="border"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                          Focusable="False"
-                                          HorizontalScrollBarVisibility="Hidden"
-                                          VerticalScrollBarVisibility="Hidden"
-                                          VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsReadOnly" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="{DynamicResource ReadOnlyBg}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource ReadOnlyText}"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource InputHoverBorder}"/>
-                            </Trigger>
-                            <Trigger Property="IsFocused" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <Style TargetType="ComboBox">
             <Setter Property="Height"          Value="30"/>
             <Setter Property="FontSize"        Value="12"/>
@@ -1093,9 +1053,83 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Theme" Style="{StaticResource LabelText}"/>
-                                <ComboBox Grid.Column="1"
-                                          ItemsSource="{Binding Source={x:Static vm:SettingsViewModel.ThemeOptions}}"
-                                          SelectedItem="{Binding Theme, Mode=TwoWay}"/>
+                                <!-- Segmented theme picker: Follow Windows / Light / Dark -->
+                                <UniformGrid Grid.Column="1" Rows="1" Height="30">
+                                    <UniformGrid.Resources>
+                                        <Style TargetType="RadioButton">
+                                            <Setter Property="GroupName"              Value="ThemeGroup"/>
+                                            <Setter Property="Cursor"                 Value="Hand"/>
+                                            <Setter Property="FontSize"               Value="12"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="VerticalContentAlignment"   Value="Center"/>
+                                            <Setter Property="Foreground"             Value="{DynamicResource SecondaryText}"/>
+                                            <Setter Property="Background"             Value="Transparent"/>
+                                            <Setter Property="BorderBrush"            Value="{DynamicResource InputBorder}"/>
+                                            <Setter Property="BorderThickness"        Value="1"/>
+                                            <Setter Property="FocusVisualStyle"       Value="{x:Null}"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="RadioButton">
+                                                        <Border x:Name="Bg"
+                                                                Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                CornerRadius="6">
+                                                            <ContentPresenter HorizontalAlignment="Center"
+                                                                              VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                    <Setter Property="Foreground"  Value="White"/>
+                                                    <Setter Property="FontWeight"  Value="SemiBold"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </UniformGrid.Resources>
+                                    <RadioButton Content="Follow Windows" Tag="Auto"   Checked="ThemeRadio_Checked">
+                                        <RadioButton.Style>
+                                            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Theme}" Value="Auto">
+                                                        <Setter Property="IsChecked" Value="True"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </RadioButton.Style>
+                                    </RadioButton>
+                                    <RadioButton Content="Light" Tag="Light" Checked="ThemeRadio_Checked">
+                                        <RadioButton.Style>
+                                            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Theme}" Value="Light">
+                                                        <Setter Property="IsChecked" Value="True"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </RadioButton.Style>
+                                    </RadioButton>
+                                    <RadioButton Content="Dark" Tag="Dark" Checked="ThemeRadio_Checked">
+                                        <RadioButton.Style>
+                                            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Theme}" Value="Dark">
+                                                        <Setter Property="IsChecked" Value="True"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </RadioButton.Style>
+                                    </RadioButton>
+                                </UniformGrid>
                             </Grid>
                         </StackPanel>
                     </Border>

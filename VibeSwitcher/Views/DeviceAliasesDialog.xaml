@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         Title="VibeSwitcher"
-        Width="440" SizeToContent="Height" MaxHeight="560"
+        Width="480" SizeToContent="Height" MaxHeight="600"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBg}"
@@ -13,6 +13,40 @@
         <WindowChrome CaptionHeight="32" GlassFrameThickness="0"
                       ResizeBorderThickness="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <!-- Tab button style: ghost when unselected, accent-filled when selected -->
+        <Style x:Key="TabButton" TargetType="Button">
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Height"     Value="30"/>
+            <Setter Property="Padding"    Value="16,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush"     Value="{DynamicResource InputBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground"      Value="{DynamicResource SecondaryText}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="TabButtonActive" TargetType="Button" BasedOn="{StaticResource TabButton}">
+            <Setter Property="Background"  Value="{DynamicResource Accent}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+            <Setter Property="Foreground"  Value="White"/>
+            <Setter Property="FontWeight"  Value="SemiBold"/>
+        </Style>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -30,91 +64,277 @@
                        Margin="0,0,0,4"/>
             <TextBlock Text="Custom names are shown everywhere a device appears — dropdowns, cards, and tooltips. Leave a field blank to use the Windows device name."
                        FontSize="12" Foreground="{DynamicResource SecondaryText}"
-                       TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,16"/>
+                       TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,14"/>
 
-            <!-- Empty state -->
-            <TextBlock Text="No audio devices detected. Devices appear here once enumeration completes."
-                       FontSize="12" Foreground="{DynamicResource DisabledText}"
-                       TextWrapping="Wrap" HorizontalAlignment="Center"
-                       Margin="0,8,0,16">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding HasKnownDevices}" Value="False">
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
+            <!-- Tab buttons: Playback / Recording -->
+            <UniformGrid Rows="1" Margin="0,0,0,12" Height="30">
+                <Button Click="PlaybackTab_Click" Content="Playback" Margin="0,0,4,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPlaybackTab}" Value="True">
+                                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                    <Setter Property="Foreground"  Value="White"/>
+                                    <Setter Property="FontWeight"  Value="SemiBold"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <Button Click="RecordingTab_Click" Content="Recording" Margin="4,0,0,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource TabButton}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsRecordingTab}" Value="True">
+                                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                    <Setter Property="Foreground"  Value="White"/>
+                                    <Setter Property="FontWeight"  Value="SemiBold"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </UniformGrid>
 
-            <!-- Column headers -->
-            <Grid Margin="0,0,0,6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="12"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Windows name"
-                           FontSize="11" FontWeight="SemiBold"
-                           Foreground="{DynamicResource SectionLabelText}"/>
-                <TextBlock Grid.Column="2" Text="Your alias"
-                           FontSize="11" FontWeight="SemiBold"
-                           Foreground="{DynamicResource SectionLabelText}"/>
-            </Grid>
-
-            <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding DeviceAliases}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="12"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="{Binding RawName}"
-                                           FontSize="12"
-                                           Foreground="{DynamicResource SecondaryText}"
-                                           VerticalAlignment="Center"
-                                           TextTrimming="CharacterEllipsis"
-                                           ToolTip="{Binding RawName}"/>
-                                <Grid Grid.Column="2">
-                                    <TextBox Text="{Binding Alias, UpdateSourceTrigger=LostFocus}"
-                                             FontSize="12" Padding="6,4"
-                                             VerticalContentAlignment="Center"/>
-                                    <TextBlock Text="Custom alias…"
-                                               IsHitTestVisible="False"
-                                               FontSize="12" Padding="8,4"
-                                               VerticalAlignment="Center"
-                                               Foreground="{DynamicResource DisabledText}">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Alias}" Value="">
+            <!-- Playback list -->
+            <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Playback panel -->
+                    <ItemsControl ItemsSource="{Binding PlaybackDevices}">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPlaybackTab}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource InnerCardBg}"
+                                        BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                                        BorderThickness="1" CornerRadius="6"
+                                        Padding="12,10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <!-- Windows device name -->
+                                        <TextBlock Text="{Binding RawName}"
+                                                   FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource PrimaryText}"
+                                                   TextWrapping="Wrap"/>
+                                        <!-- Status line -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,6">
+                                            <!-- In use by profiles -->
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                                <Run Text="Used in: "/>
+                                                <Run Text="{Binding ProfileUsage}" FontWeight="SemiBold"/>
+                                            </TextBlock>
+                                            <!-- Disconnected -->
+                                            <TextBlock Text="Disconnected" FontSize="11"
+                                                       Foreground="{DynamicResource DisabledText}"
+                                                       Margin="6,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <!-- Disabled -->
+                                            <TextBlock Text="Disabled" FontSize="11"
+                                                       Foreground="{DynamicResource DisabledText}"
+                                                       Margin="6,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDisabled}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <!-- No status placeholder so layout doesn't collapse to zero height -->
+                                            <TextBlock Text="Not used in any profile" FontSize="11"
+                                                       Foreground="{DynamicResource DisabledText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
                                                         <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Grid>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsUnavailable}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <!-- Alias TextBox -->
+                                        <Grid>
+                                            <TextBox Text="{Binding Alias, UpdateSourceTrigger=LostFocus}"
+                                                     FontSize="12"/>
+                                            <TextBlock Text="Custom alias…"
+                                                       IsHitTestVisible="False"
+                                                       FontSize="12" Padding="8,0"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource DisabledText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Alias}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Recording panel -->
+                    <ItemsControl ItemsSource="{Binding RecordingDevices}">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRecordingTab}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource InnerCardBg}"
+                                        BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                                        BorderThickness="1" CornerRadius="6"
+                                        Padding="12,10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding RawName}"
+                                                   FontSize="12" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource PrimaryText}"
+                                                   TextWrapping="Wrap"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,6">
+                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                                <Run Text="Used in: "/>
+                                                <Run Text="{Binding ProfileUsage}" FontWeight="SemiBold"/>
+                                            </TextBlock>
+                                            <TextBlock Text="Disconnected" FontSize="11"
+                                                       Foreground="{DynamicResource DisabledText}"
+                                                       Margin="6,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="Disabled" FontSize="11"
+                                                       Foreground="{DynamicResource DisabledText}"
+                                                       Margin="6,0,0,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsDisabled}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="Not used in any profile" FontSize="11"
+                                                       Foreground="{DynamicResource DisabledText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsUnavailable}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <Grid>
+                                            <TextBox Text="{Binding Alias, UpdateSourceTrigger=LostFocus}"
+                                                     FontSize="12"/>
+                                            <TextBlock Text="Custom alias…"
+                                                       IsHitTestVisible="False"
+                                                       FontSize="12" Padding="8,0"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource DisabledText}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Alias}" Value="">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
             </ScrollViewer>
 
-            <Button Content="Done"
+            <Button Content="Save"
                     Style="{StaticResource PrimaryButton}"
                     IsCancel="True"
-                    HorizontalAlignment="Right"
+                    HorizontalAlignment="Center"
                     Margin="0,16,0,0"
-                    Width="80"
-                    Click="Done_Click"/>
+                    Width="100"
+                    Click="Save_Click"/>
 
         </StackPanel>
     </Grid>

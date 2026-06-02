@@ -393,6 +393,12 @@ public partial class SettingsWindow : Window
         _viewModel.MoveProfile(source, target);
     }
 
+    private void ThemeRadio_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Primitives.ToggleButton rb && rb.Tag is string tag)
+            _viewModel.Theme = tag;
+    }
+
     private void HelpButton_Click(object sender, RoutedEventArgs e)
     {
         new HelpDialog { Owner = this }.ShowDialog();

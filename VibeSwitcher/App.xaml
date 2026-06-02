@@ -314,6 +314,47 @@
             </Setter>
         </Style>
 
+        <!-- Themed TextBox — rounded, accent focus ring, hover border -->
+        <Style TargetType="TextBox">
+            <Setter Property="Height"                   Value="30"/>
+            <Setter Property="FontSize"                 Value="12"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding"                  Value="8,0"/>
+            <Setter Property="Background"               Value="{DynamicResource InputBg}"/>
+            <Setter Property="Foreground"               Value="{DynamicResource PrimaryText}"/>
+            <Setter Property="BorderBrush"              Value="{DynamicResource InputBorder}"/>
+            <Setter Property="BorderThickness"          Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="False"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          VerticalScrollBarVisibility="Hidden"
+                                          VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsReadOnly" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource ReadOnlyBg}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource ReadOnlyText}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource InputHoverBorder}"/>
+                            </Trigger>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         </ResourceDictionary>
 
     </Application.Resources>

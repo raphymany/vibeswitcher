@@ -7,10 +7,13 @@ namespace VibeSwitcher.Tests;
 
 public class DeviceAliasItemTests
 {
+    private static DeviceAliasItem MakeItem(string rawName, string alias) =>
+        new("id1", rawName, alias, isPlayback: true, isConnected: true, isDisabled: false, profileUsage: "");
+
     [Fact]
     public void Alias_WhitespaceInput_TrimsToEmpty()
     {
-        var item = new DeviceAliasItem("id1", "Realtek HD Audio", "");
+        var item = MakeItem("Realtek HD Audio", "");
         item.Alias = "   ";
         Assert.Equal("", item.Alias);
     }
@@ -18,7 +21,7 @@ public class DeviceAliasItemTests
     [Fact]
     public void Alias_PaddedInput_Trims()
     {
-        var item = new DeviceAliasItem("id1", "Realtek HD Audio", "");
+        var item = MakeItem("Realtek HD Audio", "");
         item.Alias = "  GoXLR  ";
         Assert.Equal("GoXLR", item.Alias);
     }
@@ -26,7 +29,7 @@ public class DeviceAliasItemTests
     [Fact]
     public void AliasChanged_FiredWithTrimmedValue()
     {
-        var item = new DeviceAliasItem("id1", "Realtek HD Audio", "");
+        var item = MakeItem("Realtek HD Audio", "");
         string? received = null;
         item.AliasChanged += (_, alias) => received = alias;
 
@@ -38,7 +41,7 @@ public class DeviceAliasItemTests
     [Fact]
     public void AliasChanged_NotFiredWhenValueUnchanged()
     {
-        var item = new DeviceAliasItem("id1", "Realtek HD Audio", "GoXLR");
+        var item = MakeItem("Realtek HD Audio", "GoXLR");
         int firedCount = 0;
         item.AliasChanged += (_, _) => firedCount++;
 
