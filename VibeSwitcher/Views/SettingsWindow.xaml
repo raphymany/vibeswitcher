@@ -1200,7 +1200,7 @@
                                                                                 Command="{Binding DeleteCommand}"
                                                                                 FontSize="10" Padding="10,2" Height="26"
                                                                                 VerticalAlignment="Center"/>
-                                                                        <Button DockPanel.Dock="Right" Content="Edit"
+                                                                        <Button DockPanel.Dock="Right" Content="Edit Schedule"
                                                                                 Style="{StaticResource ActionButton}"
                                                                                 Command="{Binding EditCommand}"
                                                                                 FontSize="10" Padding="12,2" Height="26"
@@ -1263,12 +1263,12 @@
                                                         BorderThickness="1" CornerRadius="6"
                                                         Padding="10,8">
                                                     <DockPanel>
-                                                        <Button DockPanel.Dock="Right" Content="Remove"
+                                                        <Button DockPanel.Dock="Right" Content="Remove Sound"
                                                                 Style="{StaticResource DangerButton}"
                                                                 Command="{Binding RemoveSwitchSoundCommand}"
                                                                 FontSize="10" Padding="10,2" Height="26"
                                                                 VerticalAlignment="Center"/>
-                                                        <Button DockPanel.Dock="Right" Content="Edit"
+                                                        <Button DockPanel.Dock="Right" Content="Edit Sound"
                                                                 Style="{StaticResource ActionButton}"
                                                                 Command="{Binding ConfigureSoundCommand}"
                                                                 FontSize="10" Padding="12,2" Height="26"
