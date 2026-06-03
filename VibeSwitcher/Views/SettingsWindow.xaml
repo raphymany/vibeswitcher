@@ -94,8 +94,8 @@
             <Setter Property="Background"   Value="{DynamicResource InputBg}"/>
             <Setter Property="BorderBrush"  Value="{DynamicResource InputBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize"     Value="13"/>
-            <Setter Property="Padding"      Value="34,8,36,8"/>
+            <Setter Property="FontSize"     Value="12"/>
+            <Setter Property="Padding"      Value="30,5,32,5"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -422,7 +422,7 @@
                 <!-- Placeholder -->
                 <TextBlock Text="Filter by name…"
                            VerticalAlignment="Center" HorizontalAlignment="Left"
-                           Margin="34,0,0,0" FontSize="13" IsHitTestVisible="False"
+                           Margin="30,0,0,0" FontSize="12" IsHitTestVisible="False"
                            Foreground="{DynamicResource SubtleText}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
