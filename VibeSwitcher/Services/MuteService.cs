@@ -1,3 +1,4 @@
+using System.Media;
 using System.Runtime.InteropServices;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
@@ -7,7 +8,6 @@ namespace VibeSwitcher.Services;
 
 public class MuteService
 {
-    // Tracks which scopes are currently muted by us (not pre-existing OS mutes).
     private readonly HashSet<MuteScope> _activeMutes = new();
 
     public bool IsAnyMuteActive => _activeMutes.Count > 0;
@@ -16,11 +16,10 @@ public class MuteService
 
     public void Toggle(MuteScope scope)
     {
-        if (_activeMutes.Contains(scope))
-            Unmute(scope);
-        else
-            Mute(scope);
+        bool muting = !_activeMutes.Contains(scope);
+        if (muting) Mute(scope); else Unmute(scope);
         MuteStateChanged?.Invoke();
+        Task.Run(() => PlaySound(scope, muting));
     }
 
     private void Mute(MuteScope scope)
@@ -68,5 +67,116 @@ public class MuteService
             if (device != null) Marshal.ReleaseComObject(device);
             if (enumerator != null) Marshal.ReleaseComObject(enumerator);
         }
+    }
+
+    // ── Sounds ───────────────────────────────────────────────────────────────
+
+    private const int SampleRate = 44100;
+    private const float Amplitude = 0.35f;
+
+    private static void PlaySound(MuteScope scope, bool muting)
+    {
+        try
+        {
+            byte[] wav = scope switch
+            {
+                MuteScope.Mic      => muting ? BuildMicMuteWav()   : BuildMicUnmuteWav(),
+                MuteScope.Speakers => muting ? BuildDeafenWav()     : BuildUndeafenWav(),
+                _                  => muting ? BuildBothMuteWav()   : BuildBothUnmuteWav(),
+            };
+            using var ms = new System.IO.MemoryStream(wav);
+            using var player = new SoundPlayer(ms);
+            player.PlaySync();
+        }
+        catch (Exception ex)
+        {
+            AppLogger.Warning("MuteService.PlaySound", ex.Message);
+        }
+    }
+
+    // Mic mute: two descending blips — 880 Hz then 660 Hz, 80 ms each with fast fade-out
+    private static byte[] BuildMicMuteWav()
+        => BuildWav(Concat(Blip(880, 0.08, fadeDown: true), Blip(660, 0.08, fadeDown: true)));
+
+    // Mic unmute: two ascending blips — 660 Hz then 880 Hz
+    private static byte[] BuildMicUnmuteWav()
+        => BuildWav(Concat(Blip(660, 0.08, fadeDown: false), Blip(880, 0.08, fadeDown: false)));
+
+    // Deafen: smooth sweep from 480 Hz down to 240 Hz over 200 ms — heavier than mic mute
+    private static byte[] BuildDeafenWav()
+        => BuildWav(Sweep(480, 240, 0.20));
+
+    // Undeafen: smooth sweep from 240 Hz up to 480 Hz
+    private static byte[] BuildUndeafenWav()
+        => BuildWav(Sweep(240, 480, 0.20));
+
+    // Both mute: mic blips then deafen sweep
+    private static byte[] BuildBothMuteWav()
+        => BuildWav(Concat(Blip(880, 0.07, fadeDown: true), Blip(660, 0.07, fadeDown: true), Sweep(480, 240, 0.18)));
+
+    // Both unmute: undeafen sweep then mic blips
+    private static byte[] BuildBothUnmuteWav()
+        => BuildWav(Concat(Sweep(240, 480, 0.18), Blip(660, 0.07, fadeDown: false), Blip(880, 0.07, fadeDown: false)));
+
+    // Single tone at a fixed frequency with a linear fade-in (fadeDown=false) or fade-out (fadeDown=true)
+    private static short[] Blip(double freq, double durationSec, bool fadeDown)
+    {
+        int frames = (int)(SampleRate * durationSec);
+        var s = new short[frames];
+        for (int i = 0; i < frames; i++)
+        {
+            float env = fadeDown ? 1f - (float)i / frames : (float)i / frames;
+            // Apply a slight smoothing to avoid clicks at start/end
+            env = env * env;
+            float sample = Amplitude * env * (float)Math.Sin(2 * Math.PI * freq * i / SampleRate);
+            s[i] = (short)(sample * short.MaxValue);
+        }
+        return s;
+    }
+
+    // Frequency sweep from startHz to endHz over durationSec with an envelope shaped for naturalness
+    private static short[] Sweep(double startHz, double endHz, double durationSec)
+    {
+        int frames = (int)(SampleRate * durationSec);
+        var s = new short[frames];
+        double phase = 0;
+        for (int i = 0; i < frames; i++)
+        {
+            float t = (float)i / frames;
+            // Bell-shaped envelope: ramp up briefly then fade out
+            float env = t < 0.1f ? t / 0.1f : 1f - (t - 0.1f) / 0.9f;
+            env = env * env * Amplitude;
+            double freq = startHz + (endHz - startHz) * t;
+            phase += 2 * Math.PI * freq / SampleRate;
+            s[i] = (short)(env * Math.Sin(phase) * short.MaxValue);
+        }
+        return s;
+    }
+
+    private static short[] Concat(params short[][] parts)
+    {
+        int total = 0;
+        foreach (var p in parts) total += p.Length;
+        var result = new short[total];
+        int pos = 0;
+        foreach (var p in parts) { Array.Copy(p, 0, result, pos, p.Length); pos += p.Length; }
+        return result;
+    }
+
+    private static byte[] BuildWav(short[] samples)
+    {
+        int dataBytes = samples.Length * 2;
+        using var ms = new System.IO.MemoryStream(44 + dataBytes);
+        using var w = new System.IO.BinaryWriter(ms);
+        w.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));
+        w.Write(36 + dataBytes);
+        w.Write(System.Text.Encoding.ASCII.GetBytes("WAVE"));
+        w.Write(System.Text.Encoding.ASCII.GetBytes("fmt "));
+        w.Write(16); w.Write((short)1); w.Write((short)1);
+        w.Write(SampleRate); w.Write(SampleRate * 2); w.Write((short)2); w.Write((short)16);
+        w.Write(System.Text.Encoding.ASCII.GetBytes("data"));
+        w.Write(dataBytes);
+        foreach (var s in samples) w.Write(s);
+        return ms.ToArray();
     }
 }

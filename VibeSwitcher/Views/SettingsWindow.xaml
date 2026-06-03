@@ -1918,32 +1918,36 @@
 
                             <!-- Mute Mic -->
                             <Separator Margin="0,10,0,10" Background="{DynamicResource SeparatorBrush}" Height="1" BorderThickness="0"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding MuteMicHotkeyEnabled}"
-                                      IsEnabled="{Binding MuteMicHotkeyIsSet}"
-                                      Margin="0,0,0,8">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Opacity" Value="1"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MuteMicHotkeyEnabled}" Value="False">
-                                                    <Setter Property="Opacity" Value="0.4"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <TextBlock Text="Mute Microphone" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip>
-                                            <ToolTip><TextBlock Text="Instantly mutes your default microphone. Press the hotkey again to unmute." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
-                                        </Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0" Style="{StaticResource ToggleSwitchStyle}"
+                                          IsChecked="{Binding MuteMicHotkeyEnabled}"
+                                          IsEnabled="{Binding MuteMicHotkeyIsSet}">
+                                    <TextBlock Text="Mute Microphone" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding MuteMicHotkeyEnabled}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.4"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </CheckBox>
+                                <Border Grid.Column="1" Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                        VerticalAlignment="Center" Cursor="Help">
+                                    <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                               Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border.ToolTip>
+                                        <ToolTip><TextBlock Text="Instantly mutes your default microphone. Press the hotkey again to unmute. Plays a short sound on mute and unmute." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                    </Border.ToolTip>
+                                </Border>
+                            </Grid>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <StackPanel.Style>
                                     <Style TargetType="StackPanel">
@@ -1975,32 +1979,36 @@
                             </StackPanel>
 
                             <!-- Mute Speakers -->
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding MuteSpeakersHotkeyEnabled}"
-                                      IsEnabled="{Binding MuteSpeakersHotkeyIsSet}"
-                                      Margin="0,8,0,8">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Opacity" Value="1"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MuteSpeakersHotkeyEnabled}" Value="False">
-                                                    <Setter Property="Opacity" Value="0.4"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <TextBlock Text="Mute Speakers" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip>
-                                            <ToolTip><TextBlock Text="Instantly mutes your default playback device (speakers or headphones). Press again to unmute." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
-                                        </Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
+                            <Grid Margin="0,8,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0" Style="{StaticResource ToggleSwitchStyle}"
+                                          IsChecked="{Binding MuteSpeakersHotkeyEnabled}"
+                                          IsEnabled="{Binding MuteSpeakersHotkeyIsSet}">
+                                    <TextBlock Text="Mute Speakers" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding MuteSpeakersHotkeyEnabled}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.4"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </CheckBox>
+                                <Border Grid.Column="1" Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                        VerticalAlignment="Center" Cursor="Help">
+                                    <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                               Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border.ToolTip>
+                                        <ToolTip><TextBlock Text="Instantly mutes your default playback device (speakers or headphones). Press again to unmute. Plays a distinct deafen/undeafen sound." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                    </Border.ToolTip>
+                                </Border>
+                            </Grid>
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <StackPanel.Style>
                                     <Style TargetType="StackPanel">
@@ -2032,32 +2040,36 @@
                             </StackPanel>
 
                             <!-- Mute Both -->
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding MuteBothHotkeyEnabled}"
-                                      IsEnabled="{Binding MuteBothHotkeyIsSet}"
-                                      Margin="0,8,0,8">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Opacity" Value="1"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MuteBothHotkeyEnabled}" Value="False">
-                                                    <Setter Property="Opacity" Value="0.4"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <TextBlock Text="Mute Mic + Speakers" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip>
-                                            <ToolTip><TextBlock Text="Instantly mutes both your microphone and speakers at once. Press again to unmute both." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
-                                        </Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox Grid.Column="0" Style="{StaticResource ToggleSwitchStyle}"
+                                          IsChecked="{Binding MuteBothHotkeyEnabled}"
+                                          IsEnabled="{Binding MuteBothHotkeyIsSet}">
+                                    <TextBlock Text="Mute Mic + Speakers" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Opacity" Value="1"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding MuteBothHotkeyEnabled}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.4"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </CheckBox>
+                                <Border Grid.Column="1" Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                        VerticalAlignment="Center" Cursor="Help">
+                                    <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                               Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border.ToolTip>
+                                        <ToolTip><TextBlock Text="Instantly mutes both your microphone and speakers at once. Press again to unmute both. Plays a combined mute/unmute sound." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                    </Border.ToolTip>
+                                </Border>
+                            </Grid>
                             <StackPanel Orientation="Horizontal">
                                 <StackPanel.Style>
                                     <Style TargetType="StackPanel">
