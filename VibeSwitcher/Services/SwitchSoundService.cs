@@ -21,7 +21,6 @@ public class SwitchSoundService : ISwitchSoundService
     internal static (string tone, string? customPath, int volume)? Resolve(DeviceProfile profile, AppConfig config)
     {
         if (!config.SwitchSoundEnabled) return null;
-        if (profile.SoundMuted) return null;  // mute is independent of override
 
         if (profile.SoundOverride)
         {

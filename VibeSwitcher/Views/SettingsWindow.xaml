@@ -1065,7 +1065,7 @@
                                                             </Style.Triggers>
                                                         </Style>
                                                     </StackPanel.Style>
-                                                    <TextBlock Text="Silent switch" FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="No Notification Banner" FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
                                                     <Border Width="15" Height="15" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
                                                             VerticalAlignment="Center" Cursor="Help" Margin="6,0,0,0"
                                                             ToolTipService.InitialShowDelay="400"
@@ -1075,7 +1075,7 @@
                                                         <Border.ToolTip>
                                                             <ToolTip>
                                                                 <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Hides the notification banner when you switch to this profile manually — using a hotkey, the tray menu, or the Settings window. It does not affect scheduled switches; each schedule has its own silent option.
+                                                                    Suppresses the notification banner and Windows audio ding when activating this profile. Note: the ding is automatically suppressed when a VibeSwitcher switch sound is already playing. Does not affect scheduled switches — each schedule has its own silent option.
                                                                 </TextBlock>
                                                             </ToolTip>
                                                         </Border.ToolTip>
@@ -1248,26 +1248,6 @@
                                                         </Border.ToolTip>
                                                     </Border>
                                                 </StackPanel>
-
-                                                <!-- Mute toggle — always visible, no override required -->
-                                                <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                                          IsChecked="{Binding SoundMuted}"
-                                                          Margin="0,0,0,8">
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <StackPanel.Style>
-                                                            <Style TargetType="StackPanel">
-                                                                <Setter Property="Opacity" Value="1"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding SoundMuted}" Value="False">
-                                                                        <Setter Property="Opacity" Value="0.4"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </StackPanel.Style>
-                                                        <TextBlock Text="Mute sound for this profile" FontSize="12"
-                                                                   Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </CheckBox>
 
                                                 <!-- Custom tone toggle -->
                                                 <CheckBox Style="{StaticResource ToggleSwitchStyle}"
@@ -1923,73 +1903,6 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Shortcuts -->
-                    <Border Style="{StaticResource InnerCardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="Shortcuts" FontWeight="SemiBold" FontSize="12"
-                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding SettingsHotkeyEnabled}"
-                                      IsEnabled="{Binding SettingsHotkeyIsSet}"
-                                      Margin="0,3,0,8">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Opacity" Value="1"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
-                                                    <Setter Property="Opacity" Value="0.4"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <TextBlock Text="Open / Close VibeSwitcher" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip>
-                                            <ToolTip><TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
-                                        </Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
-                            <StackPanel Orientation="Horizontal">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Opacity" Value="1"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
-                                                <Setter Property="Opacity" Value="0.4"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
-                                <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1"
-                                        CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
-                                        MinWidth="74" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding SettingsHotkeyDisplay}"
-                                               FontFamily="Consolas" FontSize="12"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
-                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Border>
-                                <Button Style="{StaticResource ActionButton}"
-                                        Content="Set hotkey"
-                                        Click="SettingsHotkeyButton_Click"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
                     <!-- Switch Sound -->
                     <Border Style="{StaticResource InnerCardBorder}">
                         <StackPanel>
@@ -2091,6 +2004,73 @@
                                         Style="{StaticResource ActionButton}"
                                         Command="{Binding TestSwitchSoundCommand}"
                                         HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Shortcuts -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Shortcuts" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding SettingsHotkeyEnabled}"
+                                      IsEnabled="{Binding SettingsHotkeyIsSet}"
+                                      Margin="0,3,0,8">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Open / Close VibeSwitcher" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <ToolTip><TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                            <StackPanel Orientation="Horizontal">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Opacity" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
+                                                <Setter Property="Opacity" Value="0.4"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+                                <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1"
+                                        CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
+                                        MinWidth="74" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding SettingsHotkeyDisplay}"
+                                               FontFamily="Consolas" FontSize="12"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
+                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                                <Button Style="{StaticResource ActionButton}"
+                                        Content="Set hotkey"
+                                        Click="SettingsHotkeyButton_Click"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>

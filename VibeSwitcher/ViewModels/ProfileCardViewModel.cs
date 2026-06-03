@@ -231,18 +231,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
-    public bool SoundMuted
-    {
-        get => _model.SoundMuted;
-        set
-        {
-            if (_model.SoundMuted == value) return;
-            _model.SoundMuted = value;
-            OnPropertyChanged(nameof(SoundMuted));
-            _onChanged(this);
-        }
-    }
-
     public bool ProfileSoundToneClick
     {
         get => _model.SoundTone == "Click";
