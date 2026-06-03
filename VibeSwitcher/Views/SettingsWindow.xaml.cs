@@ -138,9 +138,16 @@ public partial class SettingsWindow : Window
 
     private void UpdateProfilesRowHeight()
     {
-        MainGrid.RowDefinitions[2].Height = _viewModel.SettingsCardExpanded
-            ? new GridLength(0)
-            : new GridLength(1, GridUnitType.Star);
+        if (_viewModel.SettingsCardExpanded)
+        {
+            MainGrid.RowDefinitions[2].Height = new GridLength(0);
+            MainGrid.RowDefinitions[3].Height = new GridLength(1, GridUnitType.Star);
+        }
+        else
+        {
+            MainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Star);
+            MainGrid.RowDefinitions[3].Height = GridLength.Auto;
+        }
     }
 
     private void UpdateSettingsBodyMaxHeight()
