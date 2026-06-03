@@ -95,7 +95,7 @@
             <Setter Property="BorderBrush"  Value="{DynamicResource InputBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize"     Value="12"/>
-            <Setter Property="Padding"      Value="26,4,28,4"/>
+            <Setter Property="Padding"      Value="22,4,22,4"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -415,14 +415,14 @@
                          KeyDown="FilterNameBox_KeyDown"
                          Style="{StaticResource SearchTextBox}"/>
                 <!-- Search icon, non-interactive -->
-                <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="11"
                            VerticalAlignment="Center" HorizontalAlignment="Left"
-                           Margin="10,0,0,0" IsHitTestVisible="False"
+                           Margin="8,0,0,0" IsHitTestVisible="False"
                            Foreground="{DynamicResource SubtleText}"/>
                 <!-- Placeholder -->
-                <TextBlock Text="Search by profile name… (Esc to clear)"
+                <TextBlock Text='Search profiles by name… e.g. "Gaming", "Work"'
                            VerticalAlignment="Center" HorizontalAlignment="Left"
-                           Margin="26,0,0,0" FontSize="12" IsHitTestVisible="False"
+                           Margin="22,0,0,0" FontSize="12" IsHitTestVisible="False"
                            Foreground="{DynamicResource SubtleText}">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
