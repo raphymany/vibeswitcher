@@ -1048,41 +1048,46 @@
                                         <Border Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Height="1" Background="{DynamicResource CardSeparator}" Margin="0,0,0,12"/>
 
-                                        <!-- Bottom row: Silent toggle + Clone + Delete -->
-                                        <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4">
-                                            <CheckBox IsChecked="{Binding Silent}"
-                                                      Style="{StaticResource ToggleSwitchStyle}"
-                                                      HorizontalAlignment="Left"
-                                                      VerticalAlignment="Center">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <StackPanel.Style>
-                                                        <Style TargetType="StackPanel">
-                                                            <Setter Property="Opacity" Value="1"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Silent}" Value="False">
-                                                                    <Setter Property="Opacity" Value="0.4"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </StackPanel.Style>
-                                                    <TextBlock Text="No Notification Banner" FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
-                                                    <Border Width="15" Height="15" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                                            VerticalAlignment="Center" Cursor="Help" Margin="6,0,0,0"
-                                                            ToolTipService.InitialShowDelay="400"
-                                                            ToolTipService.ShowDuration="12000">
-                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Border.ToolTip>
+                                        <!-- Bottom row: action buttons -->
+                                        <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4"
+                                                    HorizontalAlignment="Right" Orientation="Horizontal">
+                                                <!-- Bell toggle: suppress notification banner -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <ToggleButton IsChecked="{Binding Silent}"
+                                                                  Cursor="Hand" Focusable="False"
+                                                                  OverridesDefaultStyle="True"
+                                                                  ToolTipService.InitialShowDelay="400"
+                                                                  ToolTipService.ShowDuration="12000">
+                                                        <ToggleButton.ToolTip>
                                                             <ToolTip>
                                                                 <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Suppresses the notification banner when activating this profile. Does not affect scheduled switches — each schedule has its own silent option.
+                                                                    No Notification Banner — suppresses the tray notification when this profile is activated. Does not affect scheduled switches.
                                                                 </TextBlock>
                                                             </ToolTip>
-                                                        </Border.ToolTip>
-                                                    </Border>
-                                                </StackPanel>
-                                            </CheckBox>
-                                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                                        </ToggleButton.ToolTip>
+                                                        <ToggleButton.Template>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="bell" Text="🔔" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsChecked" Value="True">
+                                                                        <Setter TargetName="bell" Property="Text" Value="🔕"/>
+                                                                        <Setter TargetName="bell" Property="Foreground" Value="#E57373"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </ToggleButton.Template>
+                                                    </ToggleButton>
+                                                </Border>
+                                                <!-- Pin toggle -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
@@ -1133,9 +1138,11 @@
                                                 <Button Content="Add Schedule"
                                                         Style="{StaticResource ActionButton}"
                                                         Command="{Binding AddScheduleCommand}"
-                                                        Margin="0,0,8,0"/>
+                                                        Margin="0,0,8,0"
+                                                        ToolTip="Automatically switch to this profile at a set time on selected days. Multiple schedules can be added."/>
                                                 <Button Command="{Binding AddSwitchSoundCommand}"
-                                                        Margin="0,0,8,0">
+                                                        Margin="0,0,8,0"
+                                                        ToolTip="Play a sound when this profile is activated. Choose from built-in tones or a custom WAV file.">
                                                     <Button.Style>
                                                         <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
                                                             <Setter Property="Visibility" Value="Visible"/>
@@ -1151,11 +1158,20 @@
                                                 <Button Content="Delete Profile"
                                                         Style="{StaticResource DangerButton}"
                                                         Command="{Binding DeleteCommand}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                        <!-- Schedule section -->
+                                        </StackPanel>
+                                        <!-- Schedule section — visible only when at least one schedule exists -->
                                         <Border Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Margin="0,8,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasSchedules}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <StackPanel>
 
                                                 <!-- Section header -->
@@ -1164,22 +1180,6 @@
                                                                FontSize="11" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SectionLabelText}"
                                                                VerticalAlignment="Center"/>
-                                                    <Border Width="16" Height="16" CornerRadius="8"
-                                                            Background="{DynamicResource InfoBadgeBg}"
-                                                            Margin="5,0,0,0" VerticalAlignment="Center"
-                                                            Cursor="Help"
-                                                            ToolTipService.ShowDuration="12000">
-                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                                   Foreground="{DynamicResource InfoBadgeText}"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Border.ToolTip>
-                                                            <ToolTip>
-                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Schedules automatically switch this profile at a set time on selected days. You can add multiple schedules per profile.
-                                                                </TextBlock>
-                                                            </ToolTip>
-                                                        </Border.ToolTip>
-                                                    </Border>
                                                 </StackPanel>
 
                                                 <!-- Schedule entries -->
@@ -1249,28 +1249,12 @@
                                                 </Style>
                                             </Border.Style>
                                             <StackPanel>
-                                                <!-- Section header with info badge -->
+                                                <!-- Section header -->
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                                     <TextBlock Text="Switch Sound"
                                                                FontSize="11" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SectionLabelText}"
                                                                VerticalAlignment="Center"/>
-                                                    <Border Width="16" Height="16" CornerRadius="8"
-                                                            Background="{DynamicResource InfoBadgeBg}"
-                                                            Margin="5,0,0,0" VerticalAlignment="Center"
-                                                            Cursor="Help"
-                                                            ToolTipService.ShowDuration="12000">
-                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                                   Foreground="{DynamicResource InfoBadgeText}"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Border.ToolTip>
-                                                            <ToolTip>
-                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Plays a sound when this profile is activated. Click Edit to change the tone or volume, or Remove to turn it off.
-                                                                </TextBlock>
-                                                            </ToolTip>
-                                                        </Border.ToolTip>
-                                                    </Border>
                                                 </StackPanel>
 
                                                 <!-- Configured entry row -->

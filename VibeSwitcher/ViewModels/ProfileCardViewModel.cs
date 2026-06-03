@@ -403,6 +403,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
 
+    public bool HasSchedules => Schedules.Count > 0;
+
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
 
     public ICommand ActivateCommand { get; }
@@ -801,6 +803,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
             _model.Schedules.Add(result);
             Schedules.Add(CreateScheduleEntry(result));
+            OnPropertyChanged(nameof(HasSchedules));
             _onChanged(this);
             return;
         }
@@ -844,6 +847,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                     return;
                 _model.Schedules.Remove(vm.Entry);
                 Schedules.Remove(vm);
+                OnPropertyChanged(nameof(HasSchedules));
                 _onChanged(this);
             },
             onEdit: EditSchedule,
