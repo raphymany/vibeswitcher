@@ -6,6 +6,14 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Fixed
+- **Day-chip filter not activating** — selecting day-of-week chips (Mon, Tue, etc.) did not show the filter-active indicator or enable the "Clear" button because `ProfileFilter.IsActive` and `SettingsViewModel.IsAnyFilterActive` both omitted the `ActiveDays` check *(PR #88)*
+- **Sound summary stays stale** — the summary line on a profile card ("Click — 50%") did not update when the user browsed a custom WAV file (auto-selects "Custom" tone) because `SetProfileSoundTone` and the volume setter never notified `SoundSummary` *(PR #88)*
+- **Native OS dialog in session log** — "no log file yet" message used `MessageBox.Show` instead of the app-styled `AlertDialog`, violating the project's no-native-dialogs rule *(PR #88)*
+- **Path traversal in icon validation** — `IconHelper` used `StartsWith(iconsDir)` which matched sibling directories with the same name prefix (e.g. `Icons_evil/` would pass an `Icons/` check); now appends the path separator before comparing *(PR #88)*
+- **Dead code removed** — `AppConfig` had 4 properties (`SwitchSoundEnabled`, `SwitchSoundTone`, `SwitchSoundCustomPath`, `SwitchSoundVolume`) and `DeviceProfile` had `SoundMuted` that were defined but never read; `SwitchSoundService.Resolve`/`PlayAsync` had an unused `AppConfig` parameter; `ThemeService` had a duplicate `Apply()` overload *(PR #88)*
+- **ConfigService.ExportTo swallowed errors** — failures during config export were silently caught and logged but not re-thrown, leaving the caller with no way to show the user an error message *(PR #88)*
+
 ### Added
 - **Per-scope mute hotkeys (F37)** — three independent global hotkeys in the Shortcuts settings card: Mute Microphone, Mute Speakers, and Mute Mic + Speakers; each is off by default and auto-enables when a hotkey is assigned *(PR #86)*
 - **Color-coded tray flash while muted** — tray icon alternates between a colored dot and the active profile icon: red for mic, blue for speakers, purple for both *(PR #86)*

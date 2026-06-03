@@ -1217,6 +1217,25 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
+### ~~Branch 49: `fix/codebase-audit-49`~~ ✅ Done — PR #88
+**Theme:** Systematic full-codebase audit — dead code, bugs, security, and UI violations.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| Models | Removed 4 dead properties from `AppConfig` (`SwitchSoundEnabled`, `SwitchSoundTone`, `SwitchSoundCustomPath`, `SwitchSoundVolume`) — defined but never read | ✅ Done |
+| Models | Removed `SoundMuted` dead property from `DeviceProfile` — same reason | ✅ Done |
+| Services | Removed unused `AppConfig` parameter from `SwitchSoundService.Resolve`/`PlayAsync` and `ISwitchSoundService` — config was never consulted | ✅ Done |
+| Services | Removed duplicate `Apply()` overload from `ThemeService` — defined twice with identical bodies | ✅ Done |
+| Services | Added `try/catch` + rethrow to `ConfigService.ExportTo` — failures previously swallowed silently | ✅ Done |
+| Security | Fixed path traversal in `IconHelper` — `StartsWith(iconsDir)` accepted sibling dirs; now appends `Path.DirectorySeparatorChar` before comparing | ✅ Done |
+| ViewModels | Fixed `ProfileFilter.IsActive` missing `ActiveDays.Count > 0` — day-chip filters were silently ignored | ✅ Done |
+| ViewModels | Fixed `SettingsViewModel.IsAnyFilterActive` missing `DayChips.Any(d => d.IsSelected)` — same gap | ✅ Done |
+| ViewModels | Fixed `ProfileCardViewModel.SetProfileSoundTone` and `ProfileSoundVolume` setter not notifying `SoundSummary` — summary text stayed stale after tone/volume change | ✅ Done |
+| Views | Replaced `MessageBox.Show` in `SessionLogWindow` with `AlertDialog` — native OS dialogs prohibited | ✅ Done |
+| Comment | Fixed `App.xaml.cs` comment "every 30 seconds" → "every 10 seconds" (scheduler tick) | ✅ Done |
+
+---
+
 ### Branch 47: `refactor/code-quality`
 **Theme:** Code quality improvements identified during internal review of the scheduler branch.
 

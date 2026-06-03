@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-04 — Branch 39 (`feat/panic-hotkey`) merged as PR #86.
+**Last updated:** 2026-06-04 — Branch 49 (`fix/codebase-audit-49`) PR #88 open.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -171,6 +171,15 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | # | Feature |
 |---|---------|
 | ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav file at both levels; adjustable volume slider (0–100%) at both global and per-profile level; per-profile silent toggle to disable entirely~~ |
+
+---
+
+### ~~Branch 49: `fix/codebase-audit-49`~~ PR #88 open
+**Theme:** Full codebase audit — dead code, bugs, security, and UI violations.
+
+| # | Feature |
+|---|---------|
+| (audit) | Dead code, path traversal security fix, filter bugs, stale SoundSummary, MessageBox.Show violation |
 
 ---
 
