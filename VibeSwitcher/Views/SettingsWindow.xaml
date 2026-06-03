@@ -1240,10 +1240,20 @@
 
         <!-- ── General Settings card ── -->
         <Border x:Name="SettingsCard" Grid.Row="1" Grid.RowSpan="3"
-                VerticalAlignment="Bottom" Panel.ZIndex="5"
-                Style="{StaticResource CardBorder}" Margin="0,0,0,14"
+                Panel.ZIndex="5"
                 Padding="0" ClipToBounds="True">
-            <StackPanel>
+            <Border.Style>
+                <Style TargetType="Border" BasedOn="{StaticResource CardBorder}">
+                    <Setter Property="VerticalAlignment" Value="Bottom"/>
+                    <Setter Property="Margin"            Value="0,0,0,14"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SettingsCardExpanded}" Value="True">
+                            <Setter Property="VerticalAlignment" Value="Stretch"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <StackPanel VerticalAlignment="Bottom">
                 <!-- Collapsible header -->
                 <Grid>
                 <ToggleButton x:Name="SettingsExpander"
