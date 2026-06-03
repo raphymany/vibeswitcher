@@ -226,6 +226,15 @@ public partial class SettingsWindow : Window
             app.OpenAboutWindow();
     }
 
+    private void SearchBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && !string.IsNullOrEmpty(_viewModel.SearchText))
+        {
+            _viewModel.SearchText = "";
+            e.Handled = true;
+        }
+    }
+
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape)

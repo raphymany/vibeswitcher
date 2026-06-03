@@ -239,6 +239,50 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool HasValidationWarning => ValidationWarning != null;
 
+    private bool _isVisible = true;
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set => SetField(ref _isVisible, value);
+    }
+
+    public bool MatchesFilter(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query)) return true;
+        var q = query.Trim().ToLowerInvariant();
+
+        if (_model.Name.ToLowerInvariant().Contains(q)) return true;
+        if (_selectedPlaybackDevice?.FriendlyName.ToLowerInvariant().Contains(q) == true) return true;
+        if (_selectedRecordingDevice?.FriendlyName.ToLowerInvariant().Contains(q) == true) return true;
+        if (_hotkeyDisplay.ToLowerInvariant().Contains(q)) return true;
+
+        var modeLabel = _model.Mode switch
+        {
+            ProfileMode.Playback  => "playback",
+            ProfileMode.Recording => "recording",
+            ProfileMode.Both      => "both",
+            _                     => ""
+        };
+        if (modeLabel.Contains(q)) return true;
+
+        if (_model.IsPinned && (q.Contains("pin") || q.Contains("star") || q.Contains("favorit"))) return true;
+        if (_model.Schedules.Count > 0 && q.Contains("schedul")) return true;
+
+        // Day-of-week: match any schedule entry whose Days list includes the queried day
+        string[] dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+        for (int i = 0; i < dayNames.Length; i++)
+        {
+            if (dayNames[i].Contains(q))
+            {
+                // dayNames[i=0]=Monday → DayOfWeek.Monday=1, ..., sunday=i6 → DayOfWeek.Sunday=0
+                var dow = i == 6 ? DayOfWeek.Sunday : (DayOfWeek)(i + 1);
+                if (_model.Schedules.Any(s => s.Days.Contains(dow))) return true;
+            }
+        }
+
+        return false;
+    }
+
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
 
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;

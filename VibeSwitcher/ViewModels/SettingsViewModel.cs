@@ -205,6 +205,49 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    private string _searchText = "";
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (!SetField(ref _searchText, value)) return;
+            ApplyFilter();
+            if (_configService.Current.RememberSearch)
+            {
+                _configService.Current.LastSearch = value;
+                SaveAsync();
+            }
+        }
+    }
+
+    private bool _hasNoFilterResults;
+    public bool HasNoFilterResults
+    {
+        get => _hasNoFilterResults;
+        private set => SetField(ref _hasNoFilterResults, value);
+    }
+
+    private void ApplyFilter()
+    {
+        foreach (var card in Profiles)
+            card.IsVisible = card.MatchesFilter(_searchText);
+        HasNoFilterResults = !string.IsNullOrWhiteSpace(_searchText) && Profiles.All(p => !p.IsVisible);
+    }
+
+    public bool RememberSearch
+    {
+        get => _configService.Current.RememberSearch;
+        set
+        {
+            if (_configService.Current.RememberSearch == value) return;
+            _configService.Current.RememberSearch = value;
+            if (!value) _configService.Current.LastSearch = "";
+            SaveAsync();
+            OnPropertyChanged();
+        }
+    }
+
     public HotkeyDefinition SettingsHotkey
     {
         get => _configService.Current.SettingsHotkey ?? new HotkeyDefinition();
@@ -292,6 +335,9 @@ public class SettingsViewModel : ViewModelBase
         _showDisconnectedDevices = configService.Current.ShowDisconnectedDevices;
         _leftClickCyclesProfiles = configService.Current.LeftClickCyclesProfiles;
 
+        if (configService.Current.RememberSearch && !string.IsNullOrEmpty(configService.Current.LastSearch))
+            _searchText = configService.Current.LastSearch;
+
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(
             configService.Current.Profiles
@@ -301,6 +347,10 @@ public class SettingsViewModel : ViewModelBase
         AddProfileCommand = new RelayCommand(AddProfile);
 
         Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
+
+        // Apply persisted search filter after profiles are loaded.
+        if (!string.IsNullOrEmpty(_searchText))
+            ApplyFilter();
 
         // Refresh device dropdowns whenever a device is plugged in or removed.
         _audioService.DevicesChanged += OnDevicesChanged;
@@ -710,6 +760,7 @@ public class SettingsViewModel : ViewModelBase
             card.Dispose();
         foreach (var p in _configService.Current.Profiles.OrderBy(p => p.SortOrder))
             Profiles.Add(CreateCard(p));
+        ApplyFilter();
         _ = LoadDevicesAsync();
     }
 
