@@ -126,6 +126,9 @@ public partial class SettingsWindow : Window
     {
         if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded) && _viewModel.SettingsCardExpanded)
             Dispatcher.InvokeAsync(EnsureFooterVisible, System.Windows.Threading.DispatcherPriority.Loaded);
+
+        if (e.PropertyName == nameof(SettingsViewModel.IsSearchExpanded) && _viewModel.IsSearchExpanded)
+            Dispatcher.BeginInvoke(() => FilterNameBox.Focus(), System.Windows.Threading.DispatcherPriority.Input);
     }
 
     private void EnsureFooterVisible()
@@ -228,11 +231,12 @@ public partial class SettingsWindow : Window
 
     private void FilterNameBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape && !string.IsNullOrEmpty(_viewModel.NameFilter))
-        {
-            _viewModel.NameFilter = "";
-            e.Handled = true;
-        }
+        if (e.Key != Key.Escape) return;
+        if (!string.IsNullOrEmpty(_viewModel.NameFilter))
+            _viewModel.NameFilter = "";       // first Escape clears text
+        else
+            _viewModel.CloseSearchCommand.Execute(null); // second Escape closes box
+        e.Handled = true;
     }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)

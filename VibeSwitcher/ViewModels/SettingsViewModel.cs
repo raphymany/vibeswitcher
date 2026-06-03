@@ -334,6 +334,17 @@ public class SettingsViewModel : ViewModelBase
         set { if (!SetField(ref _reminderFilter, value)) return; ApplyFilter(); }
     }
 
+    private bool _isSearchExpanded;
+    public bool IsSearchExpanded
+    {
+        get => _isSearchExpanded;
+        set { SetField(ref _isSearchExpanded, value); OnPropertyChanged(nameof(IsSearchCollapsed)); }
+    }
+    public bool IsSearchCollapsed => !_isSearchExpanded;
+
+    public ICommand OpenSearchCommand  { get; }
+    public ICommand CloseSearchCommand { get; }
+
     public bool IsAnyFilterActive =>
         !string.IsNullOrWhiteSpace(_nameFilter) ||
         _modeFilter != "Any mode"               ||
@@ -516,10 +527,14 @@ public class SettingsViewModel : ViewModelBase
         if (configService.Current.RememberSearch && !string.IsNullOrEmpty(configService.Current.LastSearch))
             _nameFilter = configService.Current.LastSearch;
 
+        _isSearchExpanded = !string.IsNullOrEmpty(_nameFilter);
+
         foreach (var chip in DayChips)
             chip.PropertyChanged += (_, _) => { if (!_clearing) ApplyFilter(); };
 
         ClearFiltersCommand = new RelayCommand(ClearFilters);
+        OpenSearchCommand   = new RelayCommand(_ => IsSearchExpanded = true);
+        CloseSearchCommand  = new RelayCommand(_ => { NameFilter = ""; IsSearchExpanded = false; });
 
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(
