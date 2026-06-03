@@ -30,6 +30,7 @@ public class HotkeyService : IHotkeyService
     private readonly IntPtr _hwnd;
     private ushort _settingsAtom;
     private HotkeyDefinition? _settingsHotkeyDef;
+    private readonly Dictionary<MuteScope, (ushort Atom, HotkeyDefinition Hotkey)> _muteAtoms = new();
 
     public HotkeyService(IntPtr messageWindowHandle)
     {
@@ -95,6 +96,8 @@ public class HotkeyService : IHotkeyService
     public void UnregisterAll()
     {
         UnregisterSettingsHotkey();
+        foreach (var scope in _muteAtoms.Keys.ToList())
+            UnregisterMuteHotkey(scope);
         foreach (var (atom, _) in _atomToProfile)
         {
             WinApi.UnregisterHotKey(_hwnd, atom);
@@ -103,6 +106,56 @@ public class HotkeyService : IHotkeyService
         _atomToProfile.Clear();
         _profileToAtom.Clear();
         _profileById.Clear();
+    }
+
+    public HotkeyConflictException? RegisterMuteHotkey(MuteScope scope, HotkeyDefinition hotkey)
+    {
+        UnregisterMuteHotkey(scope);
+        if (hotkey.IsEmpty || !hotkey.IsValid) return null;
+
+        string atomName = $"VibeSwitcher_Mute_{scope}";
+        ushort atom = WinApi.GlobalAddAtom(atomName);
+        if (atom == 0)
+        {
+            AppLogger.Warning("HotkeyService.RegisterMuteHotkey", $"GlobalAddAtom returned 0 for mute scope {scope}.");
+            return null;
+        }
+
+        bool ok = WinApi.RegisterHotKey(_hwnd, atom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode);
+        if (!ok)
+        {
+            int err = Marshal.GetLastWin32Error();
+            WinApi.GlobalDeleteAtom(atom);
+            if (err == WinApi.ERROR_HOTKEY_ALREADY_REGISTERED)
+                return new HotkeyConflictException(hotkey);
+            AppLogger.Warning("HotkeyService.RegisterMuteHotkey", $"RegisterHotKey failed (error {err}) for mute scope {scope}.");
+            return null;
+        }
+
+        _muteAtoms[scope] = (atom, hotkey);
+        return null;
+    }
+
+    public void UnregisterMuteHotkey(MuteScope scope)
+    {
+        if (!_muteAtoms.TryGetValue(scope, out var entry)) return;
+        WinApi.UnregisterHotKey(_hwnd, entry.Atom);
+        WinApi.GlobalDeleteAtom(entry.Atom);
+        _muteAtoms.Remove(scope);
+    }
+
+    public bool IsMuteHotkey(ushort atomId, out MuteScope scope)
+    {
+        foreach (var kv in _muteAtoms)
+        {
+            if (kv.Value.Atom == atomId)
+            {
+                scope = kv.Key;
+                return true;
+            }
+        }
+        scope = default;
+        return false;
     }
 
     public HotkeyConflictException? RegisterSettingsHotkey(HotkeyDefinition hotkey)
@@ -156,9 +209,11 @@ public class HotkeyService : IHotkeyService
 
         if (hotkey.IsEmpty || !hotkey.IsValid) return false;
 
-        // Unregister all our hotkeys (including settings) temporarily so we don't detect our own registrations
+        // Unregister all our hotkeys (including settings + mute) temporarily so we don't detect our own registrations
         bool hadSettingsAtom = _settingsAtom != 0;
         if (hadSettingsAtom) WinApi.UnregisterHotKey(_hwnd, _settingsAtom);
+        foreach (var (_, (muteAtom, _)) in _muteAtoms)
+            WinApi.UnregisterHotKey(_hwnd, muteAtom);
         foreach (var (atom, _) in _atomToProfile)
             WinApi.UnregisterHotKey(_hwnd, atom);
 
@@ -178,6 +233,13 @@ public class HotkeyService : IHotkeyService
             inUseByOther = !ok;
             if (ok) WinApi.UnregisterHotKey(_hwnd, testAtom);
             WinApi.GlobalDeleteAtom(testAtom);
+        }
+
+        // Re-register mute hotkeys
+        foreach (var kv in _muteAtoms)
+        {
+            var (muteAtom, muteHkDef) = kv.Value;
+            WinApi.RegisterHotKey(_hwnd, muteAtom, muteHkDef.GetModifierFlags(), muteHkDef.VirtualKeyCode);
         }
 
         // Re-register the settings hotkey

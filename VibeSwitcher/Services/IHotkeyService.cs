@@ -13,4 +13,7 @@ public interface IHotkeyService : IDisposable
     HotkeyConflictException? RegisterSettingsHotkey(HotkeyDefinition hotkey);
     void UnregisterSettingsHotkey();
     bool IsSettingsHotkey(ushort atomId);
+    HotkeyConflictException? RegisterMuteHotkey(MuteScope scope, HotkeyDefinition hotkey);
+    void UnregisterMuteHotkey(MuteScope scope);
+    bool IsMuteHotkey(ushort atomId, out MuteScope scope);
 }

@@ -25,6 +25,7 @@ public class TrayService : IDisposable
     // Bytes (not Icon objects) are cached because H.NotifyIcon disposes the Icon it holds on each change.
     private readonly Dictionary<Guid, byte[]> _trayIconBytesCache = new();
     private CancellationTokenSource? _flashCts;
+    private CancellationTokenSource? _muteFlashCts;
 
     // Wired up by App.xaml.cs after ProfileSwitchOrchestrator is created.
     internal Action<DeviceProfile>? SwitchRequested;
@@ -164,6 +165,60 @@ public class TrayService : IDisposable
             }
             catch (OperationCanceledException) { }
         });
+    }
+
+    public void StartMuteFlash()
+    {
+        _muteFlashCts?.Cancel();
+        _muteFlashCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _muteFlashCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            bool showRed = true;
+            try
+            {
+                while (!cts.IsCancellationRequested)
+                {
+                    await Task.Delay(500, cts.Token);
+                    if (cts.IsCancellationRequested) break;
+                    var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                    if (dispatcher == null) break;
+                    bool capturedShowRed = showRed;
+                    await dispatcher.InvokeAsync(() =>
+                    {
+                        if (cts.IsCancellationRequested) return;
+                        _taskbarIcon.Icon = capturedShowRed
+                            ? MakeRedIcon()
+                            : IconHelper.LoadIcon(null, _configService.IconsDir);
+                    });
+                    showRed = !showRed;
+                }
+            }
+            catch (OperationCanceledException) { }
+        });
+    }
+
+    public void StopMuteFlash()
+    {
+        _muteFlashCts?.Cancel();
+        _muteFlashCts?.Dispose();
+        _muteFlashCts = null;
+        var active = _configService.Current.Profiles
+            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+        UpdateIcon(active);
+    }
+
+    private static Icon MakeRedIcon()
+    {
+        using var bmp = new System.Drawing.Bitmap(32, 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using var g = System.Drawing.Graphics.FromImage(bmp);
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        g.Clear(System.Drawing.Color.Transparent);
+        using var brush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(220, 60, 60));
+        g.FillEllipse(brush, 2, 2, 28, 28);
+        return System.Drawing.Icon.FromHandle(bmp.GetHicon());
     }
 
     public void RebuildMenu()
@@ -449,6 +504,8 @@ public class TrayService : IDisposable
     {
         _flashCts?.Cancel();
         _flashCts?.Dispose();
+        _muteFlashCts?.Cancel();
+        _muteFlashCts?.Dispose();
         _taskbarIcon.Dispose();
     }
 }

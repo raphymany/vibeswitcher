@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Interop;
 using Microsoft.Win32;
 using VibeSwitcher.Helpers;
+using VibeSwitcher.Models;
 using VibeSwitcher.NativeMethods;
 using VibeSwitcher.Services;
 using VibeSwitcher.Tray;
@@ -20,6 +21,7 @@ public partial class App : Application
     private AppWindowManager? _windowManager;
     private ThemeService? _themeService;
     private SchedulerService? _schedulerService;
+    private MuteService? _muteService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -90,6 +92,12 @@ public partial class App : Application
         // 5. Initialise orchestrators
         var switchSoundService = new SwitchSoundService();
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher);
+        _muteService = new MuteService();
+        _muteService.MuteStateChanged += () =>
+        {
+            if (_muteService.IsAnyMuteActive) _trayService.StartMuteFlash();
+            else _trayService.StopMuteFlash();
+        };
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile));
 
@@ -99,6 +107,7 @@ public partial class App : Application
         // 6. Register hotkeys
         RegisterHotkeys();
         RegisterSettingsHotkey();
+        RegisterMuteHotkeys();
 
         // 7. Restore last active profile via the orchestrator so the single switch path is always used.
         // Guard: if ActiveProfileId is set but no matching profile exists (e.g. profile was deleted
@@ -152,6 +161,27 @@ public partial class App : Application
         }
     }
 
+    private void RegisterMuteHotkeys()
+    {
+        var cfg = _configService!.Current;
+        RegisterOneMuteHotkey(Models.MuteScope.Mic, cfg.MuteMicHotkey, cfg.MuteMicHotkeyEnabled);
+        RegisterOneMuteHotkey(Models.MuteScope.Speakers, cfg.MuteSpeakersHotkey, cfg.MuteSpeakersHotkeyEnabled);
+        RegisterOneMuteHotkey(Models.MuteScope.Both, cfg.MuteBothHotkey, cfg.MuteBothHotkeyEnabled);
+    }
+
+    private void RegisterOneMuteHotkey(Models.MuteScope scope, HotkeyDefinition? hotkey, bool enabled)
+    {
+        if (!enabled || hotkey == null || hotkey.IsEmpty) return;
+        var conflict = _hotkeyService!.RegisterMuteHotkey(scope, hotkey);
+        if (conflict != null)
+        {
+            SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                $"Could not register mute hotkey '{conflict.Hotkey.ToDisplayString()}' — another app is using it.");
+            _trayService!.ShowBalloon("Hotkey Conflict",
+                $"Mute hotkey '{conflict.Hotkey.ToDisplayString()}' is in use by another app.");
+        }
+    }
+
     private void RegisterHotkeys()
     {
         var conflicts = _hotkeyService!.RegisterAll(_configService!.Current.Profiles);
@@ -175,6 +205,11 @@ public partial class App : Application
             if (_hotkeyService!.IsSettingsHotkey(atomId))
             {
                 OpenSettingsWindow();
+                handled = true;
+            }
+            else if (_hotkeyService.IsMuteHotkey(atomId, out var muteScope))
+            {
+                _muteService!.Toggle(muteScope);
                 handled = true;
             }
             else

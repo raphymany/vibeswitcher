@@ -34,6 +34,14 @@ public class AppConfig
     public bool RememberSearch { get; set; } = false;
     public string LastSearch { get; set; } = "";
 
+    // Mute hotkeys
+    public HotkeyDefinition? MuteMicHotkey { get; set; }
+    public bool MuteMicHotkeyEnabled { get; set; } = true;
+    public HotkeyDefinition? MuteSpeakersHotkey { get; set; }
+    public bool MuteSpeakersHotkeyEnabled { get; set; } = true;
+    public HotkeyDefinition? MuteBothHotkey { get; set; }
+    public bool MuteBothHotkeyEnabled { get; set; } = true;
+
     // Switch sound — global defaults
     public bool SwitchSoundEnabled { get; set; } = false;
     public string SwitchSoundTone { get; set; } = "Click";  // "Click", "Chime", "Blip", "Custom"

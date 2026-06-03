@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
 using VibeSwitcher.Helpers;
+using VibeSwitcher.Models;
 using VibeSwitcher.Services;
 using VibeSwitcher.Tray;
 using VibeSwitcher.ViewModels;
@@ -345,12 +346,11 @@ public partial class SettingsWindow : Window
             var captured = dialog.CapturedHotkey;
             if (!captured.IsEmpty)
             {
-                var ownerName = _configService.Current.Profiles
-                    .FirstOrDefault(p => !p.Hotkey.IsEmpty && captured.Matches(p.Hotkey))?.Name;
-                if (ownerName != null)
+                var conflict = FindHotkeyConflict(captured, excludeScope: null);
+                if (conflict != null)
                 {
                     bool retry = new ConflictRetryDialog("Hotkey Already in Use",
-                        $"'{captured.ToDisplayString()}' is already assigned to \"{ownerName}\".")
+                        $"'{captured.ToDisplayString()}' is already assigned to {conflict}.")
                     { Owner = this }.ShowDialog() == true;
                     if (retry) { dialogSeed = captured; continue; }
                     break;
@@ -361,8 +361,79 @@ public partial class SettingsWindow : Window
             break;
         }
 
-        // Always re-register everything (profiles + Settings hotkey) after the dialog closes.
+        // Always re-register everything (profiles + Settings + mute hotkeys) after the dialog closes.
         _viewModel.ReregisterHotkeys();
+    }
+
+    private void MuteHotkeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (sender as FrameworkElement)?.Tag as string;
+        var scope = tag switch
+        {
+            "Mic"      => VibeSwitcher.Models.MuteScope.Mic,
+            "Speakers" => VibeSwitcher.Models.MuteScope.Speakers,
+            _          => VibeSwitcher.Models.MuteScope.Both,
+        };
+
+        _hotkeyService.UnregisterAll();
+
+        var dialogSeed = scope switch
+        {
+            VibeSwitcher.Models.MuteScope.Mic      => _viewModel.MuteMicHotkey,
+            VibeSwitcher.Models.MuteScope.Speakers => _viewModel.MuteSpeakersHotkey,
+            _                                      => _viewModel.MuteBothHotkey,
+        };
+
+        while (true)
+        {
+            var dialog = new HotkeyCaptureDialog(dialogSeed) { Owner = this };
+            if (dialog.ShowDialog() != true || dialog.CapturedHotkey == null) break;
+
+            var captured = dialog.CapturedHotkey;
+            if (!captured.IsEmpty)
+            {
+                var conflict = FindHotkeyConflict(captured, excludeScope: scope);
+                if (conflict != null)
+                {
+                    bool retry = new ConflictRetryDialog("Hotkey Already in Use",
+                        $"'{captured.ToDisplayString()}' is already assigned to {conflict}.")
+                    { Owner = this }.ShowDialog() == true;
+                    if (retry) { dialogSeed = captured; continue; }
+                    break;
+                }
+            }
+
+            _viewModel.SetMuteHotkeyFromDialog(scope, captured);
+            break;
+        }
+
+        _viewModel.ReregisterHotkeys();
+    }
+
+    private string? FindHotkeyConflict(HotkeyDefinition captured, VibeSwitcher.Models.MuteScope? excludeScope)
+    {
+        var profileOwner = _configService.Current.Profiles
+            .FirstOrDefault(p => !p.Hotkey.IsEmpty && captured.Matches(p.Hotkey))?.Name;
+        if (profileOwner != null) return $"\"{profileOwner}\"";
+
+        var settingsHk = _configService.Current.SettingsHotkey;
+        if (settingsHk != null && !settingsHk.IsEmpty && captured.Matches(settingsHk))
+            return "\"Open / Close VibeSwitcher\"";
+
+        var muteChecks = new[]
+        {
+            (VibeSwitcher.Models.MuteScope.Mic,      _configService.Current.MuteMicHotkey,      "Mute Microphone"),
+            (VibeSwitcher.Models.MuteScope.Speakers, _configService.Current.MuteSpeakersHotkey, "Mute Speakers"),
+            (VibeSwitcher.Models.MuteScope.Both,     _configService.Current.MuteBothHotkey,      "Mute Mic + Speakers"),
+        };
+        foreach (var (muteScope, muteHk, label) in muteChecks)
+        {
+            if (muteScope == excludeScope) continue;
+            if (muteHk != null && !muteHk.IsEmpty && captured.Matches(muteHk))
+                return $"\"{label}\"";
+        }
+
+        return null;
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
