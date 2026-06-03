@@ -95,7 +95,7 @@
             <Setter Property="BorderBrush"  Value="{DynamicResource InputBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FontSize"     Value="12"/>
-            <Setter Property="Padding"      Value="26,2,28,2"/>
+            <Setter Property="Padding"      Value="26,4,28,4"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
