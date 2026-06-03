@@ -239,6 +239,50 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool HasValidationWarning => ValidationWarning != null;
 
+    private bool _isVisible = true;
+    public bool IsVisible
+    {
+        get => _isVisible;
+        set => SetField(ref _isVisible, value);
+    }
+
+    public bool MatchesFilter(ProfileFilter f)
+    {
+        if (!string.IsNullOrWhiteSpace(f.NameFilter) &&
+            !_model.Name.Contains(f.NameFilter, StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        if (f.ModeFilter != "Any mode")
+        {
+            var modeMatches = f.ModeFilter switch
+            {
+                "Playback only"  => _model.Mode == ProfileMode.Playback,
+                "Recording only" => _model.Mode == ProfileMode.Recording,
+                "Both devices"   => _model.Mode == ProfileMode.Both,
+                _                => true
+            };
+            if (!modeMatches) return false;
+        }
+
+        if (f.PinnedOnly    && !_model.IsPinned)                                  return false;
+        if (f.ActiveOnly    && !IsActive)                                          return false;
+        if (f.SilentOnly    && !_model.Silent)                                     return false;
+        if (f.HotkeyOnly    && _model.Hotkey.IsEmpty)                              return false;
+        if (f.NotesOnly     && string.IsNullOrEmpty(_model.Notes))                return false;
+        if (f.IconOnly      && string.IsNullOrEmpty(_model.IconPath))             return false;
+        if (f.WarningOnly   && !HasValidationWarning)                             return false;
+        if (f.ScheduledOnly && _model.Schedules.Count == 0)                       return false;
+        if (f.ReminderOnly  && !_model.Schedules.Any(s => s.ReminderMinutes > 0)) return false;
+
+        if (f.ActiveDays.Count > 0)
+        {
+            if (_model.Schedules.Count == 0) return false;
+            if (!_model.Schedules.Any(s => s.Days.Any(f.ActiveDays.Contains))) return false;
+        }
+
+        return true;
+    }
+
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
 
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;

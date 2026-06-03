@@ -205,6 +205,227 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    // ── Filter bar ──────────────────────────────────────────────────────────────
+
+    // Mode chips — mutually exclusive; all unchecked = "Any mode"
+    public bool ModePlayback
+    {
+        get => _modeFilter == "Playback only";
+        set => SetModeFilter(value ? "Playback only" : "Any mode");
+    }
+
+    public bool ModeRecording
+    {
+        get => _modeFilter == "Recording only";
+        set => SetModeFilter(value ? "Recording only" : "Any mode");
+    }
+
+    public bool ModeBoth
+    {
+        get => _modeFilter == "Both devices";
+        set => SetModeFilter(value ? "Both devices" : "Any mode");
+    }
+
+    private void SetModeFilter(string mode)
+    {
+        if (_modeFilter == mode) return;
+        _modeFilter = mode;
+        OnPropertyChanged(nameof(ModePlayback));
+        OnPropertyChanged(nameof(ModeRecording));
+        OnPropertyChanged(nameof(ModeBoth));
+        ApplyFilter();
+    }
+
+    public IReadOnlyList<DayChip> DayChips { get; } =
+    [
+        new(DayOfWeek.Monday,    "Mon"),
+        new(DayOfWeek.Tuesday,   "Tue"),
+        new(DayOfWeek.Wednesday, "Wed"),
+        new(DayOfWeek.Thursday,  "Thu"),
+        new(DayOfWeek.Friday,    "Fri"),
+        new(DayOfWeek.Saturday,  "Sat"),
+        new(DayOfWeek.Sunday,    "Sun"),
+    ];
+
+    private string _nameFilter = "";
+    private string _modeFilter = "Any mode";
+
+    public string NameFilter
+    {
+        get => _nameFilter;
+        set
+        {
+            if (!SetField(ref _nameFilter, value)) return;
+            ApplyFilter();
+            if (_configService.Current.RememberSearch)
+            {
+                _configService.Current.LastSearch = value;
+                SaveAsync();
+            }
+        }
+    }
+
+    private bool _pinnedFilter;
+    public bool PinnedFilter
+    {
+        get => _pinnedFilter;
+        set { if (!SetField(ref _pinnedFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _activeFilter;
+    public bool ActiveFilter
+    {
+        get => _activeFilter;
+        set { if (!SetField(ref _activeFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _silentFilter;
+    public bool SilentFilter
+    {
+        get => _silentFilter;
+        set { if (!SetField(ref _silentFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _hotkeyFilter;
+    public bool HotkeyFilter
+    {
+        get => _hotkeyFilter;
+        set { if (!SetField(ref _hotkeyFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _notesFilter;
+    public bool NotesFilter
+    {
+        get => _notesFilter;
+        set { if (!SetField(ref _notesFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _iconFilter;
+    public bool IconFilter
+    {
+        get => _iconFilter;
+        set { if (!SetField(ref _iconFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _warningFilter;
+    public bool WarningFilter
+    {
+        get => _warningFilter;
+        set { if (!SetField(ref _warningFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _scheduledFilter;
+    public bool ScheduledFilter
+    {
+        get => _scheduledFilter;
+        set
+        {
+            if (!SetField(ref _scheduledFilter, value)) return;
+            if (!value && !_clearing)
+                foreach (var chip in DayChips) chip.IsSelected = false;
+            ApplyFilter();
+        }
+    }
+
+    private bool _reminderFilter;
+    public bool ReminderFilter
+    {
+        get => _reminderFilter;
+        set { if (!SetField(ref _reminderFilter, value)) return; ApplyFilter(); }
+    }
+
+    public bool IsAnyFilterActive =>
+        !string.IsNullOrWhiteSpace(_nameFilter) ||
+        _modeFilter != "Any mode"               ||
+        _pinnedFilter  || _activeFilter  || _silentFilter  ||
+        _hotkeyFilter  || _notesFilter   || _iconFilter    ||
+        _warningFilter || _scheduledFilter || _reminderFilter;
+
+    public ICommand ClearFiltersCommand { get; }
+
+    private bool _clearing;
+    private void ClearFilters()
+    {
+        _clearing = true;
+        _nameFilter      = "";
+        _modeFilter      = "Any mode";
+        _pinnedFilter    = false;
+        _activeFilter    = false;
+        _silentFilter    = false;
+        _hotkeyFilter    = false;
+        _notesFilter     = false;
+        _iconFilter      = false;
+        _warningFilter   = false;
+        _scheduledFilter = false;
+        _reminderFilter  = false;
+        foreach (var chip in DayChips) chip.IsSelected = false;
+        _clearing = false;
+
+        if (_configService.Current.RememberSearch)
+        {
+            _configService.Current.LastSearch = "";
+            SaveAsync();
+        }
+
+        OnPropertyChanged(nameof(NameFilter));
+        OnPropertyChanged(nameof(ModePlayback));
+        OnPropertyChanged(nameof(ModeRecording));
+        OnPropertyChanged(nameof(ModeBoth));
+        OnPropertyChanged(nameof(PinnedFilter));
+        OnPropertyChanged(nameof(ActiveFilter));
+        OnPropertyChanged(nameof(SilentFilter));
+        OnPropertyChanged(nameof(HotkeyFilter));
+        OnPropertyChanged(nameof(NotesFilter));
+        OnPropertyChanged(nameof(IconFilter));
+        OnPropertyChanged(nameof(WarningFilter));
+        OnPropertyChanged(nameof(ScheduledFilter));
+        OnPropertyChanged(nameof(ReminderFilter));
+        ApplyFilter();
+    }
+
+    private bool _hasNoFilterResults;
+    public bool HasNoFilterResults
+    {
+        get => _hasNoFilterResults;
+        private set => SetField(ref _hasNoFilterResults, value);
+    }
+
+    private void ApplyFilter()
+    {
+        var filter = new ProfileFilter
+        {
+            NameFilter    = _nameFilter,
+            ModeFilter    = _modeFilter,
+            PinnedOnly    = _pinnedFilter,
+            ActiveOnly    = _activeFilter,
+            SilentOnly    = _silentFilter,
+            HotkeyOnly    = _hotkeyFilter,
+            NotesOnly     = _notesFilter,
+            IconOnly      = _iconFilter,
+            WarningOnly   = _warningFilter,
+            ScheduledOnly = _scheduledFilter,
+            ReminderOnly  = _reminderFilter,
+            ActiveDays    = DayChips.Where(d => d.IsSelected).Select(d => d.Day).ToHashSet(),
+        };
+        foreach (var card in Profiles)
+            card.IsVisible = card.MatchesFilter(filter);
+        HasNoFilterResults = IsAnyFilterActive && Profiles.All(p => !p.IsVisible);
+        OnPropertyChanged(nameof(IsAnyFilterActive));
+    }
+
+    public bool RememberSearch
+    {
+        get => _configService.Current.RememberSearch;
+        set
+        {
+            if (_configService.Current.RememberSearch == value) return;
+            _configService.Current.RememberSearch = value;
+            if (!value) _configService.Current.LastSearch = "";
+            SaveAsync();
+            OnPropertyChanged();
+        }
+    }
+
     public HotkeyDefinition SettingsHotkey
     {
         get => _configService.Current.SettingsHotkey ?? new HotkeyDefinition();
@@ -292,6 +513,14 @@ public class SettingsViewModel : ViewModelBase
         _showDisconnectedDevices = configService.Current.ShowDisconnectedDevices;
         _leftClickCyclesProfiles = configService.Current.LeftClickCyclesProfiles;
 
+        if (configService.Current.RememberSearch && !string.IsNullOrEmpty(configService.Current.LastSearch))
+            _nameFilter = configService.Current.LastSearch;
+
+        foreach (var chip in DayChips)
+            chip.PropertyChanged += (_, _) => { if (!_clearing) ApplyFilter(); };
+
+        ClearFiltersCommand = new RelayCommand(ClearFilters);
+
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(
             configService.Current.Profiles
@@ -301,6 +530,10 @@ public class SettingsViewModel : ViewModelBase
         AddProfileCommand = new RelayCommand(AddProfile);
 
         Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
+
+        // Apply persisted name filter after profiles are loaded.
+        if (!string.IsNullOrEmpty(_nameFilter))
+            ApplyFilter();
 
         // Refresh device dropdowns whenever a device is plugged in or removed.
         _audioService.DevicesChanged += OnDevicesChanged;
@@ -710,6 +943,7 @@ public class SettingsViewModel : ViewModelBase
             card.Dispose();
         foreach (var p in _configService.Current.Profiles.OrderBy(p => p.SortOrder))
             Profiles.Add(CreateCard(p));
+        ApplyFilter();
         _ = LoadDevicesAsync();
     }
 

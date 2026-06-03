@@ -20,6 +20,98 @@
 
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- Filter chip — ghost when off, accent-filled when on -->
+        <Style x:Key="FilterChip" TargetType="ToggleButton">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="Height"     Value="30"/>
+            <Setter Property="Padding"    Value="10,0"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bg" CornerRadius="15" BorderThickness="1"
+                                BorderBrush="{DynamicResource InputBorder}"
+                                Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background"   Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="Bg" Property="BorderBrush"  Value="{DynamicResource Accent}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="False"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bg" Property="Background"  Value="{DynamicResource AccentHover}"/>
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Clear-all link button -->
+        <Style x:Key="ClearFilterButton" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TertiaryText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   TextDecorations="Underline"
+                                   VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- × clear button inside the search bar -->
+        <Style x:Key="SearchCloseButton" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Width"  Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Foreground" Value="{DynamicResource TertiaryText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bg" CornerRadius="12" Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="CardBorder" TargetType="Border">
             <Setter Property="Background"      Value="{DynamicResource CardBg}"/>
             <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
@@ -260,6 +352,7 @@
         <Grid x:Name="MainGrid" Grid.Row="1" Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -277,8 +370,190 @@
             </StackPanel>
         </StackPanel>
 
+        <!-- ── Filter bar — hidden while settings panel is open ── -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SettingsCardExpanded}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+
+            <!-- Name search — border provides the rounded frame; columns keep layout exact -->
+            <Border x:Name="SearchBorder" CornerRadius="6" BorderThickness="1"
+                    BorderBrush="{DynamicResource InputBorder}"
+                    Background="{DynamicResource InputBg}"
+                    Margin="0,0,0,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="26"/>  <!-- icon -->
+                        <ColumnDefinition Width="*"/>   <!-- text -->
+                        <ColumnDefinition Width="22"/>  <!-- × button -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Search icon -->
+                    <TextBlock Grid.Column="0"
+                               Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                               VerticalAlignment="Center" HorizontalAlignment="Center"
+                               IsHitTestVisible="False"
+                               Foreground="{DynamicResource SubtleText}"/>
+
+                    <!-- Text input — no border/bg; theme style handles text colour -->
+                    <Grid Grid.Column="1">
+                        <TextBox x:Name="FilterNameBox"
+                                 Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
+                                 KeyDown="FilterNameBox_KeyDown"
+                                 GotFocus="FilterNameBox_GotFocus"
+                                 LostFocus="FilterNameBox_LostFocus"
+                                 Background="Transparent" BorderThickness="0"
+                                 Padding="0,4,0,4" FontSize="12"
+                                 CaretBrush="{DynamicResource PrimaryText}"/>
+                        <TextBlock Text="Search by name — or use the chips below for more filters"
+                                   VerticalAlignment="Center" FontSize="12" FontStyle="Italic"
+                                   IsHitTestVisible="False"
+                                   Foreground="{DynamicResource SubtleText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NameFilter}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <!-- × clear — hidden when empty -->
+                    <Button Grid.Column="2" Click="ClearNameButton_Click"
+                            VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SearchCloseButton}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding NameFilter}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Filter chips row -->
+            <views:CenteredWrapPanel VerticalAlignment="Center">
+                <ToggleButton Content="Playback only"
+                              IsChecked="{Binding ModePlayback}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Recording only"
+                              IsChecked="{Binding ModeRecording}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Both devices"
+                              IsChecked="{Binding ModeBoth}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="★ Pinned"
+                              IsChecked="{Binding PinnedFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="✓ Active"
+                              IsChecked="{Binding ActiveFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Silent"
+                              IsChecked="{Binding SilentFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Has hotkey"
+                              IsChecked="{Binding HotkeyFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Has notes"
+                              IsChecked="{Binding NotesFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Has icon"
+                              IsChecked="{Binding IconFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Has warning"
+                              IsChecked="{Binding WarningFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Scheduled"
+                              IsChecked="{Binding ScheduledFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Has reminder"
+                              IsChecked="{Binding ReminderFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <!-- Clear link — visible only when any filter is active -->
+                <Button Content="Clear all"
+                        Command="{Binding ClearFiltersCommand}"
+                        Margin="2,0,0,6">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ClearFilterButton}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsAnyFilterActive}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </views:CenteredWrapPanel>
+
+            <!-- Day chips — visible only when Scheduled chip is on -->
+            <ItemsControl ItemsSource="{Binding DayChips}" Margin="0,6,0,0">
+                <ItemsControl.Style>
+                    <Style TargetType="ItemsControl">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ScheduledFilter}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ItemsControl.Style>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <views:CenteredWrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:DayChip}">
+                        <ToggleButton Content="{Binding Label}"
+                                      IsChecked="{Binding IsSelected}"
+                                      Style="{StaticResource FilterChip}"
+                                      Margin="0,0,4,0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
+
         <!-- ── Profile cards ── -->
-        <ScrollViewer x:Name="ProfilesScrollViewer" Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
+        <ScrollViewer x:Name="ProfilesScrollViewer" Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
+            <ScrollViewer.Style>
+                <Style TargetType="ScrollViewer">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SettingsCardExpanded}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Style>
             <StackPanel>
 
                 <ItemsControl ItemsSource="{Binding Profiles}"
@@ -286,7 +561,7 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:ProfileCardViewModel}">
 
-                            <Grid>
+                            <Grid Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}">
                                 <!-- Profile card -->
                                 <Border AllowDrop="True"
                                         DragEnter="Card_DragEnter"
@@ -924,6 +1199,22 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
+                <!-- No search results -->
+                <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource DisabledText}"
+                           FontSize="13" Margin="0,32,0,24"
+                           Text="No profiles match your search.">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasNoFilterResults}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+
                 <!-- Empty state -->
                 <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource DisabledText}"
                            FontSize="13" Margin="0,32,0,24"
@@ -966,7 +1257,8 @@
         </ScrollViewer>
 
         <!-- ── General Settings card ── -->
-        <Border x:Name="SettingsCard" Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,0,0,14"
+        <Border x:Name="SettingsCard" Grid.Row="3"
+                Style="{StaticResource CardBorder}" Margin="0,0,0,14"
                 Padding="0" ClipToBounds="True">
             <StackPanel>
                 <!-- Collapsible header -->
@@ -1310,6 +1602,38 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- Search -->
+                    <Border Style="{StaticResource InnerCardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="Search" FontWeight="SemiBold" FontSize="12"
+                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding RememberSearch}" Margin="0,3">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Opacity" Value="1"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RememberSearch}" Value="False">
+                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text="Remember last search" VerticalAlignment="Center"/>
+                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Border.ToolTip>
+                                            <ToolTip><TextBlock Text="When enabled, the search box remembers what you last typed and restores it each time you open Settings — even after a reboot. When disabled, the search box always starts empty." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                        </Border.ToolTip>
+                                    </Border>
+                                </StackPanel>
+                            </CheckBox>
+                        </StackPanel>
+                    </Border>
+
                     <!-- Devices -->
                     <Border Style="{StaticResource InnerCardBorder}">
                         <StackPanel>
@@ -1501,7 +1825,7 @@
         </Border>
 
         <!-- ── Footer ── -->
-        <Grid x:Name="FooterGrid" Grid.Row="3">
+        <Grid x:Name="FooterGrid" Grid.Row="4">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                 <Button Content="About"
                         Style="{StaticResource ActionButton}"

@@ -126,6 +126,7 @@ public partial class SettingsWindow : Window
     {
         if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded) && _viewModel.SettingsCardExpanded)
             Dispatcher.InvokeAsync(EnsureFooterVisible, System.Windows.Threading.DispatcherPriority.Loaded);
+
     }
 
     private void EnsureFooterVisible()
@@ -135,8 +136,13 @@ public partial class SettingsWindow : Window
         // MainGrid has Margin="18" so its bottom edge sits 18px above the window bottom.
         var overflow = footerBottom - (ActualHeight - 18);
         if (overflow <= 0) return;
-        var newHeight = Math.Ceiling(ActualHeight + overflow + 12);
-        Height = Math.Min(newHeight, SystemParameters.WorkArea.Height - 40);
+        var workArea  = SystemParameters.WorkArea;
+        var newHeight = Math.Min(Math.Ceiling(ActualHeight + overflow + 12), workArea.Height - 40);
+        Height = newHeight;
+        // Slide the window up if the bottom would go past the usable screen area.
+        var maxTop = workArea.Bottom - newHeight;
+        if (Top > maxTop)
+            Top = Math.Max(workArea.Top, maxTop);
     }
 
     private void UpdateLogsButton()
@@ -225,6 +231,27 @@ public partial class SettingsWindow : Window
         if (Application.Current is App app)
             app.OpenAboutWindow();
     }
+
+    private void FilterNameBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Escape && !string.IsNullOrEmpty(_viewModel.NameFilter))
+        {
+            _viewModel.NameFilter = "";
+            e.Handled = true;
+        }
+    }
+
+    private void ClearNameButton_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.NameFilter = "";
+        FilterNameBox.Focus();
+    }
+
+    private void FilterNameBox_GotFocus(object sender, RoutedEventArgs e)
+        => SearchBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("Accent");
+
+    private void FilterNameBox_LostFocus(object sender, RoutedEventArgs e)
+        => SearchBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("InputBorder");
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
