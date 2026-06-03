@@ -1935,12 +1935,12 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </CheckBox>
-                                <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                <Border Width="16" Height="16" Background="#DC3232" CornerRadius="8"
                                         Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
                                     <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                               Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <Border.ToolTip>
-                                        <ToolTip><TextBlock Text="Instantly mutes your default microphone. Press the hotkey again to unmute. Plays a short sound on mute and unmute." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                        <ToolTip><TextBlock Text="Mutes your microphone. Tray icon flashes red while active. Press the hotkey again to unmute. Plays a short sound on mute and unmute." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
@@ -1992,12 +1992,12 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </CheckBox>
-                                <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                <Border Width="16" Height="16" Background="#286EDC" CornerRadius="8"
                                         Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
                                     <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                               Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <Border.ToolTip>
-                                        <ToolTip><TextBlock Text="Instantly mutes your default playback device (speakers or headphones). Press again to unmute. No sound plays on mute since output is silenced." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                        <ToolTip><TextBlock Text="Mutes your default playback device (speakers or headphones). Tray icon flashes blue while active. No sound plays on mute since output is silenced." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
@@ -2049,12 +2049,12 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </CheckBox>
-                                <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                <Border Width="16" Height="16" Background="#8B3CDC" CornerRadius="8"
                                         Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
                                     <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                               Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                               Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     <Border.ToolTip>
-                                        <ToolTip><TextBlock Text="Instantly mutes both microphone and speakers. Press again to unmute both. A sound plays on unmute when your speakers are restored." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                        <ToolTip><TextBlock Text="Mutes both microphone and speakers at once. Tray icon flashes purple while active. Press again to unmute both. A sound plays on unmute when speakers are restored." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>

@@ -168,7 +168,7 @@ public class TrayService : IDisposable
     }
 
     // Call whenever mute state changes. Starts/updates/stops the flash based on current state.
-    // micMuted-only = orange, speakersMuted-only = blue, both = red, neither = stop.
+    // mic-only = red, speakers-only = blue, both = purple, neither = stop.
     public void UpdateMuteFlash(bool micMuted, bool speakersMuted)
     {
         if (!micMuted && !speakersMuted)
@@ -179,9 +179,9 @@ public class TrayService : IDisposable
 
         System.Drawing.Color color = (micMuted, speakersMuted) switch
         {
-            (true, true)   => System.Drawing.Color.FromArgb(220, 55, 55),   // red   — both
-            (true, false)  => System.Drawing.Color.FromArgb(220, 130, 0),   // orange — mic only
-            _              => System.Drawing.Color.FromArgb(40,  110, 220),  // blue  — speakers only
+            (true, true)  => System.Drawing.Color.FromArgb(140, 60, 220),  // purple — both
+            (true, false) => System.Drawing.Color.FromArgb(220, 50, 50),   // red    — mic only
+            _             => System.Drawing.Color.FromArgb(40,  110, 220), // blue   — speakers only
         };
 
         string tooltip = (micMuted, speakersMuted) switch
