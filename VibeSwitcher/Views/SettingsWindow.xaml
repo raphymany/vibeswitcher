@@ -545,6 +545,15 @@
 
         <!-- ── Profile cards ── -->
         <ScrollViewer x:Name="ProfilesScrollViewer" Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">
+            <ScrollViewer.Style>
+                <Style TargetType="ScrollViewer">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SettingsCardExpanded}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Style>
             <StackPanel>
 
                 <ItemsControl ItemsSource="{Binding Profiles}"
