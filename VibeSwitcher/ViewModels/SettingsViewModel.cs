@@ -478,6 +478,124 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    // ── Mute hotkeys ────────────────────────────────────────────────────────────
+
+    private HotkeyDefinition GetMuteHotkey(Models.MuteScope scope) => scope switch
+    {
+        Models.MuteScope.Mic      => _configService.Current.MuteMicHotkey ?? new HotkeyDefinition(),
+        Models.MuteScope.Speakers => _configService.Current.MuteSpeakersHotkey ?? new HotkeyDefinition(),
+        Models.MuteScope.Both     => _configService.Current.MuteBothHotkey ?? new HotkeyDefinition(),
+        _ => new HotkeyDefinition()
+    };
+
+    private void SetMuteHotkey(Models.MuteScope scope, HotkeyDefinition value)
+    {
+        switch (scope)
+        {
+            case Models.MuteScope.Mic:      _configService.Current.MuteMicHotkey      = value; break;
+            case Models.MuteScope.Speakers: _configService.Current.MuteSpeakersHotkey = value; break;
+            case Models.MuteScope.Both:     _configService.Current.MuteBothHotkey     = value; break;
+        }
+
+        // Auto-enable when a hotkey is assigned; auto-disable when cleared.
+        bool autoEnabled = !value.IsEmpty;
+        switch (scope)
+        {
+            case Models.MuteScope.Mic:      _configService.Current.MuteMicHotkeyEnabled      = autoEnabled; break;
+            case Models.MuteScope.Speakers: _configService.Current.MuteSpeakersHotkeyEnabled = autoEnabled; break;
+            case Models.MuteScope.Both:     _configService.Current.MuteBothHotkeyEnabled     = autoEnabled; break;
+        }
+
+        SaveAsync();
+        _hotkeyService.UnregisterMuteHotkey(scope);
+        if (!value.IsEmpty)
+        {
+            var conflict = _hotkeyService.RegisterMuteHotkey(scope, value);
+            if (conflict != null) _onHotkeyConflict(conflict);
+        }
+        NotifyMuteHotkeyProperties(scope);
+    }
+
+    private bool GetMuteHotkeyEnabled(Models.MuteScope scope) => scope switch
+    {
+        Models.MuteScope.Mic      => _configService.Current.MuteMicHotkeyEnabled,
+        Models.MuteScope.Speakers => _configService.Current.MuteSpeakersHotkeyEnabled,
+        Models.MuteScope.Both     => _configService.Current.MuteBothHotkeyEnabled,
+        _ => false
+    };
+
+    private void SetMuteHotkeyEnabled(Models.MuteScope scope, bool value)
+    {
+        switch (scope)
+        {
+            case Models.MuteScope.Mic:      _configService.Current.MuteMicHotkeyEnabled      = value; break;
+            case Models.MuteScope.Speakers: _configService.Current.MuteSpeakersHotkeyEnabled = value; break;
+            case Models.MuteScope.Both:     _configService.Current.MuteBothHotkeyEnabled     = value; break;
+        }
+        SaveAsync();
+        if (value)
+        {
+            var hk = GetMuteHotkey(scope);
+            if (!hk.IsEmpty)
+            {
+                var conflict = _hotkeyService.RegisterMuteHotkey(scope, hk);
+                if (conflict != null) _onHotkeyConflict(conflict);
+            }
+        }
+        else
+        {
+            _hotkeyService.UnregisterMuteHotkey(scope);
+        }
+        NotifyMuteHotkeyProperties(scope);
+    }
+
+    private void NotifyMuteHotkeyProperties(Models.MuteScope scope)
+    {
+        OnPropertyChanged(nameof(MuteMicHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteMicHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteMicHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteBothHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteBothHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteBothHotkeyEnabled));
+    }
+
+    public HotkeyDefinition MuteMicHotkey      { get => GetMuteHotkey(Models.MuteScope.Mic);      set => SetMuteHotkey(Models.MuteScope.Mic, value); }
+    public HotkeyDefinition MuteSpeakersHotkey { get => GetMuteHotkey(Models.MuteScope.Speakers); set => SetMuteHotkey(Models.MuteScope.Speakers, value); }
+    public HotkeyDefinition MuteBothHotkey     { get => GetMuteHotkey(Models.MuteScope.Both);     set => SetMuteHotkey(Models.MuteScope.Both, value); }
+
+    public string MuteMicHotkeyDisplay      => GetMuteHotkey(Models.MuteScope.Mic).IsEmpty      ? "None" : GetMuteHotkey(Models.MuteScope.Mic).ToDisplayString();
+    public string MuteSpeakersHotkeyDisplay => GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty ? "None" : GetMuteHotkey(Models.MuteScope.Speakers).ToDisplayString();
+    public string MuteBothHotkeyDisplay     => GetMuteHotkey(Models.MuteScope.Both).IsEmpty     ? "None" : GetMuteHotkey(Models.MuteScope.Both).ToDisplayString();
+
+    public bool MuteMicHotkeyIsSet      => !GetMuteHotkey(Models.MuteScope.Mic).IsEmpty;
+    public bool MuteSpeakersHotkeyIsSet => !GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty;
+    public bool MuteBothHotkeyIsSet     => !GetMuteHotkey(Models.MuteScope.Both).IsEmpty;
+
+    public bool MuteMicHotkeyEnabled
+    {
+        get => GetMuteHotkeyEnabled(Models.MuteScope.Mic);
+        set => SetMuteHotkeyEnabled(Models.MuteScope.Mic, value);
+    }
+    public bool MuteSpeakersHotkeyEnabled
+    {
+        get => GetMuteHotkeyEnabled(Models.MuteScope.Speakers);
+        set => SetMuteHotkeyEnabled(Models.MuteScope.Speakers, value);
+    }
+    public bool MuteBothHotkeyEnabled
+    {
+        get => GetMuteHotkeyEnabled(Models.MuteScope.Both);
+        set => SetMuteHotkeyEnabled(Models.MuteScope.Both, value);
+    }
+
+    // Called from SettingsWindow when a mute hotkey capture dialog closes.
+    internal void SetMuteHotkeyFromDialog(Models.MuteScope scope, HotkeyDefinition captured)
+        => SetMuteHotkey(scope, captured);
+
+    // ────────────────────────────────────────────────────────────────────────────
+
     public ICommand AddProfileCommand { get; }
 
     private void SaveAsync() => Task.Run(_configService.SaveImmediate);
@@ -959,6 +1077,17 @@ public class SettingsViewModel : ViewModelBase
             var conflict = _hotkeyService.RegisterSettingsHotkey(settingsHotkey);
             if (conflict != null)
                 _onHotkeyConflict(conflict);
+        }
+
+        // Re-register mute hotkeys
+        foreach (var scope in new[] { Models.MuteScope.Mic, Models.MuteScope.Speakers, Models.MuteScope.Both })
+        {
+            var hk = GetMuteHotkey(scope);
+            if (!hk.IsEmpty && GetMuteHotkeyEnabled(scope))
+            {
+                var conflict = _hotkeyService.RegisterMuteHotkey(scope, hk);
+                if (conflict != null) _onHotkeyConflict(conflict);
+            }
         }
     }
 }

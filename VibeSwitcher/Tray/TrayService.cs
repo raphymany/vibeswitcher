@@ -25,6 +25,7 @@ public class TrayService : IDisposable
     // Bytes (not Icon objects) are cached because H.NotifyIcon disposes the Icon it holds on each change.
     private readonly Dictionary<Guid, byte[]> _trayIconBytesCache = new();
     private CancellationTokenSource? _flashCts;
+    private CancellationTokenSource? _muteFlashCts;
 
     // Wired up by App.xaml.cs after ProfileSwitchOrchestrator is created.
     internal Action<DeviceProfile>? SwitchRequested;
@@ -165,6 +166,102 @@ public class TrayService : IDisposable
             catch (OperationCanceledException) { }
         });
     }
+
+    // Call whenever mute state changes. Starts/updates/stops the flash based on current state.
+    // mic-only = red, speakers-only = blue, both = purple, neither = stop.
+    public void UpdateMuteFlash(bool micMuted, bool speakersMuted)
+    {
+        if (!micMuted && !speakersMuted)
+        {
+            StopMuteFlash();
+            return;
+        }
+
+        System.Drawing.Color color = (micMuted, speakersMuted) switch
+        {
+            (true, true)  => System.Drawing.Color.FromArgb(140, 60, 220),  // purple — both
+            (true, false) => System.Drawing.Color.FromArgb(220, 50, 50),   // red    — mic only
+            _             => System.Drawing.Color.FromArgb(40,  110, 220), // blue   — speakers only
+        };
+
+        string tooltip = (micMuted, speakersMuted) switch
+        {
+            (true, true)  => "VibeSwitcher — Mic + Speakers muted",
+            (true, false) => "VibeSwitcher — Mic muted",
+            _             => "VibeSwitcher — Speakers muted",
+        };
+        _taskbarIcon.ToolTipText = tooltip;
+
+        _muteFlashCts?.Cancel();
+        _muteFlashCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _muteFlashCts = cts;
+
+        _ = Task.Run(async () =>
+        {
+            bool showColor = true;
+            try
+            {
+                while (!cts.IsCancellationRequested)
+                {
+                    await Task.Delay(500, cts.Token);
+                    if (cts.IsCancellationRequested) break;
+                    var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                    if (dispatcher == null) break;
+                    bool capturedShowColor = showColor;
+                    System.Drawing.Color capturedColor = color;
+                    await dispatcher.InvokeAsync(() =>
+                    {
+                        if (cts.IsCancellationRequested) return;
+                        _taskbarIcon.Icon = capturedShowColor
+                            ? MakeColorIcon(capturedColor)
+                            : IconHelper.LoadIcon(null, _configService.IconsDir);
+                    });
+                    showColor = !showColor;
+                }
+            }
+            catch (OperationCanceledException) { }
+        });
+    }
+
+    private void StopMuteFlash()
+    {
+        _muteFlashCts?.Cancel();
+        _muteFlashCts?.Dispose();
+        _muteFlashCts = null;
+        var active = _configService.Current.Profiles
+            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+        UpdateIcon(active);
+    }
+
+    private static Icon MakeColorIcon(System.Drawing.Color color)
+    {
+        using var bmp = new System.Drawing.Bitmap(32, 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using var g = System.Drawing.Graphics.FromImage(bmp);
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        g.Clear(System.Drawing.Color.Transparent);
+        using var brush = new System.Drawing.SolidBrush(color);
+        g.FillEllipse(brush, 2, 2, 28, 28);
+
+        // GetHicon returns an HICON we own — Icon.FromHandle does NOT take ownership,
+        // so we copy to a stream for an independent Icon then destroy the raw handle.
+        var hIcon = bmp.GetHicon();
+        try
+        {
+            using var temp = Icon.FromHandle(hIcon);
+            using var ms = new MemoryStream();
+            temp.Save(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            return new Icon(ms);
+        }
+        finally
+        {
+            DestroyIcon(hIcon);
+        }
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool DestroyIcon(IntPtr hIcon);
 
     public void RebuildMenu()
     {
@@ -449,6 +546,8 @@ public class TrayService : IDisposable
     {
         _flashCts?.Cancel();
         _flashCts?.Dispose();
+        _muteFlashCts?.Cancel();
+        _muteFlashCts?.Dispose();
         _taskbarIcon.Dispose();
     }
 }

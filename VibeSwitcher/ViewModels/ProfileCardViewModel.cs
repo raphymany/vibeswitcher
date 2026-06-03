@@ -633,11 +633,18 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         if (!applied)
         {
-            // Restore all hotkeys (profiles + Settings) that were unregistered above.
+            // Restore all hotkeys (profiles + Settings + mute) that were unregistered above.
             _hotkeyService.RegisterAll(_configService.Current.Profiles);
             var settingsHk = _configService.Current.SettingsHotkey;
             if (settingsHk is { IsEmpty: false })
                 _hotkeyService.RegisterSettingsHotkey(settingsHk);
+            var cfg = _configService.Current;
+            if (cfg.MuteMicHotkeyEnabled && cfg.MuteMicHotkey is { IsEmpty: false })
+                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Mic, cfg.MuteMicHotkey);
+            if (cfg.MuteSpeakersHotkeyEnabled && cfg.MuteSpeakersHotkey is { IsEmpty: false })
+                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Speakers, cfg.MuteSpeakersHotkey);
+            if (cfg.MuteBothHotkeyEnabled && cfg.MuteBothHotkey is { IsEmpty: false })
+                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Both, cfg.MuteBothHotkey);
         }
     }
 
@@ -652,6 +659,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var settingsHk = _configService.Current.SettingsHotkey;
         if (settingsHk is { IsEmpty: false } && hotkey.Matches(settingsHk))
             return "the Settings shortcut";
+        var cfg = _configService.Current;
+        if (cfg.MuteMicHotkey is { IsEmpty: false } && hotkey.Matches(cfg.MuteMicHotkey))
+            return "Mute Microphone";
+        if (cfg.MuteSpeakersHotkey is { IsEmpty: false } && hotkey.Matches(cfg.MuteSpeakersHotkey))
+            return "Mute Speakers";
+        if (cfg.MuteBothHotkey is { IsEmpty: false } && hotkey.Matches(cfg.MuteBothHotkey))
+            return "Mute Mic + Speakers";
         return null;
     }
 
