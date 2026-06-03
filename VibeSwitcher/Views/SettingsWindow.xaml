@@ -400,9 +400,10 @@
                                  GotFocus="FilterNameBox_GotFocus"
                                  LostFocus="FilterNameBox_LostFocus"
                                  Background="Transparent" BorderThickness="0"
-                                 Padding="0,4,0,4" FontSize="12"/>
+                                 Padding="0,4,0,4" FontSize="12"
+                                 CaretBrush="{DynamicResource PrimaryText}"/>
                         <TextBlock Text="Search by name — or use the chips below for more filters"
-                                   VerticalAlignment="Center" FontSize="12"
+                                   VerticalAlignment="Center" FontSize="12" FontStyle="Italic"
                                    IsHitTestVisible="False"
                                    Foreground="{DynamicResource SubtleText}">
                             <TextBlock.Style>
