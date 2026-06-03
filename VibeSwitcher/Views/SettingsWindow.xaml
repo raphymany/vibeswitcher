@@ -88,41 +88,6 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Search text box with rounded border and focus ring -->
-        <Style x:Key="SearchTextBox" TargetType="TextBox">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Background"   Value="{DynamicResource InputBg}"/>
-            <Setter Property="BorderBrush"  Value="{DynamicResource InputBorder}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontSize"     Value="12"/>
-            <Setter Property="Padding"      Value="22,4,22,4"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border x:Name="bd" CornerRadius="6"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                Background="{TemplateBinding Background}">
-                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
-                                          HorizontalScrollBarVisibility="Hidden"
-                                          VerticalScrollBarVisibility="Hidden"
-                                          VerticalAlignment="Center"
-                                          Margin="{TemplateBinding Padding}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                            <Trigger Property="IsFocused" Value="True">
-                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- × clear button inside the search bar -->
         <Style x:Key="SearchCloseButton" TargetType="Button">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
@@ -408,51 +373,69 @@
         <!-- ── Filter bar ── -->
         <StackPanel Grid.Row="1" Margin="0,0,0,10">
 
-            <!-- Name search — always visible, rounded border with icon -->
-            <Grid Margin="0,0,0,6">
-                <TextBox x:Name="FilterNameBox"
-                         Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
-                         KeyDown="FilterNameBox_KeyDown"
-                         Style="{StaticResource SearchTextBox}"/>
-                <!-- Search icon, non-interactive -->
-                <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="11"
-                           VerticalAlignment="Center" HorizontalAlignment="Left"
-                           Margin="8,0,0,0" IsHitTestVisible="False"
-                           Foreground="{DynamicResource SubtleText}"/>
-                <!-- Placeholder -->
-                <TextBlock Text='Search profiles by name… e.g. "Gaming", "Work"'
-                           VerticalAlignment="Center" HorizontalAlignment="Left"
-                           Margin="22,0,0,0" FontSize="12" IsHitTestVisible="False"
-                           Foreground="{DynamicResource SubtleText}">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Visibility" Value="Collapsed"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding NameFilter}" Value="">
-                                    <Setter Property="Visibility" Value="Visible"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-                <!-- × clear button — hidden when no text -->
-                <Button Click="ClearNameButton_Click"
-                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                        Margin="0,0,8,0">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource SearchCloseButton}">
-                            <Setter Property="Visibility" Value="Visible"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding NameFilter}" Value="">
+            <!-- Name search — border provides the rounded frame; columns keep layout exact -->
+            <Border x:Name="SearchBorder" CornerRadius="6" BorderThickness="1"
+                    BorderBrush="{DynamicResource InputBorder}"
+                    Background="{DynamicResource InputBg}"
+                    Margin="0,0,0,6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="26"/>  <!-- icon -->
+                        <ColumnDefinition Width="*"/>   <!-- text -->
+                        <ColumnDefinition Width="22"/>  <!-- × button -->
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Search icon -->
+                    <TextBlock Grid.Column="0"
+                               Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                               VerticalAlignment="Center" HorizontalAlignment="Center"
+                               IsHitTestVisible="False"
+                               Foreground="{DynamicResource SubtleText}"/>
+
+                    <!-- Text input — no border/bg; theme style handles text colour -->
+                    <Grid Grid.Column="1">
+                        <TextBox x:Name="FilterNameBox"
+                                 Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
+                                 KeyDown="FilterNameBox_KeyDown"
+                                 GotFocus="FilterNameBox_GotFocus"
+                                 LostFocus="FilterNameBox_LostFocus"
+                                 Background="Transparent" BorderThickness="0"
+                                 Padding="0,4,0,4" FontSize="12"/>
+                        <TextBlock Text="Search by name — or use the chips below for more filters"
+                                   VerticalAlignment="Center" FontSize="12"
+                                   IsHitTestVisible="False"
+                                   Foreground="{DynamicResource SubtleText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                    <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                </Button>
-            </Grid>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NameFilter}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <!-- × clear — hidden when empty -->
+                    <Button Grid.Column="2" Click="ClearNameButton_Click"
+                            VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource SearchCloseButton}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding NameFilter}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                    </Button>
+                </Grid>
+            </Border>
 
             <!-- Filter chips row -->
             <views:CenteredWrapPanel VerticalAlignment="Center">
