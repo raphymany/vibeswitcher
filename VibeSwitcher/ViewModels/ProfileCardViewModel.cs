@@ -246,41 +246,35 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         set => SetField(ref _isVisible, value);
     }
 
-    public bool MatchesFilter(string query)
+    public bool MatchesFilter(string nameFilter, string modeFilter, bool pinnedOnly, bool scheduledOnly, HashSet<DayOfWeek> activeDays)
     {
-        if (string.IsNullOrWhiteSpace(query)) return true;
-        var q = query.Trim().ToLowerInvariant();
+        if (!string.IsNullOrWhiteSpace(nameFilter) &&
+            !_model.Name.Contains(nameFilter, StringComparison.OrdinalIgnoreCase))
+            return false;
 
-        if (_model.Name.ToLowerInvariant().Contains(q)) return true;
-        if (_selectedPlaybackDevice?.FriendlyName.ToLowerInvariant().Contains(q) == true) return true;
-        if (_selectedRecordingDevice?.FriendlyName.ToLowerInvariant().Contains(q) == true) return true;
-        if (_hotkeyDisplay.ToLowerInvariant().Contains(q)) return true;
-
-        var modeLabel = _model.Mode switch
+        if (modeFilter != "Any mode")
         {
-            ProfileMode.Playback  => "playback",
-            ProfileMode.Recording => "recording",
-            ProfileMode.Both      => "both",
-            _                     => ""
-        };
-        if (modeLabel.Contains(q)) return true;
-
-        if (_model.IsPinned && (q.Contains("pin") || q.Contains("star") || q.Contains("favorit"))) return true;
-        if (_model.Schedules.Count > 0 && q.Contains("schedul")) return true;
-
-        // Day-of-week: match any schedule entry whose Days list includes the queried day
-        string[] dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-        for (int i = 0; i < dayNames.Length; i++)
-        {
-            if (dayNames[i].Contains(q))
+            var modeMatches = modeFilter switch
             {
-                // dayNames[i=0]=Monday → DayOfWeek.Monday=1, ..., sunday=i6 → DayOfWeek.Sunday=0
-                var dow = i == 6 ? DayOfWeek.Sunday : (DayOfWeek)(i + 1);
-                if (_model.Schedules.Any(s => s.Days.Contains(dow))) return true;
-            }
+                "Playback only"  => _model.Mode == ProfileMode.Playback,
+                "Recording only" => _model.Mode == ProfileMode.Recording,
+                "Both devices"   => _model.Mode == ProfileMode.Both,
+                _                => true
+            };
+            if (!modeMatches) return false;
         }
 
-        return false;
+        if (pinnedOnly && !_model.IsPinned) return false;
+
+        if (scheduledOnly && _model.Schedules.Count == 0) return false;
+
+        if (activeDays.Count > 0)
+        {
+            if (_model.Schedules.Count == 0) return false;
+            if (!_model.Schedules.Any(s => s.Days.Any(activeDays.Contains))) return false;
+        }
+
+        return true;
     }
 
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }

@@ -226,11 +226,11 @@ public partial class SettingsWindow : Window
             app.OpenAboutWindow();
     }
 
-    private void SearchBox_KeyDown(object sender, KeyEventArgs e)
+    private void FilterNameBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape && !string.IsNullOrEmpty(_viewModel.SearchText))
+        if (e.Key == Key.Escape && !string.IsNullOrEmpty(_viewModel.NameFilter))
         {
-            _viewModel.SearchText = "";
+            _viewModel.NameFilter = "";
             e.Handled = true;
         }
     }

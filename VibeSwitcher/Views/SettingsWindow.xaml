@@ -20,6 +20,74 @@
 
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- Filter chip — ghost when off, accent-filled when on -->
+        <Style x:Key="FilterChip" TargetType="ToggleButton">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="Height"     Value="30"/>
+            <Setter Property="Padding"    Value="10,0"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bg" CornerRadius="15" BorderThickness="1"
+                                BorderBrush="{DynamicResource InputBorder}"
+                                Background="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bg" Property="Background"   Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="Bg" Property="BorderBrush"  Value="{DynamicResource Accent}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="False"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bg" Property="Background"  Value="{DynamicResource AccentHover}"/>
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Clear-all link button -->
+        <Style x:Key="ClearFilterButton" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Cursor"     Value="Hand"/>
+            <Setter Property="FontSize"   Value="12"/>
+            <Setter Property="Foreground" Value="{DynamicResource TertiaryText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   TextDecorations="Underline"
+                                   VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="CardBorder" TargetType="Border">
             <Setter Property="Background"      Value="{DynamicResource CardBg}"/>
             <Setter Property="BorderBrush"     Value="{DynamicResource CardBorderBrush}"/>
@@ -278,35 +346,92 @@
             </StackPanel>
         </StackPanel>
 
-        <!-- ── Search box ── -->
-        <Grid Grid.Row="1" Margin="0,0,0,10">
-            <TextBox x:Name="SearchBox"
-                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     KeyDown="SearchBox_KeyDown"
-                     Padding="34,8,10,8"
-                     FontSize="13"/>
-            <!-- Search icon -->
-            <TextBlock Text="&#x1F50D;" FontSize="13"
-                       VerticalAlignment="Center" HorizontalAlignment="Left"
-                       Margin="10,0,0,0" IsHitTestVisible="False"
-                       Foreground="{DynamicResource TertiaryText}"/>
-            <!-- Placeholder -->
-            <TextBlock Text="Search profiles…"
-                       VerticalAlignment="Center" HorizontalAlignment="Left"
-                       Margin="34,0,0,0" FontSize="13" IsHitTestVisible="False"
-                       Foreground="{DynamicResource SubtleText}">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
+        <!-- ── Filter bar ── -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,10">
+
+            <!-- Name text box -->
+            <Grid Margin="0,0,0,6">
+                <TextBox x:Name="FilterNameBox"
+                         Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
+                         KeyDown="FilterNameBox_KeyDown"
+                         Padding="10,8,10,8" FontSize="13"/>
+                <TextBlock Text="Filter by name…"
+                           VerticalAlignment="Center" HorizontalAlignment="Left"
+                           Margin="12,0,0,0" FontSize="13" IsHitTestVisible="False"
+                           Foreground="{DynamicResource SubtleText}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding NameFilter}" Value="">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+
+            <!-- Filter chips row -->
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <ComboBox ItemsSource="{Binding ModeOptions}"
+                          SelectedItem="{Binding ModeFilter}"
+                          Height="30" Width="130" FontSize="12"
+                          VerticalContentAlignment="Center"
+                          Margin="0,0,6,0"/>
+                <ToggleButton Content="★  Pinned"
+                              IsChecked="{Binding PinnedFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,0"/>
+                <ToggleButton Content="⏰  Scheduled"
+                              IsChecked="{Binding ScheduledFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,0"/>
+                <!-- Clear link — visible only when any filter is active -->
+                <Button Content="Clear all"
+                        Command="{Binding ClearFiltersCommand}"
+                        Margin="2,0,0,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ClearFilterButton}">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsAnyFilterActive}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+            </WrapPanel>
+
+            <!-- Day chips — visible only when Scheduled chip is on -->
+            <ItemsControl ItemsSource="{Binding DayChips}" Margin="0,6,0,0">
+                <ItemsControl.Style>
+                    <Style TargetType="ItemsControl">
                         <Setter Property="Visibility" Value="Collapsed"/>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding SearchText}" Value="">
+                            <DataTrigger Binding="{Binding ScheduledFilter}" Value="True">
                                 <Setter Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </TextBlock.Style>
-            </TextBlock>
-        </Grid>
+                </ItemsControl.Style>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:DayChip}">
+                        <ToggleButton Content="{Binding Label}"
+                                      IsChecked="{Binding IsSelected}"
+                                      Style="{StaticResource FilterChip}"
+                                      Margin="0,0,4,0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
 
         <!-- ── Profile cards ── -->
         <ScrollViewer x:Name="ProfilesScrollViewer" Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,10">

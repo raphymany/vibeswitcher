@@ -6,9 +6,9 @@ namespace VibeSwitcher.Tests;
 
 public class SettingsSearchTests
 {
-    private readonly FakeConfigService _fakeConfig = new();
-    private readonly FakeAudioService  _fakeAudio  = new();
-    private readonly FakeHotkeyService _fakeHotkey = new();
+    private readonly FakeConfigService  _fakeConfig  = new();
+    private readonly FakeAudioService   _fakeAudio   = new();
+    private readonly FakeHotkeyService  _fakeHotkey  = new();
     private readonly FakeStartupService _fakeStartup = new();
     private readonly FakeDialogService  _fakeDialog  = new();
 
@@ -30,159 +30,247 @@ public class SettingsSearchTests
         });
     }
 
+    // ── Name filter ─────────────────────────────────────────────────────────
+
     [Fact]
-    public void EmptySearch_AllCardsVisible()
+    public void NoFilters_AllCardsVisible()
     {
         AddProfile("Gaming");
         AddProfile("Work");
         var vm = MakeViewModel();
 
-        vm.SearchText = "";
+        Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
+        Assert.False(vm.HasNoFilterResults);
+        Assert.False(vm.IsAnyFilterActive);
+    }
+
+    [Fact]
+    public void NameFilter_MatchingCardVisible_OtherHidden()
+    {
+        AddProfile("Gaming");
+        AddProfile("Work");
+        var vm = MakeViewModel();
+
+        vm.NameFilter = "gam";
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
+    [Fact]
+    public void NameFilter_CaseInsensitive()
+    {
+        AddProfile("Gaming");
+        var vm = MakeViewModel();
+
+        vm.NameFilter = "GAMING";
+
+        Assert.True(vm.Profiles[0].IsVisible);
+    }
+
+    [Fact]
+    public void NameFilter_Clear_AllCardsRestored()
+    {
+        AddProfile("Gaming");
+        AddProfile("Work");
+        var vm = MakeViewModel();
+        vm.NameFilter = "zzz";
+
+        vm.NameFilter = "";
 
         Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
         Assert.False(vm.HasNoFilterResults);
     }
 
-    [Fact]
-    public void SearchByName_MatchingCardVisible_NonMatchingHidden()
-    {
-        AddProfile("Gaming");
-        AddProfile("Work");
-        var vm = MakeViewModel();
-
-        vm.SearchText = "gam";
-
-        Assert.True(vm.Profiles[0].IsVisible);
-        Assert.False(vm.Profiles[1].IsVisible);
-    }
+    // ── Mode filter ──────────────────────────────────────────────────────────
 
     [Fact]
-    public void SearchByName_CaseInsensitive()
-    {
-        AddProfile("Gaming");
-        var vm = MakeViewModel();
-
-        vm.SearchText = "GAMING";
-
-        Assert.True(vm.Profiles[0].IsVisible);
-    }
-
-    [Fact]
-    public void SearchByMode_PlaybackOnly_ShowsCorrectCard()
-    {
-        AddProfile("Speakers", ProfileMode.Playback);
-        AddProfile("Both",     ProfileMode.Both);
-        var vm = MakeViewModel();
-
-        vm.SearchText = "playback";
-
-        Assert.True(vm.Profiles[0].IsVisible);
-        Assert.False(vm.Profiles[1].IsVisible);
-    }
-
-    [Fact]
-    public void SearchByMode_Both_ShowsCorrectCard()
+    public void ModeFilter_PlaybackOnly_ShowsCorrectCards()
     {
         AddProfile("Speakers", ProfileMode.Playback);
         AddProfile("Full",     ProfileMode.Both);
         var vm = MakeViewModel();
 
-        vm.SearchText = "both";
-
-        Assert.False(vm.Profiles[0].IsVisible);
-        Assert.True(vm.Profiles[1].IsVisible);
-    }
-
-    [Fact]
-    public void SearchPinned_ShowsOnlyPinnedCards()
-    {
-        AddProfile("Gaming", isPinned: true);
-        AddProfile("Work",   isPinned: false);
-        var vm = MakeViewModel();
-
-        vm.SearchText = "pinned";
+        vm.ModeFilter = "Playback only";
 
         Assert.True(vm.Profiles[0].IsVisible);
         Assert.False(vm.Profiles[1].IsVisible);
     }
 
     [Fact]
-    public void SearchScheduled_ShowsOnlyCardsWithSchedule()
+    public void ModeFilter_AnyMode_ShowsAll()
+    {
+        AddProfile("Speakers", ProfileMode.Playback);
+        AddProfile("Full",     ProfileMode.Both);
+        var vm = MakeViewModel();
+
+        vm.ModeFilter = "Any mode";
+
+        Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
+    }
+
+    // ── Pinned filter ────────────────────────────────────────────────────────
+
+    [Fact]
+    public void PinnedFilter_ShowsOnlyPinnedCards()
+    {
+        AddProfile("Gaming", isPinned: true);
+        AddProfile("Work",   isPinned: false);
+        var vm = MakeViewModel();
+
+        vm.PinnedFilter = true;
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
+    // ── Scheduled filter ─────────────────────────────────────────────────────
+
+    [Fact]
+    public void ScheduledFilter_ShowsOnlyCardsWithSchedule()
     {
         var schedule = new ScheduleEntry { Days = [DayOfWeek.Monday], Hour = 9 };
         AddProfile("Morning", schedules: [schedule]);
         AddProfile("Evening");
         var vm = MakeViewModel();
 
-        vm.SearchText = "scheduled";
+        vm.ScheduledFilter = true;
 
         Assert.True(vm.Profiles[0].IsVisible);
         Assert.False(vm.Profiles[1].IsVisible);
     }
 
     [Fact]
-    public void SearchByDayOfWeek_ShowsCardsScheduledOnThatDay()
+    public void ScheduledFilter_Off_ClearsDayChips()
     {
-        var mondaySchedule = new ScheduleEntry { Days = [DayOfWeek.Monday], Hour = 9 };
-        AddProfile("Work",     schedules: [mondaySchedule]);
+        var schedule = new ScheduleEntry { Days = [DayOfWeek.Monday] };
+        AddProfile("Morning", schedules: [schedule]);
+        var vm = MakeViewModel();
+        vm.ScheduledFilter = true;
+        vm.DayChips.First(d => d.Day == DayOfWeek.Monday).IsSelected = true;
+
+        vm.ScheduledFilter = false;
+
+        Assert.All(vm.DayChips, d => Assert.False(d.IsSelected));
+    }
+
+    // ── Day chip filter ──────────────────────────────────────────────────────
+
+    [Fact]
+    public void DayChip_Monday_ShowsCardsScheduledOnMonday()
+    {
+        var mondaySchedule = new ScheduleEntry { Days = [DayOfWeek.Monday] };
+        AddProfile("Work",    schedules: [mondaySchedule]);
         AddProfile("Weekend");
         var vm = MakeViewModel();
+        vm.ScheduledFilter = true;
 
-        vm.SearchText = "monday";
+        vm.DayChips.First(d => d.Day == DayOfWeek.Monday).IsSelected = true;
 
         Assert.True(vm.Profiles[0].IsVisible);
         Assert.False(vm.Profiles[1].IsVisible);
     }
+
+    // ── Combined filters ─────────────────────────────────────────────────────
+
+    [Fact]
+    public void CombinedFilter_NameAndMode_BothApplied()
+    {
+        AddProfile("Gaming", ProfileMode.Playback);
+        AddProfile("Work",   ProfileMode.Both);
+        AddProfile("Gaming Mic", ProfileMode.Both);
+        var vm = MakeViewModel();
+
+        vm.NameFilter = "gaming";
+        vm.ModeFilter = "Both devices";
+
+        Assert.False(vm.Profiles[0].IsVisible); // name matches, mode doesn't
+        Assert.False(vm.Profiles[1].IsVisible); // mode matches, name doesn't
+        Assert.True(vm.Profiles[2].IsVisible);  // both match
+    }
+
+    // ── No results / IsAnyFilterActive ───────────────────────────────────────
 
     [Fact]
     public void NoMatch_HasNoFilterResultsIsTrue()
     {
         AddProfile("Gaming");
-        AddProfile("Work");
         var vm = MakeViewModel();
 
-        vm.SearchText = "zzz";
+        vm.NameFilter = "zzz";
 
         Assert.True(vm.HasNoFilterResults);
-        Assert.All(vm.Profiles, p => Assert.False(p.IsVisible));
     }
 
     [Fact]
-    public void ClearSearch_AllCardsRestored()
+    public void IsAnyFilterActive_TrueWhenNameSet()
     {
-        AddProfile("Gaming");
-        AddProfile("Work");
         var vm = MakeViewModel();
-        vm.SearchText = "zzz";
+        vm.NameFilter = "gam";
+        Assert.True(vm.IsAnyFilterActive);
+    }
 
-        vm.SearchText = "";
+    [Fact]
+    public void IsAnyFilterActive_TrueWhenModeChanged()
+    {
+        var vm = MakeViewModel();
+        vm.ModeFilter = "Playback only";
+        Assert.True(vm.IsAnyFilterActive);
+    }
 
+    [Fact]
+    public void IsAnyFilterActive_FalseWhenAllDefault()
+    {
+        var vm = MakeViewModel();
+        Assert.False(vm.IsAnyFilterActive);
+    }
+
+    // ── Clear all ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void ClearFilters_ResetsAllFilters()
+    {
+        AddProfile("Gaming", ProfileMode.Playback, isPinned: true);
+        AddProfile("Work",   ProfileMode.Both);
+        var vm = MakeViewModel();
+        vm.NameFilter      = "gam";
+        vm.ModeFilter      = "Playback only";
+        vm.PinnedFilter    = true;
+        vm.ScheduledFilter = true;
+
+        vm.ClearFiltersCommand.Execute(null);
+
+        Assert.Equal("", vm.NameFilter);
+        Assert.Equal("Any mode", vm.ModeFilter);
+        Assert.False(vm.PinnedFilter);
+        Assert.False(vm.ScheduledFilter);
+        Assert.False(vm.IsAnyFilterActive);
         Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
-        Assert.False(vm.HasNoFilterResults);
     }
 
-    [Fact]
-    public void RememberSearch_Disabled_LastSearchNotSaved()
-    {
-        AddProfile("Gaming");
-        var vm = MakeViewModel();
-        vm.RememberSearch = false;
-
-        vm.SearchText = "gam";
-
-        Assert.Equal("", _fakeConfig.Current.LastSearch);
-    }
+    // ── Remember last search ─────────────────────────────────────────────────
 
     [Fact]
-    public void RememberSearch_Enabled_LastSearchSaved()
+    public void RememberSearch_Enabled_NameFilterPersisted()
     {
         AddProfile("Gaming");
         _fakeConfig.Current.RememberSearch = true;
         var vm = MakeViewModel();
 
-        vm.SearchText = "gam";
+        vm.NameFilter = "gam";
 
         Assert.Equal("gam", _fakeConfig.Current.LastSearch);
+    }
+
+    [Fact]
+    public void RememberSearch_Disabled_NameFilterNotPersisted()
+    {
+        AddProfile("Gaming");
+        var vm = MakeViewModel();
+
+        vm.NameFilter = "gam";
+
+        Assert.Equal("", _fakeConfig.Current.LastSearch);
     }
 
     [Fact]
@@ -198,7 +286,7 @@ public class SettingsSearchTests
     }
 
     [Fact]
-    public void PersistedSearch_RestoredOnLoad()
+    public void PersistedNameFilter_RestoredOnLoad()
     {
         AddProfile("Gaming");
         AddProfile("Work");
@@ -207,7 +295,7 @@ public class SettingsSearchTests
 
         var vm = MakeViewModel();
 
-        Assert.Equal("gam", vm.SearchText);
+        Assert.Equal("gam", vm.NameFilter);
         Assert.True(vm.Profiles[0].IsVisible);
         Assert.False(vm.Profiles[1].IsVisible);
     }
