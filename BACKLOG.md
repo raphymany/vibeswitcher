@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-05-23 — Branch 48 (`perf/switch-optimizations`) merged as PR #78.
+**Last updated:** 2026-06-03 — Branch 36 (`feat/device-aliases`) merged as PR #80.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -118,7 +118,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in the Settings dropdowns~~ | ✅ Done — PR #61 |
 | ~~F27~~ | ~~Profile color tag~~ | Dropped — profiles already have icons; color adds no value |
 | ~~F30~~ | ~~Tray icon switch flash — brief icon pulse when a profile switch completes~~ | ✅ Done — PR #57 |
-| F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers") | 36 |
+| ~~F31~~ | ~~Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers")~~ | ✅ Done — PR #80 |
 | ~~F32~~ | ~~Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name~~ | ✅ Done — PR #76 |
 | ~~F33~~ | ~~Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones~~ | ✅ Done — PR #76 |
 | ~~F34~~ | ~~Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ | ✅ Done — PR #76 |
@@ -147,12 +147,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 36: `feat/device-aliases`
+### ~~Branch 36: `feat/device-aliases`~~ ✅ Merged — PR #80
 **Theme:** Per-device friendly name display throughout the app.
 
 | # | Feature |
 |---|---------|
-| F31 | Audio endpoint aliases — user-defined friendly names shown in Settings dropdowns and profile cards instead of the raw Windows device name |
+| ~~F31~~ | ~~Audio endpoint aliases — user-defined friendly names shown in Settings dropdowns and profile cards instead of the raw Windows device name~~ |
 
 ---
 

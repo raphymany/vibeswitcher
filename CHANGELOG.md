@@ -7,6 +7,11 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Audio endpoint aliases (F31)** — user-defined friendly names per audio device; stored in `DeviceAliases` in `config.json`; shown in all Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); managed via a new "Manage…" button that opens the Device Aliases dialog *(PR #80)*
+- **Device Aliases dialog** — Playback / Recording tabs; stacked card layout per device showing the full device name, a status line (which profiles use it, or whether it is disconnected / disabled), and an alias TextBox; devices sorted with used-in-profile devices at the top, then A–Z; Save button flushes any focused TextBox before closing *(PR #80)*
+- **Themed global scrollbar** — implicit ScrollBar style in App.xaml: 20 px wide / tall, rounded corners, no arrow buttons, colors from `LightTheme.xaml` / `DarkTheme.xaml`; applies to every ScrollViewer in the app including the Device Aliases dialog and the Settings profile list *(PR #80)*
+- **Appearance segmented RadioButtons** — the Appearance setting in General Settings is now three ghost→accent RadioButtons (Follow Windows / Light / Dark) instead of a ComboBox, matching the rest of the settings card style *(PR #80)*
+- **8 new unit tests** — `DeviceAliasItemTests` (4) and `DeviceAliasTests` (4) covering alias substitution, `AliasChanged` event, property-changed notifications, and empty/no-alias fallback paths *(PR #80)*
 - **Profile notes (F32)** — optional short description field on each profile card, placed below the profile name; `MaxLength` of 61 characters; stored per profile with an ⓘ badge tooltip explaining the limit *(PR #76)*
 - **Pinned / favorite profiles (F33)** — star toggle in each profile card footer; pinned profiles sort above unpinned ones in both the Settings list and the tray right-click menu; `SortOrder` is renumbered after each pin change to keep ordering stable *(PR #76)*
 - **Profile validation warnings (F34)** — inline warning badge on cards for disconnected or unavailable audio devices and missing icon files; device check is suppressed until the first device enumeration completes to avoid false warnings at startup *(PR #76)*
@@ -73,6 +78,10 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ### Fixed
+- **Taskbar pin no longer silently ignored** — clicking a pinned taskbar button while the app is already running now opens the Settings window; `SingleInstanceHelper` signals the running instance via a named `EventWaitHandle` (AutoReset, `Local\` scoped per user); a background listener calls `OpenSettingsWindow` via `Dispatcher.InvokeAsync` *(PR #80)*
+- **Alias TextBox placeholder overlapping typed text** — placeholder `TextBlock` now collapses immediately when the TextBox gains focus via a `DataTrigger` on `IsKeyboardFocusWithin` of the parent Grid, instead of waiting for `LostFocus` to update the bound property *(PR #80)*
+- **TextBox style scoped to SettingsWindow only** — the implicit TextBox style (rounded corners, themed background) was defined in SettingsWindow local resources; moved to App.xaml so all dialogs including DeviceAliasesDialog inherit it automatically *(PR #80)*
+- **`XamlParseException` on `Run.Text` binding** — `Run.Text` defaults to `TwoWay` binding mode, which throws at runtime on read-only properties; fixed with explicit `Mode=OneWay` on the `ProfileUsage` binding in DeviceAliasesDialog *(PR #80)*
 - **`ObjectDisposedException` on tray icon** — H.NotifyIcon disposes the old `Icon` object on each assignment; the previous icon object cache caused a crash when switching back to a profile whose icon had already been disposed. Fixed by caching raw bytes and always providing a fresh `Icon` instance *(PR #78)*
 - **`AccentColor` fallback for toggle animation** — toggle switch `ColorAnimation.To` now references `{StaticResource AccentColor}` instead of a hardcoded hex; a `Color` fallback in `App.xaml` satisfies parse-time resolution and theme files override it at runtime *(PR #72)*
 - **ConfirmDialog icon badge updates with theme** — badge background switched from `TryFindResource` to `SetResourceReference` so it responds to theme changes while the dialog is open *(PR #72)*

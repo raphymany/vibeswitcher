@@ -213,6 +213,13 @@ public partial class SettingsWindow : Window
 
     private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
 
+    private void ManageAliasesButton_Click(object sender, RoutedEventArgs e)
+    {
+        var vm = (ViewModels.SettingsViewModel)DataContext;
+        var dialog = new DeviceAliasesDialog(vm.DeviceAliases) { Owner = this };
+        dialog.ShowDialog();
+    }
+
     private void AboutButton_Click(object sender, RoutedEventArgs e)
     {
         if (Application.Current is App app)
@@ -384,6 +391,12 @@ public partial class SettingsWindow : Window
         var source = e.Data.GetData(typeof(ProfileCardViewModel)) as ProfileCardViewModel;
         if (source == null || target == null || source == target) return;
         _viewModel.MoveProfile(source, target);
+    }
+
+    private void ThemeRadio_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Primitives.ToggleButton rb && rb.Tag is string tag)
+            _viewModel.Theme = tag;
     }
 
     private void HelpButton_Click(object sender, RoutedEventArgs e)

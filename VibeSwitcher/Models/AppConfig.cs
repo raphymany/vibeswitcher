@@ -27,4 +27,7 @@ public class AppConfig
     public double WindowHeight { get; set; } = 0;
     public double? WindowLeft { get; set; } = null;
     public double? WindowTop  { get; set; } = null;
+
+    // User-defined friendly names keyed by Windows device ID.
+    public Dictionary<string, string> DeviceAliases { get; set; } = new();
 }

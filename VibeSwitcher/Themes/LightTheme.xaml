@@ -107,6 +107,12 @@
     <!-- Save flash overlay -->
     <SolidColorBrush x:Key="SaveFlashBg"        Color="#E8F5E9"/>
 
+    <!-- Scrollbar -->
+    <SolidColorBrush x:Key="ScrollBarTrack"         Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="ScrollBarThumb"         Color="#C8C8C8"/>
+    <SolidColorBrush x:Key="ScrollBarThumbHover"    Color="#A0A0A0"/>
+    <SolidColorBrush x:Key="ScrollBarThumbPressed"  Color="#808080"/>
+
     <!-- Icon gallery -->
     <SolidColorBrush x:Key="GalleryItemBg"      Color="#FFFFFF"/>
     <SolidColorBrush x:Key="GalleryItemBorder"  Color="#E0E0E0"/>
