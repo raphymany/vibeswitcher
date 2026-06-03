@@ -33,8 +33,10 @@ public partial class DeviceAliasesDialog : Window, INotifyPropertyChanged
     public DeviceAliasesDialog(IEnumerable<DeviceAliasItem> aliases)
     {
         var list = aliases.ToList();
-        PlaybackDevices  = list.Where(a => a.IsPlayback).OrderBy(a => a.RawName).ToList();
-        RecordingDevices = list.Where(a => !a.IsPlayback).OrderBy(a => a.RawName).ToList();
+        PlaybackDevices  = list.Where(a => a.IsPlayback)
+            .OrderByDescending(a => a.HasProfileUsage).ThenBy(a => a.RawName).ToList();
+        RecordingDevices = list.Where(a => !a.IsPlayback)
+            .OrderByDescending(a => a.HasProfileUsage).ThenBy(a => a.RawName).ToList();
         InitializeComponent();
         DataContext = this;
     }
