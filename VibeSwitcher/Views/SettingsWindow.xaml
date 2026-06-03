@@ -420,7 +420,7 @@
                            Margin="10,0,0,0" IsHitTestVisible="False"
                            Foreground="{DynamicResource SubtleText}"/>
                 <!-- Placeholder -->
-                <TextBlock Text="Filter by name…"
+                <TextBlock Text="Search by profile name… (Esc to clear)"
                            VerticalAlignment="Center" HorizontalAlignment="Left"
                            Margin="26,0,0,0" FontSize="12" IsHitTestVisible="False"
                            Foreground="{DynamicResource SubtleText}">
