@@ -136,8 +136,13 @@ public partial class SettingsWindow : Window
         // MainGrid has Margin="18" so its bottom edge sits 18px above the window bottom.
         var overflow = footerBottom - (ActualHeight - 18);
         if (overflow <= 0) return;
-        var newHeight = Math.Ceiling(ActualHeight + overflow + 12);
-        Height = Math.Min(newHeight, SystemParameters.WorkArea.Height - 40);
+        var workArea  = SystemParameters.WorkArea;
+        var newHeight = Math.Min(Math.Ceiling(ActualHeight + overflow + 12), workArea.Height - 40);
+        Height = newHeight;
+        // Slide the window up if the bottom would go past the usable screen area.
+        var maxTop = workArea.Bottom - newHeight;
+        if (Top > maxTop)
+            Top = Math.Max(workArea.Top, maxTop);
     }
 
     private void UpdateLogsButton()
