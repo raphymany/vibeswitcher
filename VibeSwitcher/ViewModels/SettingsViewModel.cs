@@ -252,11 +252,49 @@ public class SettingsViewModel : ViewModelBase
     public bool PinnedFilter
     {
         get => _pinnedFilter;
-        set
-        {
-            if (!SetField(ref _pinnedFilter, value)) return;
-            ApplyFilter();
-        }
+        set { if (!SetField(ref _pinnedFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _activeFilter;
+    public bool ActiveFilter
+    {
+        get => _activeFilter;
+        set { if (!SetField(ref _activeFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _silentFilter;
+    public bool SilentFilter
+    {
+        get => _silentFilter;
+        set { if (!SetField(ref _silentFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _hotkeyFilter;
+    public bool HotkeyFilter
+    {
+        get => _hotkeyFilter;
+        set { if (!SetField(ref _hotkeyFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _notesFilter;
+    public bool NotesFilter
+    {
+        get => _notesFilter;
+        set { if (!SetField(ref _notesFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _iconFilter;
+    public bool IconFilter
+    {
+        get => _iconFilter;
+        set { if (!SetField(ref _iconFilter, value)) return; ApplyFilter(); }
+    }
+
+    private bool _warningFilter;
+    public bool WarningFilter
+    {
+        get => _warningFilter;
+        set { if (!SetField(ref _warningFilter, value)) return; ApplyFilter(); }
     }
 
     private bool _scheduledFilter;
@@ -272,11 +310,19 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    private bool _reminderFilter;
+    public bool ReminderFilter
+    {
+        get => _reminderFilter;
+        set { if (!SetField(ref _reminderFilter, value)) return; ApplyFilter(); }
+    }
+
     public bool IsAnyFilterActive =>
         !string.IsNullOrWhiteSpace(_nameFilter) ||
-        _modeFilter != "Any mode" ||
-        _pinnedFilter ||
-        _scheduledFilter;
+        _modeFilter != "Any mode"               ||
+        _pinnedFilter  || _activeFilter  || _silentFilter  ||
+        _hotkeyFilter  || _notesFilter   || _iconFilter    ||
+        _warningFilter || _scheduledFilter || _reminderFilter;
 
     public ICommand ClearFiltersCommand { get; }
 
@@ -284,10 +330,17 @@ public class SettingsViewModel : ViewModelBase
     private void ClearFilters()
     {
         _clearing = true;
-        _nameFilter    = "";
-        _modeFilter    = "Any mode";
-        _pinnedFilter  = false;
+        _nameFilter      = "";
+        _modeFilter      = "Any mode";
+        _pinnedFilter    = false;
+        _activeFilter    = false;
+        _silentFilter    = false;
+        _hotkeyFilter    = false;
+        _notesFilter     = false;
+        _iconFilter      = false;
+        _warningFilter   = false;
         _scheduledFilter = false;
+        _reminderFilter  = false;
         foreach (var chip in DayChips) chip.IsSelected = false;
         _clearing = false;
 
@@ -300,7 +353,14 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(NameFilter));
         OnPropertyChanged(nameof(ModeFilter));
         OnPropertyChanged(nameof(PinnedFilter));
+        OnPropertyChanged(nameof(ActiveFilter));
+        OnPropertyChanged(nameof(SilentFilter));
+        OnPropertyChanged(nameof(HotkeyFilter));
+        OnPropertyChanged(nameof(NotesFilter));
+        OnPropertyChanged(nameof(IconFilter));
+        OnPropertyChanged(nameof(WarningFilter));
         OnPropertyChanged(nameof(ScheduledFilter));
+        OnPropertyChanged(nameof(ReminderFilter));
         ApplyFilter();
     }
 
@@ -313,9 +373,23 @@ public class SettingsViewModel : ViewModelBase
 
     private void ApplyFilter()
     {
-        var activeDays = DayChips.Where(d => d.IsSelected).Select(d => d.Day).ToHashSet();
+        var filter = new ProfileFilter
+        {
+            NameFilter    = _nameFilter,
+            ModeFilter    = _modeFilter,
+            PinnedOnly    = _pinnedFilter,
+            ActiveOnly    = _activeFilter,
+            SilentOnly    = _silentFilter,
+            HotkeyOnly    = _hotkeyFilter,
+            NotesOnly     = _notesFilter,
+            IconOnly      = _iconFilter,
+            WarningOnly   = _warningFilter,
+            ScheduledOnly = _scheduledFilter,
+            ReminderOnly  = _reminderFilter,
+            ActiveDays    = DayChips.Where(d => d.IsSelected).Select(d => d.Day).ToHashSet(),
+        };
         foreach (var card in Profiles)
-            card.IsVisible = card.MatchesFilter(_nameFilter, _modeFilter, _pinnedFilter, _scheduledFilter, activeDays);
+            card.IsVisible = card.MatchesFilter(filter);
         HasNoFilterResults = IsAnyFilterActive && Profiles.All(p => !p.IsVisible);
         OnPropertyChanged(nameof(IsAnyFilterActive));
     }

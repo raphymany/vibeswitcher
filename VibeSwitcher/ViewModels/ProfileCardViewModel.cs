@@ -246,15 +246,15 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         set => SetField(ref _isVisible, value);
     }
 
-    public bool MatchesFilter(string nameFilter, string modeFilter, bool pinnedOnly, bool scheduledOnly, HashSet<DayOfWeek> activeDays)
+    public bool MatchesFilter(ProfileFilter f)
     {
-        if (!string.IsNullOrWhiteSpace(nameFilter) &&
-            !_model.Name.Contains(nameFilter, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(f.NameFilter) &&
+            !_model.Name.Contains(f.NameFilter, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (modeFilter != "Any mode")
+        if (f.ModeFilter != "Any mode")
         {
-            var modeMatches = modeFilter switch
+            var modeMatches = f.ModeFilter switch
             {
                 "Playback only"  => _model.Mode == ProfileMode.Playback,
                 "Recording only" => _model.Mode == ProfileMode.Recording,
@@ -264,14 +264,20 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             if (!modeMatches) return false;
         }
 
-        if (pinnedOnly && !_model.IsPinned) return false;
+        if (f.PinnedOnly    && !_model.IsPinned)                                  return false;
+        if (f.ActiveOnly    && !IsActive)                                          return false;
+        if (f.SilentOnly    && !_model.Silent)                                     return false;
+        if (f.HotkeyOnly    && _model.Hotkey.IsEmpty)                              return false;
+        if (f.NotesOnly     && string.IsNullOrEmpty(_model.Notes))                return false;
+        if (f.IconOnly      && string.IsNullOrEmpty(_model.IconPath))             return false;
+        if (f.WarningOnly   && !HasValidationWarning)                             return false;
+        if (f.ScheduledOnly && _model.Schedules.Count == 0)                       return false;
+        if (f.ReminderOnly  && !_model.Schedules.Any(s => s.ReminderMinutes > 0)) return false;
 
-        if (scheduledOnly && _model.Schedules.Count == 0) return false;
-
-        if (activeDays.Count > 0)
+        if (f.ActiveDays.Count > 0)
         {
             if (_model.Schedules.Count == 0) return false;
-            if (!_model.Schedules.Any(s => s.Days.Any(activeDays.Contains))) return false;
+            if (!_model.Schedules.Any(s => s.Days.Any(f.ActiveDays.Contains))) return false;
         }
 
         return true;

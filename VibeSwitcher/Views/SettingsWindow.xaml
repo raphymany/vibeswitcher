@@ -382,15 +382,43 @@
                 <ToggleButton Content="★  Pinned"
                               IsChecked="{Binding PinnedFilter}"
                               Style="{StaticResource FilterChip}"
-                              Margin="0,0,6,0"/>
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="✓  Active"
+                              IsChecked="{Binding ActiveFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="🔇  Silent"
+                              IsChecked="{Binding SilentFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="⌨  Has hotkey"
+                              IsChecked="{Binding HotkeyFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="📝  Has notes"
+                              IsChecked="{Binding NotesFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="🖼  Has icon"
+                              IsChecked="{Binding IconFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="⚠  Has warning"
+                              IsChecked="{Binding WarningFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
                 <ToggleButton Content="⏰  Scheduled"
                               IsChecked="{Binding ScheduledFilter}"
                               Style="{StaticResource FilterChip}"
-                              Margin="0,0,6,0"/>
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="🔔  Has reminder"
+                              IsChecked="{Binding ReminderFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
                 <!-- Clear link — visible only when any filter is active -->
                 <Button Content="Clear all"
                         Command="{Binding ClearFiltersCommand}"
-                        Margin="2,0,0,0">
+                        Margin="2,0,0,6">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource ClearFilterButton}">
                             <Setter Property="Visibility" Value="Collapsed"/>

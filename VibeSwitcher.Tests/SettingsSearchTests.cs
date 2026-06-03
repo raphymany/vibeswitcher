@@ -124,6 +124,89 @@ public class SettingsSearchTests
         Assert.False(vm.Profiles[1].IsVisible);
     }
 
+    // ── Active / Silent / Hotkey / Notes / Icon / Warning filters ───────────
+
+    [Fact]
+    public void ActiveFilter_ShowsOnlyActiveProfile()
+    {
+        _fakeConfig.Current.ActiveProfileId = null; // none active
+        AddProfile("Gaming");
+        AddProfile("Work");
+        var vm = MakeViewModel();
+
+        vm.ActiveFilter = true;
+
+        Assert.All(vm.Profiles, p => Assert.False(p.IsVisible));
+    }
+
+    [Fact]
+    public void SilentFilter_ShowsOnlySilentProfiles()
+    {
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "Silent", Silent = true });
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "Loud",   Silent = false });
+        var vm = MakeViewModel();
+
+        vm.SilentFilter = true;
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
+    [Fact]
+    public void HotkeyFilter_ShowsOnlyProfilesWithHotkey()
+    {
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile
+            { Name = "WithKey", Hotkey = new HotkeyDefinition { VirtualKeyCode = 71, UseCtrl = true } });
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "NoKey" });
+        var vm = MakeViewModel();
+
+        vm.HotkeyFilter = true;
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
+    [Fact]
+    public void NotesFilter_ShowsOnlyProfilesWithNotes()
+    {
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "WithNotes", Notes = "My notes" });
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "NoNotes" });
+        var vm = MakeViewModel();
+
+        vm.NotesFilter = true;
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
+    [Fact]
+    public void IconFilter_ShowsOnlyProfilesWithCustomIcon()
+    {
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "WithIcon", IconPath = "C:\\icon.ico" });
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "NoIcon" });
+        var vm = MakeViewModel();
+
+        vm.IconFilter = true;
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
+    [Fact]
+    public void ReminderFilter_ShowsOnlyProfilesWithReminderSchedule()
+    {
+        var withReminder = new ScheduleEntry { Days = [DayOfWeek.Monday], ReminderMinutes = 10 };
+        var noReminder   = new ScheduleEntry { Days = [DayOfWeek.Monday], ReminderMinutes = 0 };
+        AddProfile("Reminded",   schedules: [withReminder]);
+        AddProfile("NoReminder", schedules: [noReminder]);
+        var vm = MakeViewModel();
+
+        vm.ReminderFilter = true;
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
     // ── Scheduled filter ─────────────────────────────────────────────────────
 
     [Fact]
