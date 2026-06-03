@@ -743,6 +743,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~33~~ | ~~`feat/profile-scheduler`~~ | ✅ Done — PR #74 |
 | ~~35~~ | ~~`feat/profile-card-extras`~~ | ✅ Done — PR #76 |
 | ~~48~~ | ~~`perf/switch-optimizations`~~ | ✅ Done — PR #78 |
+| ~~36~~ | ~~`feat/device-aliases`~~ | ✅ Done — PR #80 |
 | 47 | `refactor/code-quality` | Planned |
 
 ---
@@ -1145,6 +1146,24 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | `AppLogger.Write` — `Directory.CreateDirectory` syscall removed; directory is guaranteed after `StartSession()` | ✅ Done |
 | — | `OnProfileChanged` validation scope narrowed — `card.RefreshValidation()` only, not all cards; `ValidationWarning` has no cross-card dependency | ✅ Done |
 | — | `SanitizeName` static HashSet — `Path.GetInvalidFileNameChars()` allocated a new `char[]` on every call; replaced with `static readonly HashSet<char>` | ✅ Done |
+
+---
+
+### ~~Branch 36: `feat/device-aliases`~~ ✅ Done — PR #80
+**Theme:** Per-device friendly name display throughout the app, plus several UI and quality-of-life improvements.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F31 | Audio endpoint aliases — `DeviceAliases` dict in `AppConfig`; `DeviceAliasItem` ViewModel; alias substitution in all device dropdowns via C# `with`-expression so raw names are never shown when an alias is set | ✅ Done |
+| — | Device Aliases dialog redesign — Playback / Recording tab buttons; stacked card layout per device (full device name wraps, status line showing which profiles use the device or whether it is disconnected/disabled); alias TextBox with placeholder; devices sorted (used-in-profile first, then A–Z) | ✅ Done |
+| — | Placeholder overlap fix — alias TextBox placeholder collapses immediately on focus via a `DataTrigger` on `IsKeyboardFocusWithin` of the parent Grid (fixes `UpdateSourceTrigger=LostFocus` lag) | ✅ Done |
+| — | Save flushes focused TextBox — `Save_Click` calls `BindingOperations.GetBindingExpression(tb, TextBox.TextProperty)?.UpdateSource()` before closing so in-progress edits are never lost | ✅ Done |
+| — | TextBox implicit style moved to App.xaml — all dialogs (including DeviceAliasesDialog) now inherit the themed rounded TextBox without each window needing a local style | ✅ Done |
+| — | Appearance segmented RadioButtons — replaced the Appearance ComboBox in General Settings with three ghost→accent RadioButtons (Follow Windows / Light / Dark) using a shared named style in `Window.Resources` | ✅ Done |
+| — | Global themed scrollbar — implicit ScrollBar style in App.xaml: 20 px wide/tall, rounded corners, no arrow buttons, `DynamicResource` colors from `LightTheme.xaml` / `DarkTheme.xaml`; applies to every ScrollViewer in the app | ✅ Done |
+| — | Taskbar pin fix — `SingleInstanceHelper` now uses a named `EventWaitHandle` (AutoReset, `Local\` scoped) for cross-process activation signaling; a second instance opens the event and sets it; the background listener in the first instance fires `OpenSettingsWindow` via `Dispatcher.InvokeAsync` | ✅ Done |
+| — | `Run.Text` binding `Mode=OneWay` — `Run.Text` defaults to `TwoWay`, which throws `XamlParseException` on a read-only property; fixed with explicit `Mode=OneWay` on `ProfileUsage` binding | ✅ Done |
+| — | 8 new unit tests — `DeviceAliasItemTests` (4 tests: property, alias changed event, raises change, clears alias) and `DeviceAliasTests` (4 tests: substitution, no alias, fallback, empty string) | ✅ Done |
 
 ---
 
