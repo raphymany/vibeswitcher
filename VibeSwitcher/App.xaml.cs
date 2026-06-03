@@ -94,10 +94,7 @@ public partial class App : Application
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher);
         _muteService = new MuteService();
         _muteService.MuteStateChanged += () =>
-        {
-            if (_muteService.IsAnyMuteActive) _trayService.StartMuteFlash();
-            else _trayService.StopMuteFlash();
-        };
+            _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile));
 

@@ -8,36 +8,41 @@ namespace VibeSwitcher.Services;
 
 public class MuteService
 {
-    private readonly HashSet<MuteScope> _activeMutes = new();
+    private bool _micMuted = false;
+    private bool _speakersMuted = false;
 
-    public bool IsAnyMuteActive => _activeMutes.Count > 0;
+    public bool IsAnyMuteActive   => _micMuted || _speakersMuted;
+    public bool IsMicMuted        => _micMuted;
+    public bool IsSpeakersMuted   => _speakersMuted;
 
     public event Action? MuteStateChanged;
 
     public void Toggle(MuteScope scope)
     {
-        bool muting = !_activeMutes.Contains(scope);
-        if (muting) Mute(scope); else Unmute(scope);
+        bool muting;
+        switch (scope)
+        {
+            case MuteScope.Mic:
+                muting = !_micMuted;
+                _micMuted = muting;
+                SetDeviceMute(EDataFlow.Capture, muting);
+                break;
+            case MuteScope.Speakers:
+                muting = !_speakersMuted;
+                _speakersMuted = muting;
+                SetDeviceMute(EDataFlow.Render, muting);
+                break;
+            default: // Both
+                // If both are already muted, unmute both. Otherwise mute both.
+                muting = !(_micMuted && _speakersMuted);
+                _micMuted = muting;
+                _speakersMuted = muting;
+                SetDeviceMute(EDataFlow.Capture, muting);
+                SetDeviceMute(EDataFlow.Render, muting);
+                break;
+        }
         MuteStateChanged?.Invoke();
         Task.Run(() => PlaySound(scope, muting));
-    }
-
-    private void Mute(MuteScope scope)
-    {
-        if (scope == MuteScope.Mic || scope == MuteScope.Both)
-            SetDeviceMute(EDataFlow.Capture, true);
-        if (scope == MuteScope.Speakers || scope == MuteScope.Both)
-            SetDeviceMute(EDataFlow.Render, true);
-        _activeMutes.Add(scope);
-    }
-
-    private void Unmute(MuteScope scope)
-    {
-        if (scope == MuteScope.Mic || scope == MuteScope.Both)
-            SetDeviceMute(EDataFlow.Capture, false);
-        if (scope == MuteScope.Speakers || scope == MuteScope.Both)
-            SetDeviceMute(EDataFlow.Render, false);
-        _activeMutes.Remove(scope);
     }
 
     private static void SetDeviceMute(EDataFlow flow, bool mute)

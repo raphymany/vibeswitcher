@@ -167,8 +167,31 @@ public class TrayService : IDisposable
         });
     }
 
-    public void StartMuteFlash()
+    // Call whenever mute state changes. Starts/updates/stops the flash based on current state.
+    // micMuted-only = orange, speakersMuted-only = blue, both = red, neither = stop.
+    public void UpdateMuteFlash(bool micMuted, bool speakersMuted)
     {
+        if (!micMuted && !speakersMuted)
+        {
+            StopMuteFlash();
+            return;
+        }
+
+        System.Drawing.Color color = (micMuted, speakersMuted) switch
+        {
+            (true, true)   => System.Drawing.Color.FromArgb(220, 55, 55),   // red   — both
+            (true, false)  => System.Drawing.Color.FromArgb(220, 130, 0),   // orange — mic only
+            _              => System.Drawing.Color.FromArgb(40,  110, 220),  // blue  — speakers only
+        };
+
+        string tooltip = (micMuted, speakersMuted) switch
+        {
+            (true, true)  => "VibeSwitcher — Mic + Speakers muted",
+            (true, false) => "VibeSwitcher — Mic muted",
+            _             => "VibeSwitcher — Speakers muted",
+        };
+        _taskbarIcon.ToolTipText = tooltip;
+
         _muteFlashCts?.Cancel();
         _muteFlashCts?.Dispose();
         var cts = new CancellationTokenSource();
@@ -176,7 +199,7 @@ public class TrayService : IDisposable
 
         _ = Task.Run(async () =>
         {
-            bool showRed = true;
+            bool showColor = true;
             try
             {
                 while (!cts.IsCancellationRequested)
@@ -185,22 +208,23 @@ public class TrayService : IDisposable
                     if (cts.IsCancellationRequested) break;
                     var dispatcher = System.Windows.Application.Current?.Dispatcher;
                     if (dispatcher == null) break;
-                    bool capturedShowRed = showRed;
+                    bool capturedShowColor = showColor;
+                    System.Drawing.Color capturedColor = color;
                     await dispatcher.InvokeAsync(() =>
                     {
                         if (cts.IsCancellationRequested) return;
-                        _taskbarIcon.Icon = capturedShowRed
-                            ? MakeRedIcon()
+                        _taskbarIcon.Icon = capturedShowColor
+                            ? MakeColorIcon(capturedColor)
                             : IconHelper.LoadIcon(null, _configService.IconsDir);
                     });
-                    showRed = !showRed;
+                    showColor = !showColor;
                 }
             }
             catch (OperationCanceledException) { }
         });
     }
 
-    public void StopMuteFlash()
+    private void StopMuteFlash()
     {
         _muteFlashCts?.Cancel();
         _muteFlashCts?.Dispose();
@@ -210,13 +234,13 @@ public class TrayService : IDisposable
         UpdateIcon(active);
     }
 
-    private static Icon MakeRedIcon()
+    private static Icon MakeColorIcon(System.Drawing.Color color)
     {
         using var bmp = new System.Drawing.Bitmap(32, 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         using var g = System.Drawing.Graphics.FromImage(bmp);
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         g.Clear(System.Drawing.Color.Transparent);
-        using var brush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(220, 60, 60));
+        using var brush = new System.Drawing.SolidBrush(color);
         g.FillEllipse(brush, 2, 2, 28, 28);
         return System.Drawing.Icon.FromHandle(bmp.GetHicon());
     }
