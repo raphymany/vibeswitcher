@@ -87,6 +87,9 @@ public partial class SettingsWindow : Window
 
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
+        // Sync initial row height in case settings starts expanded.
+        Loaded += (_, _) => UpdateProfilesRowHeight();
+
         SizeChanged     += OnBoundsChanged;
         SizeChanged     += (_, _) => { if (_viewModel.SettingsCardExpanded) UpdateSettingsBodyMaxHeight(); };
         LocationChanged += OnBoundsChanged;
@@ -125,8 +128,19 @@ public partial class SettingsWindow : Window
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded) && _viewModel.SettingsCardExpanded)
-            Dispatcher.InvokeAsync(UpdateSettingsBodyMaxHeight, System.Windows.Threading.DispatcherPriority.Loaded);
+        if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded))
+        {
+            UpdateProfilesRowHeight();
+            if (_viewModel.SettingsCardExpanded)
+                Dispatcher.InvokeAsync(UpdateSettingsBodyMaxHeight, System.Windows.Threading.DispatcherPriority.Loaded);
+        }
+    }
+
+    private void UpdateProfilesRowHeight()
+    {
+        MainGrid.RowDefinitions[2].Height = _viewModel.SettingsCardExpanded
+            ? new GridLength(0)
+            : new GridLength(1, GridUnitType.Star);
     }
 
     private void UpdateSettingsBodyMaxHeight()
