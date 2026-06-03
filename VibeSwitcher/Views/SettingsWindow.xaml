@@ -1051,10 +1051,20 @@
                                         <!-- Bottom row: action buttons -->
                                         <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4"
                                                     HorizontalAlignment="Right" Orientation="Horizontal">
-                                                <!-- Bell toggle: suppress notification banner -->
+                                                <!-- Bell toggle: hidden when switch sound is configured (its wizard handles banner separately) -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
                                                     <ToggleButton IsChecked="{Binding Silent}"
                                                                   Cursor="Hand" Focusable="False"
                                                                   OverridesDefaultStyle="True"
@@ -1063,7 +1073,7 @@
                                                         <ToggleButton.ToolTip>
                                                             <ToolTip>
                                                                 <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    No Notification Banner — suppresses the tray notification when this profile is activated. Does not affect scheduled switches.
+                                                                    No Notification Banner + Sound — suppresses both the tray banner and Windows notification sound when activating this profile. Does not affect scheduled switches.
                                                                 </TextBlock>
                                                             </ToolTip>
                                                         </ToggleButton.ToolTip>

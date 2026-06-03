@@ -43,5 +43,5 @@ internal sealed class FakeDialogService : IDialogService
     public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour) => ScheduleWizardResult;
 
     public SoundOverrideResult? SoundWizardResult { get; set; } = null;
-    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume) => SoundWizardResult;
+    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false) => SoundWizardResult;
 }

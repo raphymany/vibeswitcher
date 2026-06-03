@@ -110,9 +110,9 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 
-    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume)
+    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false)
     {
-        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume) { Owner = OwnerWindow };
+        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, showBanner) { Owner = OwnerWindow };
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 

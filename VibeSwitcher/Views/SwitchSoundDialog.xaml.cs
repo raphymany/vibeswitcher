@@ -12,16 +12,18 @@ public partial class SwitchSoundDialog : Window
     private string _tone;
     private string? _customPath;
     private int _volume;
+    private bool _showBanner;
 
     public SoundOverrideResult? Result { get; private set; }
 
-    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume)
+    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false)
     {
         InitializeComponent();
 
         _tone       = tone ?? "Click";
         _customPath = customPath;
         _volume     = volume;
+        _showBanner = showBanner;
 
         UpdateToneChips();
         CustomPathBox.Text       = customPath ?? "";
@@ -29,6 +31,8 @@ public partial class SwitchSoundDialog : Window
 
         VolumeSliderControl.Value = volume;
         VolumeLabel.Text          = $"{volume}%";
+
+        BannerToggle.IsChecked = showBanner;
     }
 
     private void ToneChip_Click(object sender, RoutedEventArgs e)
@@ -80,6 +84,11 @@ public partial class SwitchSoundDialog : Window
         VolumeLabel.Text = $"{_volume}%";
     }
 
+    private void BannerToggle_Changed(object sender, RoutedEventArgs e)
+    {
+        _showBanner = BannerToggle.IsChecked == true;
+    }
+
     private void TestSound_Click(object sender, RoutedEventArgs e)
     {
         _ = new SwitchSoundService().TestAsync(_tone, _customPath, _volume);
@@ -87,7 +96,7 @@ public partial class SwitchSoundDialog : Window
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        Result = new SoundOverrideResult(true, _tone, _customPath, _volume);
+        Result = new SoundOverrideResult(true, _tone, _customPath, _volume, _showBanner);
         DialogResult = true;
     }
 

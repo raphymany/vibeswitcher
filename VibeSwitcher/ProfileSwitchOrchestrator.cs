@@ -89,9 +89,21 @@ public class ProfileSwitchOrchestrator : IDisposable
                 {
                     if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
                     {
-                        bool effectiveSilent = scheduleSilent.HasValue ? scheduleSilent.Value : profile.Silent;
-                        if (!effectiveSilent)
-                            _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
+                        if (profile.SoundOverride)
+                        {
+                            // Switch sound handles audio; show a silent banner only if the profile opts in,
+                            // and only when the schedule hasn't requested silence.
+                            bool scheduleSuppressed = scheduleSilent.HasValue && scheduleSilent.Value;
+                            if (!scheduleSuppressed && profile.SoundShowBanner)
+                                _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}", sound: false);
+                        }
+                        else
+                        {
+                            // No switch sound — standard banner + Windows ding, gated by Silent flag.
+                            bool effectiveSilent = scheduleSilent.HasValue ? scheduleSilent.Value : profile.Silent;
+                            if (!effectiveSilent)
+                                _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
+                        }
                     }
                     else
                     {

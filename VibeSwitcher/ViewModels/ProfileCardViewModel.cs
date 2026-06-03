@@ -236,7 +236,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public string SoundSummary =>
         _model.SoundOverride
-            ? $"{(_model.SoundTone ?? "Click")} — {(_model.SoundVolume ?? 50)}%"
+            ? $"{(_model.SoundTone ?? "Click")} — {(_model.SoundVolume ?? 50)}%{(_model.SoundShowBanner ? " + Banner" : "")}"
             : "No switch sound";
 
     public bool ProfileSoundToneClick
@@ -499,12 +499,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void AddSwitchSound()
     {
-        var result = _dialogService.ShowSoundWizard(true, "Click", null, 50);
+        var result = _dialogService.ShowSoundWizard(true, "Click", null, 50, showBanner: false);
         if (result == null) return;
-        _model.SoundOverride   = result.Enabled;
-        _model.SoundTone       = result.Tone;
-        _model.SoundCustomPath = result.CustomPath;
-        _model.SoundVolume     = result.Volume;
+        _model.SoundOverride    = result.Enabled;
+        _model.SoundTone        = result.Tone;
+        _model.SoundCustomPath  = result.CustomPath;
+        _model.SoundVolume      = result.Volume;
+        _model.SoundShowBanner  = result.ShowBanner;
         OnPropertyChanged(nameof(SoundOverride));
         OnPropertyChanged(nameof(SoundSummary));
         _onChanged(this);
@@ -512,7 +513,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void RemoveSwitchSound()
     {
-        _model.SoundOverride = false;
+        _model.SoundOverride   = false;
+        _model.SoundShowBanner = false;
         OnPropertyChanged(nameof(SoundOverride));
         OnPropertyChanged(nameof(SoundSummary));
         _onChanged(this);
@@ -524,12 +526,14 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             _model.SoundOverride,
             _model.SoundTone,
             _model.SoundCustomPath,
-            _model.SoundVolume ?? 50);
+            _model.SoundVolume ?? 50,
+            _model.SoundShowBanner);
         if (result == null) return;
-        _model.SoundOverride   = result.Enabled;
-        _model.SoundTone       = result.Tone;
-        _model.SoundCustomPath = result.CustomPath;
-        _model.SoundVolume     = result.Volume;
+        _model.SoundOverride    = result.Enabled;
+        _model.SoundTone        = result.Tone;
+        _model.SoundCustomPath  = result.CustomPath;
+        _model.SoundVolume      = result.Volume;
+        _model.SoundShowBanner  = result.ShowBanner;
         OnPropertyChanged(nameof(SoundOverride));
         OnPropertyChanged(nameof(SoundSummary));
         _onChanged(this);
