@@ -17,7 +17,6 @@ public class SettingsViewModel : ViewModelBase
     private readonly Action<HotkeyConflictException> _onHotkeyConflict;
     private readonly Action<string> _applyTheme;
     private readonly Action<Models.DeviceProfile>? _switchProfile;
-
     private bool _startWithWindows;
     private bool _startMinimized;
     private bool _closeToTray;

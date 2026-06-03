@@ -65,6 +65,69 @@
             </Setter>
         </Style>
 
+        <!-- Volume slider — themed track (Accent fill) + white thumb -->
+        <Style x:Key="VolumeSlider" TargetType="Slider">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Height"    Value="20"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Cursor"    Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Grid VerticalAlignment="Center">
+                            <!-- Full-width background pill -->
+                            <Border Height="6" CornerRadius="3"
+                                    Background="{DynamicResource InputBorder}"
+                                    VerticalAlignment="Center"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseSmall">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="6" CornerRadius="3"
+                                                        Background="{DynamicResource Accent}"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseSmall">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate TargetType="RepeatButton">
+                                                <Border Height="6" Background="Transparent"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb>
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Ellipse x:Name="ThumbCircle"
+                                                         Width="16" Height="16"
+                                                         Fill="White"
+                                                         Stroke="{DynamicResource Accent}"
+                                                         StrokeThickness="2"/>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="ThumbCircle" Property="Width"  Value="18"/>
+                                                        <Setter TargetName="ThumbCircle" Property="Height" Value="18"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter TargetName="ThumbCircle" Property="Fill" Value="{DynamicResource HoverBg}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Clear-all link button -->
         <Style x:Key="ClearFilterButton" TargetType="Button">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
@@ -341,7 +404,7 @@
 
     </Window.Resources>
 
-    <Grid>
+    <Grid Background="{DynamicResource AppBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -578,6 +641,7 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
                                             <RowDefinition Height="Auto"/>
@@ -984,41 +1048,56 @@
                                         <Border Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Height="1" Background="{DynamicResource CardSeparator}" Margin="0,0,0,12"/>
 
-                                        <!-- Bottom row: Silent toggle + Clone + Delete -->
-                                        <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4">
-                                            <CheckBox IsChecked="{Binding Silent}"
-                                                      Style="{StaticResource ToggleSwitchStyle}"
-                                                      HorizontalAlignment="Left"
-                                                      VerticalAlignment="Center">
-                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <StackPanel.Style>
-                                                        <Style TargetType="StackPanel">
-                                                            <Setter Property="Opacity" Value="1"/>
+                                        <!-- Bottom row: action buttons -->
+                                        <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4"
+                                                    HorizontalAlignment="Right" Orientation="Horizontal">
+                                                <!-- Bell toggle: hidden when switch sound is configured (its wizard handles banner separately) -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Visibility" Value="Visible"/>
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Silent}" Value="False">
-                                                                    <Setter Property="Opacity" Value="0.4"/>
+                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
-                                                    </StackPanel.Style>
-                                                    <TextBlock Text="Silent switch" FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
-                                                    <Border Width="15" Height="15" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                                            VerticalAlignment="Center" Cursor="Help" Margin="6,0,0,0"
-                                                            ToolTipService.InitialShowDelay="400"
-                                                            ToolTipService.ShowDuration="12000">
-                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Border.ToolTip>
+                                                    </Border.Style>
+                                                    <ToggleButton IsChecked="{Binding Silent}"
+                                                                  Cursor="Hand" Focusable="False"
+                                                                  OverridesDefaultStyle="True"
+                                                                  ToolTipService.InitialShowDelay="400"
+                                                                  ToolTipService.ShowDuration="12000">
+                                                        <ToggleButton.ToolTip>
                                                             <ToolTip>
                                                                 <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Hides the notification banner when you switch to this profile manually — using a hotkey, the tray menu, or the Settings window. It does not affect scheduled switches; each schedule has its own silent option.
+                                                                    No Notification Banner + Sound — suppresses both the tray banner and Windows notification sound when activating this profile. Does not affect scheduled switches.
                                                                 </TextBlock>
                                                             </ToolTip>
-                                                        </Border.ToolTip>
-                                                    </Border>
-                                                </StackPanel>
-                                            </CheckBox>
-                                            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                                                        </ToggleButton.ToolTip>
+                                                        <ToggleButton.Template>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="bell" Text="🔔" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsChecked" Value="True">
+                                                                        <Setter TargetName="bell" Property="Text" Value="🔕"/>
+                                                                        <Setter TargetName="bell" Property="Foreground" Value="#E57373"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </ToggleButton.Template>
+                                                    </ToggleButton>
+                                                </Border>
+                                                <!-- Pin toggle -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
@@ -1069,15 +1148,40 @@
                                                 <Button Content="Add Schedule"
                                                         Style="{StaticResource ActionButton}"
                                                         Command="{Binding AddScheduleCommand}"
-                                                        Margin="0,0,8,0"/>
+                                                        Margin="0,0,8,0"
+                                                        ToolTip="Automatically switch to this profile at a set time on selected days. Multiple schedules can be added."/>
+                                                <Button Command="{Binding AddSwitchSoundCommand}"
+                                                        Margin="0,0,8,0"
+                                                        ToolTip="Play a sound when this profile is activated. Choose from built-in tones or a custom WAV file.">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <TextBlock Text="Add Switch Sound"/>
+                                                </Button>
                                                 <Button Content="Delete Profile"
                                                         Style="{StaticResource DangerButton}"
                                                         Command="{Binding DeleteCommand}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                        <!-- Schedule section -->
+                                        </StackPanel>
+                                        <!-- Schedule section — visible only when at least one schedule exists -->
                                         <Border Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Margin="0,8,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasSchedules}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <StackPanel>
 
                                                 <!-- Section header -->
@@ -1086,22 +1190,6 @@
                                                                FontSize="11" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SectionLabelText}"
                                                                VerticalAlignment="Center"/>
-                                                    <Border Width="16" Height="16" CornerRadius="8"
-                                                            Background="{DynamicResource InfoBadgeBg}"
-                                                            Margin="5,0,0,0" VerticalAlignment="Center"
-                                                            Cursor="Help"
-                                                            ToolTipService.ShowDuration="12000">
-                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                                   Foreground="{DynamicResource InfoBadgeText}"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Border.ToolTip>
-                                                            <ToolTip>
-                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Schedules automatically switch this profile at a set time on selected days. You can add multiple schedules per profile.
-                                                                </TextBlock>
-                                                            </ToolTip>
-                                                        </Border.ToolTip>
-                                                    </Border>
                                                 </StackPanel>
 
                                                 <!-- Schedule entries -->
@@ -1122,7 +1210,7 @@
                                                                                 Command="{Binding DeleteCommand}"
                                                                                 FontSize="10" Padding="10,2" Height="26"
                                                                                 VerticalAlignment="Center"/>
-                                                                        <Button DockPanel.Dock="Right" Content="Edit"
+                                                                        <Button DockPanel.Dock="Right" Content="Edit Schedule"
                                                                                 Style="{StaticResource ActionButton}"
                                                                                 Command="{Binding EditCommand}"
                                                                                 FontSize="10" Padding="12,2" Height="26"
@@ -1154,6 +1242,54 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
 
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Sound Override section — only visible when a switch sound is configured -->
+                                        <Border Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="4"
+                                                Margin="0,8,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <StackPanel>
+                                                <!-- Section header -->
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                    <TextBlock Text="Switch Sound"
+                                                               FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource SectionLabelText}"
+                                                               VerticalAlignment="Center"/>
+                                                </StackPanel>
+
+                                                <!-- Configured entry row -->
+                                                <Border Background="{DynamicResource InnerCardBg}"
+                                                        BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                                                        BorderThickness="1" CornerRadius="6"
+                                                        Padding="10,8">
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Content="Remove Sound"
+                                                                Style="{StaticResource DangerButton}"
+                                                                Command="{Binding RemoveSwitchSoundCommand}"
+                                                                FontSize="10" Padding="10,2" Height="26"
+                                                                VerticalAlignment="Center"/>
+                                                        <Button DockPanel.Dock="Right" Content="Edit Sound"
+                                                                Style="{StaticResource ActionButton}"
+                                                                Command="{Binding ConfigureSoundCommand}"
+                                                                FontSize="10" Padding="12,2" Height="26"
+                                                                Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding SoundSummary}"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource SecondaryText}"
+                                                                   VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                    </DockPanel>
+                                                </Border>
                                             </StackPanel>
                                         </Border>
 
@@ -1322,6 +1458,7 @@
                 </Grid>
 
                 <!-- Collapsible body -->
+                <ScrollViewer x:Name="SettingsBodyScrollViewer" VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="16,0,16,14">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -1821,6 +1958,7 @@
                     </Border>
 
                 </StackPanel>
+                </ScrollViewer><!-- /SettingsBodyScrollViewer -->
             </StackPanel>
         </Border>
 

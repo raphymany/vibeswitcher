@@ -110,6 +110,12 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 
+    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false)
+    {
+        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, showBanner) { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true ? dialog.Result : null;
+    }
+
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.
     // The front square's fill matches the badge background so it cleanly occludes the back square.
     private static UIElement BuildCopyIcon(Brush badgeBg, Brush stroke)

@@ -203,6 +203,124 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
+    // ── Per-profile switch sound override ─────────────────────────────────────
+
+    public bool SoundOverride
+    {
+        get => _model.SoundOverride;
+        set
+        {
+            if (_model.SoundOverride == value) return;
+            _model.SoundOverride = value;
+            // Initialize tone and volume from defaults so the UI never shows a null/inherit state
+            // while the override panel is open — null is only meaningful when override is off.
+            if (value)
+            {
+                _model.SoundTone   ??= "Click";
+                _model.SoundVolume ??= 50;
+            }
+            OnPropertyChanged(nameof(SoundOverride));
+            OnPropertyChanged(nameof(SoundSummary));
+            OnPropertyChanged(nameof(ProfileSoundToneClick));
+            OnPropertyChanged(nameof(ProfileSoundToneChime));
+            OnPropertyChanged(nameof(ProfileSoundToneBlip));
+            OnPropertyChanged(nameof(ProfileSoundToneBell));
+            OnPropertyChanged(nameof(ProfileSoundToneAlert));
+            OnPropertyChanged(nameof(ProfileSoundToneSoft));
+            OnPropertyChanged(nameof(ProfileSoundTonePing));
+            OnPropertyChanged(nameof(ProfileSoundToneCustom));
+            OnPropertyChanged(nameof(ProfileSoundVolume));
+            _onChanged(this);
+        }
+    }
+
+    public string SoundSummary =>
+        _model.SoundOverride
+            ? $"{(_model.SoundTone ?? "Click")} — {(_model.SoundVolume ?? 50)}%{(_model.SoundShowBanner ? " + Banner" : "")}"
+            : "No switch sound";
+
+    public bool ProfileSoundToneClick
+    {
+        get => _model.SoundTone == "Click";
+        set { if (value) SetProfileSoundTone("Click"); }
+    }
+    public bool ProfileSoundToneChime
+    {
+        get => _model.SoundTone == "Chime";
+        set { if (value) SetProfileSoundTone("Chime"); }
+    }
+    public bool ProfileSoundToneBlip
+    {
+        get => _model.SoundTone == "Blip";
+        set { if (value) SetProfileSoundTone("Blip"); }
+    }
+    public bool ProfileSoundToneBell
+    {
+        get => _model.SoundTone == "Bell";
+        set { if (value) SetProfileSoundTone("Bell"); }
+    }
+    public bool ProfileSoundToneAlert
+    {
+        get => _model.SoundTone == "Alert";
+        set { if (value) SetProfileSoundTone("Alert"); }
+    }
+    public bool ProfileSoundToneSoft
+    {
+        get => _model.SoundTone == "Soft";
+        set { if (value) SetProfileSoundTone("Soft"); }
+    }
+    public bool ProfileSoundTonePing
+    {
+        get => _model.SoundTone == "Ping";
+        set { if (value) SetProfileSoundTone("Ping"); }
+    }
+    public bool ProfileSoundToneCustom
+    {
+        get => _model.SoundTone == "Custom";
+        set { if (value) SetProfileSoundTone("Custom"); }
+    }
+
+    private void SetProfileSoundTone(string tone)
+    {
+        if (_model.SoundTone == tone) return;
+        _model.SoundTone = tone;
+        OnPropertyChanged(nameof(ProfileSoundToneClick));
+        OnPropertyChanged(nameof(ProfileSoundToneChime));
+        OnPropertyChanged(nameof(ProfileSoundToneBlip));
+        OnPropertyChanged(nameof(ProfileSoundToneBell));
+        OnPropertyChanged(nameof(ProfileSoundToneAlert));
+        OnPropertyChanged(nameof(ProfileSoundToneSoft));
+        OnPropertyChanged(nameof(ProfileSoundTonePing));
+        OnPropertyChanged(nameof(ProfileSoundToneCustom));
+        _onChanged(this);
+    }
+
+    public string ProfileSoundCustomPath
+    {
+        get => _model.SoundCustomPath ?? "";
+        set
+        {
+            var v = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (_model.SoundCustomPath == v) return;
+            _model.SoundCustomPath = v;
+            OnPropertyChanged(nameof(ProfileSoundCustomPath));
+            _onChanged(this);
+        }
+    }
+
+    public int ProfileSoundVolume
+    {
+        get => _model.SoundVolume ?? 50;
+        set
+        {
+            var clamped = Math.Clamp(value, 0, 100);
+            if (_model.SoundVolume == clamped) return;
+            _model.SoundVolume = clamped;
+            OnPropertyChanged(nameof(ProfileSoundVolume));
+            _onChanged(this);
+        }
+    }
+
     public string? ValidationWarning
     {
         get
@@ -285,6 +403,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
 
+    public bool HasSchedules => Schedules.Count > 0;
+
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
 
     public ICommand ActivateCommand { get; }
@@ -296,6 +416,10 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
     public ICommand AddScheduleCommand { get; }
+    public ICommand BrowseProfileSoundCommand { get; }
+    public ICommand ConfigureSoundCommand { get; }
+    public ICommand AddSwitchSoundCommand { get; }
+    public ICommand RemoveSwitchSoundCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -356,6 +480,63 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
         AddScheduleCommand = new RelayCommand(AddSchedule);
+        BrowseProfileSoundCommand = new RelayCommand(() =>
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Select Sound File",
+                Filter = "WAV Files (*.wav)|*.wav",
+                CheckFileExists = true
+            };
+            if (dlg.ShowDialog() != true) return;
+            ProfileSoundCustomPath = dlg.FileName;
+            if (_model.SoundTone != "Custom") SetProfileSoundTone("Custom");
+        });
+        ConfigureSoundCommand = new RelayCommand(ConfigureSound);
+        AddSwitchSoundCommand = new RelayCommand(AddSwitchSound);
+        RemoveSwitchSoundCommand = new RelayCommand(RemoveSwitchSound);
+    }
+
+    private void AddSwitchSound()
+    {
+        var result = _dialogService.ShowSoundWizard(true, "Click", null, 50, showBanner: false);
+        if (result == null) return;
+        _model.SoundOverride    = result.Enabled;
+        _model.SoundTone        = result.Tone;
+        _model.SoundCustomPath  = result.CustomPath;
+        _model.SoundVolume      = result.Volume;
+        _model.SoundShowBanner  = result.ShowBanner;
+        OnPropertyChanged(nameof(SoundOverride));
+        OnPropertyChanged(nameof(SoundSummary));
+        _onChanged(this);
+    }
+
+    private void RemoveSwitchSound()
+    {
+        _model.SoundOverride   = false;
+        _model.SoundShowBanner = false;
+        OnPropertyChanged(nameof(SoundOverride));
+        OnPropertyChanged(nameof(SoundSummary));
+        _onChanged(this);
+    }
+
+    private void ConfigureSound()
+    {
+        var result = _dialogService.ShowSoundWizard(
+            _model.SoundOverride,
+            _model.SoundTone,
+            _model.SoundCustomPath,
+            _model.SoundVolume ?? 50,
+            _model.SoundShowBanner);
+        if (result == null) return;
+        _model.SoundOverride    = result.Enabled;
+        _model.SoundTone        = result.Tone;
+        _model.SoundCustomPath  = result.CustomPath;
+        _model.SoundVolume      = result.Volume;
+        _model.SoundShowBanner  = result.ShowBanner;
+        OnPropertyChanged(nameof(SoundOverride));
+        OnPropertyChanged(nameof(SoundSummary));
+        _onChanged(this);
     }
 
     private async Task TestSound()
@@ -626,6 +807,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
             _model.Schedules.Add(result);
             Schedules.Add(CreateScheduleEntry(result));
+            OnPropertyChanged(nameof(HasSchedules));
             _onChanged(this);
             return;
         }
@@ -669,6 +851,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                     return;
                 _model.Schedules.Remove(vm.Entry);
                 Schedules.Remove(vm);
+                OnPropertyChanged(nameof(HasSchedules));
                 _onChanged(this);
             },
             onEdit: EditSchedule,
