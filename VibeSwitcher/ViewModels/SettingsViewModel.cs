@@ -207,8 +207,34 @@ public class SettingsViewModel : ViewModelBase
 
     // ── Filter bar ──────────────────────────────────────────────────────────────
 
-    public static IReadOnlyList<string> ModeOptions { get; } =
-        ["Any mode", "Playback only", "Recording only", "Both devices"];
+    // Mode chips — mutually exclusive; all unchecked = "Any mode"
+    public bool ModePlayback
+    {
+        get => _modeFilter == "Playback only";
+        set => SetModeFilter(value ? "Playback only" : "Any mode");
+    }
+
+    public bool ModeRecording
+    {
+        get => _modeFilter == "Recording only";
+        set => SetModeFilter(value ? "Recording only" : "Any mode");
+    }
+
+    public bool ModeBoth
+    {
+        get => _modeFilter == "Both devices";
+        set => SetModeFilter(value ? "Both devices" : "Any mode");
+    }
+
+    private void SetModeFilter(string mode)
+    {
+        if (_modeFilter == mode) return;
+        _modeFilter = mode;
+        OnPropertyChanged(nameof(ModePlayback));
+        OnPropertyChanged(nameof(ModeRecording));
+        OnPropertyChanged(nameof(ModeBoth));
+        ApplyFilter();
+    }
 
     public IReadOnlyList<DayChip> DayChips { get; } =
     [
@@ -222,6 +248,8 @@ public class SettingsViewModel : ViewModelBase
     ];
 
     private string _nameFilter = "";
+    private string _modeFilter = "Any mode";
+
     public string NameFilter
     {
         get => _nameFilter;
@@ -234,17 +262,6 @@ public class SettingsViewModel : ViewModelBase
                 _configService.Current.LastSearch = value;
                 SaveAsync();
             }
-        }
-    }
-
-    private string _modeFilter = "Any mode";
-    public string ModeFilter
-    {
-        get => _modeFilter;
-        set
-        {
-            if (!SetField(ref _modeFilter, value)) return;
-            ApplyFilter();
         }
     }
 
@@ -351,7 +368,9 @@ public class SettingsViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(NameFilter));
-        OnPropertyChanged(nameof(ModeFilter));
+        OnPropertyChanged(nameof(ModePlayback));
+        OnPropertyChanged(nameof(ModeRecording));
+        OnPropertyChanged(nameof(ModeBoth));
         OnPropertyChanged(nameof(PinnedFilter));
         OnPropertyChanged(nameof(ActiveFilter));
         OnPropertyChanged(nameof(SilentFilter));

@@ -91,7 +91,7 @@ public class SettingsSearchTests
         AddProfile("Full",     ProfileMode.Both);
         var vm = MakeViewModel();
 
-        vm.ModeFilter = "Playback only";
+        vm.ModePlayback = true;
 
         Assert.True(vm.Profiles[0].IsVisible);
         Assert.False(vm.Profiles[1].IsVisible);
@@ -104,8 +104,7 @@ public class SettingsSearchTests
         AddProfile("Full",     ProfileMode.Both);
         var vm = MakeViewModel();
 
-        vm.ModeFilter = "Any mode";
-
+        // default state — no mode chip selected means "Any mode"
         Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
     }
 
@@ -254,6 +253,21 @@ public class SettingsSearchTests
         Assert.False(vm.Profiles[1].IsVisible);
     }
 
+    [Fact]
+    public void ModeFilter_DeselectChip_RevetsToAnyMode()
+    {
+        AddProfile("Speakers", ProfileMode.Playback);
+        AddProfile("Full",     ProfileMode.Both);
+        var vm = MakeViewModel();
+        vm.ModePlayback = true;
+
+        vm.ModePlayback = false; // re-click to deselect
+
+        Assert.False(vm.ModePlayback);
+        Assert.False(vm.IsAnyFilterActive);
+        Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
+    }
+
     // ── Combined filters ─────────────────────────────────────────────────────
 
     [Fact]
@@ -265,7 +279,7 @@ public class SettingsSearchTests
         var vm = MakeViewModel();
 
         vm.NameFilter = "gaming";
-        vm.ModeFilter = "Both devices";
+        vm.ModeBoth   = true;
 
         Assert.False(vm.Profiles[0].IsVisible); // name matches, mode doesn't
         Assert.False(vm.Profiles[1].IsVisible); // mode matches, name doesn't
@@ -297,7 +311,7 @@ public class SettingsSearchTests
     public void IsAnyFilterActive_TrueWhenModeChanged()
     {
         var vm = MakeViewModel();
-        vm.ModeFilter = "Playback only";
+        vm.ModePlayback = true;
         Assert.True(vm.IsAnyFilterActive);
     }
 
@@ -317,14 +331,16 @@ public class SettingsSearchTests
         AddProfile("Work",   ProfileMode.Both);
         var vm = MakeViewModel();
         vm.NameFilter      = "gam";
-        vm.ModeFilter      = "Playback only";
+        vm.ModePlayback    = true;
         vm.PinnedFilter    = true;
         vm.ScheduledFilter = true;
 
         vm.ClearFiltersCommand.Execute(null);
 
         Assert.Equal("", vm.NameFilter);
-        Assert.Equal("Any mode", vm.ModeFilter);
+        Assert.False(vm.ModePlayback);
+        Assert.False(vm.ModeRecording);
+        Assert.False(vm.ModeBoth);
         Assert.False(vm.PinnedFilter);
         Assert.False(vm.ScheduledFilter);
         Assert.False(vm.IsAnyFilterActive);
