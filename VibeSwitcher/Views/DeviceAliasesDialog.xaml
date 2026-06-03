@@ -139,7 +139,7 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                                 <Run Text="Used in: "/>
-                                                <Run Text="{Binding ProfileUsage}" FontWeight="SemiBold"/>
+                                                <Run Text="{Binding ProfileUsage, Mode=OneWay}" FontWeight="SemiBold"/>
                                             </TextBlock>
                                             <!-- Disconnected -->
                                             <TextBlock Text="Disconnected" FontSize="11"
@@ -252,7 +252,7 @@
                                                     </Style>
                                                 </TextBlock.Style>
                                                 <Run Text="Used in: "/>
-                                                <Run Text="{Binding ProfileUsage}" FontWeight="SemiBold"/>
+                                                <Run Text="{Binding ProfileUsage, Mode=OneWay}" FontWeight="SemiBold"/>
                                             </TextBlock>
                                             <TextBlock Text="Disconnected" FontSize="11"
                                                        Foreground="{DynamicResource DisabledText}"
