@@ -88,6 +88,7 @@ public partial class SettingsWindow : Window
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         SizeChanged     += OnBoundsChanged;
+        SizeChanged     += (_, _) => { if (_viewModel.SettingsCardExpanded) UpdateSettingsBodyMaxHeight(); };
         LocationChanged += OnBoundsChanged;
 
         _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
@@ -125,24 +126,20 @@ public partial class SettingsWindow : Window
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded) && _viewModel.SettingsCardExpanded)
-            Dispatcher.InvokeAsync(EnsureFooterVisible, System.Windows.Threading.DispatcherPriority.Loaded);
-
+            Dispatcher.InvokeAsync(UpdateSettingsBodyMaxHeight, System.Windows.Threading.DispatcherPriority.Loaded);
     }
 
-    private void EnsureFooterVisible()
+    private void UpdateSettingsBodyMaxHeight()
     {
         if (WindowState != WindowState.Normal) return;
-        var footerBottom = FooterGrid.TranslatePoint(new Point(0, FooterGrid.ActualHeight), this).Y;
-        // MainGrid has Margin="18" so its bottom edge sits 18px above the window bottom.
-        var overflow = footerBottom - (ActualHeight - 18);
-        if (overflow <= 0) return;
-        var workArea  = SystemParameters.WorkArea;
-        var newHeight = Math.Min(Math.Ceiling(ActualHeight + overflow + 12), workArea.Height - 40);
-        Height = newHeight;
-        // Slide the window up if the bottom would go past the usable screen area.
-        var maxTop = workArea.Bottom - newHeight;
-        if (Top > maxTop)
-            Top = Math.Max(workArea.Top, maxTop);
+        // Bound the settings body so it never overflows the window.
+        // Available = MainGrid height minus header, footer, settings card header (≈50px), and spacing.
+        var available = MainGrid.ActualHeight
+            - HeaderPanel.ActualHeight
+            - FooterGrid.ActualHeight
+            - 50   // settings card header row
+            - 60;  // vertical breathing room
+        SettingsBodyScrollViewer.MaxHeight = Math.Max(80, available);
     }
 
     private void UpdateLogsButton()

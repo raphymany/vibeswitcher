@@ -220,6 +220,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 _model.SoundVolume ??= 50;
             }
             OnPropertyChanged(nameof(SoundOverride));
+            OnPropertyChanged(nameof(SoundSummary));
             OnPropertyChanged(nameof(ProfileSoundToneClick));
             OnPropertyChanged(nameof(ProfileSoundToneChime));
             OnPropertyChanged(nameof(ProfileSoundToneBlip));
@@ -232,6 +233,11 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             _onChanged(this);
         }
     }
+
+    public string SoundSummary =>
+        _model.SoundOverride
+            ? $"{(_model.SoundTone ?? "Click")} — {(_model.SoundVolume ?? 50)}%"
+            : "No switch sound";
 
     public bool ProfileSoundToneClick
     {
@@ -409,6 +415,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand TestMicCommand { get; }
     public ICommand AddScheduleCommand { get; }
     public ICommand BrowseProfileSoundCommand { get; }
+    public ICommand ConfigureSoundCommand { get; }
+    public ICommand AddSwitchSoundCommand { get; }
+    public ICommand RemoveSwitchSoundCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -481,6 +490,47 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             ProfileSoundCustomPath = dlg.FileName;
             if (_model.SoundTone != "Custom") SetProfileSoundTone("Custom");
         });
+        ConfigureSoundCommand = new RelayCommand(ConfigureSound);
+        AddSwitchSoundCommand = new RelayCommand(AddSwitchSound);
+        RemoveSwitchSoundCommand = new RelayCommand(RemoveSwitchSound);
+    }
+
+    private void AddSwitchSound()
+    {
+        var result = _dialogService.ShowSoundWizard(true, "Click", null, 50);
+        if (result == null) return;
+        _model.SoundOverride   = result.Enabled;
+        _model.SoundTone       = result.Tone;
+        _model.SoundCustomPath = result.CustomPath;
+        _model.SoundVolume     = result.Volume;
+        OnPropertyChanged(nameof(SoundOverride));
+        OnPropertyChanged(nameof(SoundSummary));
+        _onChanged(this);
+    }
+
+    private void RemoveSwitchSound()
+    {
+        _model.SoundOverride = false;
+        OnPropertyChanged(nameof(SoundOverride));
+        OnPropertyChanged(nameof(SoundSummary));
+        _onChanged(this);
+    }
+
+    private void ConfigureSound()
+    {
+        var result = _dialogService.ShowSoundWizard(
+            _model.SoundOverride,
+            _model.SoundTone,
+            _model.SoundCustomPath,
+            _model.SoundVolume ?? 50);
+        if (result == null) return;
+        _model.SoundOverride   = result.Enabled;
+        _model.SoundTone       = result.Tone;
+        _model.SoundCustomPath = result.CustomPath;
+        _model.SoundVolume     = result.Volume;
+        OnPropertyChanged(nameof(SoundOverride));
+        OnPropertyChanged(nameof(SoundSummary));
+        _onChanged(this);
     }
 
     private async Task TestSound()

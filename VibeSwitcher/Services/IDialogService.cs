@@ -17,4 +17,5 @@ public interface IDialogService
     bool ShowConfirmScheduleDelete(string scheduleSummary);
     bool ShowScheduleConflict(string conflictDescription);
     ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour);
+    SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume);
 }

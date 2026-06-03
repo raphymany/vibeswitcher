@@ -404,7 +404,7 @@
 
     </Window.Resources>
 
-    <Grid>
+    <Grid Background="{DynamicResource AppBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -1075,7 +1075,7 @@
                                                         <Border.ToolTip>
                                                             <ToolTip>
                                                                 <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Suppresses the notification banner and Windows audio ding when activating this profile. Note: the ding is automatically suppressed when a VibeSwitcher switch sound is already playing. Does not affect scheduled switches — each schedule has its own silent option.
+                                                                    Suppresses the notification banner when activating this profile. Does not affect scheduled switches — each schedule has its own silent option.
                                                                 </TextBlock>
                                                             </ToolTip>
                                                         </Border.ToolTip>
@@ -1225,54 +1225,37 @@
                                         <Border Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Margin="0,8,0,0">
                                             <StackPanel>
-                                                <!-- Header row -->
+                                                <!-- Section header -->
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                                     <TextBlock Text="Switch Sound"
                                                                FontSize="11" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SectionLabelText}"
                                                                VerticalAlignment="Center"/>
-                                                    <Border Width="16" Height="16" CornerRadius="8"
-                                                            Background="{DynamicResource InfoBadgeBg}"
-                                                            Margin="5,0,0,0" VerticalAlignment="Center"
-                                                            Cursor="Help"
-                                                            ToolTipService.ShowDuration="12000">
-                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                                   Foreground="{DynamicResource InfoBadgeText}"
-                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                        <Border.ToolTip>
-                                                            <ToolTip>
-                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
-                                                                    Mute the switch sound for this profile, or use a custom tone and volume — both work independently of each other.
-                                                                </TextBlock>
-                                                            </ToolTip>
-                                                        </Border.ToolTip>
-                                                    </Border>
                                                 </StackPanel>
 
-                                                <!-- Custom tone toggle -->
-                                                <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                                          IsChecked="{Binding SoundOverride}"
-                                                          Margin="0,0,0,0">
-                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                        <StackPanel.Style>
-                                                            <Style TargetType="StackPanel">
-                                                                <Setter Property="Opacity" Value="1"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding SoundOverride}" Value="False">
-                                                                        <Setter Property="Opacity" Value="0.4"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </StackPanel.Style>
-                                                        <TextBlock Text="Use a custom tone and volume" FontSize="12"
-                                                                   Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center"/>
-                                                    </StackPanel>
-                                                </CheckBox>
+                                                <!-- "Add Switch Sound" button — visible when no sound configured -->
+                                                <Button Command="{Binding AddSwitchSoundCommand}"
+                                                        FontSize="11" Padding="12,4" HorizontalAlignment="Left">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <TextBlock Text="Add Switch Sound"/>
+                                                </Button>
 
-                                                <!-- Custom tone body — visible when override is on -->
-                                                <StackPanel Margin="0,8,0,0">
-                                                    <StackPanel.Style>
-                                                        <Style TargetType="StackPanel">
+                                                <!-- Configured entry row — visible when sound is set -->
+                                                <Border Background="{DynamicResource InnerCardBg}"
+                                                        BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                                                        BorderThickness="1" CornerRadius="6"
+                                                        Padding="10,8">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
                                                             <Setter Property="Visibility" Value="Collapsed"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding SoundOverride}" Value="True">
@@ -1280,71 +1263,26 @@
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
-                                                    </StackPanel.Style>
-
-                                                    <!-- Tone chips -->
-                                                    <WrapPanel Margin="0,0,0,8">
-                                                        <ToggleButton Content="Click"  IsChecked="{Binding ProfileSoundToneClick}"  Style="{StaticResource FilterChip}" Margin="0,0,4,4"/>
-                                                        <ToggleButton Content="Chime"  IsChecked="{Binding ProfileSoundToneChime}"  Style="{StaticResource FilterChip}" Margin="0,0,4,4"/>
-                                                        <ToggleButton Content="Blip"   IsChecked="{Binding ProfileSoundToneBlip}"   Style="{StaticResource FilterChip}" Margin="0,0,4,4"/>
-                                                        <ToggleButton Content="Bell"   IsChecked="{Binding ProfileSoundToneBell}"   Style="{StaticResource FilterChip}" Margin="0,0,4,4"/>
-                                                        <ToggleButton Content="Alert"  IsChecked="{Binding ProfileSoundToneAlert}"  Style="{StaticResource FilterChip}" Margin="0,0,4,4"/>
-                                                        <ToggleButton Content="Soft"   IsChecked="{Binding ProfileSoundToneSoft}"   Style="{StaticResource FilterChip}" Margin="0,0,4,4"/>
-                                                        <ToggleButton Content="Ping"   IsChecked="{Binding ProfileSoundTonePing}"   Style="{StaticResource FilterChip}" Margin="0,0,4,4"/>
-                                                        <ToggleButton Content="Custom…" IsChecked="{Binding ProfileSoundToneCustom}" Style="{StaticResource FilterChip}" Margin="0,0,0,4"/>
-                                                    </WrapPanel>
-
-                                                    <!-- Custom path — visible when Custom is selected -->
-                                                    <StackPanel Margin="0,0,0,8">
-                                                        <StackPanel.Style>
-                                                            <Style TargetType="StackPanel">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding ProfileSoundToneCustom}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </StackPanel.Style>
-                                                        <Grid Margin="0,0,0,4">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBox Grid.Column="0"
-                                                                     Text="{Binding ProfileSoundCustomPath, UpdateSourceTrigger=PropertyChanged}"
-                                                                     Padding="8,5" Margin="0,0,6,0"/>
-                                                            <Button Grid.Column="1" Content="Browse…"
-                                                                    Style="{StaticResource ActionButton}"
-                                                                    Command="{Binding BrowseProfileSoundCommand}"/>
-                                                        </Grid>
-                                                        <TextBlock Text="Only PCM .wav files are supported. MP3 and other formats require a decoder that's not built into the app."
-                                                                   FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                                                   TextWrapping="Wrap"/>
-                                                    </StackPanel>
-
-                                                    <!-- Volume slider -->
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="50"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="36"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="Volume" FontSize="11"
-                                                                   Foreground="{DynamicResource SecondaryText}"
-                                                                   VerticalAlignment="Center"/>
-                                                        <Slider Grid.Column="1"
-                                                                Style="{StaticResource VolumeSlider}"
-                                                                Minimum="0" Maximum="100"
-                                                                Value="{Binding ProfileSoundVolume}"
-                                                                TickFrequency="1" IsSnapToTickEnabled="True"
+                                                    </Border.Style>
+                                                    <DockPanel>
+                                                        <Button DockPanel.Dock="Right" Content="Remove"
+                                                                Style="{StaticResource DangerButton}"
+                                                                Command="{Binding RemoveSwitchSoundCommand}"
+                                                                FontSize="10" Padding="10,2" Height="26"
                                                                 VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="2"
-                                                                   Text="{Binding ProfileSoundVolume, StringFormat='{}{0}%'}"
-                                                                   FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                                                    </Grid>
-                                                </StackPanel>
+                                                        <Button DockPanel.Dock="Right" Content="Edit"
+                                                                Style="{StaticResource ActionButton}"
+                                                                Command="{Binding ConfigureSoundCommand}"
+                                                                FontSize="10" Padding="12,2" Height="26"
+                                                                Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding SoundSummary}"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource SecondaryText}"
+                                                                   VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Margin="0,0,0,0"/>
+                                                    </DockPanel>
+                                                </Border>
                                             </StackPanel>
                                         </Border>
 
@@ -1513,6 +1451,7 @@
                 </Grid>
 
                 <!-- Collapsible body -->
+                <ScrollViewer x:Name="SettingsBodyScrollViewer" VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="16,0,16,14">
                     <StackPanel.Style>
                         <Style TargetType="StackPanel">
@@ -2012,6 +1951,7 @@
                     </Border>
 
                 </StackPanel>
+                </ScrollViewer><!-- /SettingsBodyScrollViewer -->
             </StackPanel>
         </Border>
 

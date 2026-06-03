@@ -89,8 +89,7 @@ public class ProfileSwitchOrchestrator : IDisposable
                 {
                     if (result.MissingPlaybackId == null && result.MissingRecordingId == null)
                     {
-                        bool soundWillPlay = SwitchSoundService.Resolve(profile, _configService.Current) != null;
-                        bool effectiveSilent = scheduleSilent.HasValue ? scheduleSilent.Value : (profile.Silent || soundWillPlay);
+                        bool effectiveSilent = scheduleSilent.HasValue ? scheduleSilent.Value : profile.Silent;
                         if (!effectiveSilent)
                             _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
                     }
