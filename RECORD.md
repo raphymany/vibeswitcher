@@ -562,7 +562,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray right-click menu above unpinned ones for quick access when the list grows long |
 | F34 | Profile validation warnings — inline warning flag on cards when a hotkey is duplicated across profiles, a selected device is missing or disabled, or an icon path is invalid; surfaces silent failures before they cause confusion |
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
-| F36 | Optional switch sound — global default sound that plays on every profile switch, with optional per-profile override; choose from pre-made built-in tones or a custom .wav file; adjustable volume (0–100%) at both the global and per-profile level; per-profile silent toggle to disable entirely; pairs with F25 (silent switch) and F30 (icon flash) |
+| ~~F36~~ | ~~Optional switch sound — global default sound that plays on every profile switch, with optional per-profile override; choose from pre-made built-in tones or a custom .wav file; adjustable volume (0–100%) at both the global and per-profile level; per-profile silent toggle to disable entirely; pairs with F25 (silent switch) and F30 (icon flash)~~ | ✅ Done — PR #84 |
 | F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording devices only (mic mute), playback devices only (deafen), or both; distinct activate and deactivate sounds (pre-made tones or custom .wav); tray icon flashes red while active; pressing again unmutes and restores previous levels |
 | F38 | Temporary / transient profile switch — optional app-wide feature with a configurable keybind; switches to a profile temporarily and auto-reverts to the previous profile when a timer expires or a linked app closes; useful for quick calls without forgetting to switch back |
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable |
@@ -583,8 +583,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 39 | 11 | 28 |
-| **Total** | **112** | **80** | **32** |
+| Feature Additions | 39 | 12 | 27 |
+| **Total** | **112** | **81** | **31** |
 
 ---
 
@@ -745,6 +745,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~48~~ | ~~`perf/switch-optimizations`~~ | ✅ Done — PR #78 |
 | ~~36~~ | ~~`feat/device-aliases`~~ | ✅ Done — PR #80 |
 | ~~37~~ | ~~`feat/settings-search`~~ | ✅ Done — PR #82 |
+| ~~38~~ | ~~`feat/switch-sound`~~ | ✅ Done — PR #84 |
 | 47 | `refactor/code-quality` | Planned |
 
 ---
@@ -1182,6 +1183,22 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | F35 | Settings card overlay — expanding the settings card collapses the filter bar and profile list so the full panel is visible | ✅ Done |
 | — | Window auto-reposition — when expanding the settings card would push the footer off-screen, the window slides upward to stay within the monitor work area | ✅ Done |
 | — | 30 new unit tests in `SettingsSearchTests` — name filter, mode chips, pinned, active, silent, hotkey, scheduled, icon, notes, reminder, day chips, combined filters, clear all, no-results state, `IsAnyFilterActive`, remember-search persistence | ✅ Done |
+
+---
+
+### ~~Branch 38: `feat/switch-sound`~~ ✅ Done — PR #84
+**Theme:** Audio feedback on profile switch.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F36 | SwitchSoundDialog wizard — 8 built-in tone chips (Click, Chime, Blip, Bell, Alert, Soft, Ping, Custom), custom WAV file picker, volume slider, Test Sound button, Show notification banner toggle; saving always enables (no redundant enable toggle) | ✅ Done |
+| F36 | Add/Edit/Remove Sound pattern on profile cards — summary row shows tone, volume, and "+ Banner" badge; matches the Add/Edit/Remove Schedule pattern | ✅ Done |
+| F36 | Bell icon (🔔/🔕) in profile card action row — auto-hides when a switch sound is configured; reappears as "No Notification Banner + Sound" for sound-free profiles | ✅ Done |
+| F36 | Notification separation — switch-sound profiles play custom audio only; `SoundShowBanner` drives a separate silent tray banner; non-sound profiles use the bell toggle and Silent flag | ✅ Done |
+| — | Section visibility — Schedules section header hidden until a schedule exists; Switch Sound section hidden until a sound is configured | ✅ Done |
+| — | Action button label context — "Edit Schedule", "Remove Schedule", "Edit Sound", "Remove Sound" | ✅ Done |
+| — | Gray resize bug fix — when settings panel is expanded, Row 2 height is set to 0 and Row 3 to * so the settings card absorbs remaining window height; no gray above or below | ✅ Done |
+| — | 118 new unit tests in `SwitchSoundTests` | ✅ Done |
 
 ---
 

@@ -7,6 +7,16 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Per-profile switch sounds (F36)** — each profile can optionally play a sound when activated; choose from 8 built-in tones (Click, Chime, Blip, Bell, Alert, Soft, Ping, Custom WAV) with a volume slider; a Test Sound button previews the selection in the wizard *(PR #84)*
+- **Switch sound notification banner option** — the wizard includes a "Show notification banner" toggle; when enabled, a silent tray banner appears alongside the custom sound; the Windows notification ding is never played when a switch sound is active *(PR #84)*
+- **Bell icon per-profile toggle** — a 🔔/🔕 button in the profile card action row suppresses both the tray banner and Windows ding for sound-free profiles ("No Notification Banner + Sound"); auto-hides when a switch sound is configured *(PR #84)*
+- **Section auto-collapse** — the Schedules section header hides until at least one schedule exists; the Switch Sound section hides until a sound is configured *(PR #84)*
+- **Contextual action button labels** — "Edit Schedule", "Remove Schedule", "Edit Sound", "Remove Sound" so actions are unambiguous at a glance *(PR #84)*
+- **118 new unit tests** — `SwitchSoundTests` covers wizard output, banner flag, sound/notification separation, bell toggle visibility, and section collapse logic *(PR #84)*
+
+### Fixed
+- **Settings panel resize gray area** — resizing the window while the settings panel was expanded left gray empty space above the header or below the footer; the settings card now absorbs remaining window height so no dead area appears at either edge *(PR #84)*
+
 - **Profile search and filter bar (F35)** — always-visible name search field at the top of the Settings window with live filtering and Esc-to-clear; italic placeholder text explains all available filter options *(PR #82)*
 - **Filter chips** — Mode (Playback / Recording / Both), Pinned, Active, Silent, Has Hotkey, Scheduled, Has Icon, Has Notes, Has Reminder; each chip is a toggle, all combinable with each other and with the name search for intersection filtering *(PR #82)*
 - **Day-of-week chips** — appear below the Scheduled chip; narrow results to profiles that run on a specific day *(PR #82)*

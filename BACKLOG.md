@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-03 — Branch 37 (`feat/settings-search`) merged as PR #82.
+**Last updated:** 2026-06-03 — Branch 38 (`feat/switch-sound`) merged as PR #84.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -123,7 +123,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F33~~ | ~~Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones~~ | ✅ Done — PR #76 |
 | ~~F34~~ | ~~Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ | ✅ Done — PR #76 |
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
-| F36 | Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30 | 38 |
+| ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30~~ | ✅ Done — PR #84 |
 | F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording only (mic mute), playback only (deafen), or both; distinct activate/deactivate sounds (pre-made or custom .wav); tray icon flashes red while active; press again to unmute | 39 |
 | F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | 40 |
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle | 41 |
@@ -165,12 +165,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 38: `feat/switch-sound`
+### ~~Branch 38: `feat/switch-sound`~~ ✅ Merged — PR #84
 **Theme:** Audio feedback on profile switch.
 
 | # | Feature |
 |---|---------|
-| F36 | Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav file at both levels; adjustable volume slider (0–100%) at both global and per-profile level; per-profile silent toggle to disable entirely |
+| ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav file at both levels; adjustable volume slider (0–100%) at both global and per-profile level; per-profile silent toggle to disable entirely~~ |
 
 ---
 
