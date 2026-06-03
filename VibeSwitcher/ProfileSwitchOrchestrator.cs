@@ -70,7 +70,7 @@ public class ProfileSwitchOrchestrator : IDisposable
                 _trayService.UpdateIcon(profile);
                 _trayService.SetActiveProfile(profile.Id);
                 _trayService.FlashSwitch(profile);
-                _ = _soundService.PlayAsync(profile, _configService.Current);
+                _ = _soundService.PlayAsync(profile);
 
                 if (result.MissingPlaybackId != null)
                 {

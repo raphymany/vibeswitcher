@@ -292,6 +292,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(ProfileSoundToneSoft));
         OnPropertyChanged(nameof(ProfileSoundTonePing));
         OnPropertyChanged(nameof(ProfileSoundToneCustom));
+        OnPropertyChanged(nameof(SoundSummary));
         _onChanged(this);
     }
 
@@ -317,6 +318,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             if (_model.SoundVolume == clamped) return;
             _model.SoundVolume = clamped;
             OnPropertyChanged(nameof(ProfileSoundVolume));
+            OnPropertyChanged(nameof(SoundSummary));
             _onChanged(this);
         }
     }

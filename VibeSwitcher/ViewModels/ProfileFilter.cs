@@ -20,5 +20,6 @@ public sealed record ProfileFilter
         ModeFilter != "Any mode"               ||
         PinnedOnly  || ActiveOnly  || SilentOnly  ||
         HotkeyOnly  || NotesOnly   || IconOnly     ||
-        WarningOnly || ScheduledOnly || ReminderOnly;
+        WarningOnly || ScheduledOnly || ReminderOnly ||
+        ActiveDays.Count > 0;
 }

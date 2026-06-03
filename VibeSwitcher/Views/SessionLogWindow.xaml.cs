@@ -28,8 +28,10 @@ public partial class SessionLogWindow : Window
     {
         if (!File.Exists(AppLogger.LogPath))
         {
-            MessageBox.Show("No log file has been written yet.\nPersistent errors will appear here once they occur.",
-                "Log File", MessageBoxButton.OK, MessageBoxImage.Information);
+            var dlg = new AlertDialog("Log File",
+                "No log file has been written yet.\nPersistent errors will appear here once they occur.",
+                AlertKind.Info) { Owner = this };
+            dlg.ShowDialog();
             return;
         }
         try

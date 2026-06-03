@@ -129,7 +129,7 @@ public partial class App : Application
         // 9. Re-apply active profile when the PC wakes from sleep/hibernate
         SystemEvents.PowerModeChanged += _orchestrator.OnPowerModeChanged;
 
-        // 9b. Profile scheduler — evaluates on startup and every 30 seconds
+        // 9b. Profile scheduler — evaluates on startup and every 10 seconds
         _schedulerService = new SchedulerService(
             _configService,
             (profile, silent) => _orchestrator.SwitchToProfile(profile, silent),
