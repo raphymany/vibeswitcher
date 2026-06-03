@@ -50,8 +50,10 @@ public partial class App : Application
             args.SetObserved();
         };
 
-        // 1. Single-instance guard
-        if (!_singleInstance.TryAcquire())
+        // 1. Single-instance guard — if another instance signals us (e.g. taskbar pin click),
+        //    show the settings window. The callback fires on a background thread, so marshal
+        //    back to the UI dispatcher.
+        if (!_singleInstance.TryAcquire(() => Dispatcher.InvokeAsync(OpenSettingsWindow)))
         {
             Shutdown();
             return;
