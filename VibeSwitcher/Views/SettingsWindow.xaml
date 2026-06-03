@@ -370,8 +370,17 @@
             </StackPanel>
         </StackPanel>
 
-        <!-- ── Filter bar ── -->
+        <!-- ── Filter bar — hidden while settings panel is open ── -->
         <StackPanel Grid.Row="1" Margin="0,0,0,10">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SettingsCardExpanded}" Value="True">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
 
             <!-- Name search — border provides the rounded frame; columns keep layout exact -->
             <Border x:Name="SearchBorder" CornerRadius="6" BorderThickness="1"
@@ -1239,21 +1248,10 @@
         </ScrollViewer>
 
         <!-- ── General Settings card ── -->
-        <Border x:Name="SettingsCard" Grid.Row="1" Grid.RowSpan="3"
-                Panel.ZIndex="5"
+        <Border x:Name="SettingsCard" Grid.Row="3"
+                Style="{StaticResource CardBorder}" Margin="0,0,0,14"
                 Padding="0" ClipToBounds="True">
-            <Border.Style>
-                <Style TargetType="Border" BasedOn="{StaticResource CardBorder}">
-                    <Setter Property="VerticalAlignment" Value="Bottom"/>
-                    <Setter Property="Margin"            Value="0,0,0,14"/>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding SettingsCardExpanded}" Value="True">
-                            <Setter Property="VerticalAlignment" Value="Stretch"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
-            <StackPanel VerticalAlignment="Bottom">
+            <StackPanel>
                 <!-- Collapsible header -->
                 <Grid>
                 <ToggleButton x:Name="SettingsExpander"
