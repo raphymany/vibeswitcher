@@ -40,7 +40,6 @@ public partial class SettingsWindow : Window
         IAudioService audioService,
         IHotkeyService hotkeyService,
         TrayService trayService,
-        ISwitchSoundService switchSoundService,
         Action<string> applyTheme,
         Action<Models.DeviceProfile>? switchProfile = null)
     {
@@ -74,8 +73,7 @@ public partial class SettingsWindow : Window
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             },
             applyTheme: applyTheme,
-            switchProfile: switchProfile,
-            testSwitchSound: (tone, path, vol) => switchSoundService.TestAsync(tone, path, vol));
+            switchProfile: switchProfile);
 
         DataContext = _viewModel;
         RestoreWindowBounds();

@@ -11,7 +11,6 @@ public class AppWindowManager
     private readonly IAudioService _audioService;
     private readonly IHotkeyService _hotkeyService;
     private readonly TrayService _trayService;
-    private readonly ISwitchSoundService _switchSoundService;
     private readonly Action<string> _applyTheme;
     private readonly Action<Models.DeviceProfile>? _switchProfile;
 
@@ -20,17 +19,15 @@ public class AppWindowManager
         IAudioService audioService,
         IHotkeyService hotkeyService,
         TrayService trayService,
-        ISwitchSoundService switchSoundService,
         Action<string> applyTheme,
         Action<Models.DeviceProfile>? switchProfile = null)
     {
-        _configService     = configService;
-        _audioService      = audioService;
-        _hotkeyService     = hotkeyService;
-        _trayService       = trayService;
-        _switchSoundService = switchSoundService;
-        _applyTheme        = applyTheme;
-        _switchProfile     = switchProfile;
+        _configService = configService;
+        _audioService  = audioService;
+        _hotkeyService = hotkeyService;
+        _trayService   = trayService;
+        _applyTheme    = applyTheme;
+        _switchProfile = switchProfile;
     }
 
     public void OpenSettingsWindow()
@@ -49,7 +46,7 @@ public class AppWindowManager
             return;
         }
 
-        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _switchSoundService, _applyTheme, _switchProfile);
+        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme, _switchProfile);
         window.Show();
     }
 

@@ -20,18 +20,12 @@ public class SwitchSoundService : ISwitchSoundService
     // Returns null when no sound should play.
     internal static (string tone, string? customPath, int volume)? Resolve(DeviceProfile profile, AppConfig config)
     {
-        if (!config.SwitchSoundEnabled) return null;
-
-        if (profile.SoundOverride)
-        {
-            return (
-                profile.SoundTone       ?? config.SwitchSoundTone,
-                profile.SoundCustomPath ?? config.SwitchSoundCustomPath,
-                profile.SoundVolume     ?? config.SwitchSoundVolume
-            );
-        }
-
-        return (config.SwitchSoundTone, config.SwitchSoundCustomPath, config.SwitchSoundVolume);
+        if (!profile.SoundOverride) return null;
+        return (
+            profile.SoundTone      ?? "Click",
+            profile.SoundCustomPath,
+            profile.SoundVolume    ?? 50
+        );
     }
 
     private static void PlaySync(string tone, string? customPath, int volume)
@@ -66,6 +60,8 @@ public class SwitchSoundService : ISwitchSoundService
             "Blip"  => GenerateBlip(amplitude),
             "Bell"  => GenerateBell(amplitude),
             "Alert" => GenerateAlert(amplitude),
+            "Soft"  => GenerateSoft(amplitude),
+            "Ping"  => GeneratePing(amplitude),
             _       => GenerateClick(amplitude),
         };
 
@@ -129,6 +125,34 @@ public class SwitchSoundService : ISwitchSoundService
             float fund   = (float)Math.Sin(2 * Math.PI * 440.0  * i / SampleRate);
             float over   = 0.35f * (float)Math.Sin(2 * Math.PI * 1320.0 * i / SampleRate);
             float sample = amplitude * env * (fund + over);
+            s[i] = (short)(sample * short.MaxValue);
+        }
+        return s;
+    }
+
+    private static short[] GenerateSoft(float amplitude)
+    {
+        // 220 Hz warm sine (A3), 0.8 s very gradual linear fade — gentle background notification
+        int frames = (int)(SampleRate * 0.8);
+        var s = new short[frames];
+        for (int i = 0; i < frames; i++)
+        {
+            float env    = (float)Math.Exp(-2.0 * i / frames);
+            float sample = amplitude * env * (float)Math.Sin(2 * Math.PI * 220.0 * i / SampleRate);
+            s[i] = (short)(sample * short.MaxValue);
+        }
+        return s;
+    }
+
+    private static short[] GeneratePing(float amplitude)
+    {
+        // 1200 Hz crisp ping, 0.2 s fast exponential decay — sharp notification-style
+        int frames = (int)(SampleRate * 0.2);
+        var s = new short[frames];
+        for (int i = 0; i < frames; i++)
+        {
+            float env    = (float)Math.Exp(-8.0 * i / frames);
+            float sample = amplitude * env * (float)Math.Sin(2 * Math.PI * 1200.0 * i / SampleRate);
             s[i] = (short)(sample * short.MaxValue);
         }
         return s;

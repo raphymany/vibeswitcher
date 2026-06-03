@@ -6,59 +6,32 @@ namespace VibeSwitcher.Tests;
 
 public class SwitchSoundTests
 {
-    private static AppConfig EnabledConfig(string tone = "Click", int volume = 50, string? customPath = null)
-        => new()
-        {
-            SwitchSoundEnabled    = true,
-            SwitchSoundTone       = tone,
-            SwitchSoundCustomPath = customPath,
-            SwitchSoundVolume     = volume,
-        };
+    private static AppConfig AnyConfig() => new();
 
     private static DeviceProfile Plain() => new() { Name = "P" };
 
-    // ── Global disabled ───────────────────────────────────────────────────────
+    // ── No override — always null ─────────────────────────────────────────────
 
     [Fact]
-    public void GlobalDisabled_ReturnsNull()
+    public void NoOverride_ReturnsNull()
     {
-        var cfg = new AppConfig { SwitchSoundEnabled = false };
-        Assert.Null(SwitchSoundService.Resolve(Plain(), cfg));
-    }
-
-    // ── No override — uses global settings ───────────────────────────────────
-
-    [Fact]
-    public void NoOverride_UsesGlobalTone()
-    {
-        var cfg = EnabledConfig("Chime", 70);
-        var resolved = SwitchSoundService.Resolve(Plain(), cfg);
-
-        Assert.NotNull(resolved);
-        Assert.Equal("Chime", resolved!.Value.tone);
-        Assert.Equal(70,      resolved.Value.volume);
+        Assert.Null(SwitchSoundService.Resolve(Plain(), AnyConfig()));
     }
 
     [Fact]
-    public void NoOverride_GlobalCustomPath_Forwarded()
+    public void NoOverride_IgnoresProfileToneAndVolume()
     {
-        var cfg = EnabledConfig("Custom", 60, "C:\\test.wav");
-        var resolved = SwitchSoundService.Resolve(Plain(), cfg);
-
-        Assert.NotNull(resolved);
-        Assert.Equal("Custom",       resolved!.Value.tone);
-        Assert.Equal("C:\\test.wav", resolved.Value.customPath);
+        var profile = new DeviceProfile { SoundOverride = false, SoundTone = "Blip", SoundVolume = 99 };
+        Assert.Null(SwitchSoundService.Resolve(profile, AnyConfig()));
     }
 
-    // ── Profile override: custom tone ─────────────────────────────────────────
+    // ── Override on — uses profile values ────────────────────────────────────
 
     [Fact]
     public void Override_CustomTone_UsesProfileTone()
     {
-        var cfg = EnabledConfig("Click", 80);
-        var profile = new DeviceProfile { SoundOverride = true, SoundMuted = false, SoundTone = "Blip" };
-
-        var resolved = SwitchSoundService.Resolve(profile, cfg);
+        var profile = new DeviceProfile { SoundOverride = true, SoundTone = "Blip" };
+        var resolved = SwitchSoundService.Resolve(profile, AnyConfig());
 
         Assert.NotNull(resolved);
         Assert.Equal("Blip", resolved!.Value.tone);
@@ -67,93 +40,79 @@ public class SwitchSoundTests
     [Fact]
     public void Override_CustomVolume_UsesProfileVolume()
     {
-        var cfg = EnabledConfig("Click", 80);
-        var profile = new DeviceProfile { SoundOverride = true, SoundMuted = false, SoundVolume = 25 };
-
-        var resolved = SwitchSoundService.Resolve(profile, cfg);
+        var profile = new DeviceProfile { SoundOverride = true, SoundVolume = 25 };
+        var resolved = SwitchSoundService.Resolve(profile, AnyConfig());
 
         Assert.NotNull(resolved);
         Assert.Equal(25, resolved!.Value.volume);
     }
 
     [Fact]
-    public void Override_NullTone_FallsBackToGlobal()
+    public void Override_NullTone_DefaultsToClick()
     {
-        var cfg = EnabledConfig("Chime", 50);
-        var profile = new DeviceProfile { SoundOverride = true, SoundMuted = false, SoundTone = null };
-
-        var resolved = SwitchSoundService.Resolve(profile, cfg);
+        var profile = new DeviceProfile { SoundOverride = true, SoundTone = null };
+        var resolved = SwitchSoundService.Resolve(profile, AnyConfig());
 
         Assert.NotNull(resolved);
-        Assert.Equal("Chime", resolved!.Value.tone);
+        Assert.Equal("Click", resolved!.Value.tone);
     }
 
     [Fact]
-    public void Override_NullVolume_FallsBackToGlobal()
+    public void Override_NullVolume_DefaultsTo50()
     {
-        var cfg = EnabledConfig("Click", 65);
-        var profile = new DeviceProfile { SoundOverride = true, SoundMuted = false, SoundVolume = null };
-
-        var resolved = SwitchSoundService.Resolve(profile, cfg);
+        var profile = new DeviceProfile { SoundOverride = true, SoundVolume = null };
+        var resolved = SwitchSoundService.Resolve(profile, AnyConfig());
 
         Assert.NotNull(resolved);
-        Assert.Equal(65, resolved!.Value.volume);
+        Assert.Equal(50, resolved!.Value.volume);
     }
 
     [Fact]
     public void Override_CustomPath_UsesProfilePath()
     {
-        var cfg = EnabledConfig("Custom", 50, "C:\\global.wav");
         var profile = new DeviceProfile
         {
-            SoundOverride = true,
-            SoundMuted = false,
-            SoundTone = "Custom",
+            SoundOverride   = true,
+            SoundTone       = "Custom",
             SoundCustomPath = "C:\\profile.wav"
         };
 
-        var resolved = SwitchSoundService.Resolve(profile, cfg);
+        var resolved = SwitchSoundService.Resolve(profile, AnyConfig());
 
         Assert.NotNull(resolved);
         Assert.Equal("C:\\profile.wav", resolved!.Value.customPath);
     }
 
     [Fact]
-    public void Override_NullCustomPath_FallsBackToGlobal()
+    public void Override_NullCustomPath_ReturnsNullPath()
     {
-        var cfg = EnabledConfig("Custom", 50, "C:\\global.wav");
         var profile = new DeviceProfile
         {
-            SoundOverride = true,
-            SoundMuted = false,
-            SoundTone = "Custom",
+            SoundOverride   = true,
+            SoundTone       = "Custom",
             SoundCustomPath = null
         };
 
-        var resolved = SwitchSoundService.Resolve(profile, cfg);
+        var resolved = SwitchSoundService.Resolve(profile, AnyConfig());
 
         Assert.NotNull(resolved);
-        Assert.Equal("C:\\global.wav", resolved!.Value.customPath);
+        Assert.Null(resolved!.Value.customPath);
     }
 
-    // ── Override flag off — uses global settings ──────────────────────────────
+    // ── All tones resolve ─────────────────────────────────────────────────────
 
-    [Fact]
-    public void OverrideOff_NotMuted_UsesGlobal()
+    [Theory]
+    [InlineData("Click")]
+    [InlineData("Chime")]
+    [InlineData("Blip")]
+    [InlineData("Bell")]
+    [InlineData("Alert")]
+    [InlineData("Soft")]
+    [InlineData("Ping")]
+    [InlineData("Custom")]
+    public void Override_KnownTone_ReturnsNotNull(string tone)
     {
-        var cfg = EnabledConfig("Chime", 40);
-        var profile = new DeviceProfile
-        {
-            SoundOverride = false,
-            SoundMuted    = false,
-            SoundTone     = "Blip", // ignored — override is off
-            SoundVolume   = 99      // ignored — override is off
-        };
-
-        var resolved = SwitchSoundService.Resolve(profile, cfg);
-
-        Assert.NotNull(resolved);
-        Assert.Equal("Chime", resolved!.Value.tone);
-        Assert.Equal(40,      resolved.Value.volume);
+        var profile = new DeviceProfile { SoundOverride = true, SoundTone = tone };
+        Assert.NotNull(SwitchSoundService.Resolve(profile, AnyConfig()));
     }
 }

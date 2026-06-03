@@ -225,6 +225,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             OnPropertyChanged(nameof(ProfileSoundToneBlip));
             OnPropertyChanged(nameof(ProfileSoundToneBell));
             OnPropertyChanged(nameof(ProfileSoundToneAlert));
+            OnPropertyChanged(nameof(ProfileSoundToneSoft));
+            OnPropertyChanged(nameof(ProfileSoundTonePing));
             OnPropertyChanged(nameof(ProfileSoundToneCustom));
             OnPropertyChanged(nameof(ProfileSoundVolume));
             _onChanged(this);
@@ -256,6 +258,16 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         get => _model.SoundTone == "Alert";
         set { if (value) SetProfileSoundTone("Alert"); }
     }
+    public bool ProfileSoundToneSoft
+    {
+        get => _model.SoundTone == "Soft";
+        set { if (value) SetProfileSoundTone("Soft"); }
+    }
+    public bool ProfileSoundTonePing
+    {
+        get => _model.SoundTone == "Ping";
+        set { if (value) SetProfileSoundTone("Ping"); }
+    }
     public bool ProfileSoundToneCustom
     {
         get => _model.SoundTone == "Custom";
@@ -271,6 +283,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(ProfileSoundToneBlip));
         OnPropertyChanged(nameof(ProfileSoundToneBell));
         OnPropertyChanged(nameof(ProfileSoundToneAlert));
+        OnPropertyChanged(nameof(ProfileSoundToneSoft));
+        OnPropertyChanged(nameof(ProfileSoundTonePing));
         OnPropertyChanged(nameof(ProfileSoundToneCustom));
         _onChanged(this);
     }

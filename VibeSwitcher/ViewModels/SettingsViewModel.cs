@@ -17,8 +17,6 @@ public class SettingsViewModel : ViewModelBase
     private readonly Action<HotkeyConflictException> _onHotkeyConflict;
     private readonly Action<string> _applyTheme;
     private readonly Action<Models.DeviceProfile>? _switchProfile;
-    private readonly Func<string, string?, int, Task>? _testSwitchSound;
-
     private bool _startWithWindows;
     private bool _startMinimized;
     private bool _closeToTray;
@@ -427,121 +425,6 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
-    // ── Switch sound ─────────────────────────────────────────────────────────
-
-    public bool SwitchSoundEnabled
-    {
-        get => _configService.Current.SwitchSoundEnabled;
-        set
-        {
-            if (_configService.Current.SwitchSoundEnabled == value) return;
-            _configService.Current.SwitchSoundEnabled = value;
-            SaveAsync();
-            OnPropertyChanged();
-        }
-    }
-
-    public bool SoundToneClick
-    {
-        get => _configService.Current.SwitchSoundTone == "Click";
-        set { if (value) SetSoundTone("Click"); }
-    }
-    public bool SoundToneChime
-    {
-        get => _configService.Current.SwitchSoundTone == "Chime";
-        set { if (value) SetSoundTone("Chime"); }
-    }
-    public bool SoundToneBlip
-    {
-        get => _configService.Current.SwitchSoundTone == "Blip";
-        set { if (value) SetSoundTone("Blip"); }
-    }
-    public bool SoundToneBell
-    {
-        get => _configService.Current.SwitchSoundTone == "Bell";
-        set { if (value) SetSoundTone("Bell"); }
-    }
-    public bool SoundToneAlert
-    {
-        get => _configService.Current.SwitchSoundTone == "Alert";
-        set { if (value) SetSoundTone("Alert"); }
-    }
-    public bool SoundToneCustom
-    {
-        get => _configService.Current.SwitchSoundTone == "Custom";
-        set { if (value) SetSoundTone("Custom"); }
-    }
-
-    private void SetSoundTone(string tone)
-    {
-        if (_configService.Current.SwitchSoundTone == tone) return;
-        _configService.Current.SwitchSoundTone = tone;
-        SaveAsync();
-        OnPropertyChanged(nameof(SoundToneClick));
-        OnPropertyChanged(nameof(SoundToneChime));
-        OnPropertyChanged(nameof(SoundToneBlip));
-        OnPropertyChanged(nameof(SoundToneBell));
-        OnPropertyChanged(nameof(SoundToneAlert));
-        OnPropertyChanged(nameof(SoundToneCustom));
-    }
-
-    public string SwitchSoundCustomPath
-    {
-        get => _configService.Current.SwitchSoundCustomPath ?? "";
-        set
-        {
-            var v = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-            if (_configService.Current.SwitchSoundCustomPath == v) return;
-            _configService.Current.SwitchSoundCustomPath = v;
-            SaveAsync();
-            OnPropertyChanged();
-        }
-    }
-
-    public int SwitchSoundVolume
-    {
-        get => _configService.Current.SwitchSoundVolume;
-        set
-        {
-            var clamped = Math.Clamp(value, 0, 100);
-            if (_configService.Current.SwitchSoundVolume == clamped) return;
-            _configService.Current.SwitchSoundVolume = clamped;
-            SaveAsync();
-            OnPropertyChanged();
-        }
-    }
-
-    public ICommand TestSwitchSoundCommand { get; private set; } = null!;
-
-    public ICommand BrowseSwitchSoundCommand { get; private set; } = null!;
-
-    private void InitSoundCommands()
-    {
-        TestSwitchSoundCommand = new RelayCommand(async () =>
-        {
-            if (_testSwitchSound == null) return;
-            var tone = _configService.Current.SwitchSoundTone;
-            var path = _configService.Current.SwitchSoundCustomPath;
-            var vol  = _configService.Current.SwitchSoundVolume;
-            try { await _testSwitchSound(tone, path, vol); }
-            catch (Exception ex) { AppLogger.Warning("SettingsViewModel.TestSwitchSound", ex.Message); }
-        });
-
-        BrowseSwitchSoundCommand = new RelayCommand(() =>
-        {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Select Sound File",
-                Filter = "WAV Files (*.wav)|*.wav",
-                CheckFileExists = true
-            };
-            if (dlg.ShowDialog() != true) return;
-            SwitchSoundCustomPath = dlg.FileName;
-            if (_configService.Current.SwitchSoundTone != "Custom")
-                SetSoundTone("Custom");
-        });
-    }
-
     public HotkeyDefinition SettingsHotkey
     {
         get => _configService.Current.SettingsHotkey ?? new HotkeyDefinition();
@@ -608,8 +491,7 @@ public class SettingsViewModel : ViewModelBase
         Action onProfilesChanged,
         Action<HotkeyConflictException> onHotkeyConflict,
         Action<string> applyTheme,
-        Action<Models.DeviceProfile>? switchProfile = null,
-        Func<string, string?, int, Task>? testSwitchSound = null)
+        Action<Models.DeviceProfile>? switchProfile = null)
     {
         _configService = configService;
         _audioService = audioService;
@@ -620,8 +502,6 @@ public class SettingsViewModel : ViewModelBase
         _onHotkeyConflict = onHotkeyConflict;
         _applyTheme = applyTheme;
         _switchProfile = switchProfile;
-        _testSwitchSound = testSwitchSound;
-        InitSoundCommands();
 
         _startWithWindows = startupService.IsStartupEnabled();
         _startMinimized = configService.Current.StartMinimized;
@@ -1042,15 +922,6 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(Theme));
         OnPropertyChanged(nameof(Use12HourClock));
         OnPropertyChanged(nameof(Use24HourClock));
-        OnPropertyChanged(nameof(SwitchSoundEnabled));
-        OnPropertyChanged(nameof(SoundToneClick));
-        OnPropertyChanged(nameof(SoundToneChime));
-        OnPropertyChanged(nameof(SoundToneBlip));
-        OnPropertyChanged(nameof(SoundToneBell));
-        OnPropertyChanged(nameof(SoundToneAlert));
-        OnPropertyChanged(nameof(SoundToneCustom));
-        OnPropertyChanged(nameof(SwitchSoundCustomPath));
-        OnPropertyChanged(nameof(SwitchSoundVolume));
         _applyTheme(_configService.Current.Theme ?? "Auto");
 
         ReregisterHotkeys();

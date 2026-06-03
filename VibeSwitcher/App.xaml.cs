@@ -90,7 +90,7 @@ public partial class App : Application
         // 5. Initialise orchestrators
         var switchSoundService = new SwitchSoundService();
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher);
-        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, switchSoundService, _themeService.Apply,
+        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile));
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
