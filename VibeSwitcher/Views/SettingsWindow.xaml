@@ -1134,6 +1134,20 @@
                                                         Style="{StaticResource ActionButton}"
                                                         Command="{Binding AddScheduleCommand}"
                                                         Margin="0,0,8,0"/>
+                                                <Button Command="{Binding AddSwitchSoundCommand}"
+                                                        Margin="0,0,8,0">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <TextBlock Text="Add Switch Sound"/>
+                                                </Button>
                                                 <Button Content="Delete Profile"
                                                         Style="{StaticResource DangerButton}"
                                                         Command="{Binding DeleteCommand}"/>
@@ -1221,49 +1235,49 @@
                                             </StackPanel>
                                         </Border>
 
-                                        <!-- Sound Override section -->
+                                        <!-- Sound Override section — only visible when a switch sound is configured -->
                                         <Border Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Margin="0,8,0,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <StackPanel>
-                                                <!-- Section header -->
+                                                <!-- Section header with info badge -->
                                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                                                     <TextBlock Text="Switch Sound"
                                                                FontSize="11" FontWeight="SemiBold"
                                                                Foreground="{DynamicResource SectionLabelText}"
                                                                VerticalAlignment="Center"/>
+                                                    <Border Width="16" Height="16" CornerRadius="8"
+                                                            Background="{DynamicResource InfoBadgeBg}"
+                                                            Margin="5,0,0,0" VerticalAlignment="Center"
+                                                            Cursor="Help"
+                                                            ToolTipService.ShowDuration="12000">
+                                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                                                   Foreground="{DynamicResource InfoBadgeText}"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Border.ToolTip>
+                                                            <ToolTip>
+                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
+                                                                    Plays a sound when this profile is activated. Click Edit to change the tone or volume, or Remove to turn it off.
+                                                                </TextBlock>
+                                                            </ToolTip>
+                                                        </Border.ToolTip>
+                                                    </Border>
                                                 </StackPanel>
 
-                                                <!-- "Add Switch Sound" button — visible when no sound configured -->
-                                                <Button Command="{Binding AddSwitchSoundCommand}"
-                                                        FontSize="11" Padding="12,4" HorizontalAlignment="Left">
-                                                    <Button.Style>
-                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Button.Style>
-                                                    <TextBlock Text="Add Switch Sound"/>
-                                                </Button>
-
-                                                <!-- Configured entry row — visible when sound is set -->
+                                                <!-- Configured entry row -->
                                                 <Border Background="{DynamicResource InnerCardBg}"
                                                         BorderBrush="{DynamicResource InnerCardBorderBrush}"
                                                         BorderThickness="1" CornerRadius="6"
                                                         Padding="10,8">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
                                                     <DockPanel>
                                                         <Button DockPanel.Dock="Right" Content="Remove"
                                                                 Style="{StaticResource DangerButton}"
@@ -1279,8 +1293,7 @@
                                                                    FontSize="11"
                                                                    Foreground="{DynamicResource SecondaryText}"
                                                                    VerticalAlignment="Center"
-                                                                   TextTrimming="CharacterEllipsis"
-                                                                   Margin="0,0,0,0"/>
+                                                                   TextTrimming="CharacterEllipsis"/>
                                                     </DockPanel>
                                                 </Border>
                                             </StackPanel>

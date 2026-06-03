@@ -150,90 +150,60 @@
                        FontSize="12" Foreground="{DynamicResource SecondaryText}"
                        TextWrapping="Wrap" Margin="0,0,0,20"/>
 
-            <!-- Enable toggle -->
-            <Border Background="{DynamicResource InnerCardBg}"
-                    BorderBrush="{DynamicResource InnerCardBorderBrush}"
-                    BorderThickness="1" CornerRadius="8"
-                    Padding="16,12" Margin="0,0,0,16">
-                <Grid>
+            <!-- Tone chips -->
+            <TextBlock Text="Tone" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+            <WrapPanel Margin="0,0,0,16">
+                <ToggleButton x:Name="ToneClick"  Content="Click"   Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Click"/>
+                <ToggleButton x:Name="ToneChime"  Content="Chime"   Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Chime"/>
+                <ToggleButton x:Name="ToneBlip"   Content="Blip"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Blip"/>
+                <ToggleButton x:Name="ToneBell"   Content="Bell"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Bell"/>
+                <ToggleButton x:Name="ToneAlert"  Content="Alert"   Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Alert"/>
+                <ToggleButton x:Name="ToneSoft"   Content="Soft"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Soft"/>
+                <ToggleButton x:Name="TonePing"   Content="Ping"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Ping"/>
+                <ToggleButton x:Name="ToneCustom" Content="Custom…" Style="{StaticResource ToneChip}" Margin="0,0,0,6"  Click="ToneChip_Click" Tag="Custom"/>
+            </WrapPanel>
+
+            <!-- Custom file path — visible when Custom is selected -->
+            <StackPanel x:Name="CustomPathPanel" Visibility="Collapsed" Margin="0,0,0,16">
+                <Grid Margin="0,0,0,6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
-                        <TextBlock Text="Enable switch sound"
-                                   FontSize="13" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource PrimaryText}"/>
-                        <TextBlock Text="Plays when this profile is activated from any source."
-                                   FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                   TextWrapping="Wrap" Margin="0,3,0,0"/>
-                    </StackPanel>
-                    <CheckBox x:Name="EnableToggle" Grid.Column="1"
-                              Style="{StaticResource ToggleSwitchStyle}"
-                              VerticalAlignment="Center"
-                              Checked="EnableToggle_Changed" Unchecked="EnableToggle_Changed"/>
+                    <TextBox x:Name="CustomPathBox" Grid.Column="0"
+                             Padding="8,5" Margin="0,0,6,0"
+                             TextChanged="CustomPath_Changed"/>
+                    <Button Grid.Column="1" Content="Browse…"
+                            Style="{StaticResource ActionButton}"
+                            Click="Browse_Click"/>
                 </Grid>
-            </Border>
-
-            <!-- Sound settings — visible when enabled -->
-            <StackPanel x:Name="SoundSettingsPanel">
-
-                <!-- Tone chips -->
-                <TextBlock Text="Tone" FontSize="11" FontWeight="SemiBold"
-                           Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                <WrapPanel Margin="0,0,0,16">
-                    <ToggleButton x:Name="ToneClick"  Content="Click"   Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Click"/>
-                    <ToggleButton x:Name="ToneChime"  Content="Chime"   Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Chime"/>
-                    <ToggleButton x:Name="ToneBlip"   Content="Blip"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Blip"/>
-                    <ToggleButton x:Name="ToneBell"   Content="Bell"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Bell"/>
-                    <ToggleButton x:Name="ToneAlert"  Content="Alert"   Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Alert"/>
-                    <ToggleButton x:Name="ToneSoft"   Content="Soft"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Soft"/>
-                    <ToggleButton x:Name="TonePing"   Content="Ping"    Style="{StaticResource ToneChip}" Margin="0,0,6,6" Click="ToneChip_Click" Tag="Ping"/>
-                    <ToggleButton x:Name="ToneCustom" Content="Custom…" Style="{StaticResource ToneChip}" Margin="0,0,0,6"  Click="ToneChip_Click" Tag="Custom"/>
-                </WrapPanel>
-
-                <!-- Custom file path — visible when Custom is selected -->
-                <StackPanel x:Name="CustomPathPanel" Visibility="Collapsed" Margin="0,0,0,16">
-                    <Grid Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox x:Name="CustomPathBox" Grid.Column="0"
-                                 Padding="8,5" Margin="0,0,6,0"
-                                 TextChanged="CustomPath_Changed"/>
-                        <Button Grid.Column="1" Content="Browse…"
-                                Style="{StaticResource ActionButton}"
-                                Click="Browse_Click"/>
-                    </Grid>
-                    <TextBlock Text="Only 16-bit PCM .wav files are supported. MP3 and other formats are not compatible."
-                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                               TextWrapping="Wrap"/>
-                </StackPanel>
-
-                <!-- Volume -->
-                <TextBlock Text="Volume" FontSize="11" FontWeight="SemiBold"
-                           Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                <Grid Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="36"/>
-                    </Grid.ColumnDefinitions>
-                    <Slider x:Name="VolumeSliderControl" Grid.Column="0"
-                            Style="{StaticResource VolumeSlider}"
-                            Minimum="0" Maximum="100"
-                            TickFrequency="1" IsSnapToTickEnabled="True"
-                            VerticalAlignment="Center"
-                            ValueChanged="Volume_Changed"/>
-                    <TextBlock x:Name="VolumeLabel" Grid.Column="1"
-                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                </Grid>
-
+                <TextBlock Text="Only 16-bit PCM .wav files are supported. MP3 and other formats are not compatible."
+                           FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                           TextWrapping="Wrap"/>
             </StackPanel>
 
+            <!-- Volume -->
+            <TextBlock Text="Volume" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+            <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="36"/>
+                </Grid.ColumnDefinitions>
+                <Slider x:Name="VolumeSliderControl" Grid.Column="0"
+                        Style="{StaticResource VolumeSlider}"
+                        Minimum="0" Maximum="100"
+                        TickFrequency="1" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center"
+                        ValueChanged="Volume_Changed"/>
+                <TextBlock x:Name="VolumeLabel" Grid.Column="1"
+                           FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
+            </Grid>
+
             <!-- Footer buttons -->
-            <DockPanel Margin="0,20,0,0">
+            <DockPanel Margin="0,24,0,0">
                 <Button Content="Cancel" DockPanel.Dock="Left"
                         Style="{StaticResource ActionButton}"
                         Padding="16,0"
@@ -243,6 +213,11 @@
                         Padding="20,0"
                         HorizontalAlignment="Right"
                         Click="Save_Click"/>
+                <Button Content="Test Sound"
+                        Style="{StaticResource ActionButton}"
+                        HorizontalAlignment="Center"
+                        Padding="14,0"
+                        Click="TestSound_Click"/>
             </DockPanel>
 
         </StackPanel>

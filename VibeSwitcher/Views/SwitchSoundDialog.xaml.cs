@@ -3,12 +3,12 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Microsoft.Win32;
 using VibeSwitcher.Models;
+using VibeSwitcher.Services;
 
 namespace VibeSwitcher.Views;
 
 public partial class SwitchSoundDialog : Window
 {
-    private bool _enabled;
     private string _tone;
     private string? _customPath;
     private int _volume;
@@ -19,14 +19,9 @@ public partial class SwitchSoundDialog : Window
     {
         InitializeComponent();
 
-        _enabled    = enabled;
         _tone       = tone ?? "Click";
         _customPath = customPath;
         _volume     = volume;
-
-        EnableToggle.IsChecked = enabled;
-        SoundSettingsPanel.IsEnabled = enabled;
-        SoundSettingsPanel.Opacity   = enabled ? 1.0 : 0.4;
 
         UpdateToneChips();
         CustomPathBox.Text       = customPath ?? "";
@@ -34,13 +29,6 @@ public partial class SwitchSoundDialog : Window
 
         VolumeSliderControl.Value = volume;
         VolumeLabel.Text          = $"{volume}%";
-    }
-
-    private void EnableToggle_Changed(object sender, RoutedEventArgs e)
-    {
-        _enabled = EnableToggle.IsChecked == true;
-        SoundSettingsPanel.IsEnabled = _enabled;
-        SoundSettingsPanel.Opacity   = _enabled ? 1.0 : 0.4;
     }
 
     private void ToneChip_Click(object sender, RoutedEventArgs e)
@@ -92,9 +80,14 @@ public partial class SwitchSoundDialog : Window
         VolumeLabel.Text = $"{_volume}%";
     }
 
+    private void TestSound_Click(object sender, RoutedEventArgs e)
+    {
+        _ = new SwitchSoundService().TestAsync(_tone, _customPath, _volume);
+    }
+
     private void Save_Click(object sender, RoutedEventArgs e)
     {
-        Result = new SoundOverrideResult(_enabled, _tone, _customPath, _volume);
+        Result = new SoundOverrideResult(true, _tone, _customPath, _volume);
         DialogResult = true;
     }
 
