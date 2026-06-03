@@ -147,18 +147,29 @@ public class SwitchSoundTests
         Assert.Equal("C:\\global.wav", resolved!.Value.customPath);
     }
 
-    // ── Override flag off — still uses global despite other profile fields ────
+    // ── Mute is independent of override flag ─────────────────────────────────
 
     [Fact]
-    public void OverrideOff_IgnoresProfileFields_UsesGlobal()
+    public void MuteWithoutOverride_ReturnsNull()
+    {
+        var cfg = EnabledConfig("Click", 80);
+        var profile = new DeviceProfile { SoundOverride = false, SoundMuted = true };
+
+        Assert.Null(SwitchSoundService.Resolve(profile, cfg));
+    }
+
+    // ── Override flag off — uses global when not muted ────────────────────────
+
+    [Fact]
+    public void OverrideOff_NotMuted_UsesGlobal()
     {
         var cfg = EnabledConfig("Chime", 40);
         var profile = new DeviceProfile
         {
             SoundOverride = false,
-            SoundMuted    = true,   // would mute if override were on
-            SoundTone     = "Blip", // would override if override were on
-            SoundVolume   = 99
+            SoundMuted    = false,
+            SoundTone     = "Blip", // ignored — override is off
+            SoundVolume   = 99      // ignored — override is off
         };
 
         var resolved = SwitchSoundService.Resolve(profile, cfg);

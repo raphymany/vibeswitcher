@@ -21,14 +21,14 @@ public class SwitchSoundService : ISwitchSoundService
     internal static (string tone, string? customPath, int volume)? Resolve(DeviceProfile profile, AppConfig config)
     {
         if (!config.SwitchSoundEnabled) return null;
+        if (profile.SoundMuted) return null;  // mute is independent of override
 
         if (profile.SoundOverride)
         {
-            if (profile.SoundMuted) return null;
             return (
-                profile.SoundTone      ?? config.SwitchSoundTone,
+                profile.SoundTone       ?? config.SwitchSoundTone,
                 profile.SoundCustomPath ?? config.SwitchSoundCustomPath,
-                profile.SoundVolume    ?? config.SwitchSoundVolume
+                profile.SoundVolume     ?? config.SwitchSoundVolume
             );
         }
 
@@ -65,6 +65,8 @@ public class SwitchSoundService : ISwitchSoundService
         {
             "Chime" => GenerateChime(amplitude),
             "Blip"  => GenerateBlip(amplitude),
+            "Bell"  => GenerateBell(amplitude),
+            "Alert" => GenerateAlert(amplitude),
             _       => GenerateClick(amplitude),
         };
 
@@ -113,6 +115,42 @@ public class SwitchSoundService : ISwitchSoundService
             phase += 2 * Math.PI * freq / SampleRate;
             float sample = amplitude * env * (float)Math.Sin(phase);
             s[i] = (short)(sample * short.MaxValue);
+        }
+        return s;
+    }
+
+    private static short[] GenerateBell(float amplitude)
+    {
+        // 440 Hz fundamental + 1320 Hz third harmonic, 0.7 s exponential decay
+        int frames = (int)(SampleRate * 0.7);
+        var s = new short[frames];
+        for (int i = 0; i < frames; i++)
+        {
+            float env    = (float)Math.Exp(-3.5 * i / frames);
+            float fund   = (float)Math.Sin(2 * Math.PI * 440.0  * i / SampleRate);
+            float over   = 0.35f * (float)Math.Sin(2 * Math.PI * 1320.0 * i / SampleRate);
+            float sample = amplitude * env * (fund + over);
+            s[i] = (short)(sample * short.MaxValue);
+        }
+        return s;
+    }
+
+    private static short[] GenerateAlert(float amplitude)
+    {
+        // Two 660 Hz pulses (0.12 s each) with a 0.05 s silent gap between them
+        int pulseLen = (int)(SampleRate * 0.12);
+        int gapLen   = (int)(SampleRate * 0.05);
+        var s = new short[2 * pulseLen + gapLen];
+        for (int pass = 0; pass < 2; pass++)
+        {
+            int offset = pass * (pulseLen + gapLen);
+            for (int i = 0; i < pulseLen; i++)
+            {
+                float t   = (float)i / pulseLen;
+                float env = t < 0.2f ? t / 0.2f : 1f - (t - 0.2f) / 0.8f; // quick attack, longer decay
+                float sample = amplitude * env * (float)Math.Sin(2 * Math.PI * 660.0 * i / SampleRate);
+                s[offset + i] = (short)(sample * short.MaxValue);
+            }
         }
         return s;
     }

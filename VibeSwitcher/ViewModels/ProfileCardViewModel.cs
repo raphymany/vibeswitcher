@@ -223,6 +223,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             OnPropertyChanged(nameof(ProfileSoundToneClick));
             OnPropertyChanged(nameof(ProfileSoundToneChime));
             OnPropertyChanged(nameof(ProfileSoundToneBlip));
+            OnPropertyChanged(nameof(ProfileSoundToneBell));
+            OnPropertyChanged(nameof(ProfileSoundToneAlert));
             OnPropertyChanged(nameof(ProfileSoundToneCustom));
             OnPropertyChanged(nameof(ProfileSoundVolume));
             _onChanged(this);
@@ -256,6 +258,16 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         get => _model.SoundTone == "Blip";
         set { if (value) SetProfileSoundTone("Blip"); }
     }
+    public bool ProfileSoundToneBell
+    {
+        get => _model.SoundTone == "Bell";
+        set { if (value) SetProfileSoundTone("Bell"); }
+    }
+    public bool ProfileSoundToneAlert
+    {
+        get => _model.SoundTone == "Alert";
+        set { if (value) SetProfileSoundTone("Alert"); }
+    }
     public bool ProfileSoundToneCustom
     {
         get => _model.SoundTone == "Custom";
@@ -269,6 +281,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(ProfileSoundToneClick));
         OnPropertyChanged(nameof(ProfileSoundToneChime));
         OnPropertyChanged(nameof(ProfileSoundToneBlip));
+        OnPropertyChanged(nameof(ProfileSoundToneBell));
+        OnPropertyChanged(nameof(ProfileSoundToneAlert));
         OnPropertyChanged(nameof(ProfileSoundToneCustom));
         _onChanged(this);
     }
@@ -298,9 +312,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             _onChanged(this);
         }
     }
-
-    // Whether the per-profile volume slider should be active (override is on and not muted)
-    public bool ProfileSoundVolumeActive => _model.SoundOverride && !_model.SoundMuted;
 
     public string? ValidationWarning
     {

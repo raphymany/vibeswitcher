@@ -456,6 +456,16 @@ public class SettingsViewModel : ViewModelBase
         get => _configService.Current.SwitchSoundTone == "Blip";
         set { if (value) SetSoundTone("Blip"); }
     }
+    public bool SoundToneBell
+    {
+        get => _configService.Current.SwitchSoundTone == "Bell";
+        set { if (value) SetSoundTone("Bell"); }
+    }
+    public bool SoundToneAlert
+    {
+        get => _configService.Current.SwitchSoundTone == "Alert";
+        set { if (value) SetSoundTone("Alert"); }
+    }
     public bool SoundToneCustom
     {
         get => _configService.Current.SwitchSoundTone == "Custom";
@@ -470,6 +480,8 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(SoundToneClick));
         OnPropertyChanged(nameof(SoundToneChime));
         OnPropertyChanged(nameof(SoundToneBlip));
+        OnPropertyChanged(nameof(SoundToneBell));
+        OnPropertyChanged(nameof(SoundToneAlert));
         OnPropertyChanged(nameof(SoundToneCustom));
     }
 
@@ -1034,6 +1046,8 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(SoundToneClick));
         OnPropertyChanged(nameof(SoundToneChime));
         OnPropertyChanged(nameof(SoundToneBlip));
+        OnPropertyChanged(nameof(SoundToneBell));
+        OnPropertyChanged(nameof(SoundToneAlert));
         OnPropertyChanged(nameof(SoundToneCustom));
         OnPropertyChanged(nameof(SwitchSoundCustomPath));
         OnPropertyChanged(nameof(SwitchSoundVolume));
