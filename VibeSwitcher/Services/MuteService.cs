@@ -76,13 +76,16 @@ public class MuteService
 
     private static void PlaySound(MuteScope scope, bool muting)
     {
+        // When muting speakers the output is silenced immediately — no point playing a sound nobody hears.
+        // On unmute the speakers are already restored before this runs, so that case is fine to play.
+        if (muting && (scope == MuteScope.Speakers || scope == MuteScope.Both)) return;
+
         try
         {
             byte[] wav = scope switch
             {
-                MuteScope.Mic      => muting ? BuildMicMuteWav()   : BuildMicUnmuteWav(),
-                MuteScope.Speakers => muting ? BuildDeafenWav()     : BuildUndeafenWav(),
-                _                  => muting ? BuildBothMuteWav()   : BuildBothUnmuteWav(),
+                MuteScope.Mic => muting ? BuildMicMuteWav() : BuildMicUnmuteWav(),
+                _             => BuildBothUnmuteWav(),   // Both unmute — speakers restored, so audible
             };
             using var ms = new System.IO.MemoryStream(wav);
             using var player = new SoundPlayer(ms);
@@ -94,29 +97,17 @@ public class MuteService
         }
     }
 
-    // Mic mute: two descending blips — 880 Hz then 660 Hz, 80 ms each with fast fade-out
+    // Mic mute: two descending blips — 440 Hz then 280 Hz, deep and short
     private static byte[] BuildMicMuteWav()
-        => BuildWav(Concat(Blip(880, 0.08, fadeDown: true), Blip(660, 0.08, fadeDown: true)));
+        => BuildWav(Concat(Blip(440, 0.09, fadeDown: true), Blip(280, 0.09, fadeDown: true)));
 
-    // Mic unmute: two ascending blips — 660 Hz then 880 Hz
+    // Mic unmute: two ascending blips — 280 Hz then 440 Hz
     private static byte[] BuildMicUnmuteWav()
-        => BuildWav(Concat(Blip(660, 0.08, fadeDown: false), Blip(880, 0.08, fadeDown: false)));
+        => BuildWav(Concat(Blip(280, 0.09, fadeDown: false), Blip(440, 0.09, fadeDown: false)));
 
-    // Deafen: smooth sweep from 480 Hz down to 240 Hz over 200 ms — heavier than mic mute
-    private static byte[] BuildDeafenWav()
-        => BuildWav(Sweep(480, 240, 0.20));
-
-    // Undeafen: smooth sweep from 240 Hz up to 480 Hz
-    private static byte[] BuildUndeafenWav()
-        => BuildWav(Sweep(240, 480, 0.20));
-
-    // Both mute: mic blips then deafen sweep
-    private static byte[] BuildBothMuteWav()
-        => BuildWav(Concat(Blip(880, 0.07, fadeDown: true), Blip(660, 0.07, fadeDown: true), Sweep(480, 240, 0.18)));
-
-    // Both unmute: undeafen sweep then mic blips
+    // Both unmute: deeper sweep up then ascending blips (speakers are audible again by the time this plays)
     private static byte[] BuildBothUnmuteWav()
-        => BuildWav(Concat(Sweep(240, 480, 0.18), Blip(660, 0.07, fadeDown: false), Blip(880, 0.07, fadeDown: false)));
+        => BuildWav(Concat(Sweep(160, 320, 0.20), Blip(280, 0.08, fadeDown: false), Blip(440, 0.08, fadeDown: false)));
 
     // Single tone at a fixed frequency with a linear fade-in (fadeDown=false) or fade-out (fadeDown=true)
     private static short[] Blip(double freq, double durationSec, bool fadeDown)
