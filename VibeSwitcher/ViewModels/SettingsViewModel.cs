@@ -496,9 +496,19 @@ public class SettingsViewModel : ViewModelBase
             case Models.MuteScope.Speakers: _configService.Current.MuteSpeakersHotkey = value; break;
             case Models.MuteScope.Both:     _configService.Current.MuteBothHotkey     = value; break;
         }
+
+        // Auto-enable when a hotkey is assigned; auto-disable when cleared.
+        bool autoEnabled = !value.IsEmpty;
+        switch (scope)
+        {
+            case Models.MuteScope.Mic:      _configService.Current.MuteMicHotkeyEnabled      = autoEnabled; break;
+            case Models.MuteScope.Speakers: _configService.Current.MuteSpeakersHotkeyEnabled = autoEnabled; break;
+            case Models.MuteScope.Both:     _configService.Current.MuteBothHotkeyEnabled     = autoEnabled; break;
+        }
+
         SaveAsync();
         _hotkeyService.UnregisterMuteHotkey(scope);
-        if (!value.IsEmpty && GetMuteHotkeyEnabled(scope))
+        if (!value.IsEmpty)
         {
             var conflict = _hotkeyService.RegisterMuteHotkey(scope, value);
             if (conflict != null) _onHotkeyConflict(conflict);

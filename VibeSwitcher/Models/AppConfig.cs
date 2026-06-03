@@ -36,11 +36,11 @@ public class AppConfig
 
     // Mute hotkeys
     public HotkeyDefinition? MuteMicHotkey { get; set; }
-    public bool MuteMicHotkeyEnabled { get; set; } = true;
+    public bool MuteMicHotkeyEnabled { get; set; } = false;
     public HotkeyDefinition? MuteSpeakersHotkey { get; set; }
-    public bool MuteSpeakersHotkeyEnabled { get; set; } = true;
+    public bool MuteSpeakersHotkeyEnabled { get; set; } = false;
     public HotkeyDefinition? MuteBothHotkey { get; set; }
-    public bool MuteBothHotkeyEnabled { get; set; } = true;
+    public bool MuteBothHotkeyEnabled { get; set; } = false;
 
     // Switch sound — global defaults
     public bool SwitchSoundEnabled { get; set; } = false;
