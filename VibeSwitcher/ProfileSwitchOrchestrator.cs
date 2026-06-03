@@ -14,6 +14,7 @@ public class ProfileSwitchOrchestrator : IDisposable
     private readonly IConfigService _configService;
     private readonly IAudioService _audioService;
     private readonly TrayService _trayService;
+    private readonly ISwitchSoundService _soundService;
     private readonly Dispatcher _dispatcher;
     private readonly SemaphoreSlim _switchLock = new(1, 1);
 
@@ -21,11 +22,13 @@ public class ProfileSwitchOrchestrator : IDisposable
         IConfigService configService,
         IAudioService audioService,
         TrayService trayService,
+        ISwitchSoundService soundService,
         Dispatcher dispatcher)
     {
         _configService = configService;
         _audioService = audioService;
         _trayService = trayService;
+        _soundService = soundService;
         _dispatcher = dispatcher;
     }
 
@@ -67,6 +70,7 @@ public class ProfileSwitchOrchestrator : IDisposable
                 _trayService.UpdateIcon(profile);
                 _trayService.SetActiveProfile(profile.Id);
                 _trayService.FlashSwitch(profile);
+                _ = _soundService.PlayAsync(profile, _configService.Current);
 
                 if (result.MissingPlaybackId != null)
                 {

@@ -203,6 +203,105 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
+    // ── Per-profile switch sound override ─────────────────────────────────────
+
+    public bool SoundOverride
+    {
+        get => _model.SoundOverride;
+        set
+        {
+            if (_model.SoundOverride == value) return;
+            _model.SoundOverride = value;
+            // Initialize tone and volume from defaults so the UI never shows a null/inherit state
+            // while the override panel is open — null is only meaningful when override is off.
+            if (value)
+            {
+                _model.SoundTone   ??= "Click";
+                _model.SoundVolume ??= 50;
+            }
+            OnPropertyChanged(nameof(SoundOverride));
+            OnPropertyChanged(nameof(ProfileSoundToneClick));
+            OnPropertyChanged(nameof(ProfileSoundToneChime));
+            OnPropertyChanged(nameof(ProfileSoundToneBlip));
+            OnPropertyChanged(nameof(ProfileSoundToneCustom));
+            OnPropertyChanged(nameof(ProfileSoundVolume));
+            _onChanged(this);
+        }
+    }
+
+    public bool SoundMuted
+    {
+        get => _model.SoundMuted;
+        set
+        {
+            if (_model.SoundMuted == value) return;
+            _model.SoundMuted = value;
+            OnPropertyChanged(nameof(SoundMuted));
+            _onChanged(this);
+        }
+    }
+
+    public bool ProfileSoundToneClick
+    {
+        get => _model.SoundTone == "Click";
+        set { if (value) SetProfileSoundTone("Click"); }
+    }
+    public bool ProfileSoundToneChime
+    {
+        get => _model.SoundTone == "Chime";
+        set { if (value) SetProfileSoundTone("Chime"); }
+    }
+    public bool ProfileSoundToneBlip
+    {
+        get => _model.SoundTone == "Blip";
+        set { if (value) SetProfileSoundTone("Blip"); }
+    }
+    public bool ProfileSoundToneCustom
+    {
+        get => _model.SoundTone == "Custom";
+        set { if (value) SetProfileSoundTone("Custom"); }
+    }
+
+    private void SetProfileSoundTone(string tone)
+    {
+        if (_model.SoundTone == tone) return;
+        _model.SoundTone = tone;
+        OnPropertyChanged(nameof(ProfileSoundToneClick));
+        OnPropertyChanged(nameof(ProfileSoundToneChime));
+        OnPropertyChanged(nameof(ProfileSoundToneBlip));
+        OnPropertyChanged(nameof(ProfileSoundToneCustom));
+        _onChanged(this);
+    }
+
+    public string ProfileSoundCustomPath
+    {
+        get => _model.SoundCustomPath ?? "";
+        set
+        {
+            var v = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            if (_model.SoundCustomPath == v) return;
+            _model.SoundCustomPath = v;
+            OnPropertyChanged(nameof(ProfileSoundCustomPath));
+            _onChanged(this);
+        }
+    }
+
+    public int ProfileSoundVolume
+    {
+        get => _model.SoundVolume ?? 50;
+        set
+        {
+            var clamped = Math.Clamp(value, 0, 100);
+            if (_model.SoundVolume == clamped) return;
+            _model.SoundVolume = clamped;
+            OnPropertyChanged(nameof(ProfileSoundVolume));
+            _onChanged(this);
+        }
+    }
+
+    // Whether the per-profile volume slider should be active (override is on and not muted)
+    public bool ProfileSoundVolumeActive => _model.SoundOverride && !_model.SoundMuted;
+
     public string? ValidationWarning
     {
         get
@@ -296,6 +395,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
     public ICommand AddScheduleCommand { get; }
+    public ICommand BrowseProfileSoundCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -356,6 +456,18 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
         AddScheduleCommand = new RelayCommand(AddSchedule);
+        BrowseProfileSoundCommand = new RelayCommand(() =>
+        {
+            var dlg = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Select Sound File",
+                Filter = "WAV Files (*.wav)|*.wav",
+                CheckFileExists = true
+            };
+            if (dlg.ShowDialog() != true) return;
+            ProfileSoundCustomPath = dlg.FileName;
+            if (_model.SoundTone != "Custom") SetProfileSoundTone("Custom");
+        });
     }
 
     private async Task TestSound()

@@ -88,8 +88,9 @@ public partial class App : Application
         _themeService.ThemeApplied += () => _trayService.RebuildMenu();
 
         // 5. Initialise orchestrators
-        _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, Dispatcher);
-        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
+        var switchSoundService = new SwitchSoundService();
+        _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher);
+        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, switchSoundService, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile));
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.

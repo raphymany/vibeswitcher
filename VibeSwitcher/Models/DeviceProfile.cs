@@ -47,4 +47,11 @@ public class DeviceProfile
     public string? Notes { get; set; }
 
     public List<ScheduleEntry> Schedules { get; set; } = new();
+
+    // Per-profile switch sound override
+    public bool SoundOverride { get; set; } = false;
+    public bool SoundMuted { get; set; } = false;
+    public string? SoundTone { get; set; }        // null = inherit global
+    public string? SoundCustomPath { get; set; }  // null = inherit global
+    public int? SoundVolume { get; set; }          // null = inherit global
 }
