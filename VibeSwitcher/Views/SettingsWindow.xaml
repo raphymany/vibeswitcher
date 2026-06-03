@@ -1239,7 +1239,9 @@
         </ScrollViewer>
 
         <!-- ── General Settings card ── -->
-        <Border x:Name="SettingsCard" Grid.Row="3" Style="{StaticResource CardBorder}" Margin="0,0,0,14"
+        <Border x:Name="SettingsCard" Grid.Row="1" Grid.RowSpan="3"
+                VerticalAlignment="Bottom" Panel.ZIndex="5"
+                Style="{StaticResource CardBorder}" Margin="0,0,0,14"
                 Padding="0" ClipToBounds="True">
             <StackPanel>
                 <!-- Collapsible header -->
