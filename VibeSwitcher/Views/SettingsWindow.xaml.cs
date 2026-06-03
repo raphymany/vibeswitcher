@@ -346,7 +346,7 @@ public partial class SettingsWindow : Window
             var captured = dialog.CapturedHotkey;
             if (!captured.IsEmpty)
             {
-                var conflict = FindHotkeyConflict(captured, excludeScope: null);
+                var conflict = FindHotkeyConflict(captured, excludeScope: null, excludeSettingsHotkey: true);
                 if (conflict != null)
                 {
                     bool retry = new ConflictRetryDialog("Hotkey Already in Use",
@@ -410,15 +410,18 @@ public partial class SettingsWindow : Window
         _viewModel.ReregisterHotkeys();
     }
 
-    private string? FindHotkeyConflict(HotkeyDefinition captured, VibeSwitcher.Models.MuteScope? excludeScope)
+    private string? FindHotkeyConflict(HotkeyDefinition captured, VibeSwitcher.Models.MuteScope? excludeScope, bool excludeSettingsHotkey = false)
     {
         var profileOwner = _configService.Current.Profiles
             .FirstOrDefault(p => !p.Hotkey.IsEmpty && captured.Matches(p.Hotkey))?.Name;
         if (profileOwner != null) return $"\"{profileOwner}\"";
 
-        var settingsHk = _configService.Current.SettingsHotkey;
-        if (settingsHk != null && !settingsHk.IsEmpty && captured.Matches(settingsHk))
-            return "\"Open / Close VibeSwitcher\"";
+        if (!excludeSettingsHotkey)
+        {
+            var settingsHk = _configService.Current.SettingsHotkey;
+            if (settingsHk != null && !settingsHk.IsEmpty && captured.Matches(settingsHk))
+                return "\"Open / Close VibeSwitcher\"";
+        }
 
         var muteChecks = new[]
         {

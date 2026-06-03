@@ -24,28 +24,31 @@ public class MuteService
         {
             case MuteScope.Mic:
                 muting = !_micMuted;
-                _micMuted = muting;
-                SetDeviceMute(EDataFlow.Capture, muting);
+                if (SetDeviceMute(EDataFlow.Capture, muting))
+                    _micMuted = muting;
+                else
+                    muting = _micMuted; // COM failed — keep current state for sound
                 break;
             case MuteScope.Speakers:
                 muting = !_speakersMuted;
-                _speakersMuted = muting;
-                SetDeviceMute(EDataFlow.Render, muting);
+                if (SetDeviceMute(EDataFlow.Render, muting))
+                    _speakersMuted = muting;
+                else
+                    muting = _speakersMuted;
                 break;
             default: // Both
-                // If both are already muted, unmute both. Otherwise mute both.
                 muting = !(_micMuted && _speakersMuted);
-                _micMuted = muting;
-                _speakersMuted = muting;
-                SetDeviceMute(EDataFlow.Capture, muting);
-                SetDeviceMute(EDataFlow.Render, muting);
+                bool micOk = SetDeviceMute(EDataFlow.Capture, muting);
+                bool spkOk = SetDeviceMute(EDataFlow.Render, muting);
+                if (micOk) _micMuted = muting;
+                if (spkOk) _speakersMuted = muting;
                 break;
         }
         MuteStateChanged?.Invoke();
         Task.Run(() => PlaySound(scope, muting));
     }
 
-    private static void SetDeviceMute(EDataFlow flow, bool mute)
+    private static bool SetDeviceMute(EDataFlow flow, bool mute)
     {
         IMMDeviceEnumerator? enumerator = null;
         IMMDevice? device = null;
@@ -53,19 +56,27 @@ public class MuteService
         {
             enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
             enumerator.GetDefaultAudioEndpoint(flow, ERole.Console, out device);
-            if (device == null) return;
+            if (device == null) return false;
 
             var volumeGuid = typeof(IAudioEndpointVolume).GUID;
             device.Activate(ref volumeGuid, 23, IntPtr.Zero, out var obj);
-            if (obj is not IAudioEndpointVolume vol) return;
+            if (obj is not IAudioEndpointVolume vol) return false;
 
-            var ctx = Guid.Empty;
-            vol.SetMute(mute, ref ctx);
-            Marshal.ReleaseComObject(vol);
+            try
+            {
+                var ctx = Guid.Empty;
+                vol.SetMute(mute, ref ctx);
+                return true;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(vol);
+            }
         }
         catch (Exception ex)
         {
             AppLogger.Warning("MuteService.SetDeviceMute", ex.Message);
+            return false;
         }
         finally
         {

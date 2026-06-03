@@ -242,8 +242,26 @@ public class TrayService : IDisposable
         g.Clear(System.Drawing.Color.Transparent);
         using var brush = new System.Drawing.SolidBrush(color);
         g.FillEllipse(brush, 2, 2, 28, 28);
-        return System.Drawing.Icon.FromHandle(bmp.GetHicon());
+
+        // GetHicon returns an HICON we own — Icon.FromHandle does NOT take ownership,
+        // so we copy to a stream for an independent Icon then destroy the raw handle.
+        var hIcon = bmp.GetHicon();
+        try
+        {
+            using var temp = Icon.FromHandle(hIcon);
+            using var ms = new MemoryStream();
+            temp.Save(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            return new Icon(ms);
+        }
+        finally
+        {
+            DestroyIcon(hIcon);
+        }
     }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool DestroyIcon(IntPtr hIcon);
 
     public void RebuildMenu()
     {
