@@ -1202,6 +1202,21 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
+### ~~Branch 39: `feat/panic-hotkey`~~ ✅ Done — PR #86
+**Theme:** Instant global mute with configurable scope and audio feedback.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F37 | Three independent mute hotkeys in the Shortcuts card — Mute Microphone, Mute Speakers, Mute Mic + Speakers; each has its own enable toggle (off by default) and "Set hotkey" button | ✅ Done |
+| F37 | `MuteService` — toggles default audio endpoint via `IAudioEndpointVolume` COM interop; independent `_micMuted`/`_speakersMuted` booleans prevent scope-overlap confusion; state only updated after COM call succeeds | ✅ Done |
+| F37 | Color-coded tray flash — red (mic), blue (speakers), purple (both); `MakeColorIcon` uses stream-copy + `DestroyIcon` to avoid GDI handle leak | ✅ Done |
+| F37 | Distinct built-in sounds — descending blips on mic mute, ascending on unmute, frequency sweep + blips on both-unmute; no sound when muting speakers (inaudible) | ✅ Done |
+| F37 | Color-coded "i" badges — placed outside `CheckBox` so tooltip always works; red/blue/purple backgrounds match tray flash | ✅ Done |
+| F37 | Conflict detection — `FindHotkeyConflict` checks profiles, Settings hotkey, and other mute hotkeys; profile cancel path restores mute hotkeys; `FindInternalConflictOwner` checks mute hotkeys | ✅ Done |
+| F37 | Settings hotkey re-selection false positive fixed — skip settings hotkey check when called from `SettingsHotkeyButton_Click` | ✅ Done |
+
+---
+
 ### Branch 47: `refactor/code-quality`
 **Theme:** Code quality improvements identified during internal review of the scheduler branch.
 

@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-03 — Branch 38 (`feat/switch-sound`) merged as PR #84.
+**Last updated:** 2026-06-04 — Branch 39 (`feat/panic-hotkey`) merged as PR #86.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -124,7 +124,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F34~~ | ~~Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ | ✅ Done — PR #76 |
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30~~ | ✅ Done — PR #84 |
-| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording only (mic mute), playback only (deafen), or both; distinct activate/deactivate sounds (pre-made or custom .wav); tray icon flashes red while active; press again to unmute | 39 |
+| ~~F37~~ | ~~Deafen / panic hotkey — global configurable hotkeys (one per scope) that instantly mute system-wide; configurable scope: mic only (tray flashes red), speakers only (tray flashes blue), or both (tray flashes purple); distinct built-in activate/deactivate sounds; press again to unmute~~ | ✅ Done — PR #86 |
 | F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | 40 |
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle | 41 |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | 42 |
@@ -174,12 +174,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 39: `feat/panic-hotkey`
+### ~~Branch 39: `feat/panic-hotkey`~~ ✅ Merged — PR #86
 **Theme:** Instant global mute with configurable scope and audio feedback.
 
 | # | Feature |
 |---|---------|
-| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording devices only (mic mute), playback devices only (deafen), or both; distinct activate and deactivate sounds (pre-made tones or custom .wav); tray icon flashes red while active; press again to unmute and restore previous levels |
+| ~~F37~~ | ~~Deafen / panic hotkey — three independent configurable hotkeys (Mute Mic, Mute Speakers, Mute Mic + Speakers); each has its own enable toggle and color-coded badge; tray flashes red (mic), blue (speakers), or purple (both) while active; distinct built-in activate/deactivate sounds; press again to unmute~~ |
 
 ---
 
