@@ -7,6 +7,14 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Profile search and filter bar (F35)** — always-visible name search field at the top of the Settings window with live filtering and Esc-to-clear; italic placeholder text explains all available filter options *(PR #82)*
+- **Filter chips** — Mode (Playback / Recording / Both), Pinned, Active, Silent, Has Hotkey, Scheduled, Has Icon, Has Notes, Has Reminder; each chip is a toggle, all combinable with each other and with the name search for intersection filtering *(PR #82)*
+- **Day-of-week chips** — appear below the Scheduled chip; narrow results to profiles that run on a specific day *(PR #82)*
+- **"Clear all" and "No results" states** — a Clear All button resets every active filter at once; a "No results" message appears when the active filters match no profiles *(PR #82)*
+- **Remember last search** — optional setting in General Settings; when enabled, the last-typed name filter is persisted in `config.json` and restored on the next launch *(PR #82)*
+- **Settings card overlay** — expanding the General Settings card now collapses the filter bar and profile list so the full settings panel is visible without scrolling *(PR #82)*
+- **Window auto-reposition on settings expand** — when expanding the settings card would push the footer below the monitor edge, the window automatically slides upward to stay within the work area *(PR #82)*
+- **30 new unit tests** — `SettingsSearchTests` covers name filter, mode chips, pinned, active, silent, hotkey, scheduled, icon, notes, reminder, day chips, combined filters, clear all, no-results state, `IsAnyFilterActive`, and remember-search persistence *(PR #82)*
 - **Audio endpoint aliases (F31)** — user-defined friendly names per audio device; stored in `DeviceAliases` in `config.json`; shown in all Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); managed via a new "Manage…" button that opens the Device Aliases dialog *(PR #80)*
 - **Device Aliases dialog** — Playback / Recording tabs; stacked card layout per device showing the full device name, a status line (which profiles use it, or whether it is disconnected / disabled), and an alias TextBox; devices sorted with used-in-profile devices at the top, then A–Z; Save button flushes any focused TextBox before closing *(PR #80)*
 - **Themed global scrollbar** — implicit ScrollBar style in App.xaml: 20 px wide / tall, rounded corners, no arrow buttons, colors from `LightTheme.xaml` / `DarkTheme.xaml`; applies to every ScrollViewer in the app including the Device Aliases dialog and the Settings profile list *(PR #80)*

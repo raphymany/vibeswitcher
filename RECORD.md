@@ -561,7 +561,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F32 | Profile notes — optional short description field on each profile card (e.g. "For work meetings — webcam mic disabled"); stored per profile, shown below the profile name |
 | F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray right-click menu above unpinned ones for quick access when the list grows long |
 | F34 | Profile validation warnings — inline warning flag on cards when a hotkey is duplicated across profiles, a selected device is missing or disabled, or an icon path is invalid; surfaces silent failures before they cause confusion |
-| F35 | Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape |
+| ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | F36 | Optional switch sound — global default sound that plays on every profile switch, with optional per-profile override; choose from pre-made built-in tones or a custom .wav file; adjustable volume (0–100%) at both the global and per-profile level; per-profile silent toggle to disable entirely; pairs with F25 (silent switch) and F30 (icon flash) |
 | F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording devices only (mic mute), playback devices only (deafen), or both; distinct activate and deactivate sounds (pre-made tones or custom .wav); tray icon flashes red while active; pressing again unmutes and restores previous levels |
 | F38 | Temporary / transient profile switch — optional app-wide feature with a configurable keybind; switches to a profile temporarily and auto-reverts to the previous profile when a timer expires or a linked app closes; useful for quick calls without forgetting to switch back |
@@ -744,6 +744,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~35~~ | ~~`feat/profile-card-extras`~~ | ✅ Done — PR #76 |
 | ~~48~~ | ~~`perf/switch-optimizations`~~ | ✅ Done — PR #78 |
 | ~~36~~ | ~~`feat/device-aliases`~~ | ✅ Done — PR #80 |
+| ~~37~~ | ~~`feat/settings-search`~~ | ✅ Done — PR #82 |
 | 47 | `refactor/code-quality` | Planned |
 
 ---
@@ -1164,6 +1165,23 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | — | Taskbar pin fix — `SingleInstanceHelper` now uses a named `EventWaitHandle` (AutoReset, `Local\` scoped) for cross-process activation signaling; a second instance opens the event and sets it; the background listener in the first instance fires `OpenSettingsWindow` via `Dispatcher.InvokeAsync` | ✅ Done |
 | — | `Run.Text` binding `Mode=OneWay` — `Run.Text` defaults to `TwoWay`, which throws `XamlParseException` on a read-only property; fixed with explicit `Mode=OneWay` on `ProfileUsage` binding | ✅ Done |
 | — | 8 new unit tests — `DeviceAliasItemTests` (4 tests: property, alias changed event, raises change, clears alias) and `DeviceAliasTests` (4 tests: substitution, no alias, fallback, empty string) | ✅ Done |
+
+---
+
+### ~~Branch 37: `feat/settings-search`~~ ✅ Done — PR #82
+**Theme:** Profile search and filtering in the Settings window.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F35 | Name search field — live filtering with Esc-to-clear; placeholder explains all filter options | ✅ Done |
+| F35 | Filter chips — Mode (Playback / Recording / Both), Pinned, Active, Silent, Has Hotkey, Scheduled, Has Icon, Has Notes, Has Reminder; toggleable and combinable | ✅ Done |
+| F35 | Day-of-week chips — appear beneath the Scheduled chip; filter to profiles running on a specific day | ✅ Done |
+| F35 | `CenteredWrapPanel` — custom `Panel` subclass that horizontally centers each row of chips regardless of wrap | ✅ Done |
+| F35 | "Clear all" button and "No results" empty-state label | ✅ Done |
+| F35 | "Remember last search" setting — persists the last name filter in `config.json` across sessions | ✅ Done |
+| F35 | Settings card overlay — expanding the settings card collapses the filter bar and profile list so the full panel is visible | ✅ Done |
+| — | Window auto-reposition — when expanding the settings card would push the footer off-screen, the window slides upward to stay within the monitor work area | ✅ Done |
+| — | 30 new unit tests in `SettingsSearchTests` — name filter, mode chips, pinned, active, silent, hotkey, scheduled, icon, notes, reminder, day chips, combined filters, clear all, no-results state, `IsAnyFilterActive`, remember-search persistence | ✅ Done |
 
 ---
 

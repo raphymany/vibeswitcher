@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-03 — Branch 36 (`feat/device-aliases`) merged as PR #80.
+**Last updated:** 2026-06-03 — Branch 37 (`feat/settings-search`) merged as PR #82.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -122,7 +122,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F32~~ | ~~Profile notes — optional short description field on each profile card; stored per profile, shown below the profile name~~ | ✅ Done — PR #76 |
 | ~~F33~~ | ~~Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray menu above unpinned ones~~ | ✅ Done — PR #76 |
 | ~~F34~~ | ~~Profile validation warnings — inline warning on cards for duplicate hotkeys, missing/disabled devices, or invalid icon paths~~ | ✅ Done — PR #76 |
-| F35 | Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape | 37 |
+| ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | F36 | Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30 | 38 |
 | F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording only (mic mute), playback only (deafen), or both; distinct activate/deactivate sounds (pre-made or custom .wav); tray icon flashes red while active; press again to unmute | 39 |
 | F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | 40 |
@@ -156,12 +156,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 37: `feat/settings-search`
+### ~~Branch 37: `feat/settings-search`~~ ✅ Merged — PR #82
 **Theme:** Profile search and filtering in the Settings window.
 
 | # | Feature |
 |---|---------|
-| F35 | Search / filter — text box at the top of the profile list; filters in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape |
+| ~~F35~~ | ~~Search / filter — text box at the top of the profile list; filters in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ |
 
 ---
 
