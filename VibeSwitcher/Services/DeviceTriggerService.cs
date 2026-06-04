@@ -176,8 +176,10 @@ public sealed class DeviceTriggerService : IDisposable
         if (!ri.HasValue) return;
         if (_configService.Current.ActiveProfileId != ri.Value.TriggeredProfileId) return;
 
-        // Find the triggered profile and confirm it matches the HID descriptor's VID/PID.
-        // This avoids reverting when the user has a different profile active.
+        // Find the triggered profile and confirm it uses an audio device that belongs
+        // to the same USB hardware as the HID descriptor (matched by VID/PID in the
+        // endpoint's device path). This avoids reverting when the currently active
+        // profile was triggered by a different device.
         var triggeredProfile = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
 
@@ -188,13 +190,21 @@ public sealed class DeviceTriggerService : IDisposable
         RevertToPrevious(ri.Value.PreviousProfileId);
     }
 
-    private static bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)
+    private bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)
     {
-        // Match by checking if the profile's playback or recording device ID contains
-        // the VID/PID string — Windows device IDs embed VID_XXXX&PID_XXXX in the path.
+        // Windows audio endpoint IDs are opaque GUIDs and don't contain VID/PID.
+        // We read the PKEY_AudioEndpoint_Path property instead, which is the symbolic
+        // device interface link and does embed VID_XXXX&PID_XXXX for USB/HID hardware.
         var vidPid = $"VID_{descriptor.VendorId:X4}&PID_{descriptor.ProductId:X4}";
-        return (profile.PlaybackDeviceId  != null && profile.PlaybackDeviceId.Contains(vidPid,  StringComparison.OrdinalIgnoreCase))
-            || (profile.RecordingDeviceId != null && profile.RecordingDeviceId.Contains(vidPid, StringComparison.OrdinalIgnoreCase));
+        return EndpointPathContains(profile.PlaybackDeviceId, vidPid)
+            || EndpointPathContains(profile.RecordingDeviceId, vidPid);
+    }
+
+    private bool EndpointPathContains(string? audioDeviceId, string vidPid)
+    {
+        if (audioDeviceId == null) return false;
+        var path = _audioService.GetAudioEndpointPath(audioDeviceId);
+        return path != null && path.Contains(vidPid, StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose()

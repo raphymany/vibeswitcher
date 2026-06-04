@@ -24,6 +24,14 @@ public struct PROPERTYKEY
         fmtid = new Guid("A45C254E-DF1C-4EFD-8020-67D146A850E0"),
         pid = 14
     };
+
+    // PKEY_AudioEndpoint_Path — symbolic link of the audio device interface.
+    // For USB/HID hardware, includes the device path with VID/PID embedded.
+    public static readonly PROPERTYKEY AudioEndpointPath = new()
+    {
+        fmtid = new Guid("1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E"),
+        pid = 1
+    };
 }
 
 // Minimal PROPVARIANT — only handles the VT_LPWSTR case we need for device names.

@@ -255,6 +255,34 @@ public class AudioService : IAudioService
         }
     }
 
+    // Returns the symbolic device path for the given audio endpoint (e.g.
+    // "\\?\USB#VID_046D&PID_0ABA&MI_00#...") which embeds VID/PID for USB devices.
+    public string? GetAudioEndpointPath(string audioDeviceId)
+    {
+        var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+        try
+        {
+            if (enumerator.GetDevice(audioDeviceId, out var device) != 0) return null;
+            IPropertyStore? store = null;
+            try
+            {
+                device.OpenPropertyStore(0, out store);
+                var key = PROPERTYKEY.AudioEndpointPath;
+                store.GetValue(ref key, out var pv);
+                var result = pv.ToStringValue();
+                PropVariant.PropVariantClear(ref pv);
+                return result;
+            }
+            finally
+            {
+                if (store != null) Marshal.ReleaseComObject(store);
+                Marshal.ReleaseComObject(device);
+            }
+        }
+        catch { return null; }
+        finally { Marshal.ReleaseComObject(enumerator); }
+    }
+
     // ── Test sound (playback) ─────────────────────────────────────────────────
 
     public Task TestSoundAsync(string deviceId) => Task.Run(() => PlayTestTone(deviceId));

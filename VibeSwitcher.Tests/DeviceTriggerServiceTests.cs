@@ -552,6 +552,150 @@ public class DeviceTriggerServiceTests
         Assert.Equal(gameProfile.Id, config.Current.ActiveProfileId);
     }
 
+    // ── HID wireless disconnect revert ───────────────────────────────────────
+
+    private static readonly HidHeadsetDescriptor ProXDescriptor =
+        new(0x046D, 0x0ABA, "Logitech PRO X Wireless");
+
+    // Simulated audio endpoint path for the PRO X — contains VID/PID as Windows does.
+    private const string ProXEndpointPath =
+        @"\\?\USB#VID_046D&PID_0ABA&MI_00#8&2d96db4c&0&0000#{6994ad04-93ef-11d0-a3cc-00a0c9223196}";
+
+    [Fact]
+    public void Reverts_OnHidWirelessDisconnect_WhenProfileMatchesDescriptor()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
+        audio.EndpointPaths["dev-headset"] = ProXEndpointPath;
+
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var speakerProfile = new DeviceProfile
+        {
+            Name = "Speakers", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-speakers", TriggerOnConnect = false,
+        };
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [headsetProfile, speakerProfile],
+            ActiveProfileId = speakerProfile.Id,
+        });
+
+        var switches = new List<DeviceProfile>();
+        using var svc = new DeviceTriggerService(audio, config, p =>
+        {
+            config.Current.ActiveProfileId = p.Id;
+            switches.Add(p);
+        });
+
+        // Headset powers on → property change triggers switch
+        audio.RaiseDevicePropertyChanged("dev-headset");
+        Assert.Single(switches);
+        Assert.Equal(headsetProfile, switches[0]);
+
+        // HID reports headset powered off → should revert
+        svc.OnHidWirelessDisconnected(ProXDescriptor);
+        Assert.Equal(2, switches.Count);
+        Assert.Equal(speakerProfile, switches[1]);
+    }
+
+    [Fact]
+    public void DoesNotRevert_OnHidWirelessDisconnect_WhenNoRevertInfoSet()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
+        audio.EndpointPaths["dev-headset"] = ProXEndpointPath;
+
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [headsetProfile] });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+
+        // No prior auto-switch — HID disconnect should do nothing
+        svc.OnHidWirelessDisconnected(ProXDescriptor);
+        Assert.Null(switched);
+    }
+
+    [Fact]
+    public void DoesNotRevert_OnHidWirelessDisconnect_WhenDescriptorDoesNotMatchProfile()
+    {
+        // Profile is for a different device (no VID/PID match) — HID disconnect should not revert.
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-other")] };
+        audio.EndpointPaths["dev-other"] = @"\\?\USB#VID_1234&PID_5678&MI_00#...";
+
+        var otherProfile = PlaybackProfile("dev-other");
+        var speakerProfile = new DeviceProfile
+        {
+            Name = "Speakers", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-speakers", TriggerOnConnect = false,
+        };
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [otherProfile, speakerProfile],
+            ActiveProfileId = speakerProfile.Id,
+        });
+
+        var switches = new List<DeviceProfile>();
+        using var svc = new DeviceTriggerService(audio, config, p =>
+        {
+            config.Current.ActiveProfileId = p.Id;
+            switches.Add(p);
+        });
+
+        // Some other device connects → triggers otherProfile
+        audio.RaiseDevicePropertyChanged("dev-other");
+        Assert.Single(switches);
+
+        // PRO X headset turns off — but the triggered profile is not for the PRO X
+        svc.OnHidWirelessDisconnected(ProXDescriptor);
+        Assert.Single(switches); // no revert
+    }
+
+    [Fact]
+    public void DoesNotRevert_OnHidWirelessDisconnect_WhenUserManuallyChangedProfile()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
+        audio.EndpointPaths["dev-headset"] = ProXEndpointPath;
+
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var speakerProfile = new DeviceProfile
+        {
+            Name = "Speakers", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-speakers", TriggerOnConnect = false,
+        };
+        var gameProfile = new DeviceProfile
+        {
+            Name = "Gaming", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-game", TriggerOnConnect = false,
+        };
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [headsetProfile, speakerProfile, gameProfile],
+            ActiveProfileId = speakerProfile.Id,
+        });
+
+        var switches = new List<DeviceProfile>();
+        using var svc = new DeviceTriggerService(audio, config, p =>
+        {
+            config.Current.ActiveProfileId = p.Id;
+            switches.Add(p);
+        });
+
+        // Headset powers on → auto-switch to headset profile
+        audio.RaiseDevicePropertyChanged("dev-headset");
+        Assert.Single(switches);
+
+        // User manually switches to gaming profile
+        config.Current.ActiveProfileId = gameProfile.Id;
+
+        // HID disconnect — active profile is no longer the triggered profile, so no revert
+        svc.OnHidWirelessDisconnected(ProXDescriptor);
+        Assert.Single(switches);
+        Assert.Equal(gameProfile.Id, config.Current.ActiveProfileId);
+    }
+
     // ── multiple simultaneous newly-connected devices ─────────────────────────
 
     [Fact]
