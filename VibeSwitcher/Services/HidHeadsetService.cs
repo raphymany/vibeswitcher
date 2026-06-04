@@ -209,9 +209,11 @@ public sealed class HidHeadsetService : IDisposable
         //   [10] [dev_idx] [41] [status] [00] [00] [00]
         //   status 0x04 = link established, 0x03 = link lost
         //
-        // HID++ 2.0 long (20 bytes), Wireless Device Status feature (0x1D4B):
-        //   [11] [dev_idx] [feat_idx] [evt] [status] ...
-        //   status byte 0x01 = connected, 0x00 = disconnected
+        // HID++ 2.0 long (20 bytes) from LIGHTSPEED receiver (broadcast device index 0xFF):
+        //   [11] [FF] [06] [00] [status] ...
+        //   byte[2]=0x06 = wireless status feature index (Logitech PRO X Wireless, VID 046D/PID 0ABA)
+        //   byte[3]=0x00 = status-change event
+        //   byte[4]=0x00 → headset powered off, non-zero → headset powered on
         //
         // If neither pattern matches, returns false and the report is ignored.
         private static bool TryParseWirelessState(byte[] data, int length, out bool connected)
@@ -225,17 +227,13 @@ public sealed class HidHeadsetService : IDisposable
                 return data[3] is 0x03 or 0x04;
             }
 
-            // HID++ 2.0 long report — device index 0x01, check byte 4 for status
-            if (length >= 5 && data[0] == 0x11 && data[1] == 0x01)
+            // HID++ 2.0 long report — LIGHTSPEED receiver broadcast (device index 0xFF)
+            // Feature index 0x06, event 0x00 = wireless device status change.
+            // byte[4] = 0x00 → disconnected; non-zero → connected.
+            if (length >= 5 && data[0] == 0x11 && data[1] == 0xFF && data[2] == 0x06 && data[3] == 0x00)
             {
-                // Byte 4: wireless state (0x01 = connected, 0x00 = disconnected)
-                // Only treat it as a wireless state report if byte 4 is 0 or 1
-                // and the rest of the state bytes look like a status notification.
-                if (data[4] is 0x00 or 0x01 && data[3] == 0x00)
-                {
-                    connected = data[4] == 0x01;
-                    return true;
-                }
+                connected = data[4] != 0x00;
+                return true;
             }
 
             return false;
