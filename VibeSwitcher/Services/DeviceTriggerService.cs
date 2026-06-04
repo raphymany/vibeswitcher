@@ -1,3 +1,4 @@
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 
 namespace VibeSwitcher.Services;
@@ -173,31 +174,57 @@ public sealed class DeviceTriggerService : IDisposable
         RevertInfo? ri;
         lock (_stateLock) ri = _revertInfo;
 
-        if (!ri.HasValue) return;
-        if (_configService.Current.ActiveProfileId != ri.Value.TriggeredProfileId) return;
+        if (!ri.HasValue)
+        {
+            AppLogger.Info("DeviceTriggerService.HidRevert",
+                $"{descriptor.ModelName}: no revert info set — skipping.");
+            return;
+        }
 
-        // Find the triggered profile and confirm it uses an audio device that belongs
-        // to the same USB hardware as the HID descriptor (matched by VID/PID in the
-        // endpoint's device path). This avoids reverting when the currently active
-        // profile was triggered by a different device.
+        if (_configService.Current.ActiveProfileId != ri.Value.TriggeredProfileId)
+        {
+            AppLogger.Info("DeviceTriggerService.HidRevert",
+                $"{descriptor.ModelName}: active profile changed since trigger — skipping revert.");
+            return;
+        }
+
         var triggeredProfile = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
 
-        if (triggeredProfile == null) return;
-        if (!IsProfileForDescriptor(triggeredProfile, descriptor)) return;
+        if (triggeredProfile == null)
+        {
+            AppLogger.Info("DeviceTriggerService.HidRevert",
+                $"{descriptor.ModelName}: triggered profile not found — skipping.");
+            return;
+        }
 
+        if (!IsProfileForDescriptor(triggeredProfile, descriptor))
+        {
+            AppLogger.Info("DeviceTriggerService.HidRevert",
+                $"{descriptor.ModelName}: triggered profile '{triggeredProfile.Name}' does not match descriptor — skipping.");
+            return;
+        }
+
+        AppLogger.Info("DeviceTriggerService.HidRevert",
+            $"{descriptor.ModelName}: reverting from '{triggeredProfile.Name}'.");
         lock (_stateLock) _revertInfo = null;
         RevertToPrevious(ri.Value.PreviousProfileId);
     }
 
     private bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)
     {
-        // Windows audio endpoint IDs are opaque GUIDs and don't contain VID/PID.
-        // We read the PKEY_AudioEndpoint_Path property instead, which is the symbolic
-        // device interface link and does embed VID_XXXX&PID_XXXX for USB/HID hardware.
         var vidPid = $"VID_{descriptor.VendorId:X4}&PID_{descriptor.ProductId:X4}";
-        return EndpointPathContains(profile.PlaybackDeviceId, vidPid)
-            || EndpointPathContains(profile.RecordingDeviceId, vidPid);
+        var pbPath = profile.PlaybackDeviceId != null
+            ? _audioService.GetAudioEndpointPath(profile.PlaybackDeviceId) : null;
+        var recPath = profile.RecordingDeviceId != null
+            ? _audioService.GetAudioEndpointPath(profile.RecordingDeviceId) : null;
+
+        AppLogger.Info("DeviceTriggerService.HidRevert",
+            $"Checking profile '{profile.Name}' for {vidPid}: " +
+            $"playbackPath=[{pbPath ?? "null"}] recordingPath=[{recPath ?? "null"}]");
+
+        return (pbPath != null && pbPath.Contains(vidPid, StringComparison.OrdinalIgnoreCase))
+            || (recPath != null && recPath.Contains(vidPid, StringComparison.OrdinalIgnoreCase));
     }
 
     private bool EndpointPathContains(string? audioDeviceId, string vidPid)
