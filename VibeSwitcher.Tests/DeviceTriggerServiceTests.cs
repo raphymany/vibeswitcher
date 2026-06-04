@@ -616,6 +616,57 @@ public class DeviceTriggerServiceTests
     }
 
     [Fact]
+    public void Switches_OnHidWirelessConnect_WhenProfileMatchesDescriptor()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-headset")] };
+
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var speakerProfile = new DeviceProfile
+        {
+            Name = "Speakers", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-speakers", TriggerOnConnect = false,
+        };
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [headsetProfile, speakerProfile],
+            ActiveProfileId = speakerProfile.Id,
+        });
+
+        var switches = new List<DeviceProfile>();
+        using var svc = new DeviceTriggerService(audio, config, p =>
+        {
+            config.Current.ActiveProfileId = p.Id;
+            switches.Add(p);
+        });
+
+        svc.OnHidWirelessConnected(ProXDescriptor);
+
+        Assert.Single(switches);
+        Assert.Equal(headsetProfile, switches[0]);
+    }
+
+    [Fact]
+    public void DoesNotSwitch_OnHidWirelessConnect_WhenProfileAlreadyActive()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-headset")] };
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [headsetProfile],
+            ActiveProfileId = headsetProfile.Id,
+        });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+
+        svc.OnHidWirelessConnected(ProXDescriptor);
+
+        Assert.Null(switched);
+    }
+
+    [Fact]
     public void DoesNotRevert_OnHidWirelessDisconnect_WhenDescriptorDoesNotMatchProfile()
     {
         // Profile is for a different device — friendly name has no relation to PRO X Wireless.

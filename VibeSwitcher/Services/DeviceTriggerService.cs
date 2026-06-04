@@ -165,6 +165,29 @@ public sealed class DeviceTriggerService : IDisposable
             _ => false
         };
 
+    // Called by HidHeadsetService when a monitored wireless headset powers on.
+    // Uses the HID signal instead of waiting for the Windows audio property change,
+    // which arrives 3-5 seconds later for LIGHTSPEED dongles.
+    public void OnHidWirelessConnected(HidHeadsetDescriptor descriptor)
+    {
+        if (_disposed) return;
+
+        var profile = _configService.Current.Profiles
+            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
+            .OrderByDescending(p => p.IsPinned)
+            .ThenBy(p => p.SortOrder)
+            .FirstOrDefault(p => IsProfileForDescriptor(p, descriptor));
+
+        if (profile == null) return;
+
+        lock (_stateLock)
+            _revertInfo = new RevertInfo(profile.Id, _configService.Current.ActiveProfileId);
+
+        AppLogger.Info("DeviceTriggerService.HidConnect",
+            $"{descriptor.ModelName}: switching to '{profile.Name}'.");
+        DispatchSwitch(profile);
+    }
+
     // Called by HidHeadsetService when a monitored wireless headset powers off.
     // Triggers the same revert logic as a physical device disconnect.
     public void OnHidWirelessDisconnected(HidHeadsetDescriptor descriptor)
