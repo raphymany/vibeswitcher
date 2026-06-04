@@ -20,6 +20,7 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 - **Pinned profiles** — star a profile to keep it at the top of the tray menu
 - **Profile notes** — attach a short description to any profile, visible on its card
 - **Filter chips** — quickly narrow the profile list by mode, pinned, active, hotkey, sound, schedule, and more
+- **Auto-switch on connect** — switch to a profile the moment a USB or 3.5mm audio device is plugged in, and revert when it is removed; supported wireless headsets also detect power-on/off through the USB dongle without needing to unplug anything
 - **Drag-and-drop reorder** — rearrange profile cards by dragging them
 - **Import / export** — back up your full configuration to a `.json` file and restore it on any machine
 - **Light / dark / system theme** — follows the Windows OS theme automatically, or lock it to light or dark
@@ -74,6 +75,25 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for IDE setup and project structure.
 ## Known Limitations
 
 - **Remote Desktop (RDP):** Global hotkeys registered with `RegisterHotKey` act on the *local* machine, not the remote session. Hotkeys will not switch audio devices on the remote end while connected via RDP.
+
+## Wireless headset detection
+
+Supported wireless headsets auto-switch the moment you power them on or off —
+no unplugging needed. This works even for headsets with a USB dongle that
+stays plugged in permanently (like Logitech LIGHTSPEED), where Windows
+can't detect the power state on its own.
+
+**Supported headsets**
+
+| Model                   | VID  | PID  |
+|-------------------------|------|------|
+| Logitech PRO X Wireless | 046D | 0ABA |
+
+**Don't see your headset?** Open a GitHub issue using the
+[Add wireless headset](https://github.com/raphymany/vibeswitcher/issues/new?template=add-headset.yml)
+template — it walks you through finding the two IDs we need from Device Manager.
+
+> Wired headsets and 3.5mm jacks are already handled automatically.
 
 ## License
 

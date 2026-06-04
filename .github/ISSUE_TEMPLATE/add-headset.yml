@@ -1,0 +1,69 @@
+name: Add wireless headset support
+description: Request power-on/off detection for your wireless headset
+title: "[Headset] Your model name here"
+labels: ["headset-support"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        VibeSwitcher detects wireless headset power-on/off by reading USB packets directly from the dongle. To add your headset we need two hardware IDs from Device Manager.
+
+  - type: input
+    id: model
+    attributes:
+      label: Headset model name
+      placeholder: e.g. Logitech PRO X 2 LIGHTSPEED
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        **How to find your VID and PID:**
+        1. Press **Win + X** and open **Device Manager**
+        2. Expand **Human Interface Devices**
+        3. Right-click entries that mention your headset name one by one (if none are labelled with the headset name, try them all)
+        4. Select **Properties → Details tab**
+        5. In the dropdown choose **Hardware IDs**
+        6. Look for a line like: `HID\VID_046D&PID_0ABA&MI_03&Col02`
+        7. The 4 characters after `VID_` are your **Vendor ID** and the 4 after `PID_` are your **Product ID**
+
+  - type: input
+    id: vid
+    attributes:
+      label: Vendor ID (VID)
+      description: The 4 characters after VID_ in the Hardware IDs line
+      placeholder: e.g. 046D
+    validations:
+      required: true
+
+  - type: input
+    id: pid
+    attributes:
+      label: Product ID (PID)
+      description: The 4 characters after PID_ in the Hardware IDs line
+      placeholder: e.g. 0ABA
+    validations:
+      required: true
+
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection type
+      options:
+        - USB dongle (LIGHTSPEED / UNIFYING / etc.)
+        - Bluetooth
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes (optional)
+      description: Firmware version, whether G HUB is installed, any other context that might help
+
+  - type: markdown
+    attributes:
+      value: |
+        > **Note:** This feature is for wireless headsets with a USB dongle that stays plugged in permanently. Wired headsets and 3.5mm jacks are already handled automatically by Windows — no request needed.
