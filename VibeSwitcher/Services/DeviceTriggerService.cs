@@ -9,6 +9,13 @@ public sealed class DeviceTriggerService : IDisposable
     private readonly Action<DeviceProfile> _switchCallback;
     private volatile HashSet<string> _connectedIds;
     private volatile bool _disposed;
+    private readonly Dictionary<string, DateTime> _propCooldowns =
+        new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _cooldownLock = new();
+
+    // Minimum gap between property-change-triggered switches for the same device.
+    // Prevents false positives from rapid property updates (e.g. volume changes).
+    private static readonly TimeSpan PropCooldown = TimeSpan.FromSeconds(30);
 
     public DeviceTriggerService(
         IAudioService audioService,
@@ -19,7 +26,8 @@ public sealed class DeviceTriggerService : IDisposable
         _configService   = configService;
         _switchCallback  = switchCallback;
         _connectedIds    = BuildConnectedSet();
-        _audioService.DevicesChanged += OnDevicesChanged;
+        _audioService.DevicesChanged       += OnDevicesChanged;
+        _audioService.DevicePropertyChanged += OnDevicePropertyChanged;
     }
 
     private HashSet<string> BuildConnectedSet()
@@ -51,7 +59,38 @@ public sealed class DeviceTriggerService : IDisposable
             .FirstOrDefault(p => IsTriggeredBy(p, newlyConnected));
 
         if (profile == null) return;
+        DispatchSwitch(profile);
+    }
 
+    // Fallback path for devices whose Windows state never changes on power-on/off
+    // (e.g. wireless headsets whose USB dongle keeps the endpoint "ready" at all times).
+    // When a device's properties change, we check if it matches a TriggerOnConnect profile
+    // and switch — subject to a per-device cooldown to avoid false positives.
+    private void OnDevicePropertyChanged(string deviceId)
+    {
+        if (_disposed) return;
+
+        var profile = _configService.Current.Profiles
+            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
+            .OrderByDescending(p => p.IsPinned)
+            .ThenBy(p => p.SortOrder)
+            .FirstOrDefault(p => IsTriggeredByDevice(p, deviceId));
+
+        if (profile == null) return;
+
+        lock (_cooldownLock)
+        {
+            if (_propCooldowns.TryGetValue(deviceId, out var last) &&
+                DateTime.UtcNow - last < PropCooldown)
+                return;
+            _propCooldowns[deviceId] = DateTime.UtcNow;
+        }
+
+        DispatchSwitch(profile);
+    }
+
+    private void DispatchSwitch(DeviceProfile profile)
+    {
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher != null)
             dispatcher.InvokeAsync(() => _switchCallback(profile));
@@ -71,9 +110,20 @@ public sealed class DeviceTriggerService : IDisposable
             _ => false
         };
 
+    private static bool IsTriggeredByDevice(DeviceProfile profile, string deviceId) =>
+        profile.Mode switch
+        {
+            ProfileMode.Playback  => StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId,  deviceId),
+            ProfileMode.Recording => StringComparer.OrdinalIgnoreCase.Equals(profile.RecordingDeviceId, deviceId),
+            ProfileMode.Both      => StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId,  deviceId) ||
+                                     StringComparer.OrdinalIgnoreCase.Equals(profile.RecordingDeviceId, deviceId),
+            _ => false
+        };
+
     public void Dispose()
     {
         _disposed = true;
-        _audioService.DevicesChanged -= OnDevicesChanged;
+        _audioService.DevicesChanged       -= OnDevicesChanged;
+        _audioService.DevicePropertyChanged -= OnDevicePropertyChanged;
     }
 }

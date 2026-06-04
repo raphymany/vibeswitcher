@@ -27,12 +27,14 @@ public class AudioService : IAudioService
     private volatile bool _disposed;
 
     public event Action? DevicesChanged;
+    public event Action<string>? DevicePropertyChanged;
 
     public AudioService()
     {
         _notifEnumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
         _notifClient = new DeviceNotificationClient();
         _notifClient.DevicesChanged += () => DevicesChanged?.Invoke();
+        _notifClient.DevicePropertyChanged += id => DevicePropertyChanged?.Invoke(id);
 
         try
         {

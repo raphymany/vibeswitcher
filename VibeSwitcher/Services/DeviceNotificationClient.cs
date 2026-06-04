@@ -13,6 +13,9 @@ internal sealed class DeviceNotificationClient : IMMNotificationClient
     private CancellationTokenSource? _debounce;
 
     public event Action? DevicesChanged;
+    public event Action<string>? DevicePropertyChanged;
+
+    private CancellationTokenSource? _propDebounce;
 
     public DeviceNotificationClient(TimeSpan? debounceInterval = null)
     {
@@ -23,7 +26,20 @@ internal sealed class DeviceNotificationClient : IMMNotificationClient
     public void OnDeviceAdded(string deviceId) => Schedule();
     public void OnDeviceRemoved(string deviceId) => Schedule();
     public void OnDefaultDeviceChanged(EDataFlow flow, ERole role, string? defaultDeviceId) { }
-    public void OnPropertyValueChanged(string deviceId, PROPERTYKEY key) { }
+
+    public void OnPropertyValueChanged(string deviceId, PROPERTYKEY key)
+    {
+        CancellationTokenSource cts;
+        lock (_lock)
+        {
+            _propDebounce?.Cancel();
+            _propDebounce?.Dispose();
+            _propDebounce = cts = new CancellationTokenSource();
+        }
+        _ = Task.Delay(_debounceInterval, cts.Token).ContinueWith(
+            t => { if (!t.IsCanceled) DevicePropertyChanged?.Invoke(deviceId); },
+            TaskContinuationOptions.ExecuteSynchronously);
+    }
 
     private void Schedule()
     {

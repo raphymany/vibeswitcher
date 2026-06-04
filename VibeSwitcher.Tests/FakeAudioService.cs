@@ -6,6 +6,7 @@ namespace VibeSwitcher.Tests;
 internal sealed class FakeAudioService : IAudioService
 {
     public event Action? DevicesChanged;
+    public event Action<string>? DevicePropertyChanged;
 
     public IReadOnlyList<AudioDeviceInfo> PlaybackResult { get; set; } = [];
     public IReadOnlyList<AudioDeviceInfo> RecordingResult { get; set; } = [];
@@ -24,5 +25,6 @@ internal sealed class FakeAudioService : IAudioService
     }
 
     public void RaiseDevicesChanged() => DevicesChanged?.Invoke();
+    public void RaiseDevicePropertyChanged(string deviceId) => DevicePropertyChanged?.Invoke(deviceId);
     public void Dispose() { }
 }

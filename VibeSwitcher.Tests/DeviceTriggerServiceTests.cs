@@ -342,6 +342,94 @@ public class DeviceTriggerServiceTests
         Assert.Equal(2, switchCount);
     }
 
+    // ── property-change path (for always-ready devices) ───────────────────────
+
+    [Fact]
+    public void Triggers_ViaPropertyChange_WhenDeviceAlwaysReady()
+    {
+        // Device is already in the connected set from startup — simulates a USB dongle
+        // that stays "ready" whether the headset is on or off.
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-A")] };
+        var profile = PlaybackProfile("dev-A");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [profile] });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+
+        // Device connect path would not fire (device was already in connectedIds).
+        // Property change path should fire instead.
+        audio.RaiseDevicePropertyChanged("dev-A");
+
+        Assert.Equal(profile, switched);
+    }
+
+    [Fact]
+    public void DoesNotTrigger_ViaPropertyChange_WhenProfileAlreadyActive()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-A")] };
+        var profile = PlaybackProfile("dev-A");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [profile], ActiveProfileId = profile.Id });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+
+        audio.RaiseDevicePropertyChanged("dev-A");
+
+        Assert.Null(switched);
+    }
+
+    [Fact]
+    public void DoesNotTrigger_ViaPropertyChange_WhenUnrelatedDevice()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-A")] };
+        var profile = PlaybackProfile("dev-A");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [profile] });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+
+        audio.RaiseDevicePropertyChanged("dev-OTHER");
+
+        Assert.Null(switched);
+    }
+
+    [Fact]
+    public void DoesNotTrigger_ViaPropertyChange_WithinCooldownWindow()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-A")] };
+        var profile = PlaybackProfile("dev-A");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [profile] });
+
+        int switchCount = 0;
+        using var svc = new DeviceTriggerService(audio, config, _ => switchCount++);
+
+        audio.RaiseDevicePropertyChanged("dev-A"); // first — fires
+        audio.RaiseDevicePropertyChanged("dev-A"); // immediate repeat — suppressed by cooldown
+
+        Assert.Equal(1, switchCount);
+    }
+
+    [Fact]
+    public void DoesNotTrigger_ViaPropertyChange_AfterDispose()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-A")] };
+        var profile = PlaybackProfile("dev-A");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [profile] });
+
+        DeviceProfile? switched = null;
+        var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        svc.Dispose();
+
+        audio.RaiseDevicePropertyChanged("dev-A");
+
+        Assert.Null(switched);
+    }
+
     // ── multiple simultaneous newly-connected devices ─────────────────────────
 
     [Fact]
