@@ -90,7 +90,7 @@ can't detect the power state on its own.
 | Logitech PRO X Wireless | 046D | 0ABA |
 
 **Don't see your headset?** Open a GitHub issue using the
-[Add wireless headset](https://github.com/raphymany/vibeswitcher/issues/new?template=add-headset.yml)
+[Add wireless headset](https://github.com/raphymany/vibeswitcher/issues/new/choose)
 template — it walks you through finding the two IDs we need from Device Manager.
 
 > Wired headsets and 3.5mm jacks are already handled automatically.
