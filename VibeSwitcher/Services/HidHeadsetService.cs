@@ -23,23 +23,41 @@ public sealed class HidHeadsetService : IDisposable
 
     private void TryOpenDevice(HidHeadsetDescriptor descriptor)
     {
+        var candidates = DeviceList.Local
+            .GetHidDevices(vendorID: descriptor.VendorId, productID: descriptor.ProductId)
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            AppLogger.Info("HidHeadsetService",
+                $"{descriptor.ModelName}: no HID devices found for VID={descriptor.VendorId:X4} PID={descriptor.ProductId:X4}.");
+            return;
+        }
+
+        // Log all candidates so we can identify the right interface from the log.
+        foreach (var c in candidates)
+        {
+            var usageSummary = GetUsageSummary(c);
+            AppLogger.Info("HidHeadsetService",
+                $"{descriptor.ModelName} candidate: {c.DevicePath} usages=[{usageSummary}]");
+        }
+
+        // Prefer the vendor-defined HID++ interface (usage page 0xFF43).
+        // Fall back to any other vendor usage page (0xFF00+) if 0xFF43 isn't found —
+        // the exact page varies by firmware revision and we need the log to confirm.
+        var hidDevice = candidates.FirstOrDefault(IsHidPpInterface)
+                     ?? candidates.FirstOrDefault(HasAnyVendorUsagePage);
+
+        if (hidDevice == null)
+        {
+            AppLogger.Info("HidHeadsetService",
+                $"{descriptor.ModelName}: no vendor-defined HID interface found. " +
+                $"Check the log for 'candidate' lines to identify the correct path.");
+            return;
+        }
+
         try
         {
-            // Find the HID++ vendor interface (usage page 0xFF43) for this device.
-            // The audio interface (MI_00) and HID++ interface (MI_03) share the same
-            // VID/PID but report different usage pages via their HID descriptors.
-            var hidDevice = DeviceList.Local
-                .GetHidDevices(vendorID: descriptor.VendorId, productID: descriptor.ProductId)
-                .Where(IsHidPpInterface)
-                .FirstOrDefault();
-
-            if (hidDevice == null)
-            {
-                AppLogger.Info("HidHeadsetService",
-                    $"{descriptor.ModelName} HID++ interface not found — skipping.");
-                return;
-            }
-
             var reader = new DeviceReader(hidDevice, descriptor,
                 d => WirelessConnected?.Invoke(d),
                 d => WirelessDisconnected?.Invoke(d));
@@ -56,22 +74,40 @@ public sealed class HidHeadsetService : IDisposable
         }
     }
 
+    private static string GetUsageSummary(HidDevice device)
+    {
+        try
+        {
+            return string.Join(", ", device.GetReportDescriptor().DeviceItems
+                .SelectMany(item => item.Usages.GetAllValues())
+                .Select(u => $"0x{u:X8}"));
+        }
+        catch (Exception ex)
+        {
+            return $"error:{ex.Message}";
+        }
+    }
+
     private static bool IsHidPpInterface(HidDevice device)
     {
         try
         {
-            var descriptor = device.GetReportDescriptor();
-            // DeviceItems contains one entry per top-level HID collection.
-            // Each DeviceItem.Usages stores 32-bit values: (usagePage << 16) | usage.
-            // We look for any collection whose usage page is the Logitech vendor page.
-            return descriptor.DeviceItems.Any(item =>
+            return device.GetReportDescriptor().DeviceItems.Any(item =>
                 item.Usages.GetAllValues().Any(u =>
                     (u >> 16) == KnownHidHeadsets.LogitechVendorUsagePage));
         }
-        catch
+        catch { return false; }
+    }
+
+    private static bool HasAnyVendorUsagePage(HidDevice device)
+    {
+        try
         {
-            return false;
+            // Any usage page >= 0xFF00 is vendor-defined in the HID spec.
+            return device.GetReportDescriptor().DeviceItems.Any(item =>
+                item.Usages.GetAllValues().Any(u => (u >> 16) >= 0xFF00));
         }
+        catch { return false; }
     }
 
     public void Dispose()
