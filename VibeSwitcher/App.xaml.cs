@@ -23,6 +23,7 @@ public partial class App : Application
     private SchedulerService? _schedulerService;
     private MuteService? _muteService;
     private DeviceTriggerService? _deviceTriggerService;
+    private HidHeadsetService? _hidHeadsetService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -148,6 +149,13 @@ public partial class App : Application
             _configService,
             profile => _orchestrator.SwitchToProfile(profile));
 
+        // 9d. HID headset monitor — detects wireless power-off for supported headsets
+        //     and triggers the revert that the audio API can't detect on its own.
+        _hidHeadsetService = new HidHeadsetService();
+        _hidHeadsetService.WirelessDisconnected +=
+            d => _deviceTriggerService.OnHidWirelessDisconnected(d);
+        _hidHeadsetService.Start();
+
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
@@ -251,6 +259,7 @@ public partial class App : Application
             SystemEvents.PowerModeChanged -= _schedulerService.OnPowerModeChanged;
             _schedulerService.Dispose();
         }
+        _hidHeadsetService?.Dispose();
         _deviceTriggerService?.Dispose();
         _themeService?.StopListening();
         _hotkeyService?.UnregisterAll();

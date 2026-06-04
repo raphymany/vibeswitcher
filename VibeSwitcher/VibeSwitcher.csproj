@@ -15,14 +15,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Icons\app.ico"/>
-    <Resource Include="Themes\LightTheme.xaml"/>
-    <Resource Include="Themes\DarkTheme.xaml"/>
+    <Resource Include="Resources\Icons\app.ico" />
+    <Resource Include="Themes\LightTheme.xaml" />
+    <Resource Include="Themes\DarkTheme.xaml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="H.NotifyIcon" Version="2.0.*" />
     <PackageReference Include="H.NotifyIcon.Wpf" Version="2.0.*" />
+    <PackageReference Include="HidSharp" Version="2.6.4" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
 

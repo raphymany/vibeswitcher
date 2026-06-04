@@ -164,6 +164,39 @@ public sealed class DeviceTriggerService : IDisposable
             _ => false
         };
 
+    // Called by HidHeadsetService when a monitored wireless headset powers off.
+    // Triggers the same revert logic as a physical device disconnect.
+    public void OnHidWirelessDisconnected(HidHeadsetDescriptor descriptor)
+    {
+        if (_disposed) return;
+
+        RevertInfo? ri;
+        lock (_stateLock) ri = _revertInfo;
+
+        if (!ri.HasValue) return;
+        if (_configService.Current.ActiveProfileId != ri.Value.TriggeredProfileId) return;
+
+        // Find the triggered profile and confirm it matches the HID descriptor's VID/PID.
+        // This avoids reverting when the user has a different profile active.
+        var triggeredProfile = _configService.Current.Profiles
+            .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
+
+        if (triggeredProfile == null) return;
+        if (!IsProfileForDescriptor(triggeredProfile, descriptor)) return;
+
+        lock (_stateLock) _revertInfo = null;
+        RevertToPrevious(ri.Value.PreviousProfileId);
+    }
+
+    private static bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)
+    {
+        // Match by checking if the profile's playback or recording device ID contains
+        // the VID/PID string — Windows device IDs embed VID_XXXX&PID_XXXX in the path.
+        var vidPid = $"VID_{descriptor.VendorId:X4}&PID_{descriptor.ProductId:X4}";
+        return (profile.PlaybackDeviceId  != null && profile.PlaybackDeviceId.Contains(vidPid,  StringComparison.OrdinalIgnoreCase))
+            || (profile.RecordingDeviceId != null && profile.RecordingDeviceId.Contains(vidPid, StringComparison.OrdinalIgnoreCase));
+    }
+
     public void Dispose()
     {
         _disposed = true;
