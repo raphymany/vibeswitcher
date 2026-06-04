@@ -35,7 +35,10 @@ public static class IconHelper
                 var canonical = Path.GetFullPath(iconPath);
 
                 // Reject paths outside the managed icons directory — prevents path traversal.
-                if (!canonical.StartsWith(iconsDir, StringComparison.OrdinalIgnoreCase))
+                // Check for separator after the prefix so "Icons_sibling" dirs can't slip through.
+                var iconsPrefix = iconsDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                          + Path.DirectorySeparatorChar;
+                if (!canonical.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase))
                 {
                     AppLogger.Warning("IconHelper.LoadIcon", $"Rejected icon path outside icons directory: '{canonical}'");
                     SessionErrorTracker.Record(ErrorCode.IconLoadFailed, "Icon Path Rejected",

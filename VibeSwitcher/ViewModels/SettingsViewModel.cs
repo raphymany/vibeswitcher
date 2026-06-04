@@ -338,7 +338,8 @@ public class SettingsViewModel : ViewModelBase
         _modeFilter != "Any mode"               ||
         _pinnedFilter  || _activeFilter  || _silentFilter  ||
         _hotkeyFilter  || _notesFilter   || _iconFilter    ||
-        _warningFilter || _scheduledFilter || _reminderFilter;
+        _warningFilter || _scheduledFilter || _reminderFilter ||
+        DayChips.Any(d => d.IsSelected);
 
     public ICommand ClearFiltersCommand { get; }
 

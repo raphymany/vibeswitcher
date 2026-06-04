@@ -6,9 +6,9 @@ namespace VibeSwitcher.Services;
 
 public class SwitchSoundService : ISwitchSoundService
 {
-    public Task PlayAsync(DeviceProfile profile, AppConfig config)
+    public Task PlayAsync(DeviceProfile profile)
     {
-        var resolved = Resolve(profile, config);
+        var resolved = Resolve(profile);
         if (resolved is null) return Task.CompletedTask;
         var (tone, customPath, volume) = resolved.Value;
         return Task.Run(() => PlaySync(tone, customPath, volume));
@@ -18,7 +18,7 @@ public class SwitchSoundService : ISwitchSoundService
         => Task.Run(() => PlaySync(tone, customPath, volume));
 
     // Returns null when no sound should play.
-    internal static (string tone, string? customPath, int volume)? Resolve(DeviceProfile profile, AppConfig config)
+    internal static (string tone, string? customPath, int volume)? Resolve(DeviceProfile profile)
     {
         if (!profile.SoundOverride) return null;
         return (

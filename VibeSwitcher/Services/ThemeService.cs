@@ -20,18 +20,7 @@ public class ThemeService
         _configService = configService;
     }
 
-    public void Apply()
-    {
-        var mode = _configService.Current.Theme ?? "Auto";
-        bool isDark = mode switch
-        {
-            "Dark"  => true,
-            "Light" => false,
-            _       => IsOsDark()
-        };
-        SwapDictionary(isDark ? DarkUri : LightUri);
-        ThemeApplied?.Invoke();
-    }
+    public void Apply() => Apply(_configService.Current.Theme ?? "Auto");
 
     public void Apply(string mode)
     {

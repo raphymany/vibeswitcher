@@ -42,9 +42,4 @@ public class AppConfig
     public HotkeyDefinition? MuteBothHotkey { get; set; }
     public bool MuteBothHotkeyEnabled { get; set; } = false;
 
-    // Switch sound — global defaults
-    public bool SwitchSoundEnabled { get; set; } = false;
-    public string SwitchSoundTone { get; set; } = "Click";  // "Click", "Chime", "Blip", "Custom"
-    public string? SwitchSoundCustomPath { get; set; }
-    public int SwitchSoundVolume { get; set; } = 50;
 }

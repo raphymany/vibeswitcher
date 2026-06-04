@@ -122,8 +122,17 @@ public class ConfigService : IConfigService
     {
         lock (_saveLock)
         {
-            var json = JsonSerializer.Serialize(_config, JsonOptions);
-            File.WriteAllText(destinationPath, json);
+            try
+            {
+                var json = JsonSerializer.Serialize(_config, JsonOptions);
+                File.WriteAllText(destinationPath, json);
+            }
+            catch (Exception ex)
+            {
+                AppLogger.Error("ConfigService.ExportTo", ex);
+                SessionErrorTracker.Record(ErrorCode.ConfigSaveFailed, "Export Failed", ex.Message);
+                throw;
+            }
         }
     }
 
