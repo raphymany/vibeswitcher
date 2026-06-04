@@ -1014,6 +1014,41 @@
                                                         </ToggleButton.Template>
                                                     </ToggleButton>
                                                 </Border>
+                                                <!-- Auto-switch on connect toggle -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <ToggleButton IsChecked="{Binding TriggerOnConnect}"
+                                                                  Cursor="Hand" Focusable="False"
+                                                                  OverridesDefaultStyle="True"
+                                                                  ToolTipService.InitialShowDelay="400"
+                                                                  ToolTipService.ShowDuration="12000">
+                                                        <ToggleButton.ToolTip>
+                                                            <ToolTip>
+                                                                <TextBlock TextWrapping="Wrap" MaxWidth="240" Foreground="{DynamicResource PrimaryText}">
+                                                                    Auto-switch on connect — automatically activate this profile when its assigned device is plugged in or connected. Only one matching profile switches per connect event; pinned profiles take priority.
+                                                                </TextBlock>
+                                                            </ToolTip>
+                                                        </ToggleButton.ToolTip>
+                                                        <ToggleButton.Template>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="plug" Text="🔌" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsChecked" Value="True">
+                                                                        <Setter TargetName="plug" Property="Foreground" Value="#4CAF50"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </ToggleButton.Template>
+                                                    </ToggleButton>
+                                                </Border>
                                                 <!-- Pin toggle -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"

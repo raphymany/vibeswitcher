@@ -22,6 +22,8 @@ public partial class App : Application
     private ThemeService? _themeService;
     private SchedulerService? _schedulerService;
     private MuteService? _muteService;
+    private DeviceTriggerService? _deviceTriggerService;
+    private HidHeadsetService? _hidHeadsetService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -96,10 +98,13 @@ public partial class App : Application
         _muteService.MuteStateChanged += () =>
             _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
-            switchProfile: profile => _orchestrator.SwitchToProfile(profile));
+            switchProfile: profile => _orchestrator.SwitchToProfile(profile),
+            onReschedule: () => _schedulerService?.Reschedule());
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
         _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);
+        // Keep the settings window's active-profile indicators in sync with background switches.
+        _orchestrator.ProfileSwitched += () => _windowManager!.NotifyProfileSwitched();
 
         // 6. Register hotkeys
         RegisterHotkeys();
@@ -137,6 +142,21 @@ public partial class App : Application
         SystemEvents.PowerModeChanged += _schedulerService.OnPowerModeChanged;
         _schedulerService.Start();
         _schedulerService.EvaluateNow();
+
+        // 9c. Device trigger — auto-switch when a profile's device is connected
+        _deviceTriggerService = new DeviceTriggerService(
+            _audioService,
+            _configService,
+            profile => _orchestrator.SwitchToProfile(profile));
+
+        // 9d. HID headset monitor — detects wireless power-off for supported headsets
+        //     and triggers the revert that the audio API can't detect on its own.
+        _hidHeadsetService = new HidHeadsetService();
+        _hidHeadsetService.WirelessConnected    +=
+            d => _deviceTriggerService.OnHidWirelessConnected(d);
+        _hidHeadsetService.WirelessDisconnected +=
+            d => _deviceTriggerService.OnHidWirelessDisconnected(d);
+        _hidHeadsetService.Start();
 
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
@@ -241,6 +261,8 @@ public partial class App : Application
             SystemEvents.PowerModeChanged -= _schedulerService.OnPowerModeChanged;
             _schedulerService.Dispose();
         }
+        _hidHeadsetService?.Dispose();
+        _deviceTriggerService?.Dispose();
         _themeService?.StopListening();
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);

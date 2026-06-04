@@ -42,7 +42,8 @@ public partial class SettingsWindow : Window
         IHotkeyService hotkeyService,
         TrayService trayService,
         Action<string> applyTheme,
-        Action<Models.DeviceProfile>? switchProfile = null)
+        Action<Models.DeviceProfile>? switchProfile = null,
+        Action? onReschedule = null)
     {
         InitializeComponent();
         _trayService = trayService;
@@ -64,6 +65,7 @@ public partial class SettingsWindow : Window
                 var active = configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == configService.Current.ActiveProfileId);
                 trayService.UpdateIcon(active);
+                onReschedule?.Invoke();
             },
             onHotkeyConflict: ex =>
             {
@@ -112,6 +114,8 @@ public partial class SettingsWindow : Window
             }
         };
     }
+
+    public void RefreshActiveStates() => _viewModel.RefreshActiveStates();
 
     private void OnBoundsChanged(object? sender, EventArgs e)
     {

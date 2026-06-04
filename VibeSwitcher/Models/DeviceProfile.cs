@@ -48,6 +48,9 @@ public class DeviceProfile
 
     public List<ScheduleEntry> Schedules { get; set; } = new();
 
+    // Automatically switch to this profile when its device(s) connect
+    public bool TriggerOnConnect { get; set; } = false;
+
     // Per-profile switch sound override
     public bool SoundOverride { get; set; } = false;
     public bool SoundShowBanner { get; set; } = false;

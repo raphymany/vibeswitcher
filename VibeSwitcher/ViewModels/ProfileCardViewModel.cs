@@ -191,6 +191,18 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
     }
 
+    public bool TriggerOnConnect
+    {
+        get => _model.TriggerOnConnect;
+        set
+        {
+            if (_model.TriggerOnConnect == value) return;
+            _model.TriggerOnConnect = value;
+            OnPropertyChanged(nameof(TriggerOnConnect));
+            _onChanged(this);
+        }
+    }
+
     public string? Notes
     {
         get => _model.Notes;
