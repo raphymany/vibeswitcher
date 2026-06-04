@@ -7,6 +7,7 @@ public sealed class DeviceTriggerService : IDisposable
     private readonly IAudioService _audioService;
     private readonly IConfigService _configService;
     private readonly Action<DeviceProfile> _switchCallback;
+    private readonly Func<DateTime> _clock;
     private volatile HashSet<string> _connectedIds;
     private volatile bool _disposed;
 
@@ -17,7 +18,10 @@ public sealed class DeviceTriggerService : IDisposable
         new(StringComparer.OrdinalIgnoreCase);
 
     // Revert state: when we auto-switch to a profile, remember what was active before
-    // so we can switch back when the device disconnects or turns off.
+    // so we can switch back when the device disconnects (OnDevicesChanged).
+    // Property changes are only used for forward triggers — for always-ready dongles
+    // (e.g. Logitech wireless) Windows only fires OnPropertyValueChanged on power-ON,
+    // not power-OFF, so property changes cannot be used to detect "headset turned off."
     private readonly record struct RevertInfo(Guid TriggeredProfileId, Guid? PreviousProfileId);
     private RevertInfo? _revertInfo;
     private readonly object _stateLock = new();
@@ -25,11 +29,13 @@ public sealed class DeviceTriggerService : IDisposable
     public DeviceTriggerService(
         IAudioService audioService,
         IConfigService configService,
-        Action<DeviceProfile> switchCallback)
+        Action<DeviceProfile> switchCallback,
+        Func<DateTime>? clock = null)
     {
         _audioService    = audioService;
         _configService   = configService;
         _switchCallback  = switchCallback;
+        _clock           = clock ?? (() => DateTime.UtcNow);
         _connectedIds    = BuildConnectedSet();
         _audioService.DevicesChanged        += OnDevicesChanged;
         _audioService.DevicePropertyChanged += OnDevicePropertyChanged;
@@ -92,31 +98,13 @@ public sealed class DeviceTriggerService : IDisposable
 
     // Fallback path for devices whose Windows state never changes on power-on/off
     // (e.g. wireless headsets whose USB dongle keeps the endpoint "ready" at all times).
+    // Only used for forward triggers — Windows only fires OnPropertyValueChanged on
+    // power-ON for these devices, so there is no property-change signal for power-OFF.
+    // Revert (if applicable) is handled by OnDevicesChanged on actual disconnect.
     private void OnDevicePropertyChanged(string deviceId)
     {
         if (_disposed) return;
 
-        // Check if this property change means the headset turned OFF — revert to previous profile.
-        RevertInfo? ri;
-        lock (_stateLock) ri = _revertInfo;
-
-        if (ri.HasValue && _configService.Current.ActiveProfileId == ri.Value.TriggeredProfileId)
-        {
-            var triggeredProfile = _configService.Current.Profiles
-                .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
-            if (triggeredProfile != null && IsTriggeredByDevice(triggeredProfile, deviceId))
-            {
-                lock (_stateLock)
-                {
-                    _revertInfo = null;
-                    _propCooldowns.Remove(deviceId); // allow re-trigger on next power-on
-                }
-                RevertToPrevious(ri.Value.PreviousProfileId);
-                return;
-            }
-        }
-
-        // Forward trigger: headset is powering ON — switch to its profile.
         var profile = _configService.Current.Profiles
             .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
             .OrderByDescending(p => p.IsPinned)
@@ -127,10 +115,11 @@ public sealed class DeviceTriggerService : IDisposable
 
         lock (_stateLock)
         {
+            var now = _clock();
             if (_propCooldowns.TryGetValue(deviceId, out var last) &&
-                DateTime.UtcNow - last < PropCooldown)
+                now - last < PropCooldown)
                 return;
-            _propCooldowns[deviceId] = DateTime.UtcNow;
+            _propCooldowns[deviceId] = now;
             _revertInfo = new RevertInfo(profile.Id, _configService.Current.ActiveProfileId);
         }
 

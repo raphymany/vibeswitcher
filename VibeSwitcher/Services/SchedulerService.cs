@@ -28,25 +28,105 @@ public class SchedulerService : IDisposable
         _clock = clock ?? (() => DateTime.Now);
     }
 
-    public void Start()
+    // Called once at startup. EvaluateNow() is called separately by App.xaml.cs to
+    // catch any schedules that were due while the app wasn't running.
+    public void Start() => ScheduleNext(_clock());
+
+    // Recompute and reset the timer — call whenever profiles or schedules change.
+    public void Reschedule()
     {
-        _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
-        _timer.Tick += (_, _) => EvaluateNow();
-        _timer.Start();
+        _timer?.Stop();
+        _timer = null;
+        ScheduleNext(_clock());
     }
 
-    public void EvaluateNow() => Evaluate(_clock());
+    public void EvaluateNow()
+    {
+        _timer?.Stop();
+        _timer = null;
+        Evaluate(_clock());
+        ScheduleNext(_clock());
+    }
 
     public void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
         if (e.Mode != PowerModes.Resume) return;
         // SystemEvents fires on a thread-pool thread — marshal to the UI thread so Evaluate()
-        // runs on the same thread as the DispatcherTimer.Tick path and avoids dictionary races.
+        // runs on the same thread as the timer-tick path and avoids dictionary races.
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher != null)
             dispatcher.InvokeAsync(EvaluateNow);
         else
             EvaluateNow(); // headless / test environment
+    }
+
+    private void ScheduleNext(DateTime now)
+    {
+        var next = FindNextFireTime(now);
+        if (next == null) return; // no schedules — nothing to wait for
+
+        var delay = next.Value - now;
+        if (delay < TimeSpan.Zero) delay = TimeSpan.Zero;
+
+        _timer = new DispatcherTimer { Interval = delay };
+        _timer.Tick += (_, _) =>
+        {
+            _timer?.Stop();
+            _timer = null;
+            EvaluateNow(); // fire and schedule the one after this
+        };
+        _timer.Start();
+    }
+
+    // Returns the earliest upcoming moment that needs an action (switch or reminder).
+    internal DateTime? FindNextFireTime(DateTime now)
+    {
+        DateTime? earliest = null;
+        foreach (var profile in _configService.Current.Profiles)
+        {
+            foreach (var entry in profile.Schedules)
+            {
+                if (!entry.Enabled || entry.Days.Count == 0) continue;
+
+                var switchTime = GetNextOccurrence(now, entry.Days, entry.Hour, entry.Minute);
+                TakeEarlier(ref earliest, switchTime);
+
+                if (entry.ReminderMinutes > 0 && switchTime != null)
+                {
+                    var reminderTime = switchTime.Value.AddMinutes(-entry.ReminderMinutes);
+                    if (reminderTime > now)
+                    {
+                        TakeEarlier(ref earliest, reminderTime);
+                    }
+                    else
+                    {
+                        // Reminder for the upcoming switch already passed — look one occurrence further.
+                        var nextSwitch = GetNextOccurrence(switchTime.Value, entry.Days, entry.Hour, entry.Minute);
+                        if (nextSwitch != null)
+                            TakeEarlier(ref earliest, nextSwitch.Value.AddMinutes(-entry.ReminderMinutes));
+                    }
+                }
+            }
+        }
+        return earliest;
+    }
+
+    // Finds the next DateTime after 'after' when the given days/hour/minute occurs.
+    private static DateTime? GetNextOccurrence(DateTime after, List<DayOfWeek> days, int hour, int minute)
+    {
+        for (int daysAhead = 0; daysAhead < 8; daysAhead++)
+        {
+            var candidate = after.Date.AddDays(daysAhead).AddHours(hour).AddMinutes(minute);
+            if (candidate > after && days.Contains(candidate.DayOfWeek))
+                return candidate;
+        }
+        return null;
+    }
+
+    private static void TakeEarlier(ref DateTime? current, DateTime? candidate)
+    {
+        if (candidate == null) return;
+        if (current == null || candidate < current) current = candidate;
     }
 
     private void Evaluate(DateTime now)
@@ -90,10 +170,7 @@ public class SchedulerService : IDisposable
 
     public void Dispose()
     {
-        if (_timer != null)
-        {
-            _timer.Stop();
-            _timer = null;
-        }
+        _timer?.Stop();
+        _timer = null;
     }
 }

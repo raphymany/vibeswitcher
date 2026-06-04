@@ -470,8 +470,12 @@ public class DeviceTriggerServiceTests
     }
 
     [Fact]
-    public void Reverts_ToOriginalProfile_ViaPropertyChange_WhenHeadsetTurnsOff()
+    public void DoesNotRevert_ViaPropertyChange_WhenHeadsetPowersOnAgain()
     {
+        // Windows only fires OnPropertyValueChanged when the headset powers ON for always-ready
+        // dongles (Logitech, etc.) — there is no property-change event for power-OFF.
+        // A second power-on should NOT revert to the previous profile; it should do nothing
+        // because the headset profile is already active.
         var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset"), Connected("dev-speakers")] };
         var headsetProfile = PlaybackProfile("dev-headset");
         var speakerProfile = new DeviceProfile
@@ -493,15 +497,16 @@ public class DeviceTriggerServiceTests
             switches.Add(p);
         });
 
-        // Headset powers on → property change → switch to headset
+        // Headset powers on → switches to headset profile
         audio.RaiseDevicePropertyChanged("dev-headset");
         Assert.Single(switches);
         Assert.Equal(headsetProfile, switches[0]);
 
-        // Headset powers off → next property change → revert to speakers
+        // Headset powers on again (e.g. user turned it off then on) →
+        // headset profile is already active, so nothing changes
         audio.RaiseDevicePropertyChanged("dev-headset");
-        Assert.Equal(2, switches.Count);
-        Assert.Equal(speakerProfile, switches[1]);
+        Assert.Single(switches); // no additional switch
+        Assert.Equal(headsetProfile.Id, config.Current.ActiveProfileId);
     }
 
     [Fact]
@@ -540,7 +545,8 @@ public class DeviceTriggerServiceTests
         // User manually switches to gaming profile (outside of trigger)
         config.Current.ActiveProfileId = gameProfile.Id;
 
-        // Headset turns off — triggered profile is no longer active, so no revert
+        // Headset property change fires again — suppressed by the 30-second cooldown
+        // (both events happen within the same test instant, well under 30 seconds)
         audio.RaiseDevicePropertyChanged("dev-headset");
         Assert.Single(switches); // no additional switch
         Assert.Equal(gameProfile.Id, config.Current.ActiveProfileId);

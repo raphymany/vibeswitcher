@@ -97,7 +97,8 @@ public partial class App : Application
         _muteService.MuteStateChanged += () =>
             _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
-            switchProfile: profile => _orchestrator.SwitchToProfile(profile));
+            switchProfile: profile => _orchestrator.SwitchToProfile(profile),
+            onReschedule: () => _schedulerService?.Reschedule());
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
         _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);

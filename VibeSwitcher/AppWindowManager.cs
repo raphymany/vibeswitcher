@@ -13,6 +13,7 @@ public class AppWindowManager
     private readonly TrayService _trayService;
     private readonly Action<string> _applyTheme;
     private readonly Action<Models.DeviceProfile>? _switchProfile;
+    private readonly Action? _onReschedule;
 
     public AppWindowManager(
         IConfigService configService,
@@ -20,14 +21,16 @@ public class AppWindowManager
         IHotkeyService hotkeyService,
         TrayService trayService,
         Action<string> applyTheme,
-        Action<Models.DeviceProfile>? switchProfile = null)
+        Action<Models.DeviceProfile>? switchProfile = null,
+        Action? onReschedule = null)
     {
-        _configService = configService;
-        _audioService  = audioService;
-        _hotkeyService = hotkeyService;
-        _trayService   = trayService;
-        _applyTheme    = applyTheme;
-        _switchProfile = switchProfile;
+        _configService  = configService;
+        _audioService   = audioService;
+        _hotkeyService  = hotkeyService;
+        _trayService    = trayService;
+        _applyTheme     = applyTheme;
+        _switchProfile  = switchProfile;
+        _onReschedule   = onReschedule;
     }
 
     public void OpenSettingsWindow()
@@ -46,7 +49,7 @@ public class AppWindowManager
             return;
         }
 
-        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme, _switchProfile);
+        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme, _switchProfile, _onReschedule);
         window.Show();
     }
 

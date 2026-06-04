@@ -261,6 +261,111 @@ public class SchedulerServiceTests
         Assert.Empty(switched);
     }
 
+    // ── FindNextFireTime ──────────────────────────────────────────────────────
+
+    [Fact]
+    public void FindNextFireTime_ReturnsNull_WhenNoProfiles()
+    {
+        var svc = new SchedulerService(MakeConfig(), (_, _) => { }, (_, _) => { });
+        Assert.Null(svc.FindNextFireTime(new DateTime(2026, 1, 5, 9, 0, 0)));
+    }
+
+    [Fact]
+    public void FindNextFireTime_ReturnsNull_WhenNoEnabledSchedules()
+    {
+        var entry = new ScheduleEntry { Enabled = false, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (_, _) => { }, (_, _) => { });
+        Assert.Null(svc.FindNextFireTime(new DateTime(2026, 1, 5, 8, 0, 0)));
+    }
+
+    [Fact]
+    public void FindNextFireTime_ReturnsTodayOccurrence_WhenScheduledLaterToday()
+    {
+        // Monday 08:00, schedule is Monday 09:00 → next is today at 09:00
+        var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (_, _) => { }, (_, _) => { });
+        var now = new DateTime(2026, 1, 5, 8, 0, 0); // Monday 08:00
+        var next = svc.FindNextFireTime(now);
+        Assert.Equal(new DateTime(2026, 1, 5, 9, 0, 0), next);
+    }
+
+    [Fact]
+    public void FindNextFireTime_WrapsToNextWeek_WhenTimePassedToday()
+    {
+        // Monday 10:00, schedule is Monday 09:00 → next occurrence is next Monday
+        var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (_, _) => { }, (_, _) => { });
+        var now = new DateTime(2026, 1, 5, 10, 0, 0); // Monday 10:00
+        var next = svc.FindNextFireTime(now);
+        Assert.Equal(new DateTime(2026, 1, 12, 9, 0, 0), next); // next Monday
+    }
+
+    [Fact]
+    public void FindNextFireTime_ReturnsReminderTime_WhenEarlierThanSwitch()
+    {
+        // Monday 08:00, schedule 09:00 with 30-min reminder → reminder at 08:30 is earliest
+        var entry = new ScheduleEntry
+        {
+            Enabled = true, Hour = 9, Minute = 0,
+            Days = [DayOfWeek.Monday],
+            ReminderMinutes = 30
+        };
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (_, _) => { }, (_, _) => { });
+        var now = new DateTime(2026, 1, 5, 8, 0, 0);
+        var next = svc.FindNextFireTime(now);
+        Assert.Equal(new DateTime(2026, 1, 5, 8, 30, 0), next); // reminder at 08:30
+    }
+
+    [Fact]
+    public void FindNextFireTime_ReturnsSwitchTime_WhenReminderAlreadyPassed()
+    {
+        // Monday 08:45, schedule 09:00 with 30-min reminder → reminder was 08:30 (past),
+        // switch at 09:00 is earliest. Next reminder is next Monday at 08:30.
+        var entry = new ScheduleEntry
+        {
+            Enabled = true, Hour = 9, Minute = 0,
+            Days = [DayOfWeek.Monday],
+            ReminderMinutes = 30
+        };
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (_, _) => { }, (_, _) => { });
+        var now = new DateTime(2026, 1, 5, 8, 45, 0); // past the 08:30 reminder
+        var next = svc.FindNextFireTime(now);
+        // Switch at 09:00 is sooner than next Monday's reminder at 08:30
+        Assert.Equal(new DateTime(2026, 1, 5, 9, 0, 0), next);
+    }
+
+    [Fact]
+    public void FindNextFireTime_LooksAheadForReminder_WhenSwitchAndReminderBothPassed()
+    {
+        // Monday 09:05, schedule 09:00 with 30-min reminder — both switch and reminder have passed.
+        // Next switch is next Monday 09:00; next reminder is next Monday 08:30.
+        // Earliest should be next Monday 08:30.
+        var entry = new ScheduleEntry
+        {
+            Enabled = true, Hour = 9, Minute = 0,
+            Days = [DayOfWeek.Monday],
+            ReminderMinutes = 30
+        };
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (_, _) => { }, (_, _) => { });
+        var now = new DateTime(2026, 1, 5, 9, 5, 0); // past both
+        var next = svc.FindNextFireTime(now);
+        Assert.Equal(new DateTime(2026, 1, 12, 8, 30, 0), next); // next Monday reminder
+    }
+
+    [Fact]
+    public void FindNextFireTime_ReturnsEarliest_AcrossMultipleProfiles()
+    {
+        var p1 = new DeviceProfile { Name = "P1" };
+        p1.Schedules.Add(new ScheduleEntry { Enabled = true, Hour = 10, Minute = 0, Days = [DayOfWeek.Monday] });
+        var p2 = new DeviceProfile { Name = "P2" };
+        p2.Schedules.Add(new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] });
+
+        var svc = new SchedulerService(MakeConfig(p1, p2), (_, _) => { }, (_, _) => { });
+        var now = new DateTime(2026, 1, 5, 8, 0, 0); // Monday 08:00
+        var next = svc.FindNextFireTime(now);
+        Assert.Equal(new DateTime(2026, 1, 5, 9, 0, 0), next); // P2 at 09:00 wins
+    }
+
     [Fact]
     public void DedupClearsAfterSufficientTime_OnSameDay()
     {
