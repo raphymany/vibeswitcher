@@ -30,7 +30,7 @@ public class SettingsSearchTests
         });
     }
 
-    // ── Name filter ─────────────────────────────────────────────────────────
+    // ── Mode filter ──────────────────────────────────────────────────────────
 
     [Fact]
     public void NoFilters_AllCardsVisible()
@@ -43,46 +43,6 @@ public class SettingsSearchTests
         Assert.False(vm.HasNoFilterResults);
         Assert.False(vm.IsAnyFilterActive);
     }
-
-    [Fact]
-    public void NameFilter_MatchingCardVisible_OtherHidden()
-    {
-        AddProfile("Gaming");
-        AddProfile("Work");
-        var vm = MakeViewModel();
-
-        vm.NameFilter = "gam";
-
-        Assert.True(vm.Profiles[0].IsVisible);
-        Assert.False(vm.Profiles[1].IsVisible);
-    }
-
-    [Fact]
-    public void NameFilter_CaseInsensitive()
-    {
-        AddProfile("Gaming");
-        var vm = MakeViewModel();
-
-        vm.NameFilter = "GAMING";
-
-        Assert.True(vm.Profiles[0].IsVisible);
-    }
-
-    [Fact]
-    public void NameFilter_Clear_AllCardsRestored()
-    {
-        AddProfile("Gaming");
-        AddProfile("Work");
-        var vm = MakeViewModel();
-        vm.NameFilter = "zzz";
-
-        vm.NameFilter = "";
-
-        Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
-        Assert.False(vm.HasNoFilterResults);
-    }
-
-    // ── Mode filter ──────────────────────────────────────────────────────────
 
     [Fact]
     public void ModeFilter_PlaybackOnly_ShowsCorrectCards()
@@ -123,7 +83,7 @@ public class SettingsSearchTests
         Assert.False(vm.Profiles[1].IsVisible);
     }
 
-    // ── Active / Silent / Hotkey / Notes / Icon / Warning filters ───────────
+    // ── Active / Silent / Hotkey / Notes / Icon / Warning / Sound filters ───
 
     [Fact]
     public void ActiveFilter_ShowsOnlyActiveProfile()
@@ -206,6 +166,19 @@ public class SettingsSearchTests
         Assert.False(vm.Profiles[1].IsVisible);
     }
 
+    [Fact]
+    public void SoundFilter_ShowsOnlyProfilesWithSoundOverride()
+    {
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "WithSound", SoundOverride = true, SoundTone = "Click", SoundVolume = 50 });
+        _fakeConfig.Current.Profiles.Add(new DeviceProfile { Name = "NoSound" });
+        var vm = MakeViewModel();
+
+        vm.SoundFilter = true;
+
+        Assert.True(vm.Profiles[0].IsVisible);
+        Assert.False(vm.Profiles[1].IsVisible);
+    }
+
     // ── Scheduled filter ─────────────────────────────────────────────────────
 
     [Fact]
@@ -271,18 +244,18 @@ public class SettingsSearchTests
     // ── Combined filters ─────────────────────────────────────────────────────
 
     [Fact]
-    public void CombinedFilter_NameAndMode_BothApplied()
+    public void CombinedFilter_PinnedAndMode_BothApplied()
     {
-        AddProfile("Gaming", ProfileMode.Playback);
-        AddProfile("Work",   ProfileMode.Both);
-        AddProfile("Gaming Mic", ProfileMode.Both);
+        AddProfile("Gaming", ProfileMode.Playback, isPinned: true);
+        AddProfile("Work",   ProfileMode.Both,     isPinned: false);
+        AddProfile("Pinned Both", ProfileMode.Both, isPinned: true);
         var vm = MakeViewModel();
 
-        vm.NameFilter = "gaming";
-        vm.ModeBoth   = true;
+        vm.PinnedFilter = true;
+        vm.ModeBoth     = true;
 
-        Assert.False(vm.Profiles[0].IsVisible); // name matches, mode doesn't
-        Assert.False(vm.Profiles[1].IsVisible); // mode matches, name doesn't
+        Assert.False(vm.Profiles[0].IsVisible); // pinned but wrong mode
+        Assert.False(vm.Profiles[1].IsVisible); // right mode but not pinned
         Assert.True(vm.Profiles[2].IsVisible);  // both match
     }
 
@@ -294,17 +267,9 @@ public class SettingsSearchTests
         AddProfile("Gaming");
         var vm = MakeViewModel();
 
-        vm.NameFilter = "zzz";
+        vm.PinnedFilter = true; // Gaming is not pinned
 
         Assert.True(vm.HasNoFilterResults);
-    }
-
-    [Fact]
-    public void IsAnyFilterActive_TrueWhenNameSet()
-    {
-        var vm = MakeViewModel();
-        vm.NameFilter = "gam";
-        Assert.True(vm.IsAnyFilterActive);
     }
 
     [Fact]
@@ -330,14 +295,12 @@ public class SettingsSearchTests
         AddProfile("Gaming", ProfileMode.Playback, isPinned: true);
         AddProfile("Work",   ProfileMode.Both);
         var vm = MakeViewModel();
-        vm.NameFilter      = "gam";
         vm.ModePlayback    = true;
         vm.PinnedFilter    = true;
         vm.ScheduledFilter = true;
 
         vm.ClearFiltersCommand.Execute(null);
 
-        Assert.Equal("", vm.NameFilter);
         Assert.False(vm.ModePlayback);
         Assert.False(vm.ModeRecording);
         Assert.False(vm.ModeBoth);
@@ -345,57 +308,5 @@ public class SettingsSearchTests
         Assert.False(vm.ScheduledFilter);
         Assert.False(vm.IsAnyFilterActive);
         Assert.All(vm.Profiles, p => Assert.True(p.IsVisible));
-    }
-
-    // ── Remember last search ─────────────────────────────────────────────────
-
-    [Fact]
-    public void RememberSearch_Enabled_NameFilterPersisted()
-    {
-        AddProfile("Gaming");
-        _fakeConfig.Current.RememberSearch = true;
-        var vm = MakeViewModel();
-
-        vm.NameFilter = "gam";
-
-        Assert.Equal("gam", _fakeConfig.Current.LastSearch);
-    }
-
-    [Fact]
-    public void RememberSearch_Disabled_NameFilterNotPersisted()
-    {
-        AddProfile("Gaming");
-        var vm = MakeViewModel();
-
-        vm.NameFilter = "gam";
-
-        Assert.Equal("", _fakeConfig.Current.LastSearch);
-    }
-
-    [Fact]
-    public void RememberSearch_Disabled_ClearsLastSearch()
-    {
-        _fakeConfig.Current.RememberSearch = true;
-        _fakeConfig.Current.LastSearch     = "gam";
-        var vm = MakeViewModel();
-
-        vm.RememberSearch = false;
-
-        Assert.Equal("", _fakeConfig.Current.LastSearch);
-    }
-
-    [Fact]
-    public void PersistedNameFilter_RestoredOnLoad()
-    {
-        AddProfile("Gaming");
-        AddProfile("Work");
-        _fakeConfig.Current.RememberSearch = true;
-        _fakeConfig.Current.LastSearch     = "gam";
-
-        var vm = MakeViewModel();
-
-        Assert.Equal("gam", vm.NameFilter);
-        Assert.True(vm.Profiles[0].IsVisible);
-        Assert.False(vm.Profiles[1].IsVisible);
     }
 }

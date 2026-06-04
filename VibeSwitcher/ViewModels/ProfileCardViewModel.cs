@@ -221,15 +221,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
             OnPropertyChanged(nameof(SoundOverride));
             OnPropertyChanged(nameof(SoundSummary));
-            OnPropertyChanged(nameof(ProfileSoundToneClick));
-            OnPropertyChanged(nameof(ProfileSoundToneChime));
-            OnPropertyChanged(nameof(ProfileSoundToneBlip));
-            OnPropertyChanged(nameof(ProfileSoundToneBell));
-            OnPropertyChanged(nameof(ProfileSoundToneAlert));
-            OnPropertyChanged(nameof(ProfileSoundToneSoft));
-            OnPropertyChanged(nameof(ProfileSoundTonePing));
-            OnPropertyChanged(nameof(ProfileSoundToneCustom));
-            OnPropertyChanged(nameof(ProfileSoundVolume));
             _onChanged(this);
         }
     }
@@ -238,90 +229,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _model.SoundOverride
             ? $"{(_model.SoundTone ?? "Click")} — {(_model.SoundVolume ?? 50)}%{(_model.SoundShowBanner ? " + Banner" : "")}"
             : "No switch sound";
-
-    public bool ProfileSoundToneClick
-    {
-        get => _model.SoundTone == "Click";
-        set { if (value) SetProfileSoundTone("Click"); }
-    }
-    public bool ProfileSoundToneChime
-    {
-        get => _model.SoundTone == "Chime";
-        set { if (value) SetProfileSoundTone("Chime"); }
-    }
-    public bool ProfileSoundToneBlip
-    {
-        get => _model.SoundTone == "Blip";
-        set { if (value) SetProfileSoundTone("Blip"); }
-    }
-    public bool ProfileSoundToneBell
-    {
-        get => _model.SoundTone == "Bell";
-        set { if (value) SetProfileSoundTone("Bell"); }
-    }
-    public bool ProfileSoundToneAlert
-    {
-        get => _model.SoundTone == "Alert";
-        set { if (value) SetProfileSoundTone("Alert"); }
-    }
-    public bool ProfileSoundToneSoft
-    {
-        get => _model.SoundTone == "Soft";
-        set { if (value) SetProfileSoundTone("Soft"); }
-    }
-    public bool ProfileSoundTonePing
-    {
-        get => _model.SoundTone == "Ping";
-        set { if (value) SetProfileSoundTone("Ping"); }
-    }
-    public bool ProfileSoundToneCustom
-    {
-        get => _model.SoundTone == "Custom";
-        set { if (value) SetProfileSoundTone("Custom"); }
-    }
-
-    private void SetProfileSoundTone(string tone)
-    {
-        if (_model.SoundTone == tone) return;
-        _model.SoundTone = tone;
-        OnPropertyChanged(nameof(ProfileSoundToneClick));
-        OnPropertyChanged(nameof(ProfileSoundToneChime));
-        OnPropertyChanged(nameof(ProfileSoundToneBlip));
-        OnPropertyChanged(nameof(ProfileSoundToneBell));
-        OnPropertyChanged(nameof(ProfileSoundToneAlert));
-        OnPropertyChanged(nameof(ProfileSoundToneSoft));
-        OnPropertyChanged(nameof(ProfileSoundTonePing));
-        OnPropertyChanged(nameof(ProfileSoundToneCustom));
-        OnPropertyChanged(nameof(SoundSummary));
-        _onChanged(this);
-    }
-
-    public string ProfileSoundCustomPath
-    {
-        get => _model.SoundCustomPath ?? "";
-        set
-        {
-            var v = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-            if (_model.SoundCustomPath == v) return;
-            _model.SoundCustomPath = v;
-            OnPropertyChanged(nameof(ProfileSoundCustomPath));
-            _onChanged(this);
-        }
-    }
-
-    public int ProfileSoundVolume
-    {
-        get => _model.SoundVolume ?? 50;
-        set
-        {
-            var clamped = Math.Clamp(value, 0, 100);
-            if (_model.SoundVolume == clamped) return;
-            _model.SoundVolume = clamped;
-            OnPropertyChanged(nameof(ProfileSoundVolume));
-            OnPropertyChanged(nameof(SoundSummary));
-            _onChanged(this);
-        }
-    }
 
     public string? ValidationWarning
     {
@@ -368,10 +275,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool MatchesFilter(ProfileFilter f)
     {
-        if (!string.IsNullOrWhiteSpace(f.NameFilter) &&
-            !_model.Name.Contains(f.NameFilter, StringComparison.OrdinalIgnoreCase))
-            return false;
-
         if (f.ModeFilter != "Any mode")
         {
             var modeMatches = f.ModeFilter switch
@@ -393,6 +296,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         if (f.WarningOnly   && !HasValidationWarning)                             return false;
         if (f.ScheduledOnly && _model.Schedules.Count == 0)                       return false;
         if (f.ReminderOnly  && !_model.Schedules.Any(s => s.ReminderMinutes > 0)) return false;
+        if (f.SoundOnly     && !_model.SoundOverride)                             return false;
 
         if (f.ActiveDays.Count > 0)
         {
@@ -418,7 +322,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
     public ICommand AddScheduleCommand { get; }
-    public ICommand BrowseProfileSoundCommand { get; }
     public ICommand ConfigureSoundCommand { get; }
     public ICommand AddSwitchSoundCommand { get; }
     public ICommand RemoveSwitchSoundCommand { get; }
@@ -482,18 +385,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
         AddScheduleCommand = new RelayCommand(AddSchedule);
-        BrowseProfileSoundCommand = new RelayCommand(() =>
-        {
-            var dlg = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Select Sound File",
-                Filter = "WAV Files (*.wav)|*.wav",
-                CheckFileExists = true
-            };
-            if (dlg.ShowDialog() != true) return;
-            ProfileSoundCustomPath = dlg.FileName;
-            if (_model.SoundTone != "Custom") SetProfileSoundTone("Custom");
-        });
         ConfigureSoundCommand = new RelayCommand(ConfigureSound);
         AddSwitchSoundCommand = new RelayCommand(AddSwitchSound);
         RemoveSwitchSoundCommand = new RelayCommand(RemoveSwitchSound);

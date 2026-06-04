@@ -10,10 +10,20 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 
 - **Profiles** — group a playback device + microphone into a named profile (e.g. "Headset", "Desktop Speakers")
 - **Global hotkeys** — switch profiles without leaving your current app
-- **System tray** — lives quietly in the tray, right-click to switch instantly
+- **System tray** — lives quietly in the tray; left-click cycles profiles, right-click picks one directly
 - **Both audio roles** — sets Default Device *and* Default Communications Device on every switch, so apps like Discord don't fall out of sync
-- **Custom icons** — assign a `.ico` file to each profile for quick visual identification
-- **Persistent config** — profiles and hotkeys survive reboots
+- **Custom icons** — browse a built-in gallery or point to your own `.ico` file per profile
+- **Friendly device names** — give each audio device a short alias (e.g. "GoXLR") shown throughout the app instead of the raw Windows device name
+- **Per-profile schedule** — automatically activate a profile at a set time and day of week, with an optional reminder notification before it fires
+- **Switch sounds** — play a configurable tone on every profile switch; set a global default and override it per profile
+- **Panic / deafen hotkey** — instantly mute your mic, speakers, or both from anywhere; press again to unmute; tray flashes to show mute state
+- **Pinned profiles** — star a profile to keep it at the top of the tray menu
+- **Profile notes** — attach a short description to any profile, visible on its card
+- **Filter chips** — quickly narrow the profile list by mode, pinned, active, hotkey, sound, schedule, and more
+- **Drag-and-drop reorder** — rearrange profile cards by dragging them
+- **Import / export** — back up your full configuration to a `.json` file and restore it on any machine
+- **Light / dark / system theme** — follows the Windows OS theme automatically, or lock it to light or dark
+- **Persistent config** — profiles and settings survive reboots; atomic writes with automatic backup
 
 ## Requirements
 

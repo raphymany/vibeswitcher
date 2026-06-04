@@ -246,23 +246,7 @@ public class SettingsViewModel : ViewModelBase
         new(DayOfWeek.Sunday,    "Sun"),
     ];
 
-    private string _nameFilter = "";
     private string _modeFilter = "Any mode";
-
-    public string NameFilter
-    {
-        get => _nameFilter;
-        set
-        {
-            if (!SetField(ref _nameFilter, value)) return;
-            ApplyFilter();
-            if (_configService.Current.RememberSearch)
-            {
-                _configService.Current.LastSearch = value;
-                SaveAsync();
-            }
-        }
-    }
 
     private bool _pinnedFilter;
     public bool PinnedFilter
@@ -333,13 +317,19 @@ public class SettingsViewModel : ViewModelBase
         set { if (!SetField(ref _reminderFilter, value)) return; ApplyFilter(); }
     }
 
+    private bool _soundFilter;
+    public bool SoundFilter
+    {
+        get => _soundFilter;
+        set { if (!SetField(ref _soundFilter, value)) return; ApplyFilter(); }
+    }
+
     public bool IsAnyFilterActive =>
-        !string.IsNullOrWhiteSpace(_nameFilter) ||
         _modeFilter != "Any mode"               ||
         _pinnedFilter  || _activeFilter  || _silentFilter  ||
         _hotkeyFilter  || _notesFilter   || _iconFilter    ||
         _warningFilter || _scheduledFilter || _reminderFilter ||
-        DayChips.Any(d => d.IsSelected);
+        _soundFilter   || DayChips.Any(d => d.IsSelected);
 
     public ICommand ClearFiltersCommand { get; }
 
@@ -347,7 +337,6 @@ public class SettingsViewModel : ViewModelBase
     private void ClearFilters()
     {
         _clearing = true;
-        _nameFilter      = "";
         _modeFilter      = "Any mode";
         _pinnedFilter    = false;
         _activeFilter    = false;
@@ -358,16 +347,10 @@ public class SettingsViewModel : ViewModelBase
         _warningFilter   = false;
         _scheduledFilter = false;
         _reminderFilter  = false;
+        _soundFilter     = false;
         foreach (var chip in DayChips) chip.IsSelected = false;
         _clearing = false;
 
-        if (_configService.Current.RememberSearch)
-        {
-            _configService.Current.LastSearch = "";
-            SaveAsync();
-        }
-
-        OnPropertyChanged(nameof(NameFilter));
         OnPropertyChanged(nameof(ModePlayback));
         OnPropertyChanged(nameof(ModeRecording));
         OnPropertyChanged(nameof(ModeBoth));
@@ -380,6 +363,7 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(WarningFilter));
         OnPropertyChanged(nameof(ScheduledFilter));
         OnPropertyChanged(nameof(ReminderFilter));
+        OnPropertyChanged(nameof(SoundFilter));
         ApplyFilter();
     }
 
@@ -394,7 +378,6 @@ public class SettingsViewModel : ViewModelBase
     {
         var filter = new ProfileFilter
         {
-            NameFilter    = _nameFilter,
             ModeFilter    = _modeFilter,
             PinnedOnly    = _pinnedFilter,
             ActiveOnly    = _activeFilter,
@@ -405,25 +388,13 @@ public class SettingsViewModel : ViewModelBase
             WarningOnly   = _warningFilter,
             ScheduledOnly = _scheduledFilter,
             ReminderOnly  = _reminderFilter,
+            SoundOnly     = _soundFilter,
             ActiveDays    = DayChips.Where(d => d.IsSelected).Select(d => d.Day).ToHashSet(),
         };
         foreach (var card in Profiles)
             card.IsVisible = card.MatchesFilter(filter);
         HasNoFilterResults = IsAnyFilterActive && Profiles.All(p => !p.IsVisible);
         OnPropertyChanged(nameof(IsAnyFilterActive));
-    }
-
-    public bool RememberSearch
-    {
-        get => _configService.Current.RememberSearch;
-        set
-        {
-            if (_configService.Current.RememberSearch == value) return;
-            _configService.Current.RememberSearch = value;
-            if (!value) _configService.Current.LastSearch = "";
-            SaveAsync();
-            OnPropertyChanged();
-        }
     }
 
     public HotkeyDefinition SettingsHotkey
@@ -631,9 +602,6 @@ public class SettingsViewModel : ViewModelBase
         _showDisconnectedDevices = configService.Current.ShowDisconnectedDevices;
         _leftClickCyclesProfiles = configService.Current.LeftClickCyclesProfiles;
 
-        if (configService.Current.RememberSearch && !string.IsNullOrEmpty(configService.Current.LastSearch))
-            _nameFilter = configService.Current.LastSearch;
-
         foreach (var chip in DayChips)
             chip.PropertyChanged += (_, _) => { if (!_clearing) ApplyFilter(); };
 
@@ -648,10 +616,6 @@ public class SettingsViewModel : ViewModelBase
         AddProfileCommand = new RelayCommand(AddProfile);
 
         Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
-
-        // Apply persisted name filter after profiles are loaded.
-        if (!string.IsNullOrEmpty(_nameFilter))
-            ApplyFilter();
 
         // Refresh device dropdowns whenever a device is plugged in or removed.
         _audioService.DevicesChanged += OnDevicesChanged;

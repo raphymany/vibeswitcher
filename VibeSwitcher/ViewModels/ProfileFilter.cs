@@ -2,7 +2,6 @@ namespace VibeSwitcher.ViewModels;
 
 public sealed record ProfileFilter
 {
-    public string             NameFilter    { get; init; } = "";
     public string             ModeFilter    { get; init; } = "Any mode";
     public bool               PinnedOnly    { get; init; }
     public bool               ActiveOnly    { get; init; }
@@ -13,13 +12,13 @@ public sealed record ProfileFilter
     public bool               WarningOnly   { get; init; }
     public bool               ScheduledOnly { get; init; }
     public bool               ReminderOnly  { get; init; }
+    public bool               SoundOnly     { get; init; }
     public HashSet<DayOfWeek> ActiveDays    { get; init; } = [];
 
     public bool IsActive =>
-        !string.IsNullOrWhiteSpace(NameFilter) ||
         ModeFilter != "Any mode"               ||
         PinnedOnly  || ActiveOnly  || SilentOnly  ||
         HotkeyOnly  || NotesOnly   || IconOnly     ||
         WarningOnly || ScheduledOnly || ReminderOnly ||
-        ActiveDays.Count > 0;
+        SoundOnly   || ActiveDays.Count > 0;
 }

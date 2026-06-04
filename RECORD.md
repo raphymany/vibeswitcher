@@ -746,6 +746,8 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~36~~ | ~~`feat/device-aliases`~~ | ✅ Done — PR #80 |
 | ~~37~~ | ~~`feat/settings-search`~~ | ✅ Done — PR #82 |
 | ~~38~~ | ~~`feat/switch-sound`~~ | ✅ Done — PR #84 |
+| ~~39~~ | ~~`feat/panic-hotkey`~~ | ✅ Done — PR #86 |
+| ~~49~~ | ~~`fix/codebase-audit-49`~~ | ✅ Done — PR #88 |
 | 47 | `refactor/code-quality` | Planned |
 
 ---
@@ -1233,6 +1235,11 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | ViewModels | Fixed `ProfileCardViewModel.SetProfileSoundTone` and `ProfileSoundVolume` setter not notifying `SoundSummary` — summary text stayed stale after tone/volume change | ✅ Done |
 | Views | Replaced `MessageBox.Show` in `SessionLogWindow` with `AlertDialog` — native OS dialogs prohibited | ✅ Done |
 | Comment | Fixed `App.xaml.cs` comment "every 30 seconds" → "every 10 seconds" (scheduler tick) | ✅ Done |
+| Dead code | Deleted `ScheduleConflictDialog` (XAML + code-behind) — window was defined but never instantiated; `ConflictRetryDialog` handles schedule conflicts | ✅ Done |
+| Dead code | Removed 8 dead tone-picker properties (`ProfileSoundToneClick` through `ProfileSoundToneCustom`), `SetProfileSoundTone`, `ProfileSoundCustomPath`, `ProfileSoundVolume`, and `BrowseProfileSoundCommand` from `ProfileCardViewModel` — leftovers from a planned inline sound editor replaced by the wizard; none bound in any XAML | ✅ Done |
+| Filter UI | Removed name search text box and "Remember last search" setting — filtering is now chip-only; removed `NameFilter`, `RememberSearch`, `LastSearch` from `SettingsViewModel` and `AppConfig` | ✅ Done |
+| Filter UI | Added "Has sound" filter chip — shows profiles with per-profile sound override enabled; consistent with Has hotkey, Has notes, Has icon, Has reminder | ✅ Done |
+| Filter UI | Removed dead `SearchCloseButton` style; updated no-results message to "No profiles match your filters"; updated `HelpDialog` with filter chips section; updated `README.md` feature list | ✅ Done |
 
 ---
 

@@ -251,27 +251,6 @@ public partial class SettingsWindow : Window
             app.OpenAboutWindow();
     }
 
-    private void FilterNameBox_KeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Escape && !string.IsNullOrEmpty(_viewModel.NameFilter))
-        {
-            _viewModel.NameFilter = "";
-            e.Handled = true;
-        }
-    }
-
-    private void ClearNameButton_Click(object sender, RoutedEventArgs e)
-    {
-        _viewModel.NameFilter = "";
-        FilterNameBox.Focus();
-    }
-
-    private void FilterNameBox_GotFocus(object sender, RoutedEventArgs e)
-        => SearchBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("Accent");
-
-    private void FilterNameBox_LostFocus(object sender, RoutedEventArgs e)
-        => SearchBorder.BorderBrush = (System.Windows.Media.Brush)FindResource("InputBorder");
-
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape)

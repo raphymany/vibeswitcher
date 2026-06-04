@@ -31,9 +31,6 @@ public class AppConfig
     // User-defined friendly names keyed by Windows device ID.
     public Dictionary<string, string> DeviceAliases { get; set; } = new();
 
-    public bool RememberSearch { get; set; } = false;
-    public string LastSearch { get; set; } = "";
-
     // Mute hotkeys
     public HotkeyDefinition? MuteMicHotkey { get; set; }
     public bool MuteMicHotkeyEnabled { get; set; } = false;

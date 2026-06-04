@@ -151,29 +151,7 @@
             </Style.Triggers>
         </Style>
 
-        <!-- × clear button inside the search bar -->
-        <Style x:Key="SearchCloseButton" TargetType="Button">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Width"  Value="18"/>
-            <Setter Property="Height" Value="18"/>
-            <Setter Property="Foreground" Value="{DynamicResource TertiaryText}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bg" CornerRadius="12" Background="Transparent">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource HoverBg}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+
 
         <Style x:Key="CardBorder" TargetType="Border">
             <Setter Property="Background"      Value="{DynamicResource CardBg}"/>
@@ -445,71 +423,6 @@
                 </Style>
             </StackPanel.Style>
 
-            <!-- Name search — border provides the rounded frame; columns keep layout exact -->
-            <Border x:Name="SearchBorder" CornerRadius="6" BorderThickness="1"
-                    BorderBrush="{DynamicResource InputBorder}"
-                    Background="{DynamicResource InputBg}"
-                    Margin="0,0,0,6">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="26"/>  <!-- icon -->
-                        <ColumnDefinition Width="*"/>   <!-- text -->
-                        <ColumnDefinition Width="22"/>  <!-- × button -->
-                    </Grid.ColumnDefinitions>
-
-                    <!-- Search icon -->
-                    <TextBlock Grid.Column="0"
-                               Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="11"
-                               VerticalAlignment="Center" HorizontalAlignment="Center"
-                               IsHitTestVisible="False"
-                               Foreground="{DynamicResource SubtleText}"/>
-
-                    <!-- Text input — no border/bg; theme style handles text colour -->
-                    <Grid Grid.Column="1">
-                        <TextBox x:Name="FilterNameBox"
-                                 Text="{Binding NameFilter, UpdateSourceTrigger=PropertyChanged}"
-                                 KeyDown="FilterNameBox_KeyDown"
-                                 GotFocus="FilterNameBox_GotFocus"
-                                 LostFocus="FilterNameBox_LostFocus"
-                                 Background="Transparent" BorderThickness="0"
-                                 Padding="0,4,0,4" FontSize="12"
-                                 CaretBrush="{DynamicResource PrimaryText}"/>
-                        <TextBlock Text="Search by name — or use the chips below for more filters"
-                                   VerticalAlignment="Center" FontSize="12" FontStyle="Italic"
-                                   IsHitTestVisible="False"
-                                   Foreground="{DynamicResource SubtleText}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding NameFilter}" Value="">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                    </Grid>
-
-                    <!-- × clear — hidden when empty -->
-                    <Button Grid.Column="2" Click="ClearNameButton_Click"
-                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <Button.Style>
-                            <Style TargetType="Button" BasedOn="{StaticResource SearchCloseButton}">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding NameFilter}" Value="">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <TextBlock Text="&#xE711;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                    </Button>
-                </Grid>
-            </Border>
-
             <!-- Filter chips row -->
             <views:CenteredWrapPanel VerticalAlignment="Center">
                 <ToggleButton Content="Playback only"
@@ -558,6 +471,10 @@
                               Margin="0,0,6,6"/>
                 <ToggleButton Content="Has reminder"
                               IsChecked="{Binding ReminderFilter}"
+                              Style="{StaticResource FilterChip}"
+                              Margin="0,0,6,6"/>
+                <ToggleButton Content="Has sound"
+                              IsChecked="{Binding SoundFilter}"
                               Style="{StaticResource FilterChip}"
                               Margin="0,0,6,6"/>
                 <!-- Clear link — visible only when any filter is active -->
@@ -1335,10 +1252,10 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
 
-                <!-- No search results -->
+                <!-- No filter results -->
                 <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource DisabledText}"
                            FontSize="13" Margin="0,32,0,24"
-                           Text="No profiles match your search.">
+                           Text="No profiles match your filters.">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Setter Property="Visibility" Value="Collapsed"/>
@@ -1732,38 +1649,6 @@
                                                    Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <Border.ToolTip>
                                             <ToolTip><TextBlock Text="Left-clicking the tray icon switches to the next profile in order. When disabled, left-click opens VibeSwitcher instead. Right-click always works normally." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
-                                        </Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Search -->
-                    <Border Style="{StaticResource InnerCardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="Search" FontWeight="SemiBold" FontSize="12"
-                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding RememberSearch}" Margin="0,3">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Opacity" Value="1"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding RememberSearch}" Value="False">
-                                                    <Setter Property="Opacity" Value="0.4"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <TextBlock Text="Remember last search" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip>
-                                            <ToolTip><TextBlock Text="When enabled, the search box remembers what you last typed and restores it each time you open Settings — even after a reboot. When disabled, the search box always starts empty." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
                                         </Border.ToolTip>
                                     </Border>
                                 </StackPanel>

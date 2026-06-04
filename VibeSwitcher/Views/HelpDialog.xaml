@@ -109,6 +109,16 @@
                     assign a global hotkey and an icon.
                 </TextBlock>
 
+                <TextBlock Style="{StaticResource SectionHeader}" Text="Filtering profiles"/>
+                <TextBlock Style="{StaticResource SectionBody}">
+                    Use the filter chips above the profile list to narrow down what you see.
+                    Click a chip to activate it — you can combine as many as you like.
+                    The <Run FontWeight="SemiBold">Clear all</Run> link resets everything at once.
+                    Available filters include mode (Playback / Recording / Both), Pinned, Active,
+                    Silent, Has hotkey, Has notes, Has icon, Has warning, Scheduled, Has reminder,
+                    Has sound, and individual days of the week (shown when Scheduled is on).
+                </TextBlock>
+
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Switching profiles"/>
                 <TextBlock Style="{StaticResource BulletItem}" Text="• Left-click the tray icon to cycle to the next profile in order"/>
                 <TextBlock Style="{StaticResource BulletItem}" Text="• Right-click the tray icon to pick a specific profile from the menu"/>

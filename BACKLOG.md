@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-04 — Branch 49 (`fix/codebase-audit-49`) PR #88 open.
+**Last updated:** 2026-06-04 — Branch 49 (`fix/codebase-audit-49`) merged — PR #88.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -174,12 +174,8 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### ~~Branch 49: `fix/codebase-audit-49`~~ PR #88 open
+### ~~Branch 49: `fix/codebase-audit-49`~~ ✅ Merged — PR #88
 **Theme:** Full codebase audit — dead code, bugs, security, and UI violations.
-
-| # | Feature |
-|---|---------|
-| (audit) | Dead code, path traversal security fix, filter bugs, stale SoundSummary, MessageBox.Show violation |
 
 ---
 
