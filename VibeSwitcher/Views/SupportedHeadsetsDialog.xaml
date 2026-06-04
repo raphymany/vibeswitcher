@@ -104,17 +104,6 @@
                 The list below covers wireless headsets whose USB dongle stays plugged in permanently. Windows can't detect when these headsets power on or off, so VibeSwitcher reads the dongle's HID packets directly to catch the exact moment the headset turns on.
             </TextBlock>
 
-            <!-- Detected banner (populated and shown in code-behind) -->
-            <Border x:Name="DetectedBanner"
-                    Background="#E8F5E9" CornerRadius="6" Padding="10,8"
-                    Margin="0,0,0,10" Visibility="Collapsed">
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="🟢 " FontSize="11"/>
-                    <TextBlock x:Name="DetectedText" TextWrapping="Wrap" FontSize="12"
-                               Foreground="#2E7D32" FontWeight="SemiBold"/>
-                </StackPanel>
-            </Border>
-
             <!-- Brand list (populated in code-behind) -->
             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6">
                 <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto"

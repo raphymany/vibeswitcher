@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using HidSharp;
 using VibeSwitcher.Services;
 
 namespace VibeSwitcher.Views;
@@ -14,7 +13,6 @@ public partial class SupportedHeadsetsDialog : Window
     {
         InitializeComponent();
         BuildBrandSections();
-        DetectConnected();
     }
 
     private record BrandGroup(string Name, bool Tested, IReadOnlyList<string> ModelNames);
@@ -101,31 +99,6 @@ public partial class SupportedHeadsetsDialog : Window
                 BrandsPanel.Children.Add(sep);
             }
         }
-    }
-
-    private void DetectConnected()
-    {
-        try
-        {
-            var connected = DeviceList.Local
-                .GetHidDevices()
-                .Select(d => ((ushort)d.VendorID, (ushort)d.ProductID))
-                .ToHashSet();
-
-            var detected = KnownHidHeadsets.All
-                .Where(h => connected.Contains((h.VendorId, h.ProductId)))
-                .Select(h => h.ModelName)
-                .Distinct()
-                .OrderBy(n => n)
-                .ToList();
-
-            if (detected.Count > 0)
-            {
-                DetectedText.Text = "Detected: " + string.Join(", ", detected);
-                DetectedBanner.Visibility = Visibility.Visible;
-            }
-        }
-        catch { /* HID enumeration failures must not crash the dialog */ }
     }
 
     private void Good_Click(object sender, RoutedEventArgs e) => DialogResult = true;
