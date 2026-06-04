@@ -22,6 +22,7 @@ public partial class App : Application
     private ThemeService? _themeService;
     private SchedulerService? _schedulerService;
     private MuteService? _muteService;
+    private DeviceTriggerService? _deviceTriggerService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -138,6 +139,12 @@ public partial class App : Application
         _schedulerService.Start();
         _schedulerService.EvaluateNow();
 
+        // 9c. Device trigger — auto-switch when a profile's device is connected
+        _deviceTriggerService = new DeviceTriggerService(
+            _audioService,
+            _configService,
+            profile => _orchestrator.SwitchToProfile(profile));
+
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
@@ -241,6 +248,7 @@ public partial class App : Application
             SystemEvents.PowerModeChanged -= _schedulerService.OnPowerModeChanged;
             _schedulerService.Dispose();
         }
+        _deviceTriggerService?.Dispose();
         _themeService?.StopListening();
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);
