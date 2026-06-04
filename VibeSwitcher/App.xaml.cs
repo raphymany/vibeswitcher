@@ -101,6 +101,8 @@ public partial class App : Application
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
         _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);
+        // Keep the settings window's active-profile indicators in sync with background switches.
+        _orchestrator.ProfileSwitched += () => _windowManager!.NotifyProfileSwitched();
 
         // 6. Register hotkeys
         RegisterHotkeys();

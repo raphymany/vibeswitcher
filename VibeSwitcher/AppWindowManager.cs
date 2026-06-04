@@ -50,6 +50,12 @@ public class AppWindowManager
         window.Show();
     }
 
+    public void NotifyProfileSwitched()
+    {
+        var window = System.Windows.Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
+        window?.RefreshActiveStates();
+    }
+
     public void OpenAboutWindow()
     {
         var owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();

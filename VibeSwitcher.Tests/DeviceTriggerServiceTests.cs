@@ -430,6 +430,122 @@ public class DeviceTriggerServiceTests
         Assert.Null(switched);
     }
 
+    // ── revert on disconnect / device off ────────────────────────────────────
+
+    [Fact]
+    public void Reverts_ToOriginalProfile_WhenDeviceDisconnects()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [] };
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var speakerProfile = new DeviceProfile
+        {
+            Name = "Speakers", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-speakers", TriggerOnConnect = false,
+        };
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [headsetProfile, speakerProfile],
+            ActiveProfileId = speakerProfile.Id,
+        });
+
+        var switches = new List<DeviceProfile>();
+        using var svc = new DeviceTriggerService(audio, config, p =>
+        {
+            config.Current.ActiveProfileId = p.Id; // simulate orchestrator
+            switches.Add(p);
+        });
+
+        // Headset connects — switches to headset profile
+        audio.PlaybackResult = [Connected("dev-headset"), Connected("dev-speakers")];
+        audio.RaiseDevicesChanged();
+        Assert.Single(switches);
+        Assert.Equal(headsetProfile, switches[0]);
+
+        // Headset disconnects — reverts to speakers
+        audio.PlaybackResult = [Connected("dev-speakers")];
+        audio.RaiseDevicesChanged();
+        Assert.Equal(2, switches.Count);
+        Assert.Equal(speakerProfile, switches[1]);
+    }
+
+    [Fact]
+    public void Reverts_ToOriginalProfile_ViaPropertyChange_WhenHeadsetTurnsOff()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset"), Connected("dev-speakers")] };
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var speakerProfile = new DeviceProfile
+        {
+            Name = "Speakers", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-speakers", TriggerOnConnect = false,
+        };
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [headsetProfile, speakerProfile],
+            ActiveProfileId = speakerProfile.Id,
+        });
+
+        var switches = new List<DeviceProfile>();
+        using var svc = new DeviceTriggerService(audio, config, p =>
+        {
+            config.Current.ActiveProfileId = p.Id;
+            switches.Add(p);
+        });
+
+        // Headset powers on → property change → switch to headset
+        audio.RaiseDevicePropertyChanged("dev-headset");
+        Assert.Single(switches);
+        Assert.Equal(headsetProfile, switches[0]);
+
+        // Headset powers off → next property change → revert to speakers
+        audio.RaiseDevicePropertyChanged("dev-headset");
+        Assert.Equal(2, switches.Count);
+        Assert.Equal(speakerProfile, switches[1]);
+    }
+
+    [Fact]
+    public void DoesNotRevert_WhenProfileManuallyChangedAfterTrigger()
+    {
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var speakerProfile = new DeviceProfile
+        {
+            Name = "Speakers", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-speakers", TriggerOnConnect = false,
+        };
+        var gameProfile = new DeviceProfile
+        {
+            Name = "Gaming", Mode = ProfileMode.Playback,
+            PlaybackDeviceId = "dev-game", TriggerOnConnect = false,
+        };
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig
+        {
+            Profiles = [headsetProfile, speakerProfile, gameProfile],
+            ActiveProfileId = speakerProfile.Id,
+        });
+
+        var switches = new List<DeviceProfile>();
+        using var svc = new DeviceTriggerService(audio, config, p =>
+        {
+            config.Current.ActiveProfileId = p.Id;
+            switches.Add(p);
+        });
+
+        // Headset turns on → switch to headset
+        audio.RaiseDevicePropertyChanged("dev-headset");
+        Assert.Single(switches);
+
+        // User manually switches to gaming profile (outside of trigger)
+        config.Current.ActiveProfileId = gameProfile.Id;
+
+        // Headset turns off — triggered profile is no longer active, so no revert
+        audio.RaiseDevicePropertyChanged("dev-headset");
+        Assert.Single(switches); // no additional switch
+        Assert.Equal(gameProfile.Id, config.Current.ActiveProfileId);
+    }
+
     // ── multiple simultaneous newly-connected devices ─────────────────────────
 
     [Fact]

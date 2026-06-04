@@ -18,6 +18,8 @@ public class ProfileSwitchOrchestrator : IDisposable
     private readonly Dispatcher _dispatcher;
     private readonly SemaphoreSlim _switchLock = new(1, 1);
 
+    public event Action? ProfileSwitched;
+
     public ProfileSwitchOrchestrator(
         IConfigService configService,
         IAudioService audioService,
@@ -66,6 +68,7 @@ public class ProfileSwitchOrchestrator : IDisposable
             await _dispatcher.InvokeAsync(() =>
             {
                 _configService.Current.ActiveProfileId = profile.Id;
+                ProfileSwitched?.Invoke();
                 _ = Task.Run(_configService.SaveImmediate);
                 _trayService.UpdateIcon(profile);
                 _trayService.SetActiveProfile(profile.Id);

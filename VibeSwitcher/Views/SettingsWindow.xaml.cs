@@ -113,6 +113,8 @@ public partial class SettingsWindow : Window
         };
     }
 
+    public void RefreshActiveStates() => _viewModel.RefreshActiveStates();
+
     private void OnBoundsChanged(object? sender, EventArgs e)
     {
         if (_boundsTimer == null)
