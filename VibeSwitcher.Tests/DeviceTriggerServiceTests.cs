@@ -557,15 +557,15 @@ public class DeviceTriggerServiceTests
     private static readonly HidHeadsetDescriptor ProXDescriptor =
         new(0x046D, 0x0ABA, "Logitech PRO X Wireless");
 
-    // Simulated audio endpoint path for the PRO X — contains VID/PID as Windows does.
-    private const string ProXEndpointPath =
-        @"\\?\USB#VID_046D&PID_0ABA&MI_00#8&2d96db4c&0&0000#{6994ad04-93ef-11d0-a3cc-00a0c9223196}";
+    // Windows names the USB audio device using the product string, so the audio
+    // device name contains the HID model name (e.g. "Headphones (Logitech PRO X Wireless)").
+    private static AudioDeviceInfo ProXAudioDevice(string id) =>
+        new(id, $"Headphones ({ProXDescriptor.ModelName})", IsPlayback: true, IsConnected: true);
 
     [Fact]
     public void Reverts_OnHidWirelessDisconnect_WhenProfileMatchesDescriptor()
     {
-        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
-        audio.EndpointPaths["dev-headset"] = ProXEndpointPath;
+        var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-headset")] };
 
         var headsetProfile = PlaybackProfile("dev-headset");
         var speakerProfile = new DeviceProfile
@@ -601,8 +601,7 @@ public class DeviceTriggerServiceTests
     [Fact]
     public void DoesNotRevert_OnHidWirelessDisconnect_WhenNoRevertInfoSet()
     {
-        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
-        audio.EndpointPaths["dev-headset"] = ProXEndpointPath;
+        var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-headset")] };
 
         var headsetProfile = PlaybackProfile("dev-headset");
         var config = new FakeConfigService();
@@ -619,9 +618,8 @@ public class DeviceTriggerServiceTests
     [Fact]
     public void DoesNotRevert_OnHidWirelessDisconnect_WhenDescriptorDoesNotMatchProfile()
     {
-        // Profile is for a different device (no VID/PID match) — HID disconnect should not revert.
+        // Profile is for a different device — friendly name has no relation to PRO X Wireless.
         var audio = new FakeAudioService { PlaybackResult = [Connected("dev-other")] };
-        audio.EndpointPaths["dev-other"] = @"\\?\USB#VID_1234&PID_5678&MI_00#...";
 
         var otherProfile = PlaybackProfile("dev-other");
         var speakerProfile = new DeviceProfile
@@ -647,7 +645,7 @@ public class DeviceTriggerServiceTests
         audio.RaiseDevicePropertyChanged("dev-other");
         Assert.Single(switches);
 
-        // PRO X headset turns off — but the triggered profile is not for the PRO X
+        // PRO X headset turns off — triggered profile name ("dev-other") doesn't match model
         svc.OnHidWirelessDisconnected(ProXDescriptor);
         Assert.Single(switches); // no revert
     }
@@ -655,8 +653,7 @@ public class DeviceTriggerServiceTests
     [Fact]
     public void DoesNotRevert_OnHidWirelessDisconnect_WhenUserManuallyChangedProfile()
     {
-        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
-        audio.EndpointPaths["dev-headset"] = ProXEndpointPath;
+        var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-headset")] };
 
         var headsetProfile = PlaybackProfile("dev-headset");
         var speakerProfile = new DeviceProfile

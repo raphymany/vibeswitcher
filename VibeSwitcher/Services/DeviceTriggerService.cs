@@ -214,24 +214,37 @@ public sealed class DeviceTriggerService : IDisposable
     private bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)
     {
         var vidPid = $"VID_{descriptor.VendorId:X4}&PID_{descriptor.ProductId:X4}";
+
+        // Try path-based matching first (PKEY_AudioEndpoint_Path contains VID/PID for USB devices).
         var pbPath = profile.PlaybackDeviceId != null
             ? _audioService.GetAudioEndpointPath(profile.PlaybackDeviceId) : null;
         var recPath = profile.RecordingDeviceId != null
             ? _audioService.GetAudioEndpointPath(profile.RecordingDeviceId) : null;
 
-        AppLogger.Info("DeviceTriggerService.HidRevert",
-            $"Checking profile '{profile.Name}' for {vidPid}: " +
-            $"playbackPath=[{pbPath ?? "null"}] recordingPath=[{recPath ?? "null"}]");
+        if ((pbPath != null && pbPath.Contains(vidPid, StringComparison.OrdinalIgnoreCase)) ||
+            (recPath != null && recPath.Contains(vidPid, StringComparison.OrdinalIgnoreCase)))
+            return true;
 
-        return (pbPath != null && pbPath.Contains(vidPid, StringComparison.OrdinalIgnoreCase))
-            || (recPath != null && recPath.Contains(vidPid, StringComparison.OrdinalIgnoreCase));
+        // Fallback: Windows names USB audio devices using the product string, which typically
+        // matches or contains the HID model name (e.g. "Headphones (Logitech PRO X Wireless)").
+        AppLogger.Info("DeviceTriggerService.HidRevert",
+            $"Path not available for '{profile.Name}' — falling back to friendly name match for '{descriptor.ModelName}'.");
+        return FriendlyNameMatchesModel(profile.PlaybackDeviceId, descriptor.ModelName)
+            || FriendlyNameMatchesModel(profile.RecordingDeviceId, descriptor.ModelName);
     }
 
-    private bool EndpointPathContains(string? audioDeviceId, string vidPid)
+    private bool FriendlyNameMatchesModel(string? audioDeviceId, string modelName)
     {
         if (audioDeviceId == null) return false;
-        var path = _audioService.GetAudioEndpointPath(audioDeviceId);
-        return path != null && path.Contains(vidPid, StringComparison.OrdinalIgnoreCase);
+        var device = _audioService.GetPlaybackDevices()
+            .Concat(_audioService.GetRecordingDevices())
+            .FirstOrDefault(d => string.Equals(d.Id, audioDeviceId, StringComparison.OrdinalIgnoreCase));
+        if (device == null) return false;
+        AppLogger.Info("DeviceTriggerService.HidRevert",
+            $"  Audio device name=[{device.FriendlyName}] vs model=[{modelName}]");
+        // Match if the Windows name contains the model name or vice versa.
+        return device.FriendlyName.Contains(modelName, StringComparison.OrdinalIgnoreCase)
+            || modelName.Contains(device.FriendlyName, StringComparison.OrdinalIgnoreCase);
     }
 
     public void Dispose()
