@@ -78,20 +78,28 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for IDE setup and project structure.
 
 ## Wireless headset detection
 
-Supported wireless headsets auto-switch the moment you power them on or off —
-no unplugging needed. This works even for headsets with a USB dongle that
-stays plugged in permanently (like Logitech LIGHTSPEED), where Windows
-can't detect the power state on its own.
+USB and Bluetooth headsets work automatically — no setup needed.
+
+Wireless headsets with a permanent USB dongle (like Logitech LIGHTSPEED) are different: Windows can detect when the headset powers on, but not when it powers off. This means auto-switch will trigger when you put the headset on, but powering it off won't revert the profile.
+
+VibeSwitcher works around this by reading the headset's HID interface directly. To do that it needs to know the hardware ID for your specific model, which is why supported headsets are listed below.
 
 **Supported headsets**
 
-| Model                   | VID  | PID  |
-|-------------------------|------|------|
-| Logitech PRO X Wireless | 046D | 0ABA |
+The Logitech models below have been tested and confirmed working. All other brands are implemented from open-source protocol documentation and **have not been tested on real hardware** — they may or may not work on your specific model.
+
+| Brand | Models | Tested |
+|-------|--------|--------|
+| Logitech | PRO X Wireless, G Pro X Wireless, G Pro X 2, G Pro, G733, G935, G933, G635, G633, G535 | ✅ Yes |
+| Corsair | Void Wireless, Void Pro Wireless, Void Elite Wireless, HS Wireless | ⚠️ Untested |
+| SteelSeries | Arctis 1 Wireless, Arctis 7X/7P Wireless, Arctis Nova 7/7X/7P, Arctis Nova 5/5X, Arctis 7+, Nova 3P/3X Wireless | ⚠️ Untested |
+| HyperX | Cloud Alpha Wireless, Cloud II Wireless | ⚠️ Untested |
 
 **Don't see your headset?** Open a GitHub issue using the
-[Add wireless headset](https://github.com/raphymany/vibeswitcher/issues/new/choose)
+[Add wireless headset](https://github.com/raphymany/vibeswitcher/issues/new?template=add-headset.yml)
 template — it walks you through finding the two IDs we need from Device Manager.
+
+The two IDs (VID = manufacturer, PID = model) are public hardware identifiers assigned by the manufacturer — every unit of the same model has the exact same values. They are not serial numbers and contain no personal information.
 
 > Wired headsets and 3.5mm jacks are already handled automatically.
 
