@@ -116,6 +116,17 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 
+    public bool ShowConfirm(string title, string message, string actionLabel)
+    {
+        var dialog = new ConfirmDialog(title, message, actionLabel, subtitle: "") { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true;
+    }
+
+    public bool ShowSupportedHeadsets()
+    {
+        return new SupportedHeadsetsDialog { Owner = OwnerWindow }.ShowDialog() == true;
+    }
+
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.
     // The front square's fill matches the badge background so it cleanly occludes the back square.
     private static UIElement BuildCopyIcon(Brush badgeBg, Brush stroke)

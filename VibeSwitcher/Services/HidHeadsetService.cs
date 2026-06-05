@@ -17,6 +17,7 @@ public sealed class HidHeadsetService : IDisposable
 {
     public event Action<HidHeadsetDescriptor>? WirelessConnected;
     public event Action<HidHeadsetDescriptor>? WirelessDisconnected;
+    public event Action<HidHeadsetDescriptor>? DeviceMonitoringStarted;
 
     private readonly List<DeviceReader> _readers = [];
 
@@ -63,6 +64,7 @@ public sealed class HidHeadsetService : IDisposable
                 d => WirelessDisconnected?.Invoke(d));
             _readers.Add(reader);
             reader.Start();
+            DeviceMonitoringStarted?.Invoke(descriptor);
 
             AppLogger.Info("HidHeadsetService",
                 $"Monitoring {descriptor.ModelName} ({descriptor.Protocol}) at {hidDevice.DevicePath}");

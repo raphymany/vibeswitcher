@@ -18,14 +18,13 @@ public sealed class DeviceTriggerService : IDisposable
     private readonly Dictionary<string, DateTime> _propCooldowns =
         new(StringComparer.OrdinalIgnoreCase);
 
-    // Revert state: when we auto-switch to a profile, remember what was active before
-    // so we can switch back when the device disconnects (OnDevicesChanged).
-    // Property changes are only used for forward triggers — for always-ready dongles
-    // (e.g. Logitech wireless) Windows only fires OnPropertyValueChanged on power-ON,
-    // not power-OFF, so property changes cannot be used to detect "headset turned off."
-    private readonly record struct RevertInfo(Guid TriggeredProfileId, Guid? PreviousProfileId);
-    private RevertInfo? _revertInfo;
+    // Revert stack: each auto-switch pushes an entry so chained reverts work correctly.
+    // e.g. Speaker → BT → Logitech: turning off Logitech reverts to BT, turning off BT
+    // then reverts to Speaker. HID-managed profiles only revert via OnHidWirelessDisconnected.
+    private readonly record struct RevertInfo(Guid TriggeredProfileId, Guid? PreviousProfileId, bool IsHidTriggered = false);
+    private readonly Stack<RevertInfo> _revertStack = new();
     private readonly object _stateLock = new();
+    private readonly List<HidHeadsetDescriptor> _hidDescriptors = [];
 
     public DeviceTriggerService(
         IAudioService audioService,
@@ -47,8 +46,6 @@ public sealed class DeviceTriggerService : IDisposable
         var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var d in _audioService.GetPlaybackDevices())
             if (d.IsConnected) ids.Add(d.Id);
-        foreach (var d in _audioService.GetRecordingDevices())
-            if (d.IsConnected) ids.Add(d.Id);
         return ids;
     }
 
@@ -69,15 +66,15 @@ public sealed class DeviceTriggerService : IDisposable
         if (newlyDisconnected.Count > 0)
         {
             RevertInfo? ri;
-            lock (_stateLock) ri = _revertInfo;
+            lock (_stateLock) ri = _revertStack.Count > 0 ? _revertStack.Peek() : null;
 
             if (ri.HasValue && _configService.Current.ActiveProfileId == ri.Value.TriggeredProfileId)
             {
                 var triggeredProfile = _configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
-                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected))
+                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !ri.Value.IsHidTriggered)
                 {
-                    lock (_stateLock) _revertInfo = null;
+                    lock (_stateLock) _revertStack.Pop();
                     RevertToPrevious(ri.Value.PreviousProfileId);
                     return;
                 }
@@ -87,13 +84,11 @@ public sealed class DeviceTriggerService : IDisposable
         if (newlyConnected.Count == 0) return;
 
         var profile = _configService.Current.Profiles
-            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
-            .OrderByDescending(p => p.IsPinned)
-            .ThenBy(p => p.SortOrder)
+            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId && !IsHidManaged(p))
             .FirstOrDefault(p => IsTriggeredBy(p, newlyConnected));
 
         if (profile == null) return;
-        lock (_stateLock) _revertInfo = new RevertInfo(profile.Id, _configService.Current.ActiveProfileId);
+        lock (_stateLock) _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId));
         DispatchSwitch(profile);
     }
 
@@ -107,9 +102,7 @@ public sealed class DeviceTriggerService : IDisposable
         if (_disposed) return;
 
         var profile = _configService.Current.Profiles
-            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
-            .OrderByDescending(p => p.IsPinned)
-            .ThenBy(p => p.SortOrder)
+            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId && !IsHidManaged(p))
             .FirstOrDefault(p => IsTriggeredByDevice(p, deviceId));
 
         if (profile == null) return;
@@ -121,7 +114,7 @@ public sealed class DeviceTriggerService : IDisposable
                 now - last < PropCooldown)
                 return;
             _propCooldowns[deviceId] = now;
-            _revertInfo = new RevertInfo(profile.Id, _configService.Current.ActiveProfileId);
+            _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId));
         }
 
         DispatchSwitch(profile);
@@ -131,7 +124,21 @@ public sealed class DeviceTriggerService : IDisposable
     {
         if (!previousProfileId.HasValue) return;
         var prev = _configService.Current.Profiles.FirstOrDefault(p => p.Id == previousProfileId);
-        if (prev != null) DispatchSwitch(prev);
+        if (prev == null) return;
+
+        // If the target profile's device has since disconnected, skip it and cascade
+        // to the next revert entry. This handles e.g. BT turning off while on Logitech —
+        // when Logitech later reverts "to BT", BT is gone, so we fall through to Speaker.
+        if (prev.TriggerOnConnect && !IsHidManaged(prev) &&
+            prev.PlaybackDeviceId != null && !_connectedIds.Contains(prev.PlaybackDeviceId))
+        {
+            RevertInfo? next;
+            lock (_stateLock) next = _revertStack.Count > 0 ? _revertStack.Pop() : null;
+            RevertToPrevious(next?.PreviousProfileId);
+            return;
+        }
+
+        DispatchSwitch(prev);
     }
 
     private void DispatchSwitch(DeviceProfile profile)
@@ -143,27 +150,22 @@ public sealed class DeviceTriggerService : IDisposable
             _switchCallback(profile);
     }
 
+    public void RegisterHidDescriptor(HidHeadsetDescriptor descriptor)
+    {
+        lock (_stateLock) _hidDescriptors.Add(descriptor);
+    }
+
+    // Returns true if the profile's device is monitored via HID — those profiles must only
+    // be forward-triggered by OnHidWirelessConnected, not by Windows audio API events.
+    private bool IsHidManaged(DeviceProfile profile) =>
+        _hidDescriptors.Any(d => IsProfileForDescriptor(profile, d));
+
+    // Auto-switch is playback-only — only the playback device triggers a profile switch.
     private static bool IsTriggeredBy(DeviceProfile profile, HashSet<string> deviceIds) =>
-        profile.Mode switch
-        {
-            ProfileMode.Playback  => profile.PlaybackDeviceId  != null && deviceIds.Contains(profile.PlaybackDeviceId),
-            ProfileMode.Recording => profile.RecordingDeviceId != null && deviceIds.Contains(profile.RecordingDeviceId),
-            // Either endpoint connecting is enough — USB headsets often register playback
-            // before recording, so requiring both would miss the first event.
-            ProfileMode.Both      => (profile.PlaybackDeviceId  != null && deviceIds.Contains(profile.PlaybackDeviceId)) ||
-                                     (profile.RecordingDeviceId != null && deviceIds.Contains(profile.RecordingDeviceId)),
-            _ => false
-        };
+        profile.PlaybackDeviceId != null && deviceIds.Contains(profile.PlaybackDeviceId);
 
     private static bool IsTriggeredByDevice(DeviceProfile profile, string deviceId) =>
-        profile.Mode switch
-        {
-            ProfileMode.Playback  => StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId,  deviceId),
-            ProfileMode.Recording => StringComparer.OrdinalIgnoreCase.Equals(profile.RecordingDeviceId, deviceId),
-            ProfileMode.Both      => StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId,  deviceId) ||
-                                     StringComparer.OrdinalIgnoreCase.Equals(profile.RecordingDeviceId, deviceId),
-            _ => false
-        };
+        StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId, deviceId);
 
     // Called by HidHeadsetService when a monitored wireless headset powers on.
     // Uses the HID signal instead of waiting for the Windows audio property change,
@@ -174,14 +176,12 @@ public sealed class DeviceTriggerService : IDisposable
 
         var profile = _configService.Current.Profiles
             .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
-            .OrderByDescending(p => p.IsPinned)
-            .ThenBy(p => p.SortOrder)
             .FirstOrDefault(p => IsProfileForDescriptor(p, descriptor));
 
         if (profile == null) return;
 
         lock (_stateLock)
-            _revertInfo = new RevertInfo(profile.Id, _configService.Current.ActiveProfileId);
+            _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId, IsHidTriggered: true));
 
         AppLogger.Info("DeviceTriggerService.HidConnect",
             $"{descriptor.ModelName}: switching to '{profile.Name}'.");
@@ -195,7 +195,7 @@ public sealed class DeviceTriggerService : IDisposable
         if (_disposed) return;
 
         RevertInfo? ri;
-        lock (_stateLock) ri = _revertInfo;
+        lock (_stateLock) ri = _revertStack.Count > 0 ? _revertStack.Peek() : null;
 
         if (!ri.HasValue)
         {
@@ -230,7 +230,7 @@ public sealed class DeviceTriggerService : IDisposable
 
         AppLogger.Info("DeviceTriggerService.HidRevert",
             $"{descriptor.ModelName}: reverting from '{triggeredProfile.Name}'.");
-        lock (_stateLock) _revertInfo = null;
+        lock (_stateLock) _revertStack.Pop();
         RevertToPrevious(ri.Value.PreviousProfileId);
     }
 

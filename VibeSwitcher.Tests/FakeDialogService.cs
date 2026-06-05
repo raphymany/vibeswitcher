@@ -44,4 +44,10 @@ internal sealed class FakeDialogService : IDialogService
 
     public SoundOverrideResult? SoundWizardResult { get; set; } = null;
     public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false) => SoundWizardResult;
+
+    public bool ConfirmResult { get; set; } = false;
+    public bool ShowConfirm(string title, string message, string actionLabel) => ConfirmResult;
+
+    public bool SupportedHeadsetsResult { get; set; } = true;
+    public bool ShowSupportedHeadsets() => SupportedHeadsetsResult;
 }
