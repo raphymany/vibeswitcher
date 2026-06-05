@@ -106,7 +106,7 @@
 
             <!-- Brand list (populated in code-behind) -->
             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6">
-                <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto"
+                <ScrollViewer MaxHeight="460" VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                     <StackPanel x:Name="BrandsPanel"/>
                 </ScrollViewer>
