@@ -128,7 +128,7 @@ public partial class SupportedHeadsetsDialog : Window
         catch { /* HID enumeration failures must not crash the dialog */ }
     }
 
-    private void Good_Click(object sender, RoutedEventArgs e) => Close();
+    private void Good_Click(object sender, RoutedEventArgs e) => DialogResult = true;
 
     private void Request_Click(object sender, RoutedEventArgs e)
     {
@@ -138,10 +138,11 @@ public partial class SupportedHeadsetsDialog : Window
                 { UseShellExecute = true });
         }
         catch { }
+        DialogResult = false;
     }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape) Close();
+        if (e.Key == Key.Escape) DialogResult = false;
     }
 }

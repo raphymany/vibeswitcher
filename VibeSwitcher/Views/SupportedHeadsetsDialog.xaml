@@ -131,7 +131,7 @@
                 <Button Grid.Column="0"
                         Content="My headset is listed — I'm good"
                         Style="{StaticResource PrimaryBtn}"
-                        IsDefault="True" IsCancel="True"
+                        IsDefault="True"
                         Click="Good_Click"/>
 
                 <Button Grid.Column="2"

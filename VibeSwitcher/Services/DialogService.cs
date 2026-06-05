@@ -122,9 +122,9 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true;
     }
 
-    public void ShowSupportedHeadsets()
+    public bool ShowSupportedHeadsets()
     {
-        new SupportedHeadsetsDialog { Owner = OwnerWindow }.ShowDialog();
+        return new SupportedHeadsetsDialog { Owner = OwnerWindow }.ShowDialog() == true;
     }
 
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.

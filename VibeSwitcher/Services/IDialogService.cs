@@ -19,5 +19,5 @@ public interface IDialogService
     ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour);
     SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false);
     bool ShowConfirm(string title, string message, string actionLabel);
-    void ShowSupportedHeadsets();
+    bool ShowSupportedHeadsets();
 }

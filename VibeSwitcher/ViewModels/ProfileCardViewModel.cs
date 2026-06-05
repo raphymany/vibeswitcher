@@ -199,29 +199,41 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         {
             if (_model.TriggerOnConnect == value) return;
 
-            if (value && !string.IsNullOrEmpty(_model.PlaybackDeviceId))
+            if (value)
             {
-                var conflicting = _configService.Current.Profiles.FirstOrDefault(p =>
-                    p.Id != _model.Id &&
-                    p.TriggerOnConnect &&
-                    string.Equals(p.PlaybackDeviceId, _model.PlaybackDeviceId, StringComparison.OrdinalIgnoreCase));
-
-                if (conflicting != null)
+                // Show the supported headsets info dialog first.
+                // "I'm good" returns true → proceed. "Request support" returns false → revert.
+                if (!_dialogService.ShowSupportedHeadsets())
                 {
-                    bool move = _dialogService.ShowConfirm(
-                        "Auto-Switch Already Enabled",
-                        $"Auto-switch for this playback device is already enabled on \"{conflicting.Name}\".\n\nDo you want to move it to this profile instead?",
-                        "Yes, Move It");
+                    OnPropertyChanged(nameof(TriggerOnConnect)); // revert toggle binding
+                    return;
+                }
 
-                    if (move)
+                // Conflict check: only one profile per playback device may have auto-switch on.
+                if (!string.IsNullOrEmpty(_model.PlaybackDeviceId))
+                {
+                    var conflicting = _configService.Current.Profiles.FirstOrDefault(p =>
+                        p.Id != _model.Id &&
+                        p.TriggerOnConnect &&
+                        string.Equals(p.PlaybackDeviceId, _model.PlaybackDeviceId, StringComparison.OrdinalIgnoreCase));
+
+                    if (conflicting != null)
                     {
-                        conflicting.TriggerOnConnect = false;
-                        _onTriggerConflictResolved?.Invoke(conflicting.Id);
-                    }
-                    else
-                    {
-                        OnPropertyChanged(nameof(TriggerOnConnect)); // revert toggle binding
-                        return;
+                        bool move = _dialogService.ShowConfirm(
+                            "Auto-Switch Already Enabled",
+                            $"Auto-switch for this playback device is already enabled on \"{conflicting.Name}\".\n\nDo you want to move it to this profile instead?",
+                            "Yes, Move It");
+
+                        if (move)
+                        {
+                            conflicting.TriggerOnConnect = false;
+                            _onTriggerConflictResolved?.Invoke(conflicting.Id);
+                        }
+                        else
+                        {
+                            OnPropertyChanged(nameof(TriggerOnConnect)); // revert toggle binding
+                            return;
+                        }
                     }
                 }
             }
@@ -229,9 +241,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             _model.TriggerOnConnect = value;
             OnPropertyChanged(nameof(TriggerOnConnect));
             _onChanged(this);
-
-            if (value)
-                _dialogService.ShowSupportedHeadsets();
         }
     }
 

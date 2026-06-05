@@ -48,5 +48,6 @@ internal sealed class FakeDialogService : IDialogService
     public bool ConfirmResult { get; set; } = false;
     public bool ShowConfirm(string title, string message, string actionLabel) => ConfirmResult;
 
-    public void ShowSupportedHeadsets() { }
+    public bool SupportedHeadsetsResult { get; set; } = true;
+    public bool ShowSupportedHeadsets() => SupportedHeadsetsResult;
 }
