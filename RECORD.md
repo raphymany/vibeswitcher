@@ -1263,37 +1263,38 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 50: `feat/headset-expansion`
+### Branch 50: `feat/headset-expansion` ✅ Done — PR #92
 **Theme:** Expand wireless headset HID support to Corsair, SteelSeries, and HyperX; add remaining Logitech PIDs.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| Logitech PIDs | Added 12 additional Logitech PIDs: G633 (0x0A5C), G635 (0x0A89), G933 (0x0A5B), G935 (0x0A87), G733 ×3 (0x0AB5/0x0AFE/0x0B1F), G535 (0x0AC4), G Pro (0x0AA7), G Pro X Wireless (0x0AAA), G Pro X 2 ×2 (0x0AFB/0x0AFC) | Open |
-| HidProtocolType enum | New enum: LogitechHidPP, CorsairVoid, SteelSeriesLegacy, SteelSeriesNova, HyperXAlpha, HyperXCloudII | Open |
-| HidHeadsetDescriptor | Extended record with Protocol, UsagePage, UsageId, PollIntervalMs, ReadTimeoutMs, LegacyQueryPrefix | Open |
-| Corsair VOID/Elite | 12 PIDs; event-driven read loop; usage page 0xFFC5/0x0001; seed query [0xC9,0x64]; data[3]==177 && data[4]!=0 → connected. UNTESTED. | Open |
-| SteelSeries Legacy | 4 PIDs (Arctis 1/7X/7P); poll-based 31-byte query; response[2]==0x01 → offline. UNTESTED. | Open |
-| SteelSeries Nova | 23 PIDs (Nova 7/7X/7P/7+/Nova 5/3P/3X); poll-based 64-byte query; response[3]==0x00 → offline. UNTESTED. | Open |
-| HyperX Cloud Alpha | 1 PID (0x098D); poll-based 3-step 31-byte query; response[3]==0x01 → disconnected. UNTESTED. | Open |
-| HyperX Cloud II | 1 PID (0x0696); poll-based 52-byte wrapped command; valid header → connected. UNTESTED. | Open |
-| SelectInterface | Generalized interface selection: descriptor UsagePage takes priority; falls back to protocol-default heuristics | Open |
-| DeviceReader | Start() routes to ReadLoop (event-driven) or PollLoop (poll-based) based on protocol | Open |
-| README | Updated supported headsets table with brand/model list and tested/untested status | Open |
+| Logitech PIDs | Added 12 additional Logitech PIDs: G633 (0x0A5C), G635 (0x0A89), G933 (0x0A5B), G935 (0x0A87), G733 ×3 (0x0AB5/0x0AFE/0x0B1F), G535 (0x0AC4), G Pro (0x0AA7), G Pro X Wireless (0x0AAA), G Pro X 2 ×2 (0x0AFB/0x0AFC) | ✅ Done |
+| HidProtocolType enum | New enum: LogitechHidPP, CorsairVoid, SteelSeriesLegacy, SteelSeriesNova, HyperXAlpha, HyperXCloudII | ✅ Done |
+| HidHeadsetDescriptor | Extended record with Protocol, UsagePage, UsageId, PollIntervalMs, ReadTimeoutMs, LegacyQueryPrefix | ✅ Done |
+| Corsair VOID/Elite | 12 PIDs; event-driven read loop; usage page 0xFFC5/0x0001; seed query [0xC9,0x64]; data[3]==177 && data[4]!=0 → connected. UNTESTED. | ✅ Done |
+| SteelSeries Legacy | 4 PIDs (Arctis 1/7X/7P); poll-based 31-byte query; response[2]==0x01 → offline. UNTESTED. | ✅ Done |
+| SteelSeries Nova | 23 PIDs (Nova 7/7X/7P/7+/Nova 5/3P/3X); poll-based 64-byte query; response[3]==0x00 → offline. UNTESTED. | ✅ Done |
+| HyperX Cloud Alpha | 1 PID (0x098D); poll-based 3-step 31-byte query; response[3]==0x01 → disconnected. UNTESTED. | ✅ Done |
+| HyperX Cloud II | 1 PID (0x0696); poll-based 52-byte wrapped command; valid header → connected. UNTESTED. | ✅ Done |
+| SelectInterface | Generalized interface selection: descriptor UsagePage takes priority; falls back to protocol-default heuristics | ✅ Done |
+| DeviceReader | Start() routes to ReadLoop (event-driven) or PollLoop (poll-based) based on protocol | ✅ Done |
+| README | Updated supported headsets table with brand/model list and tested/untested status | ✅ Done |
 
 ---
 
-### Branch 51: `feat/auto-switch-ux`
+### Branch 51: `feat/auto-switch-ux` ✅ Done — PR #94
 **Theme:** Auto-switch UX improvements — supported headsets dialog, playback-only restriction, and conflict detection.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| SupportedHeadsetsDialog | New dialog opened when the 🔌 toggle is enabled: shows all brands/models grouped by brand with Tested ✅/Untested ⚠️ badge; auto-detects connected HID devices and shows a "Detected" banner; "Request support" button links to GitHub template | Open |
-| TriggerOnConnect conflict | Setter in ProfileCardViewModel detects when another profile already claims the same playback device; shows "Auto-Switch Already Enabled" confirm dialog; "Yes, Move It" disables the other profile and refreshes its card ViewModel; "No" reverts the toggle | Open |
-| Playback-only restriction | DeviceTriggerService.BuildConnectedSet now only tracks playback devices; IsTriggeredBy and IsTriggeredByDevice simplified to check PlaybackDeviceId only regardless of profile mode; recording-only profiles hide the toggle | Open |
-| TriggerOnConnectVisible | New Visibility property on ProfileCardViewModel — Collapsed for Recording-only profiles, Visible otherwise; bound in SettingsWindow.xaml | Open |
-| Remove pinned/sort ordering | Removed OrderByDescending(IsPinned).ThenBy(SortOrder) from OnDevicesChanged, OnDevicePropertyChanged, OnHidWirelessConnected | Open |
-| IDialogService | Added ShowConfirm(title, message, actionLabel) and ShowSupportedHeadsets() | Open |
-| Tests | Updated 4 DeviceTriggerServiceTests to reflect playback-only and no-ordering behavior | Open |
+| SupportedHeadsetsDialog | New dialog opened when the 🔌 toggle is enabled: shows all brands/models grouped by brand with Tested ✅/Untested ⚠️ badge; "Request support" button links to GitHub template | ✅ Done |
+| TriggerOnConnect conflict | Setter in ProfileCardViewModel detects when another profile already claims the same playback device; shows "Auto-Switch Already Enabled" confirm dialog; "Yes, Move It" disables the other profile and refreshes its card ViewModel; "No" reverts the toggle | ✅ Done |
+| Playback-only restriction | DeviceTriggerService.BuildConnectedSet now only tracks playback devices; IsTriggeredBy and IsTriggeredByDevice simplified to check PlaybackDeviceId only regardless of profile mode; recording-only profiles hide the toggle | ✅ Done |
+| TriggerOnConnectVisible | New Visibility property on ProfileCardViewModel — Collapsed for Recording-only profiles, Visible otherwise; bound in SettingsWindow.xaml | ✅ Done |
+| Remove pinned/sort ordering | Removed OrderByDescending(IsPinned).ThenBy(SortOrder) from OnDevicesChanged, OnDevicePropertyChanged, OnHidWirelessConnected | ✅ Done |
+| IDialogService | Added ShowConfirm(title, message, actionLabel) and ShowSupportedHeadsets() | ✅ Done |
+| Tests | Updated 4 DeviceTriggerServiceTests to reflect playback-only and no-ordering behavior | ✅ Done |
+| Chained revert stack | DeviceTriggerService uses a stack so Speaker→BT→Logitech reverts correctly in order; HID-managed profiles only revert via OnHidWirelessDisconnected | ✅ Done |
 
 ---
 

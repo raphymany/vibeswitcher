@@ -6,6 +6,24 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **Supported headsets dialog** — opening the auto-switch toggle now shows a dialog listing all supported wireless headset brands and models (Logitech, Corsair, SteelSeries, HyperX) grouped by brand with Tested/Untested badges; "Enable Auto-Switch" confirms and enables; "Request wireless headset support" opens the GitHub issue template *(PR #94)*
+- **Auto-switch conflict detection** — enabling auto-switch on a profile that shares a playback device with another auto-switch-enabled profile shows a confirmation dialog; "Yes, Move It" reassigns auto-switch to the new profile and refreshes the displaced card *(PR #94)*
+- **Chained revert stack** — auto-switch reverts now maintain a full chain (e.g. Speaker → BT → Logitech); turning devices off in any order reverts through the chain correctly *(PR #94)*
+- **Expanded wireless headset HID support** — `HidHeadsetService` now monitors Corsair VOID/Pro/Elite Wireless (12 PIDs, event-driven), SteelSeries Arctis Legacy/Nova families (27 PIDs, poll-based), and HyperX Cloud Alpha/Cloud II Wireless (2 PIDs, poll-based) in addition to Logitech *(PR #92)*
+- **`KnownHidHeadsets` expanded** — 12 additional Logitech PIDs (G633, G635, G933, G935, G733, G535, G Pro, G Pro X Wireless, G Pro X 2) plus all Corsair, SteelSeries, and HyperX entries added to the registry *(PR #92)*
+
+### Fixed
+- **Playback-only auto-switch** — recording-only profiles no longer show the auto-switch toggle; `DeviceTriggerService` ignores recording devices entirely when evaluating which profile to switch to *(PR #94)*
+- **Auto-switch skips HID-managed profiles in Windows events** — Logitech wireless dongle profiles are now only triggered via HID signals, preventing false switches when other devices connect or disconnect *(PR #94)*
+
+### Added
+- **Auto-switch on device connect (F39)** — each profile now has a "Switch when device connects" toggle; when enabled, the app automatically activates that profile the moment its assigned playback or recording device is plugged in or powered on; reverts to the previous profile when the device disconnects *(PR #90)*
+- **Wireless headset HID support** — `HidHeadsetService` monitors known Logitech LIGHTSPEED wireless headsets via their HID++ vendor interface (usage page `0xFF43`), firing instant switch events when the headset powers on or off; eliminates the 3–5 second delay from Windows audio property notifications *(PR #90)*
+- **`KnownHidHeadsets` registry** — `KnownHidHeadsets.cs` holds the list of supported HID headsets (VID, PID, model name); currently includes Logitech PRO X Wireless (VID `046D` / PID `0ABA`) *(PR #90)*
+- **GitHub issue template for wireless headset support** — `.github/ISSUE_TEMPLATE/add-headset.yml` guides users through finding their headset's VID and PID from Device Manager so new headsets can be added to the HID registry *(PR #90)*
+- **README wireless headset section** — documents auto-switch behavior for USB, Bluetooth, and 3.5 mm audio jacks; lists supported wireless headsets with a link to the issue template for requesting new ones *(PR #90)*
+
 ### Fixed
 - **Day-chip filter not activating** — selecting day-of-week chips (Mon, Tue, etc.) did not show the filter-active indicator or enable the "Clear" button because `ProfileFilter.IsActive` and `SettingsViewModel.IsAnyFilterActive` both omitted the `ActiveDays` check *(PR #88)*
 - **Sound summary stays stale** — the summary line on a profile card ("Click — 50%") did not update when the user browsed a custom WAV file (auto-selects "Custom" tone) because `SetProfileSoundTone` and the volume setter never notified `SoundSummary` *(PR #88)*

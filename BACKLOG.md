@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-05 — Branch 41 (`feat/device-triggers`) merged — PR #90.
+**Last updated:** 2026-06-05 — Branch 51 (`feat/auto-switch-ux`) merged — PR #94.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -206,29 +206,9 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 50: `feat/headset-expansion`
-**Theme:** Expand wireless headset HID support to Corsair, SteelSeries, and HyperX.
+~~### Branch 50: `feat/headset-expansion`~~ ✅ Merged — PR #92
 
-| # | Feature |
-|---|---------|
-| — | Add 12 additional Logitech PIDs (G633, G635, G933, G935, G733 ×3, G535, G Pro, G Pro X Wireless, G Pro X 2 ×2) |
-| — | Corsair VOID / Pro / Elite Wireless — event-driven via Report ID 0x64 (12 PIDs) |
-| — | SteelSeries Arctis 1 / 7X / 7P — poll-based Legacy protocol, 31-byte query (4 PIDs) |
-| — | SteelSeries Arctis Nova 7 / 7X / 7P / 7+ / Nova 5 / Nova 3P/3X — poll-based Nova protocol, 64-byte query (23 PIDs) |
-| — | HyperX Cloud Alpha Wireless — poll-based 3-step query |
-| — | HyperX Cloud II Wireless (HP) — poll-based 52-byte wrapped command |
-
----
-
-### Branch 51: `feat/auto-switch-ux`
-**Theme:** Auto-switch UX improvements — supported headsets dialog, playback-only restriction, and conflict detection.
-
-| # | Feature |
-|---|---------|
-| — | Supported headsets dialog — opens when the 🔌 auto-switch toggle is enabled; lists all supported brands and models grouped by brand with tested/untested status; auto-detects any connected HID devices from the supported list; "Request support" button links to the GitHub issue template |
-| — | Auto-switch exclusivity — only one profile per playback device can have TriggerOnConnect enabled; enabling on a second profile shows a conflict dialog offering to move it |
-| — | Playback-only restriction — auto-switch now only triggers on the playback device; recording-only profiles hide the toggle entirely; DeviceTriggerService updated accordingly |
-| — | Removed pinned/sort-order priority from auto-switch trigger selection |
+~~### Branch 51: `feat/auto-switch-ux`~~ ✅ Merged — PR #94
 
 ---
 
