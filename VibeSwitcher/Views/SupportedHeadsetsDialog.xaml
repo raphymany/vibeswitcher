@@ -83,10 +83,10 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Supported Wireless Headsets"
+                    <TextBlock Text="Enable Auto-Switch"
                                FontSize="15" FontWeight="SemiBold"
                                Foreground="{DynamicResource PrimaryText}"/>
-                    <TextBlock Text="Additional HID detection for always-on USB dongles"
+                    <TextBlock Text="Works for any device — HID support for wireless headsets with permanent dongles"
                                FontSize="11" Foreground="{DynamicResource SecondaryText}"
                                Margin="0,2,0,0"/>
                 </StackPanel>
@@ -132,13 +132,13 @@
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="0"
-                        Content="My headset is listed — I'm good"
+                        Content="Enable Auto-Switch"
                         Style="{StaticResource PrimaryBtn}"
                         IsDefault="True"
                         Click="Good_Click"/>
 
                 <Button Grid.Column="2"
-                        Content="Not listed — Request support"
+                        Content="Wireless headset not listed — Request support"
                         Style="{StaticResource SecondaryBtn}"
                         Click="Request_Click"/>
             </Grid>
