@@ -134,7 +134,7 @@ public partial class SupportedHeadsetsDialog : Window
     {
         try
         {
-            Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues/new/choose")
+            Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues/new?template=add-headset.yml")
                 { UseShellExecute = true });
         }
         catch { }
