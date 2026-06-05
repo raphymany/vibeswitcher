@@ -74,7 +74,7 @@ public sealed class DeviceTriggerService : IDisposable
             {
                 var triggeredProfile = _configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
-                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected))
+                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !IsHidManaged(triggeredProfile))
                 {
                     lock (_stateLock) _revertInfo = null;
                     RevertToPrevious(ri.Value.PreviousProfileId);
