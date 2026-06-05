@@ -20,4 +20,5 @@ public interface IDialogService
     SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false);
     bool ShowConfirm(string title, string message, string actionLabel);
     bool ShowSupportedHeadsets();
+    List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers);
 }

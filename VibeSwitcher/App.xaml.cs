@@ -24,6 +24,8 @@ public partial class App : Application
     private MuteService? _muteService;
     private DeviceTriggerService? _deviceTriggerService;
     private HidHeadsetService? _hidHeadsetService;
+    private AppWatcherService? _appWatcherService;
+    private AppTriggerService? _appTriggerService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -99,7 +101,8 @@ public partial class App : Application
             _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile),
-            onReschedule: () => _schedulerService?.Reschedule());
+            onReschedule: () => _schedulerService?.Reschedule(),
+            onAppTriggersChanged: () => _appTriggerService?.RefreshWatchList());
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
         _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);
@@ -159,6 +162,13 @@ public partial class App : Application
         _hidHeadsetService.WirelessDisconnected +=
             d => _deviceTriggerService.OnHidWirelessDisconnected(d);
         _hidHeadsetService.Start();
+
+        // 9e. App launch trigger — switches profile when a linked executable launches
+        _appWatcherService = new AppWatcherService();
+        _appTriggerService = new AppTriggerService(
+            _configService,
+            _appWatcherService,
+            profile => _orchestrator.SwitchToProfile(profile));
 
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
@@ -265,6 +275,8 @@ public partial class App : Application
         }
         _hidHeadsetService?.Dispose();
         _deviceTriggerService?.Dispose();
+        _appTriggerService?.Dispose();
+        _appWatcherService?.Dispose();
         _themeService?.StopListening();
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);

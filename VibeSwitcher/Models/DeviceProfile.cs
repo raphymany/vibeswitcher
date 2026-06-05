@@ -51,6 +51,9 @@ public class DeviceProfile
     // Automatically switch to this profile when its device(s) connect
     public bool TriggerOnConnect { get; set; } = false;
 
+    // Full paths to executables that trigger a switch to this profile when launched
+    public List<string> AppTriggers { get; set; } = new();
+
     // Per-profile switch sound override
     public bool SoundOverride { get; set; } = false;
     public bool SoundShowBanner { get; set; } = false;

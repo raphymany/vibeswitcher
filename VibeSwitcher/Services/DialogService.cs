@@ -127,6 +127,12 @@ public class DialogService : IDialogService
         return new SupportedHeadsetsDialog { Owner = OwnerWindow }.ShowDialog() == true;
     }
 
+    public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers)
+    {
+        var dialog = new AppTriggerDialog(currentTriggers, usedByOthers) { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true ? dialog.ResultTriggers : null;
+    }
+
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.
     // The front square's fill matches the badge background so it cleanly occludes the back square.
     private static UIElement BuildCopyIcon(Brush badgeBg, Brush stroke)

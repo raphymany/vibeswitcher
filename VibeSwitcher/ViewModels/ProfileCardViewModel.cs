@@ -23,6 +23,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
     private readonly Func<bool> _use12Hour;
     private readonly Action<Guid>? _onTriggerConflictResolved;
+    private readonly Action? _onAppTriggersChanged;
 
     private string _name;
     private AudioDeviceInfo? _selectedPlaybackDevice;
@@ -252,6 +253,25 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public void RefreshTriggerOnConnect() => OnPropertyChanged(nameof(TriggerOnConnect));
 
+    public bool HasAppTriggers => _model.AppTriggers.Count > 0;
+
+    private void OpenAppTriggerWizard()
+    {
+        var usedByOthers = _configService.Current.Profiles
+            .Where(p => p.Id != _model.Id)
+            .SelectMany(p => p.AppTriggers.Select(t => (Path: t, ProfileName: p.Name)))
+            .GroupBy(x => x.Path, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First().ProfileName, StringComparer.OrdinalIgnoreCase);
+
+        var updated = _dialogService.ShowAppTriggerWizard(new List<string>(_model.AppTriggers), usedByOthers);
+        if (updated == null) return;
+
+        _model.AppTriggers = updated;
+        OnPropertyChanged(nameof(HasAppTriggers));
+        _onChanged(this);
+        _onAppTriggersChanged?.Invoke();
+    }
+
     public string? Notes
     {
         get => _model.Notes;
@@ -386,6 +406,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand ConfigureSoundCommand { get; }
     public ICommand AddSwitchSoundCommand { get; }
     public ICommand RemoveSwitchSoundCommand { get; }
+    public ICommand OpenAppTriggersCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -400,7 +421,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         Func<string, Task> onTestSound,
         Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null,
         Action<ProfileCardViewModel>? onActivate = null,
-        Action<Guid>? onTriggerConflictResolved = null)
+        Action<Guid>? onTriggerConflictResolved = null,
+        Action? onAppTriggersChanged = null)
     {
         _model = model;
         _configService = configService;
@@ -414,6 +436,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _conflictChecker = conflictChecker ?? (_ => []);
         _use12Hour = () => _configService.Current.Use12HourClock;
         _onTriggerConflictResolved = onTriggerConflictResolved;
+        _onAppTriggersChanged = onAppTriggersChanged;
 
         _name = model.Name;
         _hotkeyDisplay = model.Hotkey.ToDisplayString();
@@ -451,6 +474,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         ConfigureSoundCommand = new RelayCommand(ConfigureSound);
         AddSwitchSoundCommand = new RelayCommand(AddSwitchSound);
         RemoveSwitchSoundCommand = new RelayCommand(RemoveSwitchSound);
+        OpenAppTriggersCommand = new RelayCommand(OpenAppTriggerWizard);
     }
 
     private void AddSwitchSound()

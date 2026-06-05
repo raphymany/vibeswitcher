@@ -43,7 +43,8 @@ public partial class SettingsWindow : Window
         TrayService trayService,
         Action<string> applyTheme,
         Action<Models.DeviceProfile>? switchProfile = null,
-        Action? onReschedule = null)
+        Action? onReschedule = null,
+        Action? onAppTriggersChanged = null)
     {
         InitializeComponent();
         _trayService = trayService;
@@ -76,7 +77,8 @@ public partial class SettingsWindow : Window
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             },
             applyTheme: applyTheme,
-            switchProfile: switchProfile);
+            switchProfile: switchProfile,
+            onAppTriggersChanged: onAppTriggersChanged);
 
         DataContext = _viewModel;
         RestoreWindowBounds();

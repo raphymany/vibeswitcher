@@ -970,6 +970,7 @@
                                                     HorizontalAlignment="Right" Orientation="Horizontal">
                                                 <!-- Bell toggle: hidden when switch sound is configured (its wizard handles banner separately) -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Height="30"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Border.Style>
@@ -1014,8 +1015,45 @@
                                                         </ToggleButton.Template>
                                                     </ToggleButton>
                                                 </Border>
+                                                <!-- App launch trigger button -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Height="30"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding OpenAppTriggersCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTipService.InitialShowDelay="400"
+                                                            ToolTipService.ShowDuration="12000">
+                                                        <Button.ToolTip>
+                                                            <ToolTip>
+                                                                <TextBlock TextWrapping="Wrap" MaxWidth="260" Foreground="{DynamicResource PrimaryText}">
+                                                                    App Launch Triggers — switch to this profile automatically when a linked app opens. You can still switch profiles manually at any time.
+                                                                </TextBlock>
+                                                            </ToolTip>
+                                                        </Button.ToolTip>
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="▶" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasAppTriggers}" Value="True">
+                                                                        <Setter TargetName="icon" Property="Foreground" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
                                                 <!-- Auto-switch on connect toggle (hidden for Recording-only profiles) -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Height="30"
                                                         Visibility="{Binding TriggerOnConnectVisible}"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
@@ -1052,6 +1090,7 @@
                                                 </Border>
                                                 <!-- Pin toggle -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Height="30"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <ToggleButton IsChecked="{Binding IsPinned}"
@@ -1061,7 +1100,7 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="star" Text="☆" FontSize="14"
+                                                                    <TextBlock x:Name="star" Text="☆" FontSize="13"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>

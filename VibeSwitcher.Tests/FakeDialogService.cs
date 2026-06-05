@@ -50,4 +50,7 @@ internal sealed class FakeDialogService : IDialogService
 
     public bool SupportedHeadsetsResult { get; set; } = true;
     public bool ShowSupportedHeadsets() => SupportedHeadsetsResult;
+
+    public List<string>? AppTriggerWizardResult { get; set; } = null;
+    public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers) => AppTriggerWizardResult;
 }
