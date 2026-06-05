@@ -567,7 +567,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F38 | Temporary / transient profile switch — optional app-wide feature with a configurable keybind; switches to a profile temporarily and auto-reverts to the previous profile when a timer expires or a linked app closes; useful for quick calls without forgetting to switch back |
 | F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups where undocking a laptop should switch to built-in speakers automatically |
-| F41 | App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable |
+| ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 
@@ -583,7 +583,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 23 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 39 | 12 | 27 |
+| Feature Additions | 39 | 13 | 26 |
 | **Total** | **112** | **81** | **31** |
 
 ---
@@ -748,6 +748,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 | ~~38~~ | ~~`feat/switch-sound`~~ | ✅ Done — PR #84 |
 | ~~39~~ | ~~`feat/panic-hotkey`~~ | ✅ Done — PR #86 |
 | ~~49~~ | ~~`fix/codebase-audit-49`~~ | ✅ Done — PR #88 |
+| ~~43~~ | ~~`feat/app-switching`~~ | ✅ Done — PR #96 |
 | 47 | `refactor/code-quality` | Planned |
 
 ---
@@ -1295,6 +1296,20 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | IDialogService | Added ShowConfirm(title, message, actionLabel) and ShowSupportedHeadsets() | ✅ Done |
 | Tests | Updated 4 DeviceTriggerServiceTests to reflect playback-only and no-ordering behavior | ✅ Done |
 | Chained revert stack | DeviceTriggerService uses a stack so Speaker→BT→Logitech reverts correctly in order; HID-managed profiles only revert via OnHidWirelessDisconnected | ✅ Done |
+
+---
+
+### Branch 43: `feat/app-switching` ✅ Done — PR #96
+**Theme:** Automatic profile switching based on running application, plus shortcuts UX redesign.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F41 | App-aware auto-switching — `AppWatcherService` polls every 2 seconds; `AppTriggerService` dispatches profile switch when a watched exe goes from not-running to running; skips if already on the target profile | ✅ Done |
+| AppTriggerDialog | New dialog with running-process picker, Browse for .exe fallback, inline "Already added" and "Used by [Profile]" badges, search box, and filter chips (All / Running / Installed / In Use); pre-populates from Start Menu shortcuts | ✅ Done |
+| Switch-on-Done fix | Deferred auto-switch until the assigned app actually launches (was firing immediately when the dialog closed) | ✅ Done |
+| ProfileCardViewModel | `▶` trigger button added to card header; green when triggers are configured, gray otherwise | ✅ Done |
+| Shortcuts redesign | Removed all four toggle switches from the Shortcuts section; setting a hotkey now enables it automatically; ✕ clear button (visible only when set) clears back to None and auto-disables | ✅ Done |
+| SettingsHotkey auto-enable | `SettingsHotkey` setter auto-enables on assign and auto-disables on clear, mirroring the existing mute hotkey behavior | ✅ Done |
 
 ---
 

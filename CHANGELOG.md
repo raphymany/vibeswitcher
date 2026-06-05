@@ -7,6 +7,16 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **App launch triggers (F41)** — link one or more executables to a profile; VibeSwitcher automatically switches to that profile within ~2 seconds of the app launching; skips the switch if already on the target profile; the same exe cannot be linked to two profiles *(PR #96)*
+- **App trigger dialog** — new wizard dialog with All / Running / Installed / In Use filter chips; pre-populates from Start Menu shortcuts so you can find apps that aren't currently running; running apps are badged in the installed list; inline "Already added" and "Used by [Profile]" indicators; Browse for .exe fallback *(PR #96)*
+- **`▶` trigger button on profile cards** — opens the app trigger dialog; green when triggers are configured, gray otherwise *(PR #96)*
+
+### Fixed
+- **Shortcuts toggle switches removed** — the four enable/disable toggles in the Shortcuts section are gone; setting a hotkey now enables it automatically, and a new ✕ clear button (visible only when a hotkey is set) resets it to None and auto-disables *(PR #96)*
+- **Immediate switch on Done** — adding an app trigger no longer switches profiles immediately when the dialog closes; the switch now only fires when the assigned executable actually launches *(PR #96)*
+- **Settings hotkey auto-enable** — clearing the Open/Close shortcut now auto-disables it (consistent with mute hotkey behavior) *(PR #96)*
+
+### Added
 - **Supported headsets dialog** — opening the auto-switch toggle now shows a dialog listing all supported wireless headset brands and models (Logitech, Corsair, SteelSeries, HyperX) grouped by brand with Tested/Untested badges; "Enable Auto-Switch" confirms and enables; "Request wireless headset support" opens the GitHub issue template *(PR #94)*
 - **Auto-switch conflict detection** — enabling auto-switch on a profile that shares a playback device with another auto-switch-enabled profile shows a confirmation dialog; "Yes, Move It" reassigns auto-switch to the new profile and refreshes the displaced card *(PR #94)*
 - **Chained revert stack** — auto-switch reverts now maintain a full chain (e.g. Speaker → BT → Logitech); turning devices off in any order reverts through the chain correctly *(PR #94)*
