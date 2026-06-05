@@ -125,9 +125,9 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30~~ | ✅ Done — PR #84 |
 | ~~F37~~ | ~~Deafen / panic hotkey — global configurable hotkeys (one per scope) that instantly mute system-wide; configurable scope: mic only (tray flashes red), speakers only (tray flashes blue), or both (tray flashes purple); distinct built-in activate/deactivate sounds; press again to unmute~~ | ✅ Done — PR #86 |
-| F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | 40 |
+| F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | Deferred |
 | ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle~~ | ✅ Done — PR #90 |
-| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | 42 |
+| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | Deferred |
 | F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle | 43 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
@@ -147,24 +147,6 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 40: `feat/transient-profile`
-**Theme:** Temporary profile switching with automatic revert.
-
-| # | Feature |
-|---|---------|
-| F38 | Temporary / transient profile switch — optional app-wide setting with configurable keybind; switches to a profile temporarily and auto-reverts when a timer expires or a linked app closes |
-
----
-
-### Branch 42: `feat/dock-awareness`
-**Theme:** Automatic profile switching based on monitor or dock connection.
-
-| # | Feature |
-|---|---------|
-| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); useful for hybrid work setups |
-
----
-
 ### Branch 43: `feat/app-switching`
 **Theme:** Automatic profile switching based on running application.
 
@@ -180,9 +162,10 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | # | Item |
 |---|------|
 | R7 | `AudioService` god class — splits into focused services (enumeration, switching, test-tone, mic-level, device notifications) |
-| R8 | `ProfileCardViewModel` hotkey conflict `while(true)` loop — move workflow logic out of the ViewModel into a service or orchestrator |
+| R8 | `ProfileCardViewModel` — three `while(true)` loops for conflict resolution (hotkey capture, add schedule, edit schedule) — move workflow logic out of the ViewModel into a service or orchestrator |
 | R9 | `AppLogger._logPathOverride` static hatch — extract `IAppLogger` interface and inject it so tests don't need a secret escape hatch |
 | R10 | Icon deletion copy-paste — `DeleteOrphanedIcon` logic duplicated verbatim between two methods; extract to a single private helper |
+| R11 | `MuteService.Toggle()` fire-and-forget — `Task.Run(() => PlaySound(...))` has no error handling; if sound playback throws, the exception silently disappears |
 
 ---
 
@@ -198,3 +181,5 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | 10.8 | Website ("coming soon") | External, not in this repo |
 | — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
 | — | Compact / mini Settings window | After UI/UX redesign |
+| F38 | Temporary / transient profile switch | Not useful enough to prioritize |
+| F40 | Monitor / dock / environment triggers (display, USB device, power source, network location) | Too broad to scope right now |

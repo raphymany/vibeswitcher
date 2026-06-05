@@ -46,8 +46,13 @@
             <!-- Description -->
             <TextBlock TextWrapping="Wrap" FontSize="12"
                        Foreground="{DynamicResource PrimaryText}" LineHeight="18"
+                       Margin="0,0,0,6">
+                When a linked app launches, VibeSwitcher switches to this profile — but only if you're not already on it. Switching back manually at any time is fine; closing the app does nothing.
+            </TextBlock>
+            <TextBlock TextWrapping="Wrap" FontSize="11" LineHeight="17"
+                       Foreground="{DynamicResource SecondaryText}"
                        Margin="0,0,0,16">
-                When any linked app launches, VibeSwitcher switches to this profile — but only if you're not already on it. Switching back manually at any time is fine; closing the app does nothing.
+                ⚠ Apps that keep a background process after closing (e.g. Spotify, Discord) must be fully ended in Task Manager and relaunched to trigger a switch.
             </TextBlock>
 
             <!-- Linked apps section -->
@@ -68,8 +73,8 @@
                 </StackPanel>
             </Border>
 
-            <!-- Running apps section -->
-            <TextBlock Text="RUNNING APPS" FontSize="10" FontWeight="SemiBold"
+            <!-- Apps section label -->
+            <TextBlock Text="APPS" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource SecondaryText}" Margin="0,0,0,6"/>
 
             <!-- Search box -->
@@ -77,18 +82,49 @@
                     CornerRadius="6" Margin="0,0,0,6" Padding="8,6">
                 <Grid>
                     <TextBlock x:Name="SearchPlaceholder"
-                               Text="Search running apps..."
+                               Text="Search apps..."
                                FontSize="12" Foreground="{DynamicResource SecondaryText}"
                                IsHitTestVisible="False" VerticalAlignment="Center"/>
                     <TextBox x:Name="SearchBox"
                              FontSize="12" Background="Transparent" BorderThickness="0"
+                             Padding="0"
                              Foreground="{DynamicResource PrimaryText}"
                              VerticalAlignment="Center"
+                             GotFocus="SearchBox_GotFocus"
+                             LostFocus="SearchBox_LostFocus"
                              TextChanged="SearchBox_TextChanged"/>
                 </Grid>
             </Border>
 
-            <!-- Running process list -->
+            <!-- Filter chips -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <Border x:Name="ChipAll" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,0"
+                        Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
+                        MouseLeftButtonUp="FilterChip_Click" Tag="All">
+                    <TextBlock Text="All" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SecondaryText}"/>
+                </Border>
+                <Border x:Name="ChipRunning" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,0"
+                        Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
+                        MouseLeftButtonUp="FilterChip_Click" Tag="Running">
+                    <TextBlock Text="Running" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SecondaryText}"/>
+                </Border>
+                <Border x:Name="ChipInstalled" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,0"
+                        Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
+                        MouseLeftButtonUp="FilterChip_Click" Tag="Installed">
+                    <TextBlock Text="Installed" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SecondaryText}"/>
+                </Border>
+                <Border x:Name="ChipInUse" BorderThickness="1" CornerRadius="4" Padding="8,3"
+                        Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
+                        MouseLeftButtonUp="FilterChip_Click" Tag="InUse">
+                    <TextBlock Text="In use" FontSize="10" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SecondaryText}"/>
+                </Border>
+            </StackPanel>
+
+            <!-- App list -->
             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                     CornerRadius="6" Margin="0,0,0,8">
                 <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"

@@ -226,11 +226,29 @@ public partial class App : Application
 
     private static readonly int WM_TASKBARCREATED = WinApi.RegisterWindowMessage("TaskbarCreated");
 
+    // Debounce per-atom to suppress WM_HOTKEY auto-repeat when a key is held down.
+    private readonly Dictionary<ushort, long> _hotkeyLastFired = new();
+    private const long HotkeyDebounceTicks = 1000 * TimeSpan.TicksPerMillisecond;
+
+    private bool ShouldHandleHotkey(ushort atomId)
+    {
+        var now = DateTime.UtcNow.Ticks;
+        if (_hotkeyLastFired.TryGetValue(atomId, out var last) && now - last < HotkeyDebounceTicks)
+            return false;
+        _hotkeyLastFired[atomId] = now;
+        return true;
+    }
+
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == WinApi.WM_HOTKEY)
         {
             ushort atomId = (ushort)wParam.ToInt32();
+            if (!ShouldHandleHotkey(atomId))
+            {
+                handled = true;
+                return IntPtr.Zero;
+            }
             if (_hotkeyService!.IsSettingsHotkey(atomId))
             {
                 OpenSettingsWindow();

@@ -58,7 +58,7 @@ public partial class AboutWindow : Window
 
     private void SubmitIssue_Click(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues/new") { UseShellExecute = true }); }
+        try { Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues/new/choose") { UseShellExecute = true }); }
         catch (Exception ex)
         {
             AppLogger.Warning("AboutWindow", ex.Message);

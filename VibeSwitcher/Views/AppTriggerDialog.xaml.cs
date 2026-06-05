@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -12,11 +13,16 @@ namespace VibeSwitcher.Views;
 public partial class AppTriggerDialog : Window
 {
     private record ProcessEntry(string ExePath, string ExeName, string DisplayName, ImageSource? Icon,
-        string? ConflictingProfile);
+        string? ConflictingProfile, bool IsRunning = false);
+
+    private enum AppFilter { All, Running, Installed, InUse }
 
     private readonly List<string> _linked;
     private readonly IReadOnlyDictionary<string, string> _usedByOthers;
     private List<ProcessEntry> _runningEntries = [];
+    private List<ProcessEntry> _installedEntries = [];
+    private List<ProcessEntry> _allEntries = [];
+    private AppFilter _activeFilter = AppFilter.All;
 
     public List<string>? ResultTriggers { get; private set; }
 
@@ -26,8 +32,10 @@ public partial class AppTriggerDialog : Window
         _linked = new List<string>(currentTriggers);
         _usedByOthers = usedByOthers;
 
+        UpdateFilterChips();
         RebuildLinkedPanel();
         LoadRunningAppsAsync();
+        LoadInstalledAppsAsync();
     }
 
     // ── Linked apps panel ────────────────────────────────────────────────────
@@ -106,7 +114,48 @@ public partial class AppTriggerDialog : Window
         }
     }
 
-    // ── Running apps discovery ───────────────────────────────────────────────
+    // ── Filter chips ─────────────────────────────────────────────────────────
+
+    private void FilterChip_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+    {
+        if (sender is not Border chip) return;
+        _activeFilter = (chip.Tag as string) switch
+        {
+            "Running"   => AppFilter.Running,
+            "Installed" => AppFilter.Installed,
+            "InUse"     => AppFilter.InUse,
+            _           => AppFilter.All,
+        };
+        UpdateFilterChips();
+        ApplyFilter(SearchBox.Text);
+    }
+
+    private void UpdateFilterChips()
+    {
+        SetChip(ChipAll,       _activeFilter == AppFilter.All);
+        SetChip(ChipRunning,   _activeFilter == AppFilter.Running);
+        SetChip(ChipInstalled, _activeFilter == AppFilter.Installed);
+        SetChip(ChipInUse,     _activeFilter == AppFilter.InUse);
+    }
+
+    private static void SetChip(Border chip, bool active)
+    {
+        if (active)
+        {
+            chip.Background  = new SolidColorBrush(Color.FromRgb(0x37, 0x41, 0x51));
+            chip.BorderBrush = new SolidColorBrush(Color.FromRgb(0x37, 0x41, 0x51));
+            if (chip.Child is TextBlock tb) tb.Foreground = Brushes.White;
+        }
+        else
+        {
+            chip.Background = Brushes.Transparent;
+            chip.SetResourceReference(Border.BorderBrushProperty, "CardBorderBrush");
+            if (chip.Child is TextBlock tb)
+                tb.SetResourceReference(TextBlock.ForegroundProperty, "SecondaryText");
+        }
+    }
+
+    // ── App discovery ────────────────────────────────────────────────────────
 
     private void LoadRunningAppsAsync()
     {
@@ -114,8 +163,35 @@ public partial class AppTriggerDialog : Window
             Dispatcher.InvokeAsync(() =>
             {
                 _runningEntries = t.Result;
+                RebuildAllEntries();
                 ApplyFilter(SearchBox.Text);
             }), TaskScheduler.Default);
+    }
+
+    private void LoadInstalledAppsAsync()
+    {
+        _ = Task.Run(DiscoverInstalled).ContinueWith(t =>
+            Dispatcher.InvokeAsync(() =>
+            {
+                _installedEntries = t.Result;
+                RebuildAllEntries();
+                ApplyFilter(SearchBox.Text);
+            }), TaskScheduler.Default);
+    }
+
+    private void RebuildAllEntries()
+    {
+        var runningNames = _runningEntries
+            .Select(e => Path.GetFileNameWithoutExtension(e.ExePath))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var installedOnly = _installedEntries
+            .Where(e => !runningNames.Contains(Path.GetFileNameWithoutExtension(e.ExePath)));
+
+        _allEntries = _runningEntries
+            .Concat(installedOnly)
+            .OrderBy(e => e.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     private List<ProcessEntry> DiscoverRunning()
@@ -144,7 +220,7 @@ public partial class AppTriggerDialog : Window
                 var icon = LoadIcon(path);
                 _usedByOthers.TryGetValue(path, out var conflict);
 
-                results.Add(new ProcessEntry(path, exeName, displayName, icon, conflict));
+                results.Add(new ProcessEntry(path, exeName, displayName, icon, conflict, IsRunning: true));
             }
             catch { }
         }
@@ -153,27 +229,220 @@ public partial class AppTriggerDialog : Window
         return results;
     }
 
+    private List<ProcessEntry> DiscoverInstalled()
+    {
+        var selfPath = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var results = new List<ProcessEntry>();
+
+        // Source 1: registry Uninstall keys — covers Win32 installers on every drive
+        results.AddRange(ScanUninstallRegistry(seen, selfPath));
+
+        // Source 2: AppPaths registry — apps registered for the Run dialog
+        results.AddRange(ScanAppPaths(seen, selfPath));
+
+        // Source 3: Start Menu shortcuts — catches Store apps and anything with a Start Menu entry
+        results.AddRange(ScanStartMenuShortcuts(seen, selfPath));
+
+        results.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase));
+        return results;
+    }
+
+    private List<ProcessEntry> ScanUninstallRegistry(HashSet<string> seen, string selfPath)
+    {
+        var results = new List<ProcessEntry>();
+        var hiveKeys = new (RegistryKey Hive, string SubPath)[]
+        {
+            (Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+            (Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"),
+            (Registry.CurrentUser,  @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+        };
+
+        foreach (var (hive, subPath) in hiveKeys)
+        {
+            try
+            {
+                using var key = hive.OpenSubKey(subPath);
+                if (key == null) continue;
+
+                foreach (var name in key.GetSubKeyNames())
+                {
+                    try
+                    {
+                        using var sub = key.OpenSubKey(name);
+                        if (sub == null) continue;
+                        if (sub.GetValue("SystemComponent") is int sc && sc == 1) continue;
+                        if (sub.GetValue("ParentKeyName") is string parent && !string.IsNullOrEmpty(parent)) continue;
+
+                        var displayName = sub.GetValue("DisplayName") as string;
+                        if (string.IsNullOrWhiteSpace(displayName)) continue;
+
+                        var exePath = ExtractExePath(sub);
+                        if (string.IsNullOrEmpty(exePath)) continue;
+                        if (!File.Exists(exePath)) continue;
+                        if (string.Equals(exePath, selfPath, StringComparison.OrdinalIgnoreCase)) continue;
+                        if (!seen.Add(exePath)) continue;
+
+                        _usedByOthers.TryGetValue(exePath, out var conflict);
+                        results.Add(new ProcessEntry(exePath, Path.GetFileName(exePath),
+                            displayName.Trim(), LoadIcon(exePath), conflict));
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
+        return results;
+    }
+
+    private List<ProcessEntry> ScanAppPaths(HashSet<string> seen, string selfPath)
+    {
+        var results = new List<ProcessEntry>();
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\AppPaths");
+            if (key == null) return results;
+
+            foreach (var name in key.GetSubKeyNames())
+            {
+                if (!name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
+                try
+                {
+                    using var sub = key.OpenSubKey(name);
+                    var path = (sub?.GetValue(null) as string)?.Trim().Trim('"');
+                    if (string.IsNullOrEmpty(path)) continue;
+                    if (!path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!File.Exists(path)) continue;
+                    if (string.Equals(path, selfPath, StringComparison.OrdinalIgnoreCase)) continue;
+                    if (!seen.Add(path)) continue;
+
+                    _usedByOthers.TryGetValue(path, out var conflict);
+                    results.Add(new ProcessEntry(path, Path.GetFileName(path),
+                        GetDisplayName(path), LoadIcon(path), conflict));
+                }
+                catch { }
+            }
+        }
+        catch { }
+
+        return results;
+    }
+
+    private List<ProcessEntry> ScanStartMenuShortcuts(HashSet<string> seen, string selfPath)
+    {
+        var lnkFiles = new List<string>();
+        var dirs = new[]
+        {
+            Environment.GetFolderPath(Environment.SpecialFolder.Programs),       // per-user
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), // all-users
+        };
+
+        foreach (var dir in dirs)
+        {
+            if (!Directory.Exists(dir)) continue;
+            try { lnkFiles.AddRange(Directory.EnumerateFiles(dir, "*.lnk", SearchOption.AllDirectories)); }
+            catch { }
+        }
+
+        if (lnkFiles.Count == 0) return [];
+
+        // Resolve all shortcut targets in a single STA thread (WScript.Shell COM requirement)
+        var resolved = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var staThread = new Thread(() =>
+        {
+            try
+            {
+                var shellType = Type.GetTypeFromProgID("WScript.Shell");
+                if (shellType == null) return;
+                dynamic shell = Activator.CreateInstance(shellType)!;
+
+                foreach (var lnk in lnkFiles)
+                {
+                    try
+                    {
+                        dynamic shortcut = shell.CreateShortcut(lnk);
+                        string target = shortcut.TargetPath;
+                        if (!string.IsNullOrEmpty(target))
+                            resolved[lnk] = target;
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        });
+        staThread.SetApartmentState(ApartmentState.STA);
+        staThread.IsBackground = true;
+        staThread.Start();
+        staThread.Join(TimeSpan.FromSeconds(15));
+
+        var results = new List<ProcessEntry>();
+        foreach (var (lnk, target) in resolved)
+        {
+            if (!target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
+            if (!File.Exists(target)) continue;
+            if (string.Equals(target, selfPath, StringComparison.OrdinalIgnoreCase)) continue;
+            if (!seen.Add(target)) continue;
+
+            _usedByOthers.TryGetValue(target, out var conflict);
+            var displayName = Path.GetFileNameWithoutExtension(lnk);
+            results.Add(new ProcessEntry(target, Path.GetFileName(target),
+                displayName, LoadIcon(target), conflict));
+        }
+
+        return results;
+    }
+
+    private static string? ExtractExePath(RegistryKey key)
+    {
+        // DisplayIcon is the most reliable source: "C:\path\app.exe,0" or just "C:\path\app.exe"
+        var icon = key.GetValue("DisplayIcon") as string;
+        if (!string.IsNullOrEmpty(icon))
+        {
+            var comma = icon.LastIndexOf(',');
+            var candidate = (comma >= 0 ? icon[..comma] : icon).Trim().Trim('"');
+            if (candidate.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && File.Exists(candidate))
+                return candidate;
+        }
+        return null;
+    }
+
+    // ── App list display ─────────────────────────────────────────────────────
+
     private void ApplyFilter(string filter)
     {
         RunningPanel.Children.Clear();
 
-        var matches = _runningEntries
+        IEnumerable<ProcessEntry> source = _activeFilter switch
+        {
+            AppFilter.Running   => _allEntries.Where(e => e.IsRunning),
+            AppFilter.Installed => _allEntries.Where(e => !e.IsRunning),
+            AppFilter.InUse     => _allEntries.Where(e =>
+                e.ConflictingProfile != null ||
+                _linked.Any(l => string.Equals(Path.GetFileNameWithoutExtension(l),
+                    Path.GetFileNameWithoutExtension(e.ExePath), StringComparison.OrdinalIgnoreCase))),
+            _                   => _allEntries,
+        };
+
+        var matches = source
             .Where(e => string.IsNullOrWhiteSpace(filter)
                 || e.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase)
                 || e.ExeName.Contains(filter, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
+        var emptyMessage = (string.IsNullOrWhiteSpace(filter), _activeFilter) switch
+        {
+            (false, _)                      => "No matches found.",
+            (true, AppFilter.Running)       => "No running apps detected.",
+            (true, AppFilter.Installed)     => "No installed apps found.",
+            (true, AppFilter.InUse)         => "No apps are in use yet.",
+            _                               => "No apps detected.",
+        };
+
         if (matches.Count == 0)
         {
-            var empty = new TextBlock
-            {
-                Text = string.IsNullOrWhiteSpace(filter)
-                    ? "No running apps detected."
-                    : "No matches found.",
-                FontSize = 12,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(0, 12, 0, 12),
-            };
+            var empty = new TextBlock { Text = emptyMessage, FontSize = 12,
+                HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 12, 0, 12) };
             empty.SetResourceReference(ForegroundProperty, "SecondaryText");
             RunningPanel.Children.Add(empty);
             return;
@@ -187,13 +456,11 @@ public partial class AppTriggerDialog : Window
                               StringComparison.OrdinalIgnoreCase));
 
             var isDisabled = isLinkedHere || entry.ConflictingProfile != null;
-
-            var row = BuildRunningRow(entry, isLinkedHere, isDisabled);
-            RunningPanel.Children.Add(row);
+            RunningPanel.Children.Add(BuildRow(entry, isLinkedHere, isDisabled));
         }
     }
 
-    private UIElement BuildRunningRow(ProcessEntry entry, bool isLinkedHere, bool isDisabled)
+    private UIElement BuildRow(ProcessEntry entry, bool isLinkedHere, bool isDisabled)
     {
         var row = new Grid { Margin = new Thickness(8, 4, 8, 4) };
         row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -230,6 +497,19 @@ public partial class AppTriggerDialog : Window
 
         nameBlock.Children.Add(displayTb);
         nameBlock.Children.Add(exeTb);
+
+        if (entry.IsRunning)
+        {
+            nameBlock.Children.Add(new TextBlock
+            {
+                Text = "● Running",
+                FontSize = 9,
+                Margin = new Thickness(0, 1, 0, 0),
+                Opacity = isDisabled ? 0.45 : 1.0,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")),
+            });
+        }
+
         Grid.SetColumn(nameBlock, 1);
         row.Children.Add(nameBlock);
 
@@ -264,7 +544,6 @@ public partial class AppTriggerDialog : Window
             row.Children.Add(addBtn);
         }
 
-        // Wrap in a border for hover if clickable
         if (!isDisabled)
         {
             var wrapper = new Border { CornerRadius = new CornerRadius(4), Padding = new Thickness(0, 1, 0, 1) };
@@ -329,6 +608,13 @@ public partial class AppTriggerDialog : Window
     }
 
     // ── Event handlers ───────────────────────────────────────────────────────
+
+    private void SearchBox_GotFocus(object sender, RoutedEventArgs e)
+        => SearchPlaceholder.Visibility = Visibility.Collapsed;
+
+    private void SearchBox_LostFocus(object sender, RoutedEventArgs e)
+        => SearchPlaceholder.Visibility = string.IsNullOrEmpty(SearchBox.Text)
+            ? Visibility.Visible : Visibility.Collapsed;
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
