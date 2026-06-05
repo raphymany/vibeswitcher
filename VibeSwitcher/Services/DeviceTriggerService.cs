@@ -67,6 +67,16 @@ public sealed class DeviceTriggerService : IDisposable
 
         if (newlyDisconnected.Count > 0)
         {
+            var chainSnapshot = string.Join(", ", _revertChain.Select(e =>
+            {
+                var tp = _configService.Current.Profiles.FirstOrDefault(p => p.Id == e.TriggeredProfileId)?.Name ?? e.TriggeredProfileId.ToString()[..8];
+                return $"{tp}(hid={e.IsHidTriggered})";
+            }));
+            var activeProfileName = _configService.Current.Profiles
+                .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId)?.Name ?? "none";
+            AppLogger.Info("DeviceTriggerService.OnDevicesChanged",
+                $"Disconnected devices, active='{activeProfileName}', chain=[{chainSnapshot}]");
+
             // Top of chain: if the currently-active profile's device disconnected, revert.
             RevertInfo? top;
             lock (_stateLock) top = _revertChain.Count > 0 ? _revertChain[^1] : null;
@@ -75,8 +85,13 @@ public sealed class DeviceTriggerService : IDisposable
             {
                 var triggeredProfile = _configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == top.Value.TriggeredProfileId);
-                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !top.Value.IsHidTriggered)
+                bool deviceDisconnected = triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected);
+                AppLogger.Info("DeviceTriggerService.OnDevicesChanged",
+                    $"Top match: profile='{triggeredProfile?.Name}', deviceDisconnected={deviceDisconnected}, isHid={top.Value.IsHidTriggered}");
+                if (triggeredProfile != null && deviceDisconnected && !top.Value.IsHidTriggered)
                 {
+                    AppLogger.Info("DeviceTriggerService.OnDevicesChanged",
+                        $"Reverting from '{triggeredProfile.Name}' via device disconnect.");
                     lock (_stateLock) _revertChain.RemoveAt(_revertChain.Count - 1);
                     RevertToPrevious(top.Value.PreviousProfileId);
                     return;
