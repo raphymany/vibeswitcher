@@ -26,6 +26,7 @@ public sealed class DeviceTriggerService : IDisposable
     private readonly record struct RevertInfo(Guid TriggeredProfileId, Guid? PreviousProfileId);
     private RevertInfo? _revertInfo;
     private readonly object _stateLock = new();
+    private readonly List<HidHeadsetDescriptor> _hidDescriptors = [];
 
     public DeviceTriggerService(
         IAudioService audioService,
@@ -85,7 +86,7 @@ public sealed class DeviceTriggerService : IDisposable
         if (newlyConnected.Count == 0) return;
 
         var profile = _configService.Current.Profiles
-            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
+            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId && !IsHidManaged(p))
             .FirstOrDefault(p => IsTriggeredBy(p, newlyConnected));
 
         if (profile == null) return;
@@ -103,7 +104,7 @@ public sealed class DeviceTriggerService : IDisposable
         if (_disposed) return;
 
         var profile = _configService.Current.Profiles
-            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
+            .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId && !IsHidManaged(p))
             .FirstOrDefault(p => IsTriggeredByDevice(p, deviceId));
 
         if (profile == null) return;
@@ -136,6 +137,16 @@ public sealed class DeviceTriggerService : IDisposable
         else
             _switchCallback(profile);
     }
+
+    public void RegisterHidDescriptor(HidHeadsetDescriptor descriptor)
+    {
+        lock (_stateLock) _hidDescriptors.Add(descriptor);
+    }
+
+    // Returns true if the profile's device is monitored via HID — those profiles must only
+    // be forward-triggered by OnHidWirelessConnected, not by Windows audio API events.
+    private bool IsHidManaged(DeviceProfile profile) =>
+        _hidDescriptors.Any(d => IsProfileForDescriptor(profile, d));
 
     // Auto-switch is playback-only — only the playback device triggers a profile switch.
     private static bool IsTriggeredBy(DeviceProfile profile, HashSet<string> deviceIds) =>

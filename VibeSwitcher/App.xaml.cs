@@ -152,6 +152,8 @@ public partial class App : Application
         // 9d. HID headset monitor — detects wireless power-off for supported headsets
         //     and triggers the revert that the audio API can't detect on its own.
         _hidHeadsetService = new HidHeadsetService();
+        _hidHeadsetService.DeviceMonitoringStarted +=
+            d => _deviceTriggerService.RegisterHidDescriptor(d);
         _hidHeadsetService.WirelessConnected    +=
             d => _deviceTriggerService.OnHidWirelessConnected(d);
         _hidHeadsetService.WirelessDisconnected +=
