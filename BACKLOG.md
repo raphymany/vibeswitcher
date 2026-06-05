@@ -147,68 +147,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### ~~Branch 36: `feat/device-aliases`~~ ✅ Merged — PR #80
-**Theme:** Per-device friendly name display throughout the app.
-
-| # | Feature |
-|---|---------|
-| ~~F31~~ | ~~Audio endpoint aliases — user-defined friendly names shown in Settings dropdowns and profile cards instead of the raw Windows device name~~ |
-
----
-
-### ~~Branch 37: `feat/settings-search`~~ ✅ Merged — PR #82
-**Theme:** Profile search and filtering in the Settings window.
-
-| # | Feature |
-|---|---------|
-| ~~F35~~ | ~~Search / filter — text box at the top of the profile list; filters in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ |
-
----
-
-### ~~Branch 38: `feat/switch-sound`~~ ✅ Merged — PR #84
-**Theme:** Audio feedback on profile switch.
-
-| # | Feature |
-|---|---------|
-| ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav file at both levels; adjustable volume slider (0–100%) at both global and per-profile level; per-profile silent toggle to disable entirely~~ |
-
----
-
-### ~~Branch 49: `fix/codebase-audit-49`~~ ✅ Merged — PR #88
-**Theme:** Full codebase audit — dead code, bugs, security, and UI violations.
-
----
-
-### ~~Branch 39: `feat/panic-hotkey`~~ ✅ Merged — PR #86
-**Theme:** Instant global mute with configurable scope and audio feedback.
-
-| # | Feature |
-|---|---------|
-| ~~F37~~ | ~~Deafen / panic hotkey — three independent configurable hotkeys (Mute Mic, Mute Speakers, Mute Mic + Speakers); each has its own enable toggle and color-coded badge; tray flashes red (mic), blue (speakers), or purple (both) while active; distinct built-in activate/deactivate sounds; press again to unmute~~ |
-
----
-
 ### Branch 40: `feat/transient-profile`
 **Theme:** Temporary profile switching with automatic revert.
 
 | # | Feature |
 |---|---------|
 | F38 | Temporary / transient profile switch — optional app-wide setting with configurable keybind; switches to a profile temporarily and auto-reverts when a timer expires or a linked app closes |
-
----
-
-### ~~Branch 41: `feat/device-triggers`~~ ✅ Merged — PR #90
-**Theme:** Automatic profile activation when a specific audio device connects.
-
-| # | Feature |
-|---|---------|
-| ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle~~ |
-
----
-
-~~### Branch 50: `feat/headset-expansion`~~ ✅ Merged — PR #92
-
-~~### Branch 51: `feat/auto-switch-ux`~~ ✅ Merged — PR #94
 
 ---
 
