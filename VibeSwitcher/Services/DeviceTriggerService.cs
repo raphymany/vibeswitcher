@@ -18,11 +18,14 @@ public sealed class DeviceTriggerService : IDisposable
     private readonly Dictionary<string, DateTime> _propCooldowns =
         new(StringComparer.OrdinalIgnoreCase);
 
-    // Revert stack: each auto-switch pushes an entry so chained reverts work correctly.
-    // e.g. Speaker → BT → Logitech: turning off Logitech reverts to BT, turning off BT
-    // then reverts to Speaker. HID-managed profiles only revert via OnHidWirelessDisconnected.
+    // Revert chain: each auto-switch appends an entry (end = top/most-recent).
+    // When a device at the top disconnects, we pop and revert.
+    // When a device NOT at the top disconnects, we remove its entry and patch any
+    // pointer that referenced it — so the next revert skips straight past it.
+    // e.g. Speaker → BT → Logitech: BT turns off while on Logitech →
+    //   chain becomes Speaker → Logitech; turning off Logitech reverts to Speaker.
     private readonly record struct RevertInfo(Guid TriggeredProfileId, Guid? PreviousProfileId, bool IsHidTriggered = false);
-    private readonly Stack<RevertInfo> _revertStack = new();
+    private readonly List<RevertInfo> _revertChain = [];
     private readonly object _stateLock = new();
     private readonly List<HidHeadsetDescriptor> _hidDescriptors = [];
 
@@ -62,23 +65,27 @@ public sealed class DeviceTriggerService : IDisposable
             StringComparer.OrdinalIgnoreCase);
         _connectedIds = current;
 
-        // Revert if the device that triggered the last auto-switch has now disconnected
         if (newlyDisconnected.Count > 0)
         {
-            RevertInfo? ri;
-            lock (_stateLock) ri = _revertStack.Count > 0 ? _revertStack.Peek() : null;
+            // Top of chain: if the currently-active profile's device disconnected, revert.
+            RevertInfo? top;
+            lock (_stateLock) top = _revertChain.Count > 0 ? _revertChain[^1] : null;
 
-            if (ri.HasValue && _configService.Current.ActiveProfileId == ri.Value.TriggeredProfileId)
+            if (top.HasValue && _configService.Current.ActiveProfileId == top.Value.TriggeredProfileId)
             {
                 var triggeredProfile = _configService.Current.Profiles
-                    .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
-                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !ri.Value.IsHidTriggered)
+                    .FirstOrDefault(p => p.Id == top.Value.TriggeredProfileId);
+                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !top.Value.IsHidTriggered)
                 {
-                    lock (_stateLock) _revertStack.Pop();
-                    RevertToPrevious(ri.Value.PreviousProfileId);
+                    lock (_stateLock) _revertChain.RemoveAt(_revertChain.Count - 1);
+                    RevertToPrevious(top.Value.PreviousProfileId);
                     return;
                 }
             }
+
+            // Non-top entries: remove any whose device just disconnected and patch
+            // any PreviousProfileId pointers that referenced the removed entry.
+            PruneDisconnected(newlyDisconnected);
         }
 
         if (newlyConnected.Count == 0) return;
@@ -88,8 +95,36 @@ public sealed class DeviceTriggerService : IDisposable
             .FirstOrDefault(p => IsTriggeredBy(p, newlyConnected));
 
         if (profile == null) return;
-        lock (_stateLock) _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId));
+        lock (_stateLock) _revertChain.Add(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId));
         DispatchSwitch(profile);
+    }
+
+    // Removes non-top chain entries whose non-HID device disconnected.
+    // Patches PreviousProfileId on any entry that pointed to the removed one,
+    // so that future reverts skip straight to the correct destination.
+    private void PruneDisconnected(HashSet<string> disconnectedIds)
+    {
+        lock (_stateLock)
+        {
+            var profiles = _configService.Current.Profiles;
+            // Iterate all but the last (top) entry, bottom-to-top.
+            for (int i = _revertChain.Count - 2; i >= 0; i--)
+            {
+                var entry = _revertChain[i];
+                if (entry.IsHidTriggered) continue;
+                var p = profiles.FirstOrDefault(x => x.Id == entry.TriggeredProfileId);
+                if (p == null || !IsTriggeredBy(p, disconnectedIds)) continue;
+
+                // Patch any entry whose PreviousProfileId pointed here to now
+                // point to this entry's own Previous (collapsing the chain link).
+                for (int j = 0; j < _revertChain.Count; j++)
+                {
+                    if (j != i && _revertChain[j].PreviousProfileId == entry.TriggeredProfileId)
+                        _revertChain[j] = _revertChain[j] with { PreviousProfileId = entry.PreviousProfileId };
+                }
+                _revertChain.RemoveAt(i);
+            }
+        }
     }
 
     // Fallback path for devices whose Windows state never changes on power-on/off
@@ -114,7 +149,7 @@ public sealed class DeviceTriggerService : IDisposable
                 now - last < PropCooldown)
                 return;
             _propCooldowns[deviceId] = now;
-            _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId));
+            _revertChain.Add(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId));
         }
 
         DispatchSwitch(profile);
@@ -126,14 +161,17 @@ public sealed class DeviceTriggerService : IDisposable
         var prev = _configService.Current.Profiles.FirstOrDefault(p => p.Id == previousProfileId);
         if (prev == null) return;
 
-        // If the target profile's device has since disconnected, skip it and cascade
-        // to the next revert entry. This handles e.g. BT turning off while on Logitech —
-        // when Logitech later reverts "to BT", BT is gone, so we fall through to Speaker.
+        // Safety fallback: if the target profile's device is already gone, cascade
+        // to the next chain entry rather than landing on a profile with no active device.
         if (prev.TriggerOnConnect && !IsHidManaged(prev) &&
             prev.PlaybackDeviceId != null && !_connectedIds.Contains(prev.PlaybackDeviceId))
         {
             RevertInfo? next;
-            lock (_stateLock) next = _revertStack.Count > 0 ? _revertStack.Pop() : null;
+            lock (_stateLock)
+            {
+                next = _revertChain.Count > 0 ? _revertChain[^1] : null;
+                if (next.HasValue) _revertChain.RemoveAt(_revertChain.Count - 1);
+            }
             RevertToPrevious(next?.PreviousProfileId);
             return;
         }
@@ -181,7 +219,7 @@ public sealed class DeviceTriggerService : IDisposable
         if (profile == null) return;
 
         lock (_stateLock)
-            _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId, IsHidTriggered: true));
+            _revertChain.Add(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId, IsHidTriggered: true));
 
         AppLogger.Info("DeviceTriggerService.HidConnect",
             $"{descriptor.ModelName}: switching to '{profile.Name}'.");
@@ -195,7 +233,7 @@ public sealed class DeviceTriggerService : IDisposable
         if (_disposed) return;
 
         RevertInfo? ri;
-        lock (_stateLock) ri = _revertStack.Count > 0 ? _revertStack.Peek() : null;
+        lock (_stateLock) ri = _revertChain.Count > 0 ? _revertChain[^1] : null;
 
         if (!ri.HasValue)
         {
@@ -230,7 +268,7 @@ public sealed class DeviceTriggerService : IDisposable
 
         AppLogger.Info("DeviceTriggerService.HidRevert",
             $"{descriptor.ModelName}: reverting from '{triggeredProfile.Name}'.");
-        lock (_stateLock) _revertStack.Pop();
+        lock (_stateLock) _revertChain.RemoveAt(_revertChain.Count - 1);
         RevertToPrevious(ri.Value.PreviousProfileId);
     }
 
