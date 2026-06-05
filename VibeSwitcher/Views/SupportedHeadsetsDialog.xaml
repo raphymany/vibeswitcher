@@ -86,7 +86,7 @@
                     <TextBlock Text="Supported Wireless Headsets"
                                FontSize="15" FontWeight="SemiBold"
                                Foreground="{DynamicResource PrimaryText}"/>
-                    <TextBlock Text="Auto-switch via USB dongle power detection"
+                    <TextBlock Text="Additional HID detection for always-on USB dongles"
                                FontSize="11" Foreground="{DynamicResource SecondaryText}"
                                Margin="0,2,0,0"/>
                 </StackPanel>
@@ -96,9 +96,12 @@
             <TextBlock TextWrapping="Wrap" FontSize="12"
                        Foreground="{DynamicResource PrimaryText}" LineHeight="18"
                        Margin="0,0,0,12">
-                Wireless headsets with a permanent USB dongle appear connected in Windows even when off.
-                VibeSwitcher reads HID packets from the dongle to detect when the headset powers on,
-                and triggers an auto-switch at that exact moment — without any polling delay.
+                Auto-switch works for any device — USB, Bluetooth, and more. When your playback device connects, Windows notifies VibeSwitcher and the switch happens automatically.
+            </TextBlock>
+            <TextBlock TextWrapping="Wrap" FontSize="12"
+                       Foreground="{DynamicResource PrimaryText}" LineHeight="18"
+                       Margin="0,0,0,12">
+                The list below covers wireless headsets whose USB dongle stays plugged in permanently. Windows can't detect when these headsets power on or off, so VibeSwitcher reads the dongle's HID packets directly to catch the exact moment the headset turns on.
             </TextBlock>
 
             <!-- Detected banner (populated and shown in code-behind) -->
