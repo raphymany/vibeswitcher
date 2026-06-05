@@ -1282,6 +1282,21 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
+### Branch 51: `feat/auto-switch-ux`
+**Theme:** Auto-switch UX improvements — supported headsets dialog, playback-only restriction, and conflict detection.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| SupportedHeadsetsDialog | New dialog opened when the 🔌 toggle is enabled: shows all brands/models grouped by brand with Tested ✅/Untested ⚠️ badge; auto-detects connected HID devices and shows a "Detected" banner; "Request support" button links to GitHub template | Open |
+| TriggerOnConnect conflict | Setter in ProfileCardViewModel detects when another profile already claims the same playback device; shows "Auto-Switch Already Enabled" confirm dialog; "Yes, Move It" disables the other profile and refreshes its card ViewModel; "No" reverts the toggle | Open |
+| Playback-only restriction | DeviceTriggerService.BuildConnectedSet now only tracks playback devices; IsTriggeredBy and IsTriggeredByDevice simplified to check PlaybackDeviceId only regardless of profile mode; recording-only profiles hide the toggle | Open |
+| TriggerOnConnectVisible | New Visibility property on ProfileCardViewModel — Collapsed for Recording-only profiles, Visible otherwise; bound in SettingsWindow.xaml | Open |
+| Remove pinned/sort ordering | Removed OrderByDescending(IsPinned).ThenBy(SortOrder) from OnDevicesChanged, OnDevicePropertyChanged, OnHidWirelessConnected | Open |
+| IDialogService | Added ShowConfirm(title, message, actionLabel) and ShowSupportedHeadsets() | Open |
+| Tests | Updated 4 DeviceTriggerServiceTests to reflect playback-only and no-ordering behavior | Open |
+
+---
+
 ### Branch 47: `refactor/code-quality`
 **Theme:** Code quality improvements identified during internal review of the scheduler branch.
 

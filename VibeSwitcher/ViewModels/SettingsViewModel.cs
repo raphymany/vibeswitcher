@@ -808,7 +808,8 @@ public class SettingsViewModel : ViewModelBase
             onClone: card => CloneProfile(card),
             onTestSound: deviceId => _audioService.TestSoundAsync(deviceId),
             conflictChecker: entry => GetScheduleConflicts(profile, entry),
-            onActivate: card => ActivateProfile(card));
+            onActivate: card => ActivateProfile(card),
+            onTriggerConflictResolved: id => Profiles.FirstOrDefault(c => c.Model.Id == id)?.RefreshTriggerOnConnect());
     }
 
     private void ActivateProfile(ProfileCardViewModel card)

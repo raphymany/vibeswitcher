@@ -53,8 +53,9 @@ public class DeviceTriggerServiceTests
     }
 
     [Fact]
-    public void Triggers_WhenRecordingDeviceConnects()
+    public void DoesNotTrigger_WhenRecordingDeviceConnects_PlaybackOnly()
     {
+        // Auto-switch is playback-only — recording device connects must not trigger.
         var audio = new FakeAudioService { RecordingResult = [] };
         var profile = RecordingProfile("mic-B");
         var config = new FakeConfigService();
@@ -66,7 +67,7 @@ public class DeviceTriggerServiceTests
         audio.RecordingResult = [Connected("mic-B", isPlayback: false)];
         audio.RaiseDevicesChanged();
 
-        Assert.Equal(profile, switched);
+        Assert.Null(switched);
     }
 
     [Fact]
@@ -87,8 +88,9 @@ public class DeviceTriggerServiceTests
     }
 
     [Fact]
-    public void Triggers_WhenBothMode_RecordingConnects()
+    public void DoesNotTrigger_WhenBothMode_OnlyRecordingConnects()
     {
+        // Auto-switch is playback-only — recording connect alone must not trigger even for Both-mode profiles.
         var audio = new FakeAudioService { RecordingResult = [] };
         var profile = BothProfile("spk-1", "mic-1");
         var config = new FakeConfigService();
@@ -100,7 +102,7 @@ public class DeviceTriggerServiceTests
         audio.RecordingResult = [Connected("mic-1", isPlayback: false)];
         audio.RaiseDevicesChanged();
 
-        Assert.Equal(profile, switched);
+        Assert.Null(switched);
     }
 
     // ── no trigger cases ───────────────────────────────────────────────────────
@@ -196,30 +198,29 @@ public class DeviceTriggerServiceTests
         Assert.Null(switched);
     }
 
-    // ── priority ordering ──────────────────────────────────────────────────────
+    // ── conflict resolution (the UI prevents two profiles with the same device,
+    //    but the service resolves any remaining case by list position) ────────────
 
     [Fact]
-    public void PinnedProfile_TakesPriorityOverUnpinned()
+    public void When_TwoProfilesMatchSameDevice_FirstInListPositionWins()
     {
+        // The UI prevents two profiles claiming the same playback device simultaneously.
+        // If it happens anyway, the service picks whichever appears first in Profiles list.
         var audio = new FakeAudioService { PlaybackResult = [] };
-        var unpinned = new DeviceProfile
+        var first = new DeviceProfile    // index 0 in the list
         {
             Mode = ProfileMode.Playback,
             PlaybackDeviceId = "dev-A",
             TriggerOnConnect = true,
-            IsPinned = false,
-            SortOrder = 0,
         };
-        var pinned = new DeviceProfile
+        var second = new DeviceProfile   // index 1 in the list
         {
             Mode = ProfileMode.Playback,
             PlaybackDeviceId = "dev-A",
             TriggerOnConnect = true,
-            IsPinned = true,
-            SortOrder = 1,
         };
         var config = new FakeConfigService();
-        config.SetConfig(new AppConfig { Profiles = [unpinned, pinned] });
+        config.SetConfig(new AppConfig { Profiles = [first, second] });
 
         DeviceProfile? switched = null;
         using var svc = new DeviceTriggerService(audio, config, p => switched = p);
@@ -227,27 +228,7 @@ public class DeviceTriggerServiceTests
         audio.PlaybackResult = [Connected("dev-A")];
         audio.RaiseDevicesChanged();
 
-        Assert.Equal(pinned, switched);
-    }
-
-    [Fact]
-    public void LowerSortOrder_TakesPriorityAmongUnpinned()
-    {
-        var audio = new FakeAudioService { PlaybackResult = [] };
-        var second = PlaybackProfile("dev-A");
-        second.SortOrder = 1;
-        var first = PlaybackProfile("dev-A");
-        first.SortOrder = 0;
-        var config = new FakeConfigService();
-        config.SetConfig(new AppConfig { Profiles = [second, first] });
-
-        DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
-
-        audio.PlaybackResult = [Connected("dev-A")];
-        audio.RaiseDevicesChanged();
-
-        Assert.Equal(first, switched);
+        Assert.Equal(first, switched); // first by list position wins
     }
 
     // ── dispose ────────────────────────────────────────────────────────────────

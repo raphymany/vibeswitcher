@@ -22,6 +22,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Func<string, Task> _onTestSound;
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
     private readonly Func<bool> _use12Hour;
+    private readonly Action<Guid>? _onTriggerConflictResolved;
 
     private string _name;
     private AudioDeviceInfo? _selectedPlaybackDevice;
@@ -197,11 +198,50 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         set
         {
             if (_model.TriggerOnConnect == value) return;
+
+            if (value && !string.IsNullOrEmpty(_model.PlaybackDeviceId))
+            {
+                var conflicting = _configService.Current.Profiles.FirstOrDefault(p =>
+                    p.Id != _model.Id &&
+                    p.TriggerOnConnect &&
+                    string.Equals(p.PlaybackDeviceId, _model.PlaybackDeviceId, StringComparison.OrdinalIgnoreCase));
+
+                if (conflicting != null)
+                {
+                    bool move = _dialogService.ShowConfirm(
+                        "Auto-Switch Already Enabled",
+                        $"Auto-switch for this playback device is already enabled on \"{conflicting.Name}\".\n\nDo you want to move it to this profile instead?",
+                        "Yes, Move It");
+
+                    if (move)
+                    {
+                        conflicting.TriggerOnConnect = false;
+                        _onTriggerConflictResolved?.Invoke(conflicting.Id);
+                    }
+                    else
+                    {
+                        OnPropertyChanged(nameof(TriggerOnConnect)); // revert toggle binding
+                        return;
+                    }
+                }
+            }
+
             _model.TriggerOnConnect = value;
             OnPropertyChanged(nameof(TriggerOnConnect));
             _onChanged(this);
+
+            if (value)
+                _dialogService.ShowSupportedHeadsets();
         }
     }
+
+    // Hidden for Recording-only profiles — auto-switch is playback-only.
+    public System.Windows.Visibility TriggerOnConnectVisible =>
+        _model.Mode == ProfileMode.Recording
+            ? System.Windows.Visibility.Collapsed
+            : System.Windows.Visibility.Visible;
+
+    public void RefreshTriggerOnConnect() => OnPropertyChanged(nameof(TriggerOnConnect));
 
     public string? Notes
     {
@@ -350,7 +390,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         Action<ProfileCardViewModel> onClone,
         Func<string, Task> onTestSound,
         Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null,
-        Action<ProfileCardViewModel>? onActivate = null)
+        Action<ProfileCardViewModel>? onActivate = null,
+        Action<Guid>? onTriggerConflictResolved = null)
     {
         _model = model;
         _configService = configService;
@@ -363,6 +404,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _onTestSound = onTestSound;
         _conflictChecker = conflictChecker ?? (_ => []);
         _use12Hour = () => _configService.Current.Use12HourClock;
+        _onTriggerConflictResolved = onTriggerConflictResolved;
 
         _name = model.Name;
         _hotkeyDisplay = model.Hotkey.ToDisplayString();

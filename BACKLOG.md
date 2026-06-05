@@ -220,6 +220,18 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
+### Branch 51: `feat/auto-switch-ux`
+**Theme:** Auto-switch UX improvements — supported headsets dialog, playback-only restriction, and conflict detection.
+
+| # | Feature |
+|---|---------|
+| — | Supported headsets dialog — opens when the 🔌 auto-switch toggle is enabled; lists all supported brands and models grouped by brand with tested/untested status; auto-detects any connected HID devices from the supported list; "Request support" button links to the GitHub issue template |
+| — | Auto-switch exclusivity — only one profile per playback device can have TriggerOnConnect enabled; enabling on a second profile shows a conflict dialog offering to move it |
+| — | Playback-only restriction — auto-switch now only triggers on the playback device; recording-only profiles hide the toggle entirely; DeviceTriggerService updated accordingly |
+| — | Removed pinned/sort-order priority from auto-switch trigger selection |
+
+---
+
 ### Branch 42: `feat/dock-awareness`
 **Theme:** Automatic profile switching based on monitor or dock connection.
 

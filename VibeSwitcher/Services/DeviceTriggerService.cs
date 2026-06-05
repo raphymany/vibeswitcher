@@ -47,8 +47,6 @@ public sealed class DeviceTriggerService : IDisposable
         var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var d in _audioService.GetPlaybackDevices())
             if (d.IsConnected) ids.Add(d.Id);
-        foreach (var d in _audioService.GetRecordingDevices())
-            if (d.IsConnected) ids.Add(d.Id);
         return ids;
     }
 
@@ -88,8 +86,6 @@ public sealed class DeviceTriggerService : IDisposable
 
         var profile = _configService.Current.Profiles
             .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
-            .OrderByDescending(p => p.IsPinned)
-            .ThenBy(p => p.SortOrder)
             .FirstOrDefault(p => IsTriggeredBy(p, newlyConnected));
 
         if (profile == null) return;
@@ -108,8 +104,6 @@ public sealed class DeviceTriggerService : IDisposable
 
         var profile = _configService.Current.Profiles
             .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
-            .OrderByDescending(p => p.IsPinned)
-            .ThenBy(p => p.SortOrder)
             .FirstOrDefault(p => IsTriggeredByDevice(p, deviceId));
 
         if (profile == null) return;
@@ -143,27 +137,12 @@ public sealed class DeviceTriggerService : IDisposable
             _switchCallback(profile);
     }
 
+    // Auto-switch is playback-only — only the playback device triggers a profile switch.
     private static bool IsTriggeredBy(DeviceProfile profile, HashSet<string> deviceIds) =>
-        profile.Mode switch
-        {
-            ProfileMode.Playback  => profile.PlaybackDeviceId  != null && deviceIds.Contains(profile.PlaybackDeviceId),
-            ProfileMode.Recording => profile.RecordingDeviceId != null && deviceIds.Contains(profile.RecordingDeviceId),
-            // Either endpoint connecting is enough — USB headsets often register playback
-            // before recording, so requiring both would miss the first event.
-            ProfileMode.Both      => (profile.PlaybackDeviceId  != null && deviceIds.Contains(profile.PlaybackDeviceId)) ||
-                                     (profile.RecordingDeviceId != null && deviceIds.Contains(profile.RecordingDeviceId)),
-            _ => false
-        };
+        profile.PlaybackDeviceId != null && deviceIds.Contains(profile.PlaybackDeviceId);
 
     private static bool IsTriggeredByDevice(DeviceProfile profile, string deviceId) =>
-        profile.Mode switch
-        {
-            ProfileMode.Playback  => StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId,  deviceId),
-            ProfileMode.Recording => StringComparer.OrdinalIgnoreCase.Equals(profile.RecordingDeviceId, deviceId),
-            ProfileMode.Both      => StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId,  deviceId) ||
-                                     StringComparer.OrdinalIgnoreCase.Equals(profile.RecordingDeviceId, deviceId),
-            _ => false
-        };
+        StringComparer.OrdinalIgnoreCase.Equals(profile.PlaybackDeviceId, deviceId);
 
     // Called by HidHeadsetService when a monitored wireless headset powers on.
     // Uses the HID signal instead of waiting for the Windows audio property change,
@@ -174,8 +153,6 @@ public sealed class DeviceTriggerService : IDisposable
 
         var profile = _configService.Current.Profiles
             .Where(p => p.TriggerOnConnect && p.Id != _configService.Current.ActiveProfileId)
-            .OrderByDescending(p => p.IsPinned)
-            .ThenBy(p => p.SortOrder)
             .FirstOrDefault(p => IsProfileForDescriptor(p, descriptor));
 
         if (profile == null) return;
