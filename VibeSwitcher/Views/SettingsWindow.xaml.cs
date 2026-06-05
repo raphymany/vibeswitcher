@@ -350,6 +350,23 @@ public partial class SettingsWindow : Window
         _viewModel.ReregisterHotkeys();
     }
 
+    private void SettingsHotkeyClear_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SettingsHotkey = new HotkeyDefinition();
+    }
+
+    private void MuteHotkeyClear_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (sender as FrameworkElement)?.Tag as string;
+        var scope = tag switch
+        {
+            "Mic"      => VibeSwitcher.Models.MuteScope.Mic,
+            "Speakers" => VibeSwitcher.Models.MuteScope.Speakers,
+            _          => VibeSwitcher.Models.MuteScope.Both,
+        };
+        _viewModel.SetMuteHotkeyFromDialog(scope, new HotkeyDefinition());
+    }
+
     private void MuteHotkeyButton_Click(object sender, RoutedEventArgs e)
     {
         var tag = (sender as FrameworkElement)?.Tag as string;

@@ -404,9 +404,11 @@ public class SettingsViewModel : ViewModelBase
         set
         {
             _configService.Current.SettingsHotkey = value;
+            // Auto-enable when a hotkey is assigned; auto-disable when cleared.
+            _configService.Current.SettingsHotkeyEnabled = !value.IsEmpty;
             SaveAsync();
             _hotkeyService.UnregisterSettingsHotkey();
-            if (!value.IsEmpty && _configService.Current.SettingsHotkeyEnabled)
+            if (!value.IsEmpty)
             {
                 var conflict = _hotkeyService.RegisterSettingsHotkey(value);
                 if (conflict != null)
@@ -415,6 +417,7 @@ public class SettingsViewModel : ViewModelBase
             OnPropertyChanged(nameof(SettingsHotkey));
             OnPropertyChanged(nameof(SettingsHotkeyDisplay));
             OnPropertyChanged(nameof(SettingsHotkeyIsSet));
+            OnPropertyChanged(nameof(SettingsHotkeyEnabled));
         }
     }
 
