@@ -86,7 +86,7 @@
                     <TextBlock Text="Enable Auto-Switch"
                                FontSize="15" FontWeight="SemiBold"
                                Foreground="{DynamicResource PrimaryText}"/>
-                    <TextBlock Text="Works for any device — HID support for wireless headsets with permanent dongles"
+                    <TextBlock Text="Works for all devices — including wireless headsets"
                                FontSize="11" Foreground="{DynamicResource SecondaryText}"
                                Margin="0,2,0,0"/>
                 </StackPanel>
@@ -138,7 +138,7 @@
                         Click="Good_Click"/>
 
                 <Button Grid.Column="2"
-                        Content="Wireless headset not listed — Request support"
+                        Content="Request wireless headset support"
                         Style="{StaticResource SecondaryBtn}"
                         Click="Request_Click"/>
             </Grid>
