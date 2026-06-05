@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-04 — Branch 49 (`fix/codebase-audit-49`) merged — PR #88.
+**Last updated:** 2026-06-05 — Branch 41 (`feat/device-triggers`) merged — PR #90.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -126,7 +126,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30~~ | ✅ Done — PR #84 |
 | ~~F37~~ | ~~Deafen / panic hotkey — global configurable hotkeys (one per scope) that instantly mute system-wide; configurable scope: mic only (tray flashes red), speakers only (tray flashes blue), or both (tray flashes purple); distinct built-in activate/deactivate sounds; press again to unmute~~ | ✅ Done — PR #86 |
 | F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | 40 |
-| F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle | 41 |
+| ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle~~ | ✅ Done — PR #90 |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | 42 |
 | F41 | App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle | 43 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping~~ | ✅ Done — PR #68 |
@@ -197,12 +197,26 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 41: `feat/device-triggers`
+### ~~Branch 41: `feat/device-triggers`~~ ✅ Merged — PR #90
 **Theme:** Automatic profile activation when a specific audio device connects.
 
 | # | Feature |
 |---|---------|
-| F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle |
+| ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle~~ |
+
+---
+
+### Branch 50: `feat/headset-expansion`
+**Theme:** Expand wireless headset HID support to Corsair, SteelSeries, and HyperX.
+
+| # | Feature |
+|---|---------|
+| — | Add 12 additional Logitech PIDs (G633, G635, G933, G935, G733 ×3, G535, G Pro, G Pro X Wireless, G Pro X 2 ×2) |
+| — | Corsair VOID / Pro / Elite Wireless — event-driven via Report ID 0x64 (12 PIDs) |
+| — | SteelSeries Arctis 1 / 7X / 7P — poll-based Legacy protocol, 31-byte query (4 PIDs) |
+| — | SteelSeries Arctis Nova 7 / 7X / 7P / 7+ / Nova 5 / Nova 3P/3X — poll-based Nova protocol, 64-byte query (23 PIDs) |
+| — | HyperX Cloud Alpha Wireless — poll-based 3-step query |
+| — | HyperX Cloud II Wireless (HP) — poll-based 52-byte wrapped command |
 
 ---
 

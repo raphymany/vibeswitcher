@@ -1243,6 +1243,45 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
+### ~~Branch 41: `feat/device-triggers`~~ ✅ Done — PR #90
+**Theme:** Automatic profile activation when a specific audio device connects or disconnects, with fast HID-based wireless headset detection.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| F39 | `TriggerOnConnect` toggle — each `DeviceProfile` has a `TriggerOnConnect` bool; when enabled, connecting the profile's assigned device auto-activates it; disconnecting it reverts to the previous profile | ✅ Done |
+| F39 | `DeviceTriggerService` — subscribes to `IAudioService.DevicesChanged` and `DevicePropertyChanged`; tracks `_connectedIds` snapshot; fires forward switches on newly-connected IDs and reverts on disconnect; 30-second `PropCooldown` prevents false triggers from rapid Windows property updates | ✅ Done |
+| F39 | Revert state machine — `_revertInfo` (`RevertInfo` record with `TriggeredProfileId` + `PreviousProfileId`) persists across device events; revert fires only if the active profile is still the one that was auto-switched to | ✅ Done |
+| F39 | Property-change path — `OnDevicePropertyChanged` handles always-ready dongles (LIGHTSPEED) where Windows never fires a state-change on power-on; used as a fallback; revert handled by `OnDevicesChanged` on actual disconnect | ✅ Done |
+| F39 | `HidHeadsetService` — monitors Logitech LIGHTSPEED wireless headsets via HID++ vendor interface (usage page `0xFF43`); opens shared non-exclusive `HidStream`; `ReadAsync` with infinite timeout; parses HID++ 1.0 (Sub-ID `0x41`) and HID++ 2.0 (feature `0x06`, broadcast device index `0xFF`) wireless-state reports | ✅ Done |
+| F39 | `KnownHidHeadsets.cs` — registry of supported headsets; currently Logitech PRO X Wireless (VID `046D` / PID `0ABA`) | ✅ Done |
+| F39 | `OnHidWirelessConnected` / `OnHidWirelessDisconnected` — called by `HidHeadsetService`; forward switch fires instantly (before Windows audio notification); disconnect triggers the same revert logic as physical unplug | ✅ Done |
+| F39 | `IsProfileForDescriptor` — matches a profile to a HID descriptor via `PKEY_AudioEndpoint_Path` VID/PID check first; falls back to Windows friendly-name substring match (e.g. "Speakers (Logitech PRO X Wireless Gaming Headset)" contains "Logitech PRO X Wireless") | ✅ Done |
+| F39 | `IAudioService.GetAudioEndpointPath` — reads `PKEY_AudioEndpoint_Path` from the Windows property store; returns null when not exposed (typical for audio endpoints) so fallback logic engages | ✅ Done |
+| F39 | 6 HID unit tests — path-match revert, no-revert-without-info, descriptor-mismatch skip, user-changed-profile skip, forward-switch on connect, no-switch-when-already-active | ✅ Done |
+| Docs | GitHub issue template (`.github/ISSUE_TEMPLATE/add-headset.yml`) — YAML form with VID/PID instructions for requesting new headset support | ✅ Done |
+| Docs | README wireless headset section — documents USB/Bluetooth/3.5mm behavior; supported headsets table; link to issue chooser | ✅ Done |
+
+---
+
+### Branch 50: `feat/headset-expansion`
+**Theme:** Expand wireless headset HID support to Corsair, SteelSeries, and HyperX; add remaining Logitech PIDs.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| Logitech PIDs | Added 12 additional Logitech PIDs: G633 (0x0A5C), G635 (0x0A89), G933 (0x0A5B), G935 (0x0A87), G733 ×3 (0x0AB5/0x0AFE/0x0B1F), G535 (0x0AC4), G Pro (0x0AA7), G Pro X Wireless (0x0AAA), G Pro X 2 ×2 (0x0AFB/0x0AFC) | Open |
+| HidProtocolType enum | New enum: LogitechHidPP, CorsairVoid, SteelSeriesLegacy, SteelSeriesNova, HyperXAlpha, HyperXCloudII | Open |
+| HidHeadsetDescriptor | Extended record with Protocol, UsagePage, UsageId, PollIntervalMs, ReadTimeoutMs, LegacyQueryPrefix | Open |
+| Corsair VOID/Elite | 12 PIDs; event-driven read loop; usage page 0xFFC5/0x0001; seed query [0xC9,0x64]; data[3]==177 && data[4]!=0 → connected. UNTESTED. | Open |
+| SteelSeries Legacy | 4 PIDs (Arctis 1/7X/7P); poll-based 31-byte query; response[2]==0x01 → offline. UNTESTED. | Open |
+| SteelSeries Nova | 23 PIDs (Nova 7/7X/7P/7+/Nova 5/3P/3X); poll-based 64-byte query; response[3]==0x00 → offline. UNTESTED. | Open |
+| HyperX Cloud Alpha | 1 PID (0x098D); poll-based 3-step 31-byte query; response[3]==0x01 → disconnected. UNTESTED. | Open |
+| HyperX Cloud II | 1 PID (0x0696); poll-based 52-byte wrapped command; valid header → connected. UNTESTED. | Open |
+| SelectInterface | Generalized interface selection: descriptor UsagePage takes priority; falls back to protocol-default heuristics | Open |
+| DeviceReader | Start() routes to ReadLoop (event-driven) or PollLoop (poll-based) based on protocol | Open |
+| README | Updated supported headsets table with brand/model list and tested/untested status | Open |
+
+---
+
 ### Branch 47: `refactor/code-quality`
 **Theme:** Code quality improvements identified during internal review of the scheduler branch.
 
