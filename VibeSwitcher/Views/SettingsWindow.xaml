@@ -970,7 +970,7 @@
                                                     HorizontalAlignment="Right" Orientation="Horizontal">
                                                 <!-- Bell toggle: hidden when switch sound is configured (its wizard handles banner separately) -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Height="30"
+                                                        Width="36" Height="30"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Border.Style>
@@ -1017,7 +1017,7 @@
                                                 </Border>
                                                 <!-- App launch trigger button -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Height="30"
+                                                        Width="36" Height="30"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Button Command="{Binding OpenAppTriggersCommand}"
@@ -1053,7 +1053,7 @@
                                                 </Border>
                                                 <!-- Auto-switch on connect toggle (hidden for Recording-only profiles) -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Height="30"
+                                                        Width="36" Height="30"
                                                         Visibility="{Binding TriggerOnConnectVisible}"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
@@ -1090,7 +1090,7 @@
                                                 </Border>
                                                 <!-- Pin toggle -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Height="30"
+                                                        Width="36" Height="30"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <ToggleButton IsChecked="{Binding IsPinned}"
