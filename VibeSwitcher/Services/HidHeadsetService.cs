@@ -161,7 +161,6 @@ public sealed class HidHeadsetService : IDisposable
         private HidStream? _stream;
 
         private bool? _lastConnected;
-        private CancellationTokenSource? _disconnectDebounce;
 
         public DeviceReader(
             HidDevice device,
@@ -250,27 +249,8 @@ public sealed class HidHeadsetService : IDisposable
             if (_lastConnected == connected) return;
             _lastConnected = connected;
 
-            if (connected)
-            {
-                // Cancel any pending debounced disconnect — headset reconnected within the window.
-                _disconnectDebounce?.Cancel();
-                _disconnectDebounce = null;
-                _onConnected(_descriptor);
-            }
-            else
-            {
-                // Debounce: USB-level hiccups (e.g. during Bluetooth disconnect) can cause
-                // a brief false disconnect packet followed immediately by a reconnect.
-                // Wait 1 second before firing; if a connect packet arrives first, cancel.
-                _disconnectDebounce?.Cancel();
-                var debounce = new CancellationTokenSource();
-                _disconnectDebounce = debounce;
-                Task.Delay(1000, debounce.Token)
-                    .ContinueWith(t =>
-                    {
-                        if (!t.IsCanceled) _onDisconnected(_descriptor);
-                    }, TaskScheduler.Default);
-            }
+            if (connected) _onConnected(_descriptor);
+            else           _onDisconnected(_descriptor);
         }
 
         private bool TryParseEventReport(byte[] data, int length, out bool connected)
@@ -460,7 +440,6 @@ public sealed class HidHeadsetService : IDisposable
 
         public void Dispose()
         {
-            _disconnectDebounce?.Cancel();
             _cts.Cancel();
             _stream?.Close();
             _cts.Dispose();
