@@ -21,7 +21,7 @@ public sealed class DeviceTriggerService : IDisposable
     // Revert stack: each auto-switch pushes an entry so chained reverts work correctly.
     // e.g. Speaker → BT → Logitech: turning off Logitech reverts to BT, turning off BT
     // then reverts to Speaker. HID-managed profiles only revert via OnHidWirelessDisconnected.
-    private readonly record struct RevertInfo(Guid TriggeredProfileId, Guid? PreviousProfileId);
+    private readonly record struct RevertInfo(Guid TriggeredProfileId, Guid? PreviousProfileId, bool IsHidTriggered = false);
     private readonly Stack<RevertInfo> _revertStack = new();
     private readonly object _stateLock = new();
     private readonly List<HidHeadsetDescriptor> _hidDescriptors = [];
@@ -72,7 +72,7 @@ public sealed class DeviceTriggerService : IDisposable
             {
                 var triggeredProfile = _configService.Current.Profiles
                     .FirstOrDefault(p => p.Id == ri.Value.TriggeredProfileId);
-                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !IsHidManaged(triggeredProfile))
+                if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !ri.Value.IsHidTriggered)
                 {
                     lock (_stateLock) _revertStack.Pop();
                     RevertToPrevious(ri.Value.PreviousProfileId);
@@ -181,7 +181,7 @@ public sealed class DeviceTriggerService : IDisposable
         if (profile == null) return;
 
         lock (_stateLock)
-            _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId));
+            _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId, IsHidTriggered: true));
 
         AppLogger.Info("DeviceTriggerService.HidConnect",
             $"{descriptor.ModelName}: switching to '{profile.Name}'.");
