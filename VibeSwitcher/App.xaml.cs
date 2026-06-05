@@ -24,6 +24,8 @@ public partial class App : Application
     private MuteService? _muteService;
     private DeviceTriggerService? _deviceTriggerService;
     private HidHeadsetService? _hidHeadsetService;
+    private AppWatcherService? _appWatcherService;
+    private AppTriggerService? _appTriggerService;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -99,7 +101,8 @@ public partial class App : Application
             _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile),
-            onReschedule: () => _schedulerService?.Reschedule());
+            onReschedule: () => _schedulerService?.Reschedule(),
+            onAppTriggersChanged: () => _appTriggerService?.RefreshWatchList());
 
         // Wire tray-menu profile clicks through the orchestrator so there is a single switch path.
         _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);
@@ -160,6 +163,13 @@ public partial class App : Application
             d => _deviceTriggerService.OnHidWirelessDisconnected(d);
         _hidHeadsetService.Start();
 
+        // 9e. App launch trigger — switches profile when a linked executable launches
+        _appWatcherService = new AppWatcherService();
+        _appTriggerService = new AppTriggerService(
+            _configService,
+            _appWatcherService,
+            profile => _orchestrator.SwitchToProfile(profile));
+
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
@@ -216,11 +226,29 @@ public partial class App : Application
 
     private static readonly int WM_TASKBARCREATED = WinApi.RegisterWindowMessage("TaskbarCreated");
 
+    // Debounce per-atom to suppress WM_HOTKEY auto-repeat when a key is held down.
+    private readonly Dictionary<ushort, long> _hotkeyLastFired = new();
+    private const long HotkeyDebounceTicks = 1000 * TimeSpan.TicksPerMillisecond;
+
+    private bool ShouldHandleHotkey(ushort atomId)
+    {
+        var now = DateTime.UtcNow.Ticks;
+        if (_hotkeyLastFired.TryGetValue(atomId, out var last) && now - last < HotkeyDebounceTicks)
+            return false;
+        _hotkeyLastFired[atomId] = now;
+        return true;
+    }
+
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
         if (msg == WinApi.WM_HOTKEY)
         {
             ushort atomId = (ushort)wParam.ToInt32();
+            if (!ShouldHandleHotkey(atomId))
+            {
+                handled = true;
+                return IntPtr.Zero;
+            }
             if (_hotkeyService!.IsSettingsHotkey(atomId))
             {
                 OpenSettingsWindow();
@@ -265,6 +293,8 @@ public partial class App : Application
         }
         _hidHeadsetService?.Dispose();
         _deviceTriggerService?.Dispose();
+        _appTriggerService?.Dispose();
+        _appWatcherService?.Dispose();
         _themeService?.StopListening();
         _hotkeyService?.UnregisterAll();
         _hwndSource?.RemoveHook(WndProc);

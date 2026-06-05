@@ -929,6 +929,9 @@
                                                             <DataTrigger Binding="{Binding Notes}" Value="">
                                                                 <Setter Property="Visibility" Value="Visible"/>
                                                             </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </TextBlock.Style>
@@ -970,6 +973,7 @@
                                                     HorizontalAlignment="Right" Orientation="Horizontal">
                                                 <!-- Bell toggle: hidden when switch sound is configured (its wizard handles banner separately) -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Border.Style>
@@ -1014,8 +1018,45 @@
                                                         </ToggleButton.Template>
                                                     </ToggleButton>
                                                 </Border>
+                                                <!-- App launch trigger button -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding OpenAppTriggersCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTipService.InitialShowDelay="400"
+                                                            ToolTipService.ShowDuration="12000">
+                                                        <Button.ToolTip>
+                                                            <ToolTip>
+                                                                <TextBlock TextWrapping="Wrap" MaxWidth="260" Foreground="{DynamicResource PrimaryText}">
+                                                                    App Launch Triggers — switch to this profile automatically when a linked app opens. You can still switch profiles manually at any time.
+                                                                </TextBlock>
+                                                            </ToolTip>
+                                                        </Button.ToolTip>
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="▶" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasAppTriggers}" Value="True">
+                                                                        <Setter TargetName="icon" Property="Foreground" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
                                                 <!-- Auto-switch on connect toggle (hidden for Recording-only profiles) -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
                                                         Visibility="{Binding TriggerOnConnectVisible}"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
@@ -1052,6 +1093,7 @@
                                                 </Border>
                                                 <!-- Pin toggle -->
                                                 <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <ToggleButton IsChecked="{Binding IsPinned}"
@@ -1061,7 +1103,7 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="star" Text="☆" FontSize="14"
+                                                                    <TextBlock x:Name="star" Text="☆" FontSize="13"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -1776,44 +1818,22 @@
                     <Border Style="{StaticResource InnerCardBorder}">
                         <StackPanel>
                             <TextBlock Text="Shortcuts" FontWeight="SemiBold" FontSize="12"
-                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                      IsChecked="{Binding SettingsHotkeyEnabled}"
-                                      IsEnabled="{Binding SettingsHotkeyIsSet}"
-                                      Margin="0,3,0,8">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Opacity" Value="1"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
-                                                    <Setter Property="Opacity" Value="0.4"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-                                    <TextBlock Text="Open / Close VibeSwitcher" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
-                                            Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
-                                                   Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip>
-                                            <ToolTip><TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
-                                        </Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
-                            <StackPanel Orientation="Horizontal">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Opacity" Value="1"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SettingsHotkeyEnabled}" Value="False">
-                                                <Setter Property="Opacity" Value="0.4"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
+                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,12"/>
+
+                            <!-- Open/Close shortcut -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Open / Close VibeSwitcher" FontSize="12"
+                                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"/>
+                                <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8"
+                                        Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
+                                    <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
+                                               Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border.ToolTip>
+                                        <ToolTip><TextBlock Text="A global keyboard shortcut that opens or closes the VibeSwitcher Settings window from anywhere, even when another app is in focus." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip>
+                                    </Border.ToolTip>
+                                </Border>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1"
                                         CornerRadius="5" Padding="10,5" Margin="0,0,8,0"
                                         MinWidth="74" VerticalAlignment="Center">
@@ -1832,30 +1852,26 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </Border>
-                                <Button Style="{StaticResource ActionButton}"
-                                        Content="Set hotkey"
-                                        Click="SettingsHotkeyButton_Click"/>
+                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey"
+                                        Margin="0,0,6,0" Click="SettingsHotkeyButton_Click"/>
+                                <Button Content="✕" Click="SettingsHotkeyClear_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SettingsHotkeyIsSet}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </StackPanel>
 
                             <!-- Mute Mic -->
-                            <Separator Margin="0,10,0,10" Background="{DynamicResource SeparatorBrush}" Height="1" BorderThickness="0"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding MuteMicHotkeyEnabled}"
-                                          IsEnabled="{Binding MuteMicHotkeyIsSet}">
-                                    <TextBlock Text="Mute Microphone" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Opacity" Value="1"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding MuteMicHotkeyEnabled}" Value="False">
-                                                        <Setter Property="Opacity" Value="0.4"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </CheckBox>
+                            <Separator Margin="0,2,0,10" Background="{DynamicResource SeparatorBrush}" Height="1" BorderThickness="0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Mute Microphone" FontSize="12"
+                                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"/>
                                 <Border Width="16" Height="16" Background="#DC3232" CornerRadius="8"
                                         Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
                                     <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
@@ -1865,17 +1881,7 @@
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Opacity" Value="1"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding MuteMicHotkeyEnabled}" Value="False">
-                                                <Setter Property="Opacity" Value="0.4"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1"
                                         CornerRadius="5" Padding="10,5" Margin="0,0,8,0" MinWidth="74" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding MuteMicHotkeyDisplay}" FontFamily="Consolas" FontSize="12"
@@ -1892,27 +1898,25 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </Border>
-                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Mic" Click="MuteHotkeyButton_Click"/>
+                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Mic"
+                                        Margin="0,0,6,0" Click="MuteHotkeyButton_Click"/>
+                                <Button Tag="Mic" Content="✕" Click="MuteHotkeyClear_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding MuteMicHotkeyIsSet}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </StackPanel>
 
                             <!-- Mute Speakers -->
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,8">
-                                <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding MuteSpeakersHotkeyEnabled}"
-                                          IsEnabled="{Binding MuteSpeakersHotkeyIsSet}">
-                                    <TextBlock Text="Mute Speakers" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Opacity" Value="1"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding MuteSpeakersHotkeyEnabled}" Value="False">
-                                                        <Setter Property="Opacity" Value="0.4"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </CheckBox>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Mute Speakers" FontSize="12"
+                                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"/>
                                 <Border Width="16" Height="16" Background="#286EDC" CornerRadius="8"
                                         Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
                                     <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
@@ -1922,17 +1926,7 @@
                                     </Border.ToolTip>
                                 </Border>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Opacity" Value="1"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding MuteSpeakersHotkeyEnabled}" Value="False">
-                                                <Setter Property="Opacity" Value="0.4"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                 <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1"
                                         CornerRadius="5" Padding="10,5" Margin="0,0,8,0" MinWidth="74" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding MuteSpeakersHotkeyDisplay}" FontFamily="Consolas" FontSize="12"
@@ -1949,27 +1943,25 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </Border>
-                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Speakers" Click="MuteHotkeyButton_Click"/>
+                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Speakers"
+                                        Margin="0,0,6,0" Click="MuteHotkeyButton_Click"/>
+                                <Button Tag="Speakers" Content="✕" Click="MuteHotkeyClear_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding MuteSpeakersHotkeyIsSet}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </StackPanel>
 
                             <!-- Mute Both -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                <CheckBox Style="{StaticResource ToggleSwitchStyle}"
-                                          IsChecked="{Binding MuteBothHotkeyEnabled}"
-                                          IsEnabled="{Binding MuteBothHotkeyIsSet}">
-                                    <TextBlock Text="Mute Mic + Speakers" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Opacity" Value="1"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding MuteBothHotkeyEnabled}" Value="False">
-                                                        <Setter Property="Opacity" Value="0.4"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </CheckBox>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                <TextBlock Text="Mute Mic + Speakers" FontSize="12"
+                                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"/>
                                 <Border Width="16" Height="16" Background="#8B3CDC" CornerRadius="8"
                                         Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
                                     <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic"
@@ -1980,16 +1972,6 @@
                                 </Border>
                             </StackPanel>
                             <StackPanel Orientation="Horizontal">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Opacity" Value="1"/>
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding MuteBothHotkeyEnabled}" Value="False">
-                                                <Setter Property="Opacity" Value="0.4"/>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
                                 <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1"
                                         CornerRadius="5" Padding="10,5" Margin="0,0,8,0" MinWidth="74" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding MuteBothHotkeyDisplay}" FontFamily="Consolas" FontSize="12"
@@ -2006,7 +1988,19 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </Border>
-                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Both" Click="MuteHotkeyButton_Click"/>
+                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Both"
+                                        Margin="0,0,6,0" Click="MuteHotkeyButton_Click"/>
+                                <Button Tag="Both" Content="✕" Click="MuteHotkeyClear_Click">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding MuteBothHotkeyIsSet}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </StackPanel>
                         </StackPanel>
                     </Border>

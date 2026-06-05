@@ -43,7 +43,8 @@ public partial class SettingsWindow : Window
         TrayService trayService,
         Action<string> applyTheme,
         Action<Models.DeviceProfile>? switchProfile = null,
-        Action? onReschedule = null)
+        Action? onReschedule = null,
+        Action? onAppTriggersChanged = null)
     {
         InitializeComponent();
         _trayService = trayService;
@@ -76,7 +77,8 @@ public partial class SettingsWindow : Window
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             },
             applyTheme: applyTheme,
-            switchProfile: switchProfile);
+            switchProfile: switchProfile,
+            onAppTriggersChanged: onAppTriggersChanged);
 
         DataContext = _viewModel;
         RestoreWindowBounds();
@@ -346,6 +348,23 @@ public partial class SettingsWindow : Window
 
         // Always re-register everything (profiles + Settings + mute hotkeys) after the dialog closes.
         _viewModel.ReregisterHotkeys();
+    }
+
+    private void SettingsHotkeyClear_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.SettingsHotkey = new HotkeyDefinition();
+    }
+
+    private void MuteHotkeyClear_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (sender as FrameworkElement)?.Tag as string;
+        var scope = tag switch
+        {
+            "Mic"      => VibeSwitcher.Models.MuteScope.Mic,
+            "Speakers" => VibeSwitcher.Models.MuteScope.Speakers,
+            _          => VibeSwitcher.Models.MuteScope.Both,
+        };
+        _viewModel.SetMuteHotkeyFromDialog(scope, new HotkeyDefinition());
     }
 
     private void MuteHotkeyButton_Click(object sender, RoutedEventArgs e)

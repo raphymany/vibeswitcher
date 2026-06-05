@@ -17,6 +17,7 @@ public class SettingsViewModel : ViewModelBase
     private readonly Action<HotkeyConflictException> _onHotkeyConflict;
     private readonly Action<string> _applyTheme;
     private readonly Action<Models.DeviceProfile>? _switchProfile;
+    private readonly Action? _onAppTriggersChanged;
     private bool _startWithWindows;
     private bool _startMinimized;
     private bool _closeToTray;
@@ -403,9 +404,11 @@ public class SettingsViewModel : ViewModelBase
         set
         {
             _configService.Current.SettingsHotkey = value;
+            // Auto-enable when a hotkey is assigned; auto-disable when cleared.
+            _configService.Current.SettingsHotkeyEnabled = !value.IsEmpty;
             SaveAsync();
             _hotkeyService.UnregisterSettingsHotkey();
-            if (!value.IsEmpty && _configService.Current.SettingsHotkeyEnabled)
+            if (!value.IsEmpty)
             {
                 var conflict = _hotkeyService.RegisterSettingsHotkey(value);
                 if (conflict != null)
@@ -414,6 +417,7 @@ public class SettingsViewModel : ViewModelBase
             OnPropertyChanged(nameof(SettingsHotkey));
             OnPropertyChanged(nameof(SettingsHotkeyDisplay));
             OnPropertyChanged(nameof(SettingsHotkeyIsSet));
+            OnPropertyChanged(nameof(SettingsHotkeyEnabled));
         }
     }
 
@@ -581,7 +585,8 @@ public class SettingsViewModel : ViewModelBase
         Action onProfilesChanged,
         Action<HotkeyConflictException> onHotkeyConflict,
         Action<string> applyTheme,
-        Action<Models.DeviceProfile>? switchProfile = null)
+        Action<Models.DeviceProfile>? switchProfile = null,
+        Action? onAppTriggersChanged = null)
     {
         _configService = configService;
         _audioService = audioService;
@@ -592,6 +597,7 @@ public class SettingsViewModel : ViewModelBase
         _onHotkeyConflict = onHotkeyConflict;
         _applyTheme = applyTheme;
         _switchProfile = switchProfile;
+        _onAppTriggersChanged = onAppTriggersChanged;
 
         _startWithWindows = startupService.IsStartupEnabled();
         _startMinimized = configService.Current.StartMinimized;
@@ -809,7 +815,8 @@ public class SettingsViewModel : ViewModelBase
             onTestSound: deviceId => _audioService.TestSoundAsync(deviceId),
             conflictChecker: entry => GetScheduleConflicts(profile, entry),
             onActivate: card => ActivateProfile(card),
-            onTriggerConflictResolved: id => Profiles.FirstOrDefault(c => c.Model.Id == id)?.RefreshTriggerOnConnect());
+            onTriggerConflictResolved: id => Profiles.FirstOrDefault(c => c.Model.Id == id)?.RefreshTriggerOnConnect(),
+            onAppTriggersChanged: _onAppTriggersChanged);
     }
 
     private void ActivateProfile(ProfileCardViewModel card)
