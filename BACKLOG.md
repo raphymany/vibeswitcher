@@ -161,12 +161,19 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | # | Feature | Why deferred |
 |---|---------|--------------|
 | C2 / 8.1 | Installer (Inno Setup or WiX) | Saving for last |
-| C3 / 8.2 | Code signing (Authenticode) | No certificate yet |
 | F8 / 8.3 | Auto-updater (GitHub Releases check) | Needs installer first |
 | 8.7 | winget / Chocolatey package | Post-v1.0 distribution |
-| F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
 | 10.8 | Website ("coming soon") | External, not in this repo |
-| — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
 | — | Compact / mini Settings window | After UI/UX redesign |
+
+---
+
+### Dropped — Will not implement
+
+| # | Feature | Why dropped |
+|---|---------|-------------|
+| C3 / 8.2 | Code signing (Authenticode) | No certificate yet |
+| F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
+| — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
 | F38 | Temporary / transient profile switch | Not useful enough to prioritize |
 | F40 | Monitor / dock / environment triggers (display, USB device, power source, network location) | Too broad to scope right now |
