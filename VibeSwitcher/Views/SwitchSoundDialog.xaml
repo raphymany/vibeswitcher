@@ -156,10 +156,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
-                        <TextBlock Text="Show notification banner"
+                        <TextBlock Text="Don't show notification banner"
                                    FontSize="13" FontWeight="SemiBold"
                                    Foreground="{DynamicResource PrimaryText}"/>
-                        <TextBlock Text="Display a tray banner when this profile activates (no Windows ding)."
+                        <TextBlock Text="Suppress the tray banner when this profile activates."
                                    FontSize="11" Foreground="{DynamicResource SecondaryText}"
                                    TextWrapping="Wrap" Margin="0,3,0,0"/>
                     </StackPanel>

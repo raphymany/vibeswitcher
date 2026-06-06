@@ -111,7 +111,7 @@ public class DialogService : IDialogService
             "Remove the switch sound from this profile?",
             "Remove",
             subtitle: "This action cannot be undone.",
-            icon: "🎵",
+            icon: "🗑",
             iconBgResource: "Accent")
         { Owner = OwnerWindow };
         return dialog.ShowDialog() == true;
