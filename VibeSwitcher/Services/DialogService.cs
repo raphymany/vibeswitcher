@@ -99,7 +99,20 @@ public class DialogService : IDialogService
             "Remove",
             subtitle: "This action cannot be undone.",
             icon: "🗑",
-            iconBgResource: "ErrorBg")
+            iconBgResource: "Accent")
+        { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true;
+    }
+
+    public bool ShowConfirmSoundRemove()
+    {
+        var dialog = new ConfirmDialog(
+            "Remove Switch Sound?",
+            "Remove the switch sound from this profile?",
+            "Remove",
+            subtitle: "This action cannot be undone.",
+            icon: "🎵",
+            iconBgResource: "Accent")
         { Owner = OwnerWindow };
         return dialog.ShowDialog() == true;
     }

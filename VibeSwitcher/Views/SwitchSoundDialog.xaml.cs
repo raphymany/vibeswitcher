@@ -89,9 +89,12 @@ public partial class SwitchSoundDialog : Window
         _showBanner = BannerToggle.IsChecked == true;
     }
 
-    private void TestSound_Click(object sender, RoutedEventArgs e)
+    private async void TestSound_Click(object sender, RoutedEventArgs e)
     {
-        _ = new SwitchSoundService().TestAsync(_tone, _customPath, _volume);
+        var btn = (System.Windows.Controls.Button)sender;
+        btn.IsEnabled = false;
+        try { await new SwitchSoundService().TestAsync(_tone, _customPath, _volume); }
+        finally { btn.IsEnabled = true; }
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)

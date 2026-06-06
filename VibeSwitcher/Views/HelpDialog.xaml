@@ -50,7 +50,7 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,16,24,4">
             <StackPanel>
 
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                     <Border Width="36" Height="36" Background="{DynamicResource Accent}" CornerRadius="18"
                             Margin="0,0,12,0" VerticalAlignment="Center">
                         <TextBlock Text="?" FontSize="18" FontWeight="Bold"
@@ -63,70 +63,110 @@
                     </StackPanel>
                 </StackPanel>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="What is VibeSwitcher?"/>
-                <TextBlock Style="{StaticResource SectionBody}">
-                    VibeSwitcher lives in the system tray and lets you switch your default Windows
-                    audio devices instantly. Each <Run FontWeight="SemiBold">profile</Run> stores
-                    a playback device (speakers or headphones) and a recording device (microphone),
-                    so you can swap setups with a single click or hotkey.
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="What is VibeSwitcher?"/>
+                        <TextBlock Style="{StaticResource SectionBody}" Margin="0,0,0,0">
+                            VibeSwitcher lives in the system tray and lets you switch your default Windows
+                            audio devices instantly. Each <Run FontWeight="SemiBold">profile</Run> stores
+                            a playback device (speakers or headphones) and a recording device (microphone),
+                            so you can swap setups with a single click or hotkey.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Setting up profiles"/>
-                <TextBlock Style="{StaticResource SectionBody}">
-                    Click <Run FontWeight="SemiBold">Add New Profile</Run> at the bottom of the
-                    profile list. Choose a mode — Playback Only, Recording Only, or Both — then
-                    select your devices from the dropdowns. Give the profile a name and optionally
-                    assign a global hotkey and an icon.
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Setting up profiles"/>
+                        <TextBlock Style="{StaticResource SectionBody}" Margin="0,0,0,0">
+                            Click <Run FontWeight="SemiBold">Add New Profile</Run> at the bottom of the
+                            profile list. Choose a mode — Playback Only, Recording Only, or Both — then
+                            select your devices from the dropdowns. Give the profile a name and optionally
+                            assign a global hotkey and an icon.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Filtering profiles"/>
-                <TextBlock Style="{StaticResource SectionBody}">
-                    Use the filter chips above the profile list to narrow down what you see.
-                    Click a chip to activate it — you can combine as many as you like.
-                    The <Run FontWeight="SemiBold">Clear all</Run> link resets everything at once.
-                    Available filters include mode (Playback / Recording / Both), Pinned, Active,
-                    Silent, Has hotkey, Has notes, Has icon, Has warning, Scheduled, Has reminder,
-                    Has sound, and individual days of the week (shown when Scheduled is on).
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Filtering profiles"/>
+                        <TextBlock Style="{StaticResource SectionBody}" Margin="0,0,0,0">
+                            Use the filter chips above the profile list to narrow down what you see.
+                            Click a chip to activate it — you can combine as many as you like.
+                            The <Run FontWeight="SemiBold">Clear all</Run> link resets everything at once.
+                            Available filters include mode (Playback / Recording / Both), Pinned, Active,
+                            Silent, Has hotkey, Has notes, Has icon, Has warning, Scheduled, Has reminder,
+                            Has sound, and individual days of the week (shown when Scheduled is on).
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Switching profiles"/>
-                <TextBlock Style="{StaticResource BulletItem}" Text="• Left-click the tray icon to cycle to the next profile in order (can be changed in General Settings)"/>
-                <TextBlock Style="{StaticResource BulletItem}" Text="• Right-click the tray icon to pick a specific profile from the menu"/>
-                <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,14">
-                    • Press a profile's <Run FontWeight="SemiBold">global hotkey</Run> from anywhere — even when VibeSwitcher is minimized
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Switching profiles"/>
+                        <TextBlock Style="{StaticResource BulletItem}" Text="• Left-click the tray icon to cycle to the next profile in order (can be changed in General Settings)"/>
+                        <TextBlock Style="{StaticResource BulletItem}" Text="• Right-click the tray icon to pick a specific profile from the menu"/>
+                        <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,0">
+                            • Press a profile's <Run FontWeight="SemiBold">global hotkey</Run> from anywhere — even when VibeSwitcher is minimized
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Tray icon tips"/>
-                <TextBlock Style="{StaticResource BulletItem}" Text="• The tray icon reflects the active profile's icon"/>
-                <TextBlock Style="{StaticResource BulletItem}" Text="• Hover over the tray icon to see all profiles and their hotkeys"/>
-                <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,14">
-                    • Right-click the tray → Settings to re-open the app
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Tray icon tips"/>
+                        <TextBlock Style="{StaticResource BulletItem}" Text="• The tray icon reflects the active profile's icon"/>
+                        <TextBlock Style="{StaticResource BulletItem}" Text="• Hover over the tray icon to see all profiles and their hotkeys"/>
+                        <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,0">
+                            • Right-click the tray → Settings to re-open the app
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Settings explained"/>
-                <TextBlock Style="{StaticResource SectionBody}">
-                    Every toggle in Settings has a small <Run FontWeight="SemiBold">ⓘ</Run> badge next to it.
-                    Hover over it to see a plain-English description of exactly what that option does.
-                    You can also hover over device names in profile dropdowns to see the full Windows device identifier.
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Settings explained"/>
+                        <TextBlock Style="{StaticResource SectionBody}" Margin="0,0,0,0">
+                            Every toggle in Settings has a small <Run FontWeight="SemiBold">ⓘ</Run> badge next to it.
+                            Hover over it to see a plain-English description of exactly what that option does.
+                            You can also hover over device names in profile dropdowns to see the full Windows device identifier.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Backup &amp; Restore"/>
-                <TextBlock Style="{StaticResource BulletItem}">
-                    • <Run FontWeight="SemiBold">Export</Run> saves your profiles and settings to a
-                    <Run FontFamily="Consolas" FontSize="11">.json</Run> file — great before
-                    reinstalling Windows or switching computers
-                </TextBlock>
-                <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,14">
-                    • <Run FontWeight="SemiBold">Import</Run> restores from that file, replacing the
-                    current configuration after a confirmation prompt
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Backup &amp; Restore"/>
+                        <TextBlock Style="{StaticResource BulletItem}">
+                            • <Run FontWeight="SemiBold">Export</Run> saves your profiles and settings to a
+                            <Run FontFamily="Consolas" FontSize="11">.json</Run> file — great before
+                            reinstalling Windows or switching computers
+                        </TextBlock>
+                        <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,0">
+                            • <Run FontWeight="SemiBold">Import</Run> restores from that file, replacing the
+                            current configuration after a confirmation prompt
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Style="{StaticResource SectionHeader}" Text="Where data is stored"/>
-                <TextBlock Style="{StaticResource SectionBody}">
-                    Profiles and settings are saved automatically to:&#x0A;<Run FontFamily="Consolas" FontSize="11">%APPDATA%\VibeSwitcher\config.json</Run>&#x0A;&#x0A;A
-                    backup copy is written alongside it on every save, so accidental changes can always
-                    be recovered from the Backup &amp; Restore section in Settings.
-                </TextBlock>
+                <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="Where data is stored"/>
+                        <TextBlock Style="{StaticResource SectionBody}" Margin="0,0,0,0">
+                            Profiles and settings are saved automatically to:&#x0A;<Run FontFamily="Consolas" FontSize="11">%APPDATA%\VibeSwitcher\config.json</Run>&#x0A;&#x0A;A
+                            backup copy is written alongside it on every save, so accidental changes can always
+                            be recovered from the Backup &amp; Restore section in Settings.
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
 
             </StackPanel>
         </ScrollViewer>

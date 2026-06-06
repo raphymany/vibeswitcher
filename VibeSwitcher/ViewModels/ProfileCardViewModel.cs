@@ -23,6 +23,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
     private readonly Func<bool> _use12Hour;
     private readonly Action<Guid>? _onTriggerConflictResolved;
+    private bool _isTesting;
     private readonly Action? _onAppTriggersChanged;
 
     private string _name;
@@ -493,6 +494,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void RemoveSwitchSound()
     {
+        if (!_dialogService.ShowConfirmSoundRemove()) return;
         _model.SoundOverride   = false;
         _model.SoundShowBanner = false;
         OnPropertyChanged(nameof(SoundOverride));
@@ -521,10 +523,18 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private async Task TestSound()
     {
+        if (_isTesting) return;
         var deviceId = _selectedPlaybackDevice?.Id;
         if (string.IsNullOrEmpty(deviceId)) return;
+        _isTesting = true;
+        CommandManager.InvalidateRequerySuggested();
         try { await _onTestSound(deviceId); }
         catch (Exception ex) { AppLogger.Warning("ProfileCardViewModel.TestSound", ex.Message); }
+        finally
+        {
+            _isTesting = false;
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     private void TestMic()
