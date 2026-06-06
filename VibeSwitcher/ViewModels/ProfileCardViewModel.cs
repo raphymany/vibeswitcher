@@ -480,7 +480,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void AddSwitchSound()
     {
-        var result = _dialogService.ShowSoundWizard(true, "Click", null, 50, showBanner: true);
+        var result = _dialogService.ShowSoundWizard(true, "Click", null, 50, showBanner: false);
         if (result == null) return;
         _model.SoundOverride    = result.Enabled;
         _model.SoundTone        = result.Tone;
@@ -509,7 +509,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             _model.SoundTone,
             _model.SoundCustomPath,
             _model.SoundVolume ?? 50,
-            _model.SoundShowBanner);
+            _model.SoundOverride ? _model.SoundShowBanner : true); // default banner ON for new sounds
         if (result == null) return;
         _model.SoundOverride    = result.Enabled;
         _model.SoundTone        = result.Tone;

@@ -1411,12 +1411,13 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Theme" Style="{StaticResource LabelText}"/>
                                 <!-- Segmented theme picker: Follow Windows / Light / Dark -->
-                                <UniformGrid Grid.Column="1" Rows="1" Height="30">
-                                    <UniformGrid.Resources>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                    <StackPanel.Resources>
                                         <Style TargetType="RadioButton">
                                             <Setter Property="GroupName"              Value="ThemeGroup"/>
                                             <Setter Property="Cursor"                 Value="Hand"/>
                                             <Setter Property="FontSize"               Value="12"/>
+                                            <Setter Property="Padding"                Value="12,5"/>
                                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                             <Setter Property="VerticalContentAlignment"   Value="Center"/>
                                             <Setter Property="Foreground"             Value="{DynamicResource SecondaryText}"/>
@@ -1433,7 +1434,8 @@
                                                                 BorderThickness="{TemplateBinding BorderThickness}"
                                                                 CornerRadius="6">
                                                             <ContentPresenter HorizontalAlignment="Center"
-                                                                              VerticalAlignment="Center"/>
+                                                                              VerticalAlignment="Center"
+                                                                              Margin="{TemplateBinding Padding}"/>
                                                         </Border>
                                                         <ControlTemplate.Triggers>
                                                             <Trigger Property="IsMouseOver" Value="True">
@@ -1452,8 +1454,8 @@
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </UniformGrid.Resources>
-                                    <RadioButton Content="Follow Windows" Tag="Auto"   Checked="ThemeRadio_Checked">
+                                    </StackPanel.Resources>
+                                    <RadioButton Content="Follow Windows" Tag="Auto" Margin="0,0,5,0" Checked="ThemeRadio_Checked">
                                         <RadioButton.Style>
                                             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                                                 <Style.Triggers>
@@ -1464,7 +1466,7 @@
                                             </Style>
                                         </RadioButton.Style>
                                     </RadioButton>
-                                    <RadioButton Content="Light" Tag="Light" Checked="ThemeRadio_Checked">
+                                    <RadioButton Content="Light" Tag="Light" Margin="0,0,5,0" Checked="ThemeRadio_Checked">
                                         <RadioButton.Style>
                                             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                                                 <Style.Triggers>
@@ -1486,7 +1488,7 @@
                                             </Style>
                                         </RadioButton.Style>
                                     </RadioButton>
-                                </UniformGrid>
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>
