@@ -148,41 +148,10 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 ---
 
 ### ~~Branch 43: `feat/app-switching`~~ ✅ Merged — PR #96
-**Theme:** Automatic profile switching based on running application, plus shortcuts UX redesign.
-
----
-
 ### ~~Branch 47: `refactor/pre-release-audit`~~ ✅ Merged — PR #98
-**Theme:** Full pre-release codebase audit — bugs, dark-mode theming gaps, code quality, and documentation updates. Found during deep-dive review ahead of v1.2.0.
-
-| # | Item |
-|---|------|
-| B2 | `HidHeadsetService.ReadLoop` reconnection — outer retry loop with 2s backoff so a USB hiccup doesn't kill monitoring permanently |
-| B3 | `MicTestDialog` error state — show error message and cancel auto-close if the mic fails to open instead of counting down silently |
-| B4 | `DeviceAliasesDialog` Escape key — Save had `IsCancel="True"`; fixed so Close has `IsCancel`, Save has `IsDefault` |
-| P1 | `SaveWindowBounds` off UI thread — disk write dispatched to background thread |
-| P2 | HID report logging — `LogDebugReport` moved from `AppLogger.Info` to new `AppLogger.Debug` (Console.Error only, never to disk) |
-| R10 | `DeleteOrphanedIcon` deduplication — `ProfileCardViewModel` now delegates to `SettingsViewModel.DeleteOrphanedIcon` (extended with optional `exceptPath`) |
-| R11 | `MuteService` fire-and-forget — `_ = Task.Run(...)` discard suppresses CS4014 |
-| CQ1 | Duplicate button styles — local `RoundedBtn`/`PrimaryBtn`/`SecondaryBtn`/`ActionBtn`/`DangerBtn`/`OkBtn`/`Btn` blocks removed from six dialogs; all reference global App.xaml styles; `DeleteButton` style added for destructive actions |
-| CQ7 | `ComboBox`/`ComboBoxItem` styles promoted from SettingsWindow and ScheduleWizardDialog to App.xaml |
-| CQ8 | `VolumeSlider` style promoted from SettingsWindow and SwitchSoundDialog to App.xaml |
-| CQ10 | `DeviceAliasesDialog` shared DataTemplate — single `DeviceAliasRowTemplate` replacing two copy-pasted inline templates |
-| CQ11 | `CustomReminderDialog` error text — hardcoded `#CC3300` replaced with `{DynamicResource ErrorText}` |
-| CQ12 | `AppTriggerDialog` header badge — hardcoded light-green hex replaced with `SuccessBadgeBg/SuccessBadgeText` DynamicResource keys |
-| T1 | `HelpDialog` — left-click bullet adds "(can be changed in General Settings)"; stale right-click instruction corrected |
-| T4 | `SupportedHeadsetsDialog` — Close button added; Request button no longer closes dialog; satellite emoji → plug to match profile card; button row reorganised into two rows so Request is never clipped; brand badges made theme-aware via new `PrimaryBadgeBg/Text` and `WarningBadgeBg/Text` theme resources |
-| T5 | Settings item restored to tray right-click context menu |
-| T6 | Profile card icon bar — 5 text buttons (Activate, Clone, Add Schedule, Add Switch Sound, Delete Profile) converted to icon-only; all 9 buttons in an equal-`*` Grid spanning full card width |
-| T7 | Dialog icon headers — consistent orange-circle badge + title added to `ScheduleWizardDialog`, `SwitchSoundDialog`, `DeviceAliasesDialog`, `HotkeyCaptureDialog`, and `ProfileTypeDialog`; mode emojis in ProfileTypeDialog wrapped in orange circles |
-| T8 | Dialog badge colour standardisation — all badges use `{DynamicResource Accent}` (orange) + black icon; `ConfirmDeleteDialog`, `HelpDialog`, and clone dialog in `DialogService` updated |
-| T9 | `HotkeyCaptureDialog` context-aware subtitle — subtitle text adapts per caller: per-profile hotkey / open-Settings shortcut / mute-mic / mute-speakers / mute-all; subtitle `TextBlock` wrapped in a `Grid` column so long text wraps instead of clipping; app icon loaded sharp via `IconHelper.GetAppIconImageSource()` |
-| Docs | `ARCHITECTURE.md` rewritten with all 12 services; `README.md` adds F41; `CHANGELOG.md` consolidated to single Added/Fixed/Performance/Changed sections per release |
-
----
-
 ### ~~Branch 48: `refactor/architecture-cleanup`~~ ✅ Merged — PR #100
-**Theme:** Architecture refactors deferred from Branch 47 — too large to bundle with the audit fixes.
+
+*(Full item lists for all completed branches are in RECORD.md — Section 12.)*
 
 ---
 
