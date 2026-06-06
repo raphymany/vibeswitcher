@@ -127,10 +127,16 @@
             <!-- App list -->
             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                     CornerRadius="6" Margin="0,0,0,8">
-                <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
-                              HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel x:Name="RunningPanel" Margin="0,4,0,4"/>
-                </ScrollViewer>
+                <StackPanel>
+                    <TextBlock x:Name="LoadingLabel"
+                               Text="Loading installed apps…"
+                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               HorizontalAlignment="Center" Margin="0,8"/>
+                    <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel x:Name="RunningPanel" Margin="0,4,0,4"/>
+                    </ScrollViewer>
+                </StackPanel>
             </Border>
 
             <!-- Browse button -->

@@ -23,6 +23,7 @@ public partial class AppTriggerDialog : Window
     private List<ProcessEntry> _installedEntries = [];
     private List<ProcessEntry> _allEntries = [];
     private AppFilter _activeFilter = AppFilter.All;
+    private readonly CancellationTokenSource _loadCts = new();
 
     public List<string>? ResultTriggers { get; private set; }
 
@@ -36,6 +37,7 @@ public partial class AppTriggerDialog : Window
         RebuildLinkedPanel();
         LoadRunningAppsAsync();
         LoadInstalledAppsAsync();
+        Closed += (_, _) => _loadCts.Cancel();
     }
 
     // ── Linked apps panel ────────────────────────────────────────────────────
@@ -170,12 +172,15 @@ public partial class AppTriggerDialog : Window
 
     private void LoadInstalledAppsAsync()
     {
+        var ct = _loadCts.Token;
         _ = Task.Run(DiscoverInstalled).ContinueWith(t =>
             Dispatcher.InvokeAsync(() =>
             {
+                if (ct.IsCancellationRequested) return;
                 _installedEntries = t.Result;
                 RebuildAllEntries();
                 ApplyFilter(SearchBox.Text);
+                LoadingLabel.Visibility = Visibility.Collapsed;
             }), TaskScheduler.Default);
     }
 
