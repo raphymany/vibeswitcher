@@ -36,6 +36,9 @@ internal sealed class FakeDialogService : IDialogService
     public bool ConfirmScheduleDeleteResult { get; set; } = true;
     public bool ShowConfirmScheduleDelete(string scheduleSummary) => ConfirmScheduleDeleteResult;
 
+    public bool ConfirmSoundRemoveResult { get; set; } = true;
+    public bool ShowConfirmSoundRemove() => ConfirmSoundRemoveResult;
+
     public bool ScheduleConflictResult { get; set; } = false;
     public bool ShowScheduleConflict(string conflictDescription) => ScheduleConflictResult;
 

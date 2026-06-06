@@ -1411,13 +1411,13 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Theme" Style="{StaticResource LabelText}"/>
                                 <!-- Segmented theme picker: Follow Windows / Light / Dark -->
-                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Height="30">
                                     <StackPanel.Resources>
                                         <Style TargetType="RadioButton">
                                             <Setter Property="GroupName"              Value="ThemeGroup"/>
                                             <Setter Property="Cursor"                 Value="Hand"/>
                                             <Setter Property="FontSize"               Value="12"/>
-                                            <Setter Property="Padding"                Value="12,5"/>
+                                            <Setter Property="Padding"                Value="14,0"/>
                                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                             <Setter Property="VerticalContentAlignment"   Value="Center"/>
                                             <Setter Property="Foreground"             Value="{DynamicResource SecondaryText}"/>
@@ -1455,7 +1455,7 @@
                                             </Style.Triggers>
                                         </Style>
                                     </StackPanel.Resources>
-                                    <RadioButton Content="Follow Windows" Tag="Auto" Margin="0,0,5,0" Checked="ThemeRadio_Checked">
+                                    <RadioButton Content="Follow Windows" Tag="Auto" Margin="0,0,8,0" Checked="ThemeRadio_Checked">
                                         <RadioButton.Style>
                                             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                                                 <Style.Triggers>
@@ -1466,7 +1466,7 @@
                                             </Style>
                                         </RadioButton.Style>
                                     </RadioButton>
-                                    <RadioButton Content="Light" Tag="Light" Margin="0,0,5,0" Checked="ThemeRadio_Checked">
+                                    <RadioButton Content="Light" Tag="Light" Margin="0,0,8,0" Checked="ThemeRadio_Checked">
                                         <RadioButton.Style>
                                             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                                                 <Style.Triggers>
