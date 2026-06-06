@@ -1325,6 +1325,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | B6 | Remove Schedule badge colour — confirmation dialog used `ErrorBg` (red); changed to `Accent` (orange) to match all other popup dialogs | ✅ Done |
 | B7 | Switch sound button always visible — 🎵 icon button was hidden when `SoundOverride=true`; now stays visible and turns green; clicking always opens the sound wizard | ✅ Done |
 | B8 | Remove Sound confirmation — clicking "Remove Sound" in the card body now shows a confirmation dialog before removing | ✅ Done |
+| B9 | Tray "Settings" item expands settings card — clicking Settings in the tray now calls `OpenSettingsWindowExpanded()`; `ExpandSettings()` on `SettingsWindow` sets `SettingsCardExpanded = true`; all other entry points (hotkey, header click, first-run) are unaffected | ✅ Done |
 | P1 | `SaveWindowBounds` off UI thread — disk write dispatched to `Task.Run` background thread | ✅ Done |
 | P2 | HID report logging — `LogDebugReport` moved from `AppLogger.Info` (disk) to `AppLogger.Debug` (Console.Error only) | ✅ Done |
 | R10 | `DeleteOrphanedIcon` deduplication — `ProfileCardViewModel` delegates to `SettingsViewModel.DeleteOrphanedIcon` | ✅ Done |
