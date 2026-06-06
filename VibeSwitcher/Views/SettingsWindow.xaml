@@ -793,11 +793,21 @@
                                                 Height="1" Background="{DynamicResource CardSeparator}" Margin="0,0,0,12"/>
 
                                         <!-- Bottom row: action buttons -->
-                                        <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4"
-                                                    HorizontalAlignment="Right" Orientation="Horizontal">
+                                        <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
                                                 <!-- Bell toggle: hidden when switch sound is configured (its wizard handles banner separately) -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="0" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Border.Style>
@@ -825,7 +835,7 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="bell" Text="🔔" FontSize="13"
+                                                                    <TextBlock x:Name="bell" Text="🔔" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -843,8 +853,8 @@
                                                     </ToggleButton>
                                                 </Border>
                                                 <!-- App launch trigger button -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="1" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Button Command="{Binding OpenAppTriggersCommand}"
@@ -862,7 +872,7 @@
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="icon" Text="▶" FontSize="13"
+                                                                    <TextBlock x:Name="icon" Text="▶" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -879,8 +889,8 @@
                                                     </Button>
                                                 </Border>
                                                 <!-- Auto-switch on connect toggle (hidden for Recording-only profiles) -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="2" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         Visibility="{Binding TriggerOnConnectVisible}"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
@@ -899,7 +909,7 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="plug" Text="🔌" FontSize="13"
+                                                                    <TextBlock x:Name="plug" Text="🔌" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -916,8 +926,8 @@
                                                     </ToggleButton>
                                                 </Border>
                                                 <!-- Pin toggle -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="3" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <ToggleButton IsChecked="{Binding IsPinned}"
@@ -927,7 +937,7 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="star" Text="☆" FontSize="13"
+                                                                    <TextBlock x:Name="star" Text="☆" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -945,8 +955,8 @@
                                                     </ToggleButton>
                                                 </Border>
                                                 <!-- Activate icon button -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="4" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Button Command="{Binding ActivateCommand}"
@@ -958,7 +968,7 @@
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="icon" Text="◎" FontSize="13"
+                                                                    <TextBlock x:Name="icon" Text="◎" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -979,8 +989,8 @@
                                                     </Button>
                                                 </Border>
                                                 <!-- Clone icon button -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="5" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Button Command="{Binding CloneCommand}"
@@ -990,7 +1000,7 @@
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="icon" Text="⧉" FontSize="13"
+                                                                    <TextBlock x:Name="icon" Text="⧉" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -1004,8 +1014,8 @@
                                                     </Button>
                                                 </Border>
                                                 <!-- Schedule icon button -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="6" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Button Command="{Binding AddScheduleCommand}"
@@ -1017,7 +1027,7 @@
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="icon" Text="⏰" FontSize="13"
+                                                                    <TextBlock x:Name="icon" Text="⏰" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -1034,8 +1044,8 @@
                                                     </Button>
                                                 </Border>
                                                 <!-- Switch sound icon button -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="7" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Border.Style>
@@ -1055,7 +1065,7 @@
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="icon" Text="🔊" FontSize="13"
+                                                                    <TextBlock x:Name="icon" Text="🔊" FontSize="15"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -1069,8 +1079,8 @@
                                                     </Button>
                                                 </Border>
                                                 <!-- Delete icon button -->
-                                                <Border VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="8" Margin="2,0" VerticalAlignment="Center"
+                                                        Height="36"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Button Command="{Binding DeleteCommand}"
@@ -1080,7 +1090,7 @@
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="icon" Text="🗑" FontSize="13"
+                                                                    <TextBlock x:Name="icon" Text="🗑" FontSize="15"
                                                                                Foreground="{DynamicResource ErrorText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
@@ -1093,7 +1103,7 @@
                                                         </Button.Template>
                                                     </Button>
                                                 </Border>
-                                        </StackPanel>
+                                        </Grid>
                                         <!-- Schedule section — visible only when at least one schedule exists -->
                                         <Border Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Margin="0,8,0,0">
