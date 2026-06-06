@@ -31,7 +31,7 @@ public partial class MicTestDialog : Window
         {
             try
             {
-                AudioService.RunMicLevelMonitor(_deviceId, ct, level =>
+                AudioMicMonitor.RunMicLevelMonitor(_deviceId, ct, level =>
                 {
                     float scaled = Math.Min(level * 10f, 1f);
                     Dispatcher.InvokeAsync(() =>

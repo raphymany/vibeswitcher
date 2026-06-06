@@ -192,6 +192,9 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
 
 ### Changed
+- **`AudioService` split into focused helpers** — internal implementation extracted into `AudioDeviceEnumerator`, `AudioProfileApplier`, `AudioTestTonePlayer`, and `AudioMicMonitor`; `AudioService` is now a thin ~110-line coordinator; `IAudioService` interface and all callers are unchanged *(architecture cleanup)*
+- **`ProfileCardViewModel` retry loops** — three `while(true)` loops for hotkey-capture and schedule conflict resolution replaced with named-flag `while` and `do-while` patterns; all behavior is identical *(architecture cleanup)*
+- **`AppTriggerDialog` shows loading state** — a "Loading installed apps…" label is visible while background app discovery runs and collapses when the list is ready; closing the dialog before loading finishes cancels the pending UI update *(architecture cleanup)*
 - **Playback test tone** — frequency lowered from 440 Hz (A4) to 261 Hz (C4/middle C) and a linear fade-in/out envelope added; the tone is noticeably warmer and less startling *(pre-release audit)*
 - **"Don't show notification banner" toggle** — the sound wizard's banner toggle is now labelled "Don't show notification banner" (inverted from "Show notification banner"); the toggle starts unchecked by default so the banner is on unless the user explicitly suppresses it *(pre-release audit)*
 - **Appearance theme picker layout** — theme RadioButtons changed from a `UniformGrid` (equal-width, no gaps) to a `StackPanel` with `Padding="14,0"` per button and 8 px spacing between buttons; buttons now auto-size to their text and match the height of `ActionButton` *(pre-release audit)*

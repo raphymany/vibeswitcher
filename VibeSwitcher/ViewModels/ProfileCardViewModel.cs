@@ -589,28 +589,28 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         bool applied = false;
         var dialogSeed = _model.Hotkey; // what the capture dialog opens with
 
-        while (true)
+        bool shouldRetry = true;
+        HotkeyDefinition? captured;
+        while (shouldRetry && (captured = _dialogService.ShowHotkeyCapture(dialogSeed)) != null)
         {
-            var captured = _dialogService.ShowHotkeyCapture(dialogSeed);
-            if (captured == null) break; // cancelled
-
+            shouldRetry = false;
             if (!captured.IsEmpty)
             {
                 var internalOwner = FindInternalConflictOwner(captured);
                 if (internalOwner != null)
                 {
-                    bool retry = _dialogService.ShowHotkeyConflictRetry("Hotkey Already in Use",
+                    shouldRetry = _dialogService.ShowHotkeyConflictRetry("Hotkey Already in Use",
                         $"'{captured.ToDisplayString()}' is already assigned to {internalOwner}.");
-                    if (retry) { dialogSeed = captured; continue; }
-                    break;
+                    if (shouldRetry) dialogSeed = captured;
+                    continue;
                 }
 
                 if (_hotkeyService.TestHotkey(captured))
                 {
-                    bool retry = _dialogService.ShowHotkeyConflictRetry("Hotkey Conflict",
+                    shouldRetry = _dialogService.ShowHotkeyConflictRetry("Hotkey Conflict",
                         $"'{captured.ToDisplayString()}' is already in use by another application.");
-                    if (retry) { dialogSeed = captured; continue; }
-                    break;
+                    if (shouldRetry) dialogSeed = captured;
+                    continue;
                 }
             }
 
@@ -618,7 +618,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             HotkeyDisplay = _model.Hotkey.ToDisplayString();
             _onChanged(this); // triggers ReregisterHotkeys → re-registers all hotkeys
             applied = true;
-            break;
         }
 
         if (!applied)
@@ -773,8 +772,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void AddSchedule()
     {
-        ScheduleEntry source = new ScheduleEntry();
-        while (true)
+        var source = new ScheduleEntry();
+        bool retry;
+        do
         {
             var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
             if (result == null) return;
@@ -782,21 +782,25 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             if (conflicts.Count > 0)
             {
                 var desc = string.Join("; ", conflicts.Select(c => $"\"{c.profileName}\" ({c.conflictDesc})"));
-                if (_dialogService.ShowScheduleConflict(desc)) { source = result; continue; }
-                return;
+                retry = _dialogService.ShowScheduleConflict(desc);
+                if (retry) source = result;
             }
-            _model.Schedules.Add(result);
-            Schedules.Add(CreateScheduleEntry(result));
-            OnPropertyChanged(nameof(HasSchedules));
-            _onChanged(this);
-            return;
-        }
+            else
+            {
+                retry = false;
+                _model.Schedules.Add(result);
+                Schedules.Add(CreateScheduleEntry(result));
+                OnPropertyChanged(nameof(HasSchedules));
+                _onChanged(this);
+            }
+        } while (retry);
     }
 
     private void EditSchedule(ScheduleEntryViewModel vm)
     {
-        ScheduleEntry source = vm.Entry;
-        while (true)
+        var source = vm.Entry;
+        bool retry;
+        do
         {
             var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
             if (result == null) return;
@@ -804,19 +808,22 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             if (conflicts.Count > 0)
             {
                 var desc = string.Join("; ", conflicts.Select(c => $"\"{c.profileName}\" ({c.conflictDesc})"));
-                if (_dialogService.ShowScheduleConflict(desc)) { source = result; continue; }
-                return;
+                retry = _dialogService.ShowScheduleConflict(desc);
+                if (retry) source = result;
             }
-            var entry = vm.Entry;
-            entry.Hour = result.Hour;
-            entry.Minute = result.Minute;
-            entry.Days = result.Days;
-            entry.ReminderMinutes = result.ReminderMinutes;
-            entry.Silent = result.Silent;
-            vm.RefreshFromEntry();
-            _onChanged(this);
-            return;
-        }
+            else
+            {
+                retry = false;
+                var entry = vm.Entry;
+                entry.Hour = result.Hour;
+                entry.Minute = result.Minute;
+                entry.Days = result.Days;
+                entry.ReminderMinutes = result.ReminderMinutes;
+                entry.Silent = result.Silent;
+                vm.RefreshFromEntry();
+                _onChanged(this);
+            }
+        } while (retry);
     }
 
     private ScheduleEntryViewModel CreateScheduleEntry(ScheduleEntry entry)
