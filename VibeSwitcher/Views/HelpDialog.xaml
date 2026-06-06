@@ -36,36 +36,6 @@
             <Setter Property="LineHeight"   Value="18"/>
             <Setter Property="Margin"       Value="0,0,0,4"/>
         </Style>
-        <ControlTemplate x:Key="RoundedBtn" TargetType="Button">
-            <Border Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="7"
-                    Padding="{TemplateBinding Padding}">
-                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-        </ControlTemplate>
-        <Style x:Key="OkBtn" TargetType="Button">
-            <Setter Property="Template"        Value="{StaticResource RoundedBtn}"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Height"          Value="32"/>
-            <Setter Property="Padding"         Value="28,0"/>
-            <Setter Property="FontSize"        Value="12"/>
-            <Setter Property="FontWeight"      Value="SemiBold"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="Background"      Value="{DynamicResource Accent}"/>
-            <Setter Property="BorderBrush"     Value="{DynamicResource AccentHover}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background"  Value="{DynamicResource AccentHover}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentPressed}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -120,7 +90,7 @@
                 </TextBlock>
 
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Switching profiles"/>
-                <TextBlock Style="{StaticResource BulletItem}" Text="• Left-click the tray icon to cycle to the next profile in order"/>
+                <TextBlock Style="{StaticResource BulletItem}" Text="• Left-click the tray icon to cycle to the next profile in order (can be changed in General Settings)"/>
                 <TextBlock Style="{StaticResource BulletItem}" Text="• Right-click the tray icon to pick a specific profile from the menu"/>
                 <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,14">
                     • Press a profile's <Run FontWeight="SemiBold">global hotkey</Run> from anywhere — even when VibeSwitcher is minimized
@@ -130,7 +100,7 @@
                 <TextBlock Style="{StaticResource BulletItem}" Text="• The tray icon reflects the active profile's icon"/>
                 <TextBlock Style="{StaticResource BulletItem}" Text="• Hover over the tray icon to see all profiles and their hotkeys"/>
                 <TextBlock Style="{StaticResource BulletItem}" Margin="0,0,0,14">
-                    • Right-click the tray → click the VibeSwitcher header to re-open Settings
+                    • Right-click the tray → Settings to re-open the app
                 </TextBlock>
 
                 <TextBlock Style="{StaticResource SectionHeader}" Text="Settings explained"/>
@@ -164,7 +134,7 @@
         <Border Grid.Row="2" Background="{DynamicResource FooterBg}" BorderBrush="{DynamicResource FooterBorder}"
                 BorderThickness="0,1,0,0" Padding="24,14">
             <Button Content="Got it"
-                    Style="{StaticResource OkBtn}"
+                    Style="{StaticResource PrimaryButton}"
                     IsDefault="True" IsCancel="True"
                     HorizontalAlignment="Center"
                     Click="GotIt_Click"/>

@@ -222,7 +222,7 @@ public partial class SettingsWindow : Window
         cfg.WindowHeight = Height;
         cfg.WindowLeft   = Left;
         cfg.WindowTop    = Top;
-        _configService.SaveImmediate();
+        _ = Task.Run(_configService.SaveImmediate);
     }
 
     protected override void OnClosing(CancelEventArgs e)

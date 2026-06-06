@@ -323,6 +323,10 @@ public class TrayService : IDisposable
             _contextMenu.Items.Add(BuildSeparator());
         }
 
+        var settingsItem = new MenuItem { Header = BuildActionHeader("⚙", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
+        settingsItem.Click += (_, _) => OpenSettings();
+        _contextMenu.Items.Add(settingsItem);
+
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
         {

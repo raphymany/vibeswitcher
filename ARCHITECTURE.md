@@ -20,8 +20,11 @@ VibeSwitcher is a Windows system tray application built with WPF and .NET 8. It 
                      │ calls
 ┌────────────────────▼────────────────────────┐
 │                 Services                    │
-│  AudioService · HotkeyService              │
-│  ConfigService · StartupService            │
+│  AudioService · HotkeyService · MuteService │
+│  ConfigService · StartupService · ThemeService│
+│  SchedulerService · SwitchSoundService      │
+│  DeviceTriggerService · HidHeadsetService   │
+│  AppTriggerService · AppWatcherService      │
 └────────────────────┬────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────┐
@@ -35,9 +38,17 @@ Supporting subsystems that cut across layers:
 | Subsystem | Location | Purpose |
 |---|---|---|
 | `TrayService` | `Tray/` | Tray icon lifecycle, context menu, balloon notifications |
-| `ProfileSwitchOrchestrator` | `App.xaml.cs` area | Serialises all profile switch operations |
-| `AppWindowManager` | `App.xaml.cs` area | Opens and focuses Settings / About windows |
-| `AppLogger` | `Helpers/` | File-based logging with rotation |
+| `ProfileSwitchOrchestrator` | root | Serialises all profile switch operations |
+| `AppWindowManager` | root | Opens and focuses Settings / About windows |
+| `MuteService` | `Services/` | Global mute/unmute by scope (mic, speakers, both); manages mute state and plays feedback sounds |
+| `SchedulerService` | `Services/` | Per-profile time-of-day schedules with optional advance reminder notifications |
+| `ThemeService` | `Services/` | Detects Windows light/dark mode and hot-swaps the app's resource dictionary |
+| `SwitchSoundService` | `Services/` | Plays built-in or custom audio cues on profile switch; per-profile and global volume control |
+| `DeviceTriggerService` | `Services/` | Watches `AudioService.DevicesChanged`; auto-switches to a profile when its linked device connects |
+| `HidHeadsetService` | `Services/` | Reads HID packets from USB wireless headset dongles (Logitech, Corsair, SteelSeries, HyperX) to detect headset power-on/off events |
+| `AppTriggerService` | `Services/` | Switches profile when a linked executable launches or gains focus; reverts when the app exits |
+| `AppWatcherService` | `Services/` | Polls running processes and foreground window to support `AppTriggerService` |
+| `AppLogger` | `Helpers/` | File-based logging with rotation; `Debug` level writes to stderr only (never to disk) |
 | `SessionErrorTracker` | `Helpers/` | Per-session structured error accumulation |
 | `IconHelper` | `Helpers/` | ICO loading, image source conversion, security validation |
 | `WinApi` | `NativeMethods/` | P/Invoke: `RegisterHotKey`, `UnregisterHotKey`, `GlobalAddAtom` |
@@ -51,7 +62,15 @@ Supporting subsystems that cut across layers:
 | `App.xaml.cs` | Bootstrap — single-instance check, service wiring, `WM_HOTKEY` / `WM_TASKBARCREATED` message loop |
 | `Services/ConfigService.cs` | Load / atomic save of `config.json`; backup-and-recover on corruption |
 | `Services/AudioService.cs` | COM audio device enumeration; sets both Multimedia and Communications roles on every switch |
-| `Services/HotkeyService.cs` | Registers global hotkeys via `HwndSource`; maps atom IDs back to profiles |
+| `Services/HotkeyService.cs` | Registers global hotkeys via `HwndSource`; maps atom IDs back to profiles and feature hotkeys |
+| `Services/MuteService.cs` | Tracks per-scope mute state; toggles Windows audio endpoints and plays feedback sounds |
+| `Services/SchedulerService.cs` | Fires switch events on time-of-week schedules; emits reminder events N minutes before switch time |
+| `Services/SwitchSoundService.cs` | Resolves and plays profile-switch audio cues using `NAudio` |
+| `Services/ThemeService.cs` | Polls the Windows registry for `AppsUseLightTheme`; swaps `LightTheme.xaml` / `DarkTheme.xaml` |
+| `Services/DeviceTriggerService.cs` | Maps audio device IDs to profiles; triggers switch on `AudioService.DevicesChanged` |
+| `Services/HidHeadsetService.cs` | Opens HID streams to wireless dongle devices; parses vendor-specific packets for headset power state |
+| `Services/AppTriggerService.cs` | Maps executable names to profiles; responds to `AppWatcherService` events |
+| `Services/AppWatcherService.cs` | Polls `Process.GetProcesses()` and `GetForegroundWindow()` on a background timer |
 | `Tray/TrayService.cs` | Owns the `TaskbarIcon`; rebuilds the context menu when profiles change |
 | `ViewModels/SettingsViewModel.cs` | All settings and profile list logic; fires `SaveImmediate` on every property change |
 | `ViewModels/ProfileCardViewModel.cs` | Per-profile bindings, hotkey capture, icon browse, save flash |
@@ -63,8 +82,8 @@ Supporting subsystems that cut across layers:
 1. Mutex check — second instance exits immediately.
 2. `ConfigService.Load()` — reads `config.json`; falls back to `.bak` on corruption; sets `IsFirstRun` if neither exists.
 3. Hidden `HwndSource` created — receives `WM_HOTKEY` and `WM_TASKBARCREATED` messages.
-4. `AudioService`, `HotkeyService`, `TrayService` initialised.
-5. `HotkeyService.RegisterAll(profiles)` — registers all profile hotkeys and the Settings hotkey.
+4. `AudioService`, `HotkeyService`, `TrayService`, `MuteService`, `SwitchSoundService`, `ThemeService`, `SchedulerService`, `DeviceTriggerService`, `HidHeadsetService`, `AppWatcherService`, `AppTriggerService` initialised.
+5. `HotkeyService.RegisterAll(profiles)` — registers all profile hotkeys, the Settings open hotkey, and all mute hotkeys.
 6. `ProfileSwitchOrchestrator.RestoreActiveProfile()` — re-applies the last active profile so the Windows default matches what the config says.
 7. If `IsFirstRun` → `OpenSettingsWindow()`.
 8. App runs with `ShutdownMode = OnExplicitShutdown`; only the tray Exit item calls `Application.Shutdown()`.
@@ -74,7 +93,7 @@ Supporting subsystems that cut across layers:
 ## Profile switch flow
 
 ```
-Trigger: hotkey press / tray menu click / left-click cycle
+Trigger: hotkey press / tray menu click / left-click cycle / schedule / device connect / app launch
          │
          ▼
 ProfileSwitchOrchestrator.SwitchToProfile(profile)
@@ -85,10 +104,11 @@ ProfileSwitchOrchestrator.SwitchToProfile(profile)
   │    ├─ SetDefaultAudioEndpoint(playbackId, Communications)
   │    ├─ SetDefaultAudioEndpoint(recordingId, Multimedia)
   │    └─ SetDefaultAudioEndpoint(recordingId, Communications)
+  ├─ SwitchSoundService.PlayAsync(profile)         ← optional audio cue
   ├─ ConfigService: ActiveProfileId = profile.Id → SaveImmediate()
-  ├─ TrayService.SetActiveProfile(profile.Id)   ← fast path, no rebuild
+  ├─ TrayService.SetActiveProfile(profile.Id)       ← fast path, no rebuild
   ├─ TrayService.UpdateIcon(profile)
-  ├─ TrayService.FlashSwitch(profile)           ← brief icon pulse
+  ├─ TrayService.FlashSwitch(profile)              ← brief icon pulse
   └─ if ShowNotifications → TrayService.ShowBalloon(…)
 ```
 

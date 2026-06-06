@@ -69,6 +69,102 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <DataTemplate x:Key="DeviceAliasRowTemplate">
+            <Border Background="{DynamicResource InnerCardBg}"
+                    BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                    BorderThickness="1" CornerRadius="6"
+                    Padding="12,10" Margin="0,0,0,8">
+                <StackPanel>
+                    <TextBlock Text="{Binding RawName}"
+                               FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"
+                               TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,6">
+                        <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                            <Run Text="Used in: "/>
+                            <Run Text="{Binding ProfileUsage, Mode=OneWay}" FontWeight="SemiBold"/>
+                        </TextBlock>
+                        <TextBlock Text="Disconnected" FontSize="11"
+                                   Foreground="{DynamicResource DisabledText}"
+                                   Margin="6,0,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsConnected}" Value="False">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="Disabled" FontSize="11"
+                                   Foreground="{DynamicResource DisabledText}"
+                                   Margin="6,0,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDisabled}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBlock Text="Not used in any profile" FontSize="11"
+                                   Foreground="{DynamicResource DisabledText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsUnavailable}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                    <Grid>
+                        <TextBox Text="{Binding Alias, UpdateSourceTrigger=LostFocus}"
+                                 FontSize="12"/>
+                        <TextBlock Text="Custom alias…"
+                                   IsHitTestVisible="False"
+                                   FontSize="12" Padding="8,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource DisabledText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Alias}" Value="">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -101,7 +197,8 @@
             <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <!-- Playback panel -->
-                    <ItemsControl ItemsSource="{Binding PlaybackDevices}">
+                    <ItemsControl ItemsSource="{Binding PlaybackDevices}"
+                                  ItemTemplate="{StaticResource DeviceAliasRowTemplate}">
                         <ItemsControl.Style>
                             <Style TargetType="ItemsControl">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -112,116 +209,11 @@
                                 </Style.Triggers>
                             </Style>
                         </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{DynamicResource InnerCardBg}"
-                                        BorderBrush="{DynamicResource InnerCardBorderBrush}"
-                                        BorderThickness="1" CornerRadius="6"
-                                        Padding="12,10" Margin="0,0,0,8">
-                                    <StackPanel>
-                                        <!-- Windows device name -->
-                                        <TextBlock Text="{Binding RawName}"
-                                                   FontSize="12" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource PrimaryText}"
-                                                   TextWrapping="Wrap"/>
-                                        <!-- Status line -->
-                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,6">
-                                            <!-- In use by profiles -->
-                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryText}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                                <Run Text="Used in: "/>
-                                                <Run Text="{Binding ProfileUsage, Mode=OneWay}" FontWeight="SemiBold"/>
-                                            </TextBlock>
-                                            <!-- Disconnected -->
-                                            <TextBlock Text="Disconnected" FontSize="11"
-                                                       Foreground="{DynamicResource DisabledText}"
-                                                       Margin="6,0,0,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsConnected}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <!-- Disabled -->
-                                            <TextBlock Text="Disabled" FontSize="11"
-                                                       Foreground="{DynamicResource DisabledText}"
-                                                       Margin="6,0,0,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsDisabled}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <!-- No status placeholder so layout doesn't collapse to zero height -->
-                                            <TextBlock Text="Not used in any profile" FontSize="11"
-                                                       Foreground="{DynamicResource DisabledText}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsUnavailable}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </StackPanel>
-                                        <!-- Alias TextBox -->
-                                        <Grid>
-                                            <TextBox Text="{Binding Alias, UpdateSourceTrigger=LostFocus}"
-                                                     FontSize="12"/>
-                                            <TextBlock Text="Custom alias…"
-                                                       IsHitTestVisible="False"
-                                                       FontSize="12" Padding="8,0"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource DisabledText}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Alias}" Value="">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                            <!-- Hide as soon as the TextBox gets focus, before LostFocus fires -->
-                                                            <DataTrigger Binding="{Binding IsKeyboardFocusWithin, RelativeSource={RelativeSource AncestorType=Grid}}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
                     <!-- Recording panel -->
-                    <ItemsControl ItemsSource="{Binding RecordingDevices}">
+                    <ItemsControl ItemsSource="{Binding RecordingDevices}"
+                                  ItemTemplate="{StaticResource DeviceAliasRowTemplate}">
                         <ItemsControl.Style>
                             <Style TargetType="ItemsControl">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -232,112 +224,23 @@
                                 </Style.Triggers>
                             </Style>
                         </ItemsControl.Style>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{DynamicResource InnerCardBg}"
-                                        BorderBrush="{DynamicResource InnerCardBorderBrush}"
-                                        BorderThickness="1" CornerRadius="6"
-                                        Padding="12,10" Margin="0,0,0,8">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding RawName}"
-                                                   FontSize="12" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource PrimaryText}"
-                                                   TextWrapping="Wrap"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,6">
-                                            <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryText}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                                <Run Text="Used in: "/>
-                                                <Run Text="{Binding ProfileUsage, Mode=OneWay}" FontWeight="SemiBold"/>
-                                            </TextBlock>
-                                            <TextBlock Text="Disconnected" FontSize="11"
-                                                       Foreground="{DynamicResource DisabledText}"
-                                                       Margin="6,0,0,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsConnected}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <TextBlock Text="Disabled" FontSize="11"
-                                                       Foreground="{DynamicResource DisabledText}"
-                                                       Margin="6,0,0,0">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsDisabled}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <TextBlock Text="Not used in any profile" FontSize="11"
-                                                       Foreground="{DynamicResource DisabledText}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasProfileUsage}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsUnavailable}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </StackPanel>
-                                        <Grid>
-                                            <TextBox Text="{Binding Alias, UpdateSourceTrigger=LostFocus}"
-                                                     FontSize="12"/>
-                                            <TextBlock Text="Custom alias…"
-                                                       IsHitTestVisible="False"
-                                                       FontSize="12" Padding="8,0"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{DynamicResource DisabledText}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Alias}" Value="">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </Grid>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
             </ScrollViewer>
 
-            <Button Content="Save"
-                    Style="{StaticResource PrimaryButton}"
-                    IsCancel="True"
-                    HorizontalAlignment="Center"
-                    Margin="0,16,0,0"
-                    Width="100"
-                    Click="Save_Click"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                <Button Content="Close"
+                        Style="{StaticResource ActionButton}"
+                        IsCancel="True"
+                        Width="90"
+                        Margin="0,0,8,0"
+                        Click="Close_Click"/>
+                <Button Content="Save"
+                        Style="{StaticResource PrimaryButton}"
+                        IsDefault="True"
+                        Width="90"
+                        Click="Save_Click"/>
+            </StackPanel>
 
         </StackPanel>
     </Grid>

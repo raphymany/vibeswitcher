@@ -929,11 +929,12 @@ public class SettingsViewModel : ViewModelBase
         _onProfilesChanged();
     }
 
-    private static void DeleteOrphanedIcon(string? iconPath, string iconsDir)
+    internal static void DeleteOrphanedIcon(string? iconPath, string iconsDir, string? exceptPath = null)
     {
         if (string.IsNullOrEmpty(iconPath)) return;
         var prefix = iconsDir + System.IO.Path.DirectorySeparatorChar;
         if (!iconPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
+        if (exceptPath != null && string.Equals(iconPath, exceptPath, StringComparison.OrdinalIgnoreCase)) return;
         try { System.IO.File.Delete(iconPath); }
         catch (Exception ex)
         {

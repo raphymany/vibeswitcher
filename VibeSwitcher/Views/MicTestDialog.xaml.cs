@@ -27,7 +27,7 @@ public partial class MicTestDialog : Window
 
     private async Task RunCaptureAsync(CancellationToken ct)
     {
-        await Task.Run(() =>
+        await Task.Run(async () =>
         {
             try
             {
@@ -43,7 +43,17 @@ public partial class MicTestDialog : Window
                     });
                 });
             }
-            catch { }
+            catch
+            {
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    SpeakPrompt.Visibility = System.Windows.Visibility.Collapsed;
+                    CaptureError.Visibility = System.Windows.Visibility.Visible;
+                    LevelBar.Visibility = System.Windows.Visibility.Collapsed;
+                    CountdownText.Text = string.Empty;
+                });
+                _cts.Cancel();
+            }
         }, CancellationToken.None);
     }
 

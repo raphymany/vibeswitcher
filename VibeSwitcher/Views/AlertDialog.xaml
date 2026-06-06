@@ -14,39 +14,6 @@
                       ResizeBorderThickness="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
-    <Window.Resources>
-        <ControlTemplate x:Key="RoundedBtn" TargetType="Button">
-            <Border Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="6"
-                    Padding="{TemplateBinding Padding}">
-                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
-        </ControlTemplate>
-
-        <Style x:Key="OkBtn" TargetType="Button">
-            <Setter Property="Template"        Value="{StaticResource RoundedBtn}"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Height"          Value="32"/>
-            <Setter Property="Padding"         Value="28,0"/>
-            <Setter Property="FontSize"        Value="12"/>
-            <Setter Property="FontWeight"      Value="SemiBold"/>
-            <Setter Property="Foreground"      Value="White"/>
-            <Setter Property="Background"      Value="{DynamicResource Accent}"/>
-            <Setter Property="BorderBrush"     Value="{DynamicResource AccentHover}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background"  Value="{DynamicResource AccentHover}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
-                </Trigger>
-                <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource AccentPressed}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -73,7 +40,7 @@
                        Foreground="{DynamicResource PrimaryText}" LineHeight="18"
                        Margin="0,0,0,20"/>
 
-            <Button Content="OK" Style="{StaticResource OkBtn}"
+            <Button Content="OK" Style="{StaticResource PrimaryButton}"
                     IsDefault="True" IsCancel="True" HorizontalAlignment="Center"
                     Click="OK_Click"/>
 

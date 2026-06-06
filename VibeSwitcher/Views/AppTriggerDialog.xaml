@@ -28,10 +28,10 @@
             <!-- Header -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                 <Border Width="36" Height="36" CornerRadius="18"
-                        Background="#E8F5E9" Margin="0,0,12,0" VerticalAlignment="Center">
+                        Background="{DynamicResource SuccessBadgeBg}" Margin="0,0,12,0" VerticalAlignment="Center">
                     <TextBlock Text="▶" FontSize="15"
                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="#2E7D32"/>
+                               Foreground="{DynamicResource SuccessBadgeText}"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="App Launch Triggers"

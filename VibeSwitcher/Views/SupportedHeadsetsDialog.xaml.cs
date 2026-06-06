@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using VibeSwitcher.Services;
 
 namespace VibeSwitcher.Views;
@@ -55,26 +54,24 @@ public partial class SupportedHeadsetsDialog : Window
             brandLabel.SetResourceReference(ForegroundProperty, "PrimaryText");
             Grid.SetColumn(brandLabel, 0);
 
-            Color badgeBgColor = group.Tested
-                ? Color.FromRgb(0xE8, 0xF5, 0xE9)
-                : Color.FromRgb(0xFF, 0xF8, 0xE1);
-            Color badgeFgColor = group.Tested
-                ? Color.FromRgb(0x2E, 0x7D, 0x32)
-                : Color.FromRgb(0xE6, 0x5C, 0x00);
+            string bgKey = group.Tested ? "SuccessBadgeBg" : "WarningBadgeBg";
+            string fgKey = group.Tested ? "SuccessBadgeText" : "WarningBadgeText";
+
+            var badgeLabel = new TextBlock
+            {
+                Text = group.Tested ? "Tested ✅" : "Untested ⚠️",
+                FontSize = 11,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            badgeLabel.SetResourceReference(ForegroundProperty, fgKey);
 
             var badge = new Border
             {
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(6, 2, 6, 2),
-                Background = new SolidColorBrush(badgeBgColor),
-                Child = new TextBlock
-                {
-                    Text = group.Tested ? "Tested ✅" : "Untested ⚠️",
-                    FontSize = 11,
-                    Foreground = new SolidColorBrush(badgeFgColor),
-                    VerticalAlignment = VerticalAlignment.Center,
-                },
+                Child = badgeLabel,
             };
+            badge.SetResourceReference(BackgroundProperty, bgKey);
             Grid.SetColumn(badge, 1);
 
             headerGrid.Children.Add(brandLabel);
@@ -111,8 +108,9 @@ public partial class SupportedHeadsetsDialog : Window
                 { UseShellExecute = true });
         }
         catch { }
-        DialogResult = false;
     }
+
+    private void Close_Click(object sender, RoutedEventArgs e) => DialogResult = false;
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {

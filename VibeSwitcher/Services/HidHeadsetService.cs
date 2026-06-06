@@ -187,55 +187,66 @@ public sealed class HidHeadsetService : IDisposable
 
         private async Task ReadLoop()
         {
-            try
+            while (!_cts.Token.IsCancellationRequested)
             {
-                var openConfig = new OpenConfiguration();
-                openConfig.SetOption(OpenOption.Exclusive, false);
-                _stream = _device.Open(openConfig);
-                _stream.ReadTimeout = Timeout.Infinite;
-
-                // Corsair requires one output report to seed the initial state;
-                // without it the device won't send unsolicited reports immediately.
-                if (_descriptor.Protocol == HidProtocolType.CorsairVoid)
+                try
                 {
-                    try
+                    var openConfig = new OpenConfiguration();
+                    openConfig.SetOption(OpenOption.Exclusive, false);
+                    _stream = _device.Open(openConfig);
+                    _stream.ReadTimeout = Timeout.Infinite;
+
+                    // Corsair requires one output report to seed the initial state;
+                    // without it the device won't send unsolicited reports immediately.
+                    if (_descriptor.Protocol == HidProtocolType.CorsairVoid)
                     {
-                        var seed = new byte[] { 0xC9, 0x64 };
-                        await _stream.WriteAsync(seed, 0, seed.Length, _cts.Token);
+                        try
+                        {
+                            var seed = new byte[] { 0xC9, 0x64 };
+                            await _stream.WriteAsync(seed, 0, seed.Length, _cts.Token);
+                        }
+                        catch (Exception ex)
+                        {
+                            AppLogger.Warning("HidHeadsetService.ReadLoop",
+                                $"{_descriptor.ModelName} seed query failed: {ex.Message}");
+                        }
                     }
-                    catch (Exception ex)
+
+                    var buffer = new byte[_device.GetMaxInputReportLength()];
+
+                    while (!_cts.Token.IsCancellationRequested)
                     {
-                        AppLogger.Warning("HidHeadsetService.ReadLoop",
-                            $"{_descriptor.ModelName} seed query failed: {ex.Message}");
+                        int bytesRead;
+                        try
+                        {
+                            bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, _cts.Token);
+                        }
+                        catch (OperationCanceledException) { return; }
+                        catch (Exception ex)
+                        {
+                            AppLogger.Warning("HidHeadsetService.ReadLoop",
+                                $"{_descriptor.ModelName} read error: {ex.Message}");
+                            break;
+                        }
+
+                        if (bytesRead > 0)
+                            ParseReport(buffer, bytesRead);
                     }
                 }
-
-                var buffer = new byte[_device.GetMaxInputReportLength()];
-
-                while (!_cts.Token.IsCancellationRequested)
+                catch (OperationCanceledException) { return; }
+                catch (Exception ex)
                 {
-                    int bytesRead;
-                    try
-                    {
-                        bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, _cts.Token);
-                    }
-                    catch (OperationCanceledException) { break; }
-                    catch (Exception ex)
-                    {
-                        AppLogger.Warning("HidHeadsetService.ReadLoop",
-                            $"{_descriptor.ModelName} read error: {ex.Message}");
-                        await Task.Delay(2000, _cts.Token).ConfigureAwait(false);
-                        break;
-                    }
-
-                    if (bytesRead > 0)
-                        ParseReport(buffer, bytesRead);
+                    AppLogger.Warning("HidHeadsetService.ReadLoop",
+                        $"{_descriptor.ModelName} could not be opened: {ex.Message}");
                 }
-            }
-            catch (Exception ex)
-            {
-                AppLogger.Warning("HidHeadsetService.ReadLoop",
-                    $"{_descriptor.ModelName} could not be opened: {ex.Message}");
+                finally
+                {
+                    _stream?.Close();
+                    _stream = null;
+                }
+
+                try { await Task.Delay(2000, _cts.Token).ConfigureAwait(false); }
+                catch (OperationCanceledException) { return; }
             }
         }
 
@@ -432,7 +443,7 @@ public sealed class HidHeadsetService : IDisposable
             try
             {
                 var hex = string.Join(" ", data.Take(length).Select(b => b.ToString("X2")));
-                AppLogger.Info("HidHeadsetService.Report",
+                AppLogger.Debug("HidHeadsetService.Report",
                     $"{_descriptor.ModelName} [{length}]: {hex}");
             }
             catch { /* logging must never throw */ }

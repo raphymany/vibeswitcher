@@ -63,6 +63,18 @@
     <SolidColorBrush x:Key="SuccessDot"         Color="#2DB55D"/>
     <SolidColorBrush x:Key="ErrorDot"           Color="#CC3333"/>
 
+    <!-- Success badge -->
+    <SolidColorBrush x:Key="SuccessBadgeBg"     Color="#E8F5E9"/>
+    <SolidColorBrush x:Key="SuccessBadgeText"   Color="#2E7D32"/>
+
+    <!-- Primary (blue) badge -->
+    <SolidColorBrush x:Key="PrimaryBadgeBg"     Color="#E3F2FD"/>
+    <SolidColorBrush x:Key="PrimaryBadgeText"   Color="#1565C0"/>
+
+    <!-- Warning (amber) badge -->
+    <SolidColorBrush x:Key="WarningBadgeBg"     Color="#FFF8E1"/>
+    <SolidColorBrush x:Key="WarningBadgeText"   Color="#E65C00"/>
+
     <!-- Warning -->
     <SolidColorBrush x:Key="WarningBg"          Color="#FFF8E0"/>
     <SolidColorBrush x:Key="WarningBorder"       Color="#FFE082"/>
