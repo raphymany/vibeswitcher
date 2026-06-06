@@ -124,6 +124,9 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Remove Schedule dialog badge** — the confirmation dialog that appears when removing a schedule used a red (`ErrorBg`) badge; changed to `Accent` (orange) to match the app-wide dialog badge style *(pre-release audit)*
 - **Switch sound button now always visible** — the 🎵 icon button on profile cards was hidden when a switch sound was configured; it now stays visible and turns green (matching the Schedule and App Trigger buttons), and clicking it opens the sound configuration wizard *(pre-release audit)*
 - **Remove Sound confirmation dialog** — "Remove Sound" on a profile card now shows a confirmation dialog before removing, preventing accidental deletion *(pre-release audit)*
+- **Bell button no longer disappears when switch sound is configured** — the 🔔 icon now dims to 35% opacity and becomes non-interactive instead of collapsing; it remains in the icon bar as a visual placeholder *(pre-release audit)*
+- **Switch sound banner defaults to on** — opening the sound wizard for a profile with no sound configured now passes `showBanner: true` so the "Don't show notification banner" toggle starts unchecked (banner on); existing profiles with a sound already configured are unaffected *(pre-release audit)*
+- **`FakeDialogService` implements `ShowConfirmSoundRemove`** — test stub was missing the new interface method, causing CI build failure; added with `ConfirmSoundRemoveResult` property defaulting to `true` *(pre-release audit)*
 - **Shortcuts toggle switches removed** — the four enable/disable toggles in the Shortcuts section are gone; setting a hotkey now enables it automatically, and a new ✕ clear button (visible only when a hotkey is set) resets it to None and auto-disables *(PR #96)*
 - **Immediate switch on Done** — adding an app trigger no longer switches profiles immediately when the dialog closes; the switch now only fires when the assigned executable actually launches *(PR #96)*
 - **Settings hotkey auto-enable** — clearing the Open/Close shortcut now auto-disables it (consistent with mute hotkey behavior) *(PR #96)*
@@ -189,6 +192,8 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ### Changed
 - **Playback test tone** — frequency lowered from 440 Hz (A4) to 261 Hz (C4/middle C) and a linear fade-in/out envelope added; the tone is noticeably warmer and less startling *(pre-release audit)*
+- **"Don't show notification banner" toggle** — the sound wizard's banner toggle is now labelled "Don't show notification banner" (inverted from "Show notification banner"); the toggle starts unchecked by default so the banner is on unless the user explicitly suppresses it *(pre-release audit)*
+- **Appearance theme picker layout** — theme RadioButtons changed from a `UniformGrid` (equal-width, no gaps) to a `StackPanel` with `Padding="14,0"` per button and 8 px spacing between buttons; buttons now auto-size to their text and match the height of `ActionButton` *(pre-release audit)*
 - **Light mode border colors** — all border, separator, and input-border resources darkened (~20–30 hex steps) so card edges, input fields, and dividers are clearly visible against white/light-gray backgrounds *(pre-release audit)*
 - **Profile card icon foregrounds** — all nine icon buttons changed from `{DynamicResource DisabledText}` (light gray) to `{DynamicResource PrimaryText}` (black in light mode, white in dark mode); active-state indicator colors (green, gold) are unchanged *(pre-release audit)*
 - **Filter chip default text** — chip foreground changed from `SecondaryText` to `PrimaryText`; the active/checked state continues to show white text on orange *(pre-release audit)*

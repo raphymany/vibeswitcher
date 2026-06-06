@@ -1347,6 +1347,10 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | T11 | Profile card icon foregrounds — `DisabledText` → `PrimaryText` (black in light, white in dark) | ✅ Done |
 | T12 | Filter chip text — default foreground `SecondaryText` → `PrimaryText` | ✅ Done |
 | T13 | `HelpDialog` FAQ cards — each of the 8 sections wrapped in its own card | ✅ Done |
+| T15 | Bell button dims when sound configured — 🔔 `IsEnabled="False"` + `Opacity="0.35"` DataTrigger when `SoundOverride=True` (was `Visibility="Collapsed"`) | ✅ Done |
+| T16 | "Don't show notification banner" toggle — label inverted; `BannerToggle.IsChecked = !showBanner`; `ConfigureSound` passes `showBanner: true` when no sound is set so toggle starts unchecked (banner on by default) | ✅ Done |
+| T17 | Appearance theme picker — `UniformGrid` → `StackPanel`, `Padding="14,0"` per button, 8 px margin between buttons, `Height="30"` to match `ActionButton` | ✅ Done |
+| CQ13 | `FakeDialogService` CI fix — `ShowConfirmSoundRemove()` added to test stub after `IDialogService` interface was extended; `ConfirmSoundRemoveResult` property defaults to `true` | ✅ Done |
 | Docs | `ARCHITECTURE.md` rewritten with all 12 services; `README.md` adds F41; `CHANGELOG.md` consolidated | ✅ Done |
 
 ---
