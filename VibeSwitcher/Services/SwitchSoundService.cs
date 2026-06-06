@@ -1,11 +1,19 @@
 using System.Media;
 using System.IO;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 
 namespace VibeSwitcher.Services;
 
 public class SwitchSoundService : ISwitchSoundService
 {
+    private readonly IAppLogger _logger;
+
+    public SwitchSoundService(IAppLogger logger)
+    {
+        _logger = logger;
+    }
+
     public Task PlayAsync(DeviceProfile profile)
     {
         var resolved = Resolve(profile);
@@ -28,7 +36,7 @@ public class SwitchSoundService : ISwitchSoundService
         );
     }
 
-    private static void PlaySync(string tone, string? customPath, int volume)
+    private void PlaySync(string tone, string? customPath, int volume)
     {
         try
         {
@@ -42,7 +50,7 @@ public class SwitchSoundService : ISwitchSoundService
         }
         catch (Exception ex)
         {
-            Helpers.AppLogger.Warning("SwitchSoundService.PlaySync", ex.Message);
+            _logger.Warning("SwitchSoundService.PlaySync", ex.Message);
         }
     }
 

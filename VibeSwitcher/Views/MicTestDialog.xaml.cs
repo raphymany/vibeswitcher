@@ -1,4 +1,5 @@
 using System.Windows;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Services;
 
 namespace VibeSwitcher.Views;
@@ -7,14 +8,16 @@ public partial class MicTestDialog : Window
 {
     private readonly string _deviceId;
     private readonly string _deviceName;
+    private readonly IAppLogger _logger;
     private readonly CancellationTokenSource _cts = new();
     private float _peakLevel;
 
-    public MicTestDialog(string deviceId, string deviceName)
+    public MicTestDialog(string deviceId, string deviceName, IAppLogger logger)
     {
         InitializeComponent();
         _deviceId = deviceId;
         _deviceName = deviceName;
+        _logger = logger;
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -41,7 +44,7 @@ public partial class MicTestDialog : Window
                         _peakLevel = Math.Max(_peakLevel, scaled);
                         PeakText.Text = $"Peak: {(int)(_peakLevel * 100)}%";
                     });
-                });
+                }, _logger);
             }
             catch
             {

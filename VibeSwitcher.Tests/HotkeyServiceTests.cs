@@ -9,7 +9,7 @@ namespace VibeSwitcher.Tests;
 // specifically profiles with empty/invalid hotkeys and atom-free lookups.
 public class HotkeyServiceTests : IDisposable
 {
-    private readonly HotkeyService _svc = new(IntPtr.Zero);
+    private readonly HotkeyService _svc = new(IntPtr.Zero, new FakeAppLogger(), new FakeSessionErrorTracker());
 
     public void Dispose() => _svc.Dispose();
 

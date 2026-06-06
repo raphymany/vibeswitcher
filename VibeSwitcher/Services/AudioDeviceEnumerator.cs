@@ -7,7 +7,8 @@ namespace VibeSwitcher.Services;
 
 internal static class AudioDeviceEnumerator
 {
-    internal static IReadOnlyList<AudioDeviceInfo> GetDevices(EDataFlow flow)
+    internal static IReadOnlyList<AudioDeviceInfo> GetDevices(
+        EDataFlow flow, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
         IMMDeviceCollection? collection = null;
@@ -21,7 +22,7 @@ internal static class AudioDeviceEnumerator
             for (uint i = 0; i < count; i++)
             {
                 collection.Item(i, out var device);
-                var info = GetDeviceInfo(device, flow == EDataFlow.Render);
+                var info = GetDeviceInfo(device, flow == EDataFlow.Render, logger, errorTracker);
                 if (info != null) results.Add(info);
             }
             // Active devices first, unplugged at the bottom — both groups sorted by name.
@@ -34,7 +35,8 @@ internal static class AudioDeviceEnumerator
         }
     }
 
-    private static AudioDeviceInfo? GetDeviceInfo(IMMDevice device, bool isPlayback)
+    private static AudioDeviceInfo? GetDeviceInfo(
+        IMMDevice device, bool isPlayback, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         IPropertyStore? store = null;
         try
@@ -55,8 +57,8 @@ internal static class AudioDeviceEnumerator
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("AudioDeviceEnumerator.GetDeviceInfo", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.AudioDeviceInfoFailed, "Audio Device Info Unavailable",
+            logger.Warning("AudioDeviceEnumerator.GetDeviceInfo", ex.Message);
+            errorTracker.Record(ErrorCode.AudioDeviceInfoFailed, "Audio Device Info Unavailable",
                 $"Could not read info for an audio device: {ex.Message}");
             return null;
         }

@@ -6,7 +6,7 @@ namespace VibeSwitcher.Services;
 
 internal static class AudioTestTonePlayer
 {
-    internal static void Play(string deviceId)
+    internal static void Play(string deviceId, IAppLogger logger)
     {
         var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
         try
@@ -99,7 +99,7 @@ internal static class AudioTestTonePlayer
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("AudioTestTonePlayer.Play", ex.Message);
+            logger.Warning("AudioTestTonePlayer.Play", ex.Message);
         }
         finally { Marshal.ReleaseComObject(enumerator); }
     }

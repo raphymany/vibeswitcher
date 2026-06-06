@@ -6,6 +6,12 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Changed
+- **Injectable `IAppLogger` and `ISessionErrorTracker`** — `AppLogger` and `SessionErrorTracker` are now instance classes implementing `IAppLogger` and `ISessionErrorTracker` interfaces; all services, ViewModels, and dialogs receive them via constructor injection; enables proper test isolation and is the correct pattern for an open-source codebase *(PR #102)*
+- **`FakeAppLogger` and `FakeSessionErrorTracker` test doubles** — new in-memory implementations of both interfaces used throughout the test suite; all tests are now fully isolated with no shared static state *(PR #102)*
+- **`SessionErrorTracker.ErrorAdded` event thread safety** — replaced manual add/remove event accessors with a compiler-generated event backed by `Interlocked.CompareExchange` for safe concurrent subscribe/unsubscribe *(PR #102)*
+- **`AppLog` / `AppErrors` service locators** — retained for `RelayCommand` and `IconHelper` (the two callers that cannot receive injection); both backing fields marked `volatile` to prevent read/write reordering across threads *(PR #102)*
+
 ### Added
 - **Settings tray menu item** — "Settings" appears in the tray right-click context menu as a direct shortcut to open the Settings window *(pre-release audit)*
 - **Close button on Supported Headsets dialog** — a Close button lets users dismiss the dialog without enabling auto-switch or being redirected to the browser *(pre-release audit)*

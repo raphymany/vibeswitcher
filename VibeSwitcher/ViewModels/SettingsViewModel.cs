@@ -13,6 +13,8 @@ public class SettingsViewModel : ViewModelBase
     private readonly IHotkeyService _hotkeyService;
     private readonly IStartupService _startupService;
     private readonly IDialogService _dialogService;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
     private readonly Action _onProfilesChanged;
     private readonly Action<HotkeyConflictException> _onHotkeyConflict;
     private readonly Action<string> _applyTheme;
@@ -582,6 +584,8 @@ public class SettingsViewModel : ViewModelBase
         IHotkeyService hotkeyService,
         IStartupService startupService,
         IDialogService dialogService,
+        IAppLogger logger,
+        ISessionErrorTracker errorTracker,
         Action onProfilesChanged,
         Action<HotkeyConflictException> onHotkeyConflict,
         Action<string> applyTheme,
@@ -593,6 +597,8 @@ public class SettingsViewModel : ViewModelBase
         _hotkeyService = hotkeyService;
         _startupService = startupService;
         _dialogService = dialogService;
+        _logger = logger;
+        _errorTracker = errorTracker;
         _onProfilesChanged = onProfilesChanged;
         _onHotkeyConflict = onHotkeyConflict;
         _applyTheme = applyTheme;
@@ -794,8 +800,8 @@ public class SettingsViewModel : ViewModelBase
         }
         catch (Exception ex) when (!token.IsCancellationRequested)
         {
-            AppLogger.Error("SettingsViewModel.LoadDevicesAsync", ex);
-            SessionErrorTracker.Record(ErrorCode.AudioEnumerationFailed, "Audio Device Error",
+            _logger.Error("SettingsViewModel.LoadDevicesAsync", ex);
+            _errorTracker.Record(ErrorCode.AudioEnumerationFailed, "Audio Device Error",
                 $"Could not load audio devices: {ex.Message}");
         }
     }
@@ -807,6 +813,8 @@ public class SettingsViewModel : ViewModelBase
             _configService,
             _hotkeyService,
             _dialogService,
+            _logger,
+            _errorTracker,
             GetDevicesForDisplay(_playbackDevices),
             GetDevicesForDisplay(_recordingDevices),
             onChanged: card => OnProfileChanged(card),
@@ -924,12 +932,12 @@ public class SettingsViewModel : ViewModelBase
         for (int i = 0; i < Profiles.Count; i++)
             Profiles[i].Model.SortOrder = i;
         SaveAsync();
-        DeleteOrphanedIcon(iconPath, _configService.IconsDir);
+        DeleteOrphanedIcon(iconPath, _configService.IconsDir, _logger, _errorTracker);
         ReregisterHotkeys();
         _onProfilesChanged();
     }
 
-    internal static void DeleteOrphanedIcon(string? iconPath, string iconsDir, string? exceptPath = null)
+    internal static void DeleteOrphanedIcon(string? iconPath, string iconsDir, IAppLogger logger, ISessionErrorTracker errorTracker, string? exceptPath = null)
     {
         if (string.IsNullOrEmpty(iconPath)) return;
         var prefix = iconsDir + System.IO.Path.DirectorySeparatorChar;
@@ -938,8 +946,8 @@ public class SettingsViewModel : ViewModelBase
         try { System.IO.File.Delete(iconPath); }
         catch (Exception ex)
         {
-            AppLogger.Warning("SettingsViewModel.DeleteOrphanedIcon", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
+            logger.Warning("SettingsViewModel.DeleteOrphanedIcon", ex.Message);
+            errorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
                 $"Could not delete orphaned icon file (it may remain on disk): {ex.Message}");
         }
     }

@@ -6,17 +6,21 @@ namespace VibeSwitcher.Tests;
 public class IconHelperTests : IDisposable
 {
     private readonly string _iconsDir;
+    private readonly FakeSessionErrorTracker _errorTracker;
 
     public IconHelperTests()
     {
         _iconsDir = Path.Combine(Path.GetTempPath(), $"VSIconsTest_{Guid.NewGuid():N}");
         Directory.CreateDirectory(_iconsDir);
-        SessionErrorTracker.Reset();
+        _errorTracker = new FakeSessionErrorTracker();
+        AppLog.Register(new FakeAppLogger());
+        AppErrors.Register(_errorTracker);
     }
 
     public void Dispose()
     {
-        SessionErrorTracker.Reset();
+        AppLog.Register(null);
+        AppErrors.Register(null);
         if (Directory.Exists(_iconsDir))
             Directory.Delete(_iconsDir, recursive: true);
     }
@@ -43,7 +47,7 @@ public class IconHelperTests : IDisposable
         using var icon = IconHelper.LoadIcon(outsidePath, _iconsDir);
 
         Assert.NotNull(icon);
-        Assert.True(SessionErrorTracker.HasErrors, "Should record an IconLoadFailed error for rejected path");
+        Assert.True(_errorTracker.HasErrors, "Should record an IconLoadFailed error for rejected path");
     }
 
     [Fact]
@@ -53,7 +57,7 @@ public class IconHelperTests : IDisposable
 
         using var icon = IconHelper.LoadIcon(traversal, _iconsDir);
 
-        Assert.NotNull(icon); // falls back to default, does not throw
+        Assert.NotNull(icon);
     }
 
     [Fact]
@@ -69,13 +73,12 @@ public class IconHelperTests : IDisposable
     [Fact]
     public void LoadIcon_CorruptIconFile_ReturnsDefaultAndRecordsError()
     {
-        // A file that exists inside the icons dir but contains garbage bytes (not a valid ICO).
         var corruptPath = Path.Combine(_iconsDir, "corrupt.ico");
         File.WriteAllBytes(corruptPath, System.Text.Encoding.ASCII.GetBytes("NOT_AN_ICO_FILE"));
 
         using var icon = IconHelper.LoadIcon(corruptPath, _iconsDir);
 
         Assert.NotNull(icon);
-        Assert.True(SessionErrorTracker.HasErrors, "Should record an IconLoadFailed error for corrupt file");
+        Assert.True(_errorTracker.HasErrors, "Should record an IconLoadFailed error for corrupt file");
     }
 }

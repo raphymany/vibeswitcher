@@ -34,8 +34,8 @@ public class RelayCommand : ICommand
         }
         catch (Exception ex)
         {
-            AppLogger.Error("RelayCommand.Execute", ex);
-            SessionErrorTracker.Record(ErrorCode.CommandExecutionFailed, "Command Failed",
+            AppLog.Error("RelayCommand.Execute", ex);
+            AppErrors.Record(ErrorCode.CommandExecutionFailed, "Command Failed",
                 $"An unexpected error occurred: {ex.Message}");
         }
     }

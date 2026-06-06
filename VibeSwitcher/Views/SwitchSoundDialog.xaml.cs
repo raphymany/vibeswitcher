@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using Microsoft.Win32;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
 
@@ -13,10 +14,11 @@ public partial class SwitchSoundDialog : Window
     private string? _customPath;
     private int _volume;
     private bool _showBanner;
+    private readonly IAppLogger _logger;
 
     public SoundOverrideResult? Result { get; private set; }
 
-    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false)
+    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume, IAppLogger logger, bool showBanner = false)
     {
         InitializeComponent();
 
@@ -24,6 +26,7 @@ public partial class SwitchSoundDialog : Window
         _customPath = customPath;
         _volume     = volume;
         _showBanner = showBanner;
+        _logger     = logger;
 
         UpdateToneChips();
         CustomPathBox.Text       = customPath ?? "";
@@ -93,7 +96,7 @@ public partial class SwitchSoundDialog : Window
     {
         var btn = (System.Windows.Controls.Button)sender;
         btn.IsEnabled = false;
-        try { await new SwitchSoundService().TestAsync(_tone, _customPath, _volume); }
+        try { await new SwitchSoundService(_logger).TestAsync(_tone, _customPath, _volume); }
         finally { btn.IsEnabled = true; }
     }
 

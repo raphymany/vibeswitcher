@@ -18,9 +18,11 @@ public sealed class AppWatcherService : IDisposable
     private HashSet<string> _skipOnNextPoll = new(StringComparer.OrdinalIgnoreCase);
     private readonly Timer _timer;
     private volatile bool _disposed;
+    private readonly IAppLogger _logger;
 
-    public AppWatcherService()
+    public AppWatcherService(IAppLogger logger)
     {
+        _logger = logger;
         _timer = new Timer(Poll, null, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
     }
 
@@ -67,7 +69,7 @@ public sealed class AppWatcherService : IDisposable
             }
             catch (Exception ex)
             {
-                AppLogger.Warning("AppWatcherService.Poll", $"Process check failed for '{exeName}': {ex.Message}");
+                _logger.Warning("AppWatcherService.Poll", $"Process check failed for '{exeName}': {ex.Message}");
             }
         }
 
@@ -91,7 +93,7 @@ public sealed class AppWatcherService : IDisposable
 
             if (matchedPath != null)
             {
-                AppLogger.Info("AppWatcherService", $"'{exeName}' launched.");
+                _logger.Info("AppWatcherService", $"'{exeName}' launched.");
                 ProcessLaunched?.Invoke(matchedPath);
             }
         }

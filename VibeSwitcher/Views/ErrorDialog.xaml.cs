@@ -6,9 +6,14 @@ namespace VibeSwitcher.Views;
 
 public partial class ErrorDialog : Window
 {
-    public ErrorDialog(ErrorCode code, string title, string message)
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
+
+    public ErrorDialog(ErrorCode code, string title, string message, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         InitializeComponent();
+        _logger = logger;
+        _errorTracker = errorTracker;
         Title = title;
         TitleText.Text = title;
         CodeText.Text = code.ToCode();
@@ -25,8 +30,8 @@ public partial class ErrorDialog : Window
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("ErrorDialog.OpenLog", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Log File Could Not Be Opened",
+            _logger.Warning("ErrorDialog.OpenLog", ex.Message);
+            _errorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Log File Could Not Be Opened",
                 $"Could not open the error log: {ex.Message}");
         }
     }

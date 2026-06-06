@@ -14,6 +14,8 @@ public class ConfigService : IConfigService
     private readonly string _configPath;
     private readonly string _configBakPath;
     private readonly string _configTmpPath;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
 
     public string IconsDir { get; }
 
@@ -26,8 +28,10 @@ public class ConfigService : IConfigService
     private volatile AppConfig _config = new();
     private readonly object _saveLock = new();
 
-    public ConfigService(string? baseDir = null)
+    public ConfigService(IAppLogger logger, ISessionErrorTracker errorTracker, string? baseDir = null)
     {
+        _logger = logger;
+        _errorTracker = errorTracker;
         _configDir    = baseDir ?? DefaultConfigDir;
         IconsDir      = Path.Combine(_configDir, "Icons");
         _configPath   = Path.Combine(_configDir, "config.json");
@@ -46,8 +50,8 @@ public class ConfigService : IConfigService
         }
         catch (Exception ex)
         {
-            AppLogger.Error("ConfigService.Load", ex);
-            SessionErrorTracker.Record(ErrorCode.ConfigDirCreateFailed, "Config Directory Error",
+            _logger.Error("ConfigService.Load", ex);
+            _errorTracker.Record(ErrorCode.ConfigDirCreateFailed, "Config Directory Error",
                 $"Could not create config directory at '{_configDir}': {ex.Message}");
             IsFirstRun = true;
             _config = new AppConfig();
@@ -69,23 +73,23 @@ public class ConfigService : IConfigService
             return;
         }
 
-        AppLogger.Warning("ConfigService.Load", "Primary config corrupted, trying backup");
+        _logger.Warning("ConfigService.Load", "Primary config corrupted, trying backup");
 
         if (File.Exists(_configBakPath) && TryLoad(_configBakPath, out loaded))
         {
             _config = loaded!;
             _config.Profiles ??= new();
             Migrate(_config);
-            AppLogger.Info("ConfigService.Load", "Recovered from backup config");
+            _logger.Info("ConfigService.Load", "Recovered from backup config");
             return;
         }
 
         IsFirstRun = true;
         _config = new AppConfig();
-        AppLogger.Warning("ConfigService.Load", "Both config and backup failed — starting fresh");
+        _logger.Warning("ConfigService.Load", "Both config and backup failed — starting fresh");
     }
 
-    private static bool TryLoad(string path, out AppConfig? config)
+    private bool TryLoad(string path, out AppConfig? config)
     {
         try
         {
@@ -98,8 +102,8 @@ public class ConfigService : IConfigService
         }
         catch (Exception ex)
         {
-            AppLogger.Error("ConfigService.TryLoad", ex);
-            SessionErrorTracker.Record(ErrorCode.ConfigLoadFailed, "Config Load Failed",
+            _logger.Error("ConfigService.TryLoad", ex);
+            _errorTracker.Record(ErrorCode.ConfigLoadFailed, "Config Load Failed",
                 $"Failed to read {Path.GetFileName(path)}: {ex.Message}");
             config = null;
             return false;
@@ -129,8 +133,8 @@ public class ConfigService : IConfigService
             }
             catch (Exception ex)
             {
-                AppLogger.Error("ConfigService.ExportTo", ex);
-                SessionErrorTracker.Record(ErrorCode.ConfigSaveFailed, "Export Failed", ex.Message);
+                _logger.Error("ConfigService.ExportTo", ex);
+                _errorTracker.Record(ErrorCode.ConfigSaveFailed, "Export Failed", ex.Message);
                 throw;
             }
         }
@@ -173,8 +177,8 @@ public class ConfigService : IConfigService
             }
             catch (Exception ex)
             {
-                AppLogger.Error("ConfigService.Save", ex);
-                SessionErrorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
+                _logger.Error("ConfigService.Save", ex);
+                _errorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
             }
         }
     }

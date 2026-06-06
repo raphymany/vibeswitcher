@@ -61,6 +61,7 @@ public class DeviceAliasTests
 
     private SettingsViewModel MakeViewModel() =>
         new(_fakeConfig, _fakeAudio, _fakeHotkey, _fakeStartup, _fakeDialog,
+            new FakeAppLogger(), new FakeSessionErrorTracker(),
             onProfilesChanged: () => { },
             onHotkeyConflict: _ => { },
             applyTheme: _ => { });

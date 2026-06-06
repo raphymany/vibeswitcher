@@ -44,7 +44,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("dev-A")];
         audio.RaiseDevicesChanged();
@@ -62,7 +62,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.RecordingResult = [Connected("mic-B", isPlayback: false)];
         audio.RaiseDevicesChanged();
@@ -79,7 +79,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("spk-1")];
         audio.RaiseDevicesChanged();
@@ -97,7 +97,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.RecordingResult = [Connected("mic-1", isPlayback: false)];
         audio.RaiseDevicesChanged();
@@ -116,7 +116,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("dev-A")];
         audio.RaiseDevicesChanged();
@@ -137,7 +137,7 @@ public class DeviceTriggerServiceTests
         });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("dev-A")];
         audio.RaiseDevicesChanged();
@@ -154,7 +154,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         // Raise event without changing the set — device was already there at construction
         audio.RaiseDevicesChanged();
@@ -171,7 +171,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("dev-OTHER")];
         audio.RaiseDevicesChanged();
@@ -190,7 +190,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.RecordingResult = [Connected("mic-A", isPlayback: false)];
         audio.RaiseDevicesChanged();
@@ -223,7 +223,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [first, second] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("dev-A")];
         audio.RaiseDevicesChanged();
@@ -242,7 +242,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
         svc.Dispose();
 
         audio.PlaybackResult = [Connected("dev-A")];
@@ -262,7 +262,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("dev-a")];
         audio.RaiseDevicesChanged();
@@ -286,7 +286,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.PlaybackResult = [Connected("dev-A")];
         audio.RaiseDevicesChanged();
@@ -305,7 +305,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         int switchCount = 0;
-        using var svc = new DeviceTriggerService(audio, config, _ => switchCount++);
+        using var svc = new DeviceTriggerService(audio, config, _ => switchCount++, new FakeAppLogger());
 
         // First connect
         audio.PlaybackResult = [Connected("dev-A")];
@@ -336,7 +336,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         // Device connect path would not fire (device was already in connectedIds).
         // Property change path should fire instead.
@@ -354,7 +354,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile], ActiveProfileId = profile.Id });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.RaiseDevicePropertyChanged("dev-A");
 
@@ -370,7 +370,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         audio.RaiseDevicePropertyChanged("dev-OTHER");
 
@@ -386,7 +386,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         int switchCount = 0;
-        using var svc = new DeviceTriggerService(audio, config, _ => switchCount++);
+        using var svc = new DeviceTriggerService(audio, config, _ => switchCount++, new FakeAppLogger());
 
         audio.RaiseDevicePropertyChanged("dev-A"); // first — fires
         audio.RaiseDevicePropertyChanged("dev-A"); // immediate repeat — suppressed by cooldown
@@ -403,7 +403,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [profile] });
 
         DeviceProfile? switched = null;
-        var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
         svc.Dispose();
 
         audio.RaiseDevicePropertyChanged("dev-A");
@@ -435,7 +435,7 @@ public class DeviceTriggerServiceTests
         {
             config.Current.ActiveProfileId = p.Id; // simulate orchestrator
             switches.Add(p);
-        });
+        }, new FakeAppLogger());
 
         // Headset connects — switches to headset profile
         audio.PlaybackResult = [Connected("dev-headset"), Connected("dev-speakers")];
@@ -476,7 +476,7 @@ public class DeviceTriggerServiceTests
         {
             config.Current.ActiveProfileId = p.Id;
             switches.Add(p);
-        });
+        }, new FakeAppLogger());
 
         // Headset powers on → switches to headset profile
         audio.RaiseDevicePropertyChanged("dev-headset");
@@ -517,7 +517,7 @@ public class DeviceTriggerServiceTests
         {
             config.Current.ActiveProfileId = p.Id;
             switches.Add(p);
-        });
+        }, new FakeAppLogger());
 
         // Headset turns on → switch to headset
         audio.RaiseDevicePropertyChanged("dev-headset");
@@ -566,7 +566,7 @@ public class DeviceTriggerServiceTests
         {
             config.Current.ActiveProfileId = p.Id;
             switches.Add(p);
-        });
+        }, new FakeAppLogger());
 
         // Headset powers on → property change triggers switch
         audio.RaiseDevicePropertyChanged("dev-headset");
@@ -589,7 +589,7 @@ public class DeviceTriggerServiceTests
         config.SetConfig(new AppConfig { Profiles = [headsetProfile] });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         // No prior auto-switch — HID disconnect should do nothing
         svc.OnHidWirelessDisconnected(ProXDescriptor);
@@ -619,7 +619,7 @@ public class DeviceTriggerServiceTests
         {
             config.Current.ActiveProfileId = p.Id;
             switches.Add(p);
-        });
+        }, new FakeAppLogger());
 
         svc.OnHidWirelessConnected(ProXDescriptor);
 
@@ -640,7 +640,7 @@ public class DeviceTriggerServiceTests
         });
 
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => switched = p);
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
 
         svc.OnHidWirelessConnected(ProXDescriptor);
 
@@ -671,7 +671,7 @@ public class DeviceTriggerServiceTests
         {
             config.Current.ActiveProfileId = p.Id;
             switches.Add(p);
-        });
+        }, new FakeAppLogger());
 
         // Some other device connects → triggers otherProfile
         audio.RaiseDevicePropertyChanged("dev-other");
@@ -710,7 +710,7 @@ public class DeviceTriggerServiceTests
         {
             config.Current.ActiveProfileId = p.Id;
             switches.Add(p);
-        });
+        }, new FakeAppLogger());
 
         // Headset powers on → auto-switch to headset profile
         audio.RaiseDevicePropertyChanged("dev-headset");
@@ -752,7 +752,7 @@ public class DeviceTriggerServiceTests
 
         int switchCount = 0;
         DeviceProfile? switched = null;
-        using var svc = new DeviceTriggerService(audio, config, p => { switched = p; switchCount++; });
+        using var svc = new DeviceTriggerService(audio, config, p => { switched = p; switchCount++; }, new FakeAppLogger());
 
         // Both devices appear simultaneously
         audio.PlaybackResult = [Connected("dev-A"), Connected("dev-B")];

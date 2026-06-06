@@ -10,6 +10,12 @@ public class MuteService
 {
     private bool _micMuted = false;
     private bool _speakersMuted = false;
+    private readonly IAppLogger _logger;
+
+    public MuteService(IAppLogger logger)
+    {
+        _logger = logger;
+    }
 
     public bool IsAnyMuteActive   => _micMuted || _speakersMuted;
     public bool IsMicMuted        => _micMuted;
@@ -48,7 +54,7 @@ public class MuteService
         _ = Task.Run(() => PlaySound(scope, muting));
     }
 
-    private static bool SetDeviceMute(EDataFlow flow, bool mute)
+    private bool SetDeviceMute(EDataFlow flow, bool mute)
     {
         IMMDeviceEnumerator? enumerator = null;
         IMMDevice? device = null;
@@ -75,7 +81,7 @@ public class MuteService
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("MuteService.SetDeviceMute", ex.Message);
+            _logger.Warning("MuteService.SetDeviceMute", ex.Message);
             return false;
         }
         finally
@@ -90,7 +96,7 @@ public class MuteService
     private const int SampleRate = 44100;
     private const float Amplitude = 0.35f;
 
-    private static void PlaySound(MuteScope scope, bool muting)
+    private void PlaySound(MuteScope scope, bool muting)
     {
         // When muting speakers the output is silenced immediately — no point playing a sound nobody hears.
         // On unmute the speakers are already restored before this runs, so that case is fine to play.
@@ -109,7 +115,7 @@ public class MuteService
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("MuteService.PlaySound", ex.Message);
+            _logger.Warning("MuteService.PlaySound", ex.Message);
         }
     }
 

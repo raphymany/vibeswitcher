@@ -16,6 +16,8 @@ public class ProfileSwitchOrchestrator : IDisposable
     private readonly TrayService _trayService;
     private readonly ISwitchSoundService _soundService;
     private readonly Dispatcher _dispatcher;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
     private readonly SemaphoreSlim _switchLock = new(1, 1);
 
     public event Action? ProfileSwitched;
@@ -25,13 +27,17 @@ public class ProfileSwitchOrchestrator : IDisposable
         IAudioService audioService,
         TrayService trayService,
         ISwitchSoundService soundService,
-        Dispatcher dispatcher)
+        Dispatcher dispatcher,
+        IAppLogger logger,
+        ISessionErrorTracker errorTracker)
     {
         _configService = configService;
         _audioService = audioService;
         _trayService = trayService;
         _soundService = soundService;
         _dispatcher = dispatcher;
+        _logger = logger;
+        _errorTracker = errorTracker;
     }
 
     public void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
@@ -54,7 +60,7 @@ public class ProfileSwitchOrchestrator : IDisposable
         // ApplyProfileAsync calls, which would leave audio devices in an undefined state.
         if (!_switchLock.Wait(0))
         {
-            AppLogger.Warning("SwitchToProfile", $"Switch to '{profile.Name}' dropped — another switch is already in progress.");
+            _logger.Warning("SwitchToProfile", $"Switch to '{profile.Name}' dropped — another switch is already in progress.");
             return;
         }
         try
@@ -78,14 +84,14 @@ public class ProfileSwitchOrchestrator : IDisposable
                 if (result.MissingPlaybackId != null)
                 {
                     var msg = $"Playback device for '{profile.Name}' is disconnected.";
-                    AppLogger.Warning("SwitchToProfile", msg);
-                    SessionErrorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
+                    _logger.Warning("SwitchToProfile", msg);
+                    _errorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
                 }
                 if (result.MissingRecordingId != null)
                 {
                     var msg = $"Recording device for '{profile.Name}' is disconnected.";
-                    AppLogger.Warning("SwitchToProfile", msg);
-                    SessionErrorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
+                    _logger.Warning("SwitchToProfile", msg);
+                    _errorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
                 }
 
                 if (_configService.Current.ShowNotifications)
@@ -123,9 +129,9 @@ public class ProfileSwitchOrchestrator : IDisposable
         }
         catch (Exception ex)
         {
-            AppLogger.Error("SwitchToProfile", ex);
+            _logger.Error("SwitchToProfile", ex);
             var detail = ex.InnerException?.Message ?? ex.Message;
-            SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+            _errorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
                 $"Could not switch to '{profile.Name}': {detail}");
             await _dispatcher.InvokeAsync(() =>
             {
@@ -133,7 +139,7 @@ public class ProfileSwitchOrchestrator : IDisposable
                     .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
                 _trayService.UpdateIcon(still);
                 var dialog = new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                    $"Could not switch to '{profile.Name}': {detail}");
+                    $"Could not switch to '{profile.Name}': {detail}", _logger, _errorTracker);
                 var owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsVisible);
                 if (owner != null)
                 {

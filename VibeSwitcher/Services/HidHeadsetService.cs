@@ -20,6 +20,12 @@ public sealed class HidHeadsetService : IDisposable
     public event Action<HidHeadsetDescriptor>? DeviceMonitoringStarted;
 
     private readonly List<DeviceReader> _readers = [];
+    private readonly IAppLogger _logger;
+
+    public HidHeadsetService(IAppLogger logger)
+    {
+        _logger = logger;
+    }
 
     public void Start()
     {
@@ -35,7 +41,7 @@ public sealed class HidHeadsetService : IDisposable
 
         if (candidates.Count == 0)
         {
-            AppLogger.Info("HidHeadsetService",
+            _logger.Info("HidHeadsetService",
                 $"{descriptor.ModelName}: no HID devices found for " +
                 $"VID={descriptor.VendorId:X4} PID={descriptor.ProductId:X4}.");
             return;
@@ -43,7 +49,7 @@ public sealed class HidHeadsetService : IDisposable
 
         foreach (var c in candidates)
         {
-            AppLogger.Info("HidHeadsetService",
+            _logger.Info("HidHeadsetService",
                 $"{descriptor.ModelName} candidate: {c.DevicePath} usages=[{GetUsageSummary(c)}]");
         }
 
@@ -51,7 +57,7 @@ public sealed class HidHeadsetService : IDisposable
 
         if (hidDevice == null)
         {
-            AppLogger.Info("HidHeadsetService",
+            _logger.Info("HidHeadsetService",
                 $"{descriptor.ModelName}: no matching HID interface found. " +
                 $"Check the log for 'candidate' lines to identify the correct path.");
             return;
@@ -61,17 +67,18 @@ public sealed class HidHeadsetService : IDisposable
         {
             var reader = new DeviceReader(hidDevice, descriptor,
                 d => WirelessConnected?.Invoke(d),
-                d => WirelessDisconnected?.Invoke(d));
+                d => WirelessDisconnected?.Invoke(d),
+                _logger);
             _readers.Add(reader);
             reader.Start();
             DeviceMonitoringStarted?.Invoke(descriptor);
 
-            AppLogger.Info("HidHeadsetService",
+            _logger.Info("HidHeadsetService",
                 $"Monitoring {descriptor.ModelName} ({descriptor.Protocol}) at {hidDevice.DevicePath}");
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("HidHeadsetService",
+            _logger.Warning("HidHeadsetService",
                 $"Could not open {descriptor.ModelName}: {ex.Message}");
         }
     }
@@ -158,6 +165,7 @@ public sealed class HidHeadsetService : IDisposable
         private readonly Action<HidHeadsetDescriptor> _onConnected;
         private readonly Action<HidHeadsetDescriptor> _onDisconnected;
         private readonly CancellationTokenSource _cts = new();
+        private readonly IAppLogger _logger;
         private HidStream? _stream;
 
         private bool? _lastConnected;
@@ -166,12 +174,14 @@ public sealed class HidHeadsetService : IDisposable
             HidDevice device,
             HidHeadsetDescriptor descriptor,
             Action<HidHeadsetDescriptor> onConnected,
-            Action<HidHeadsetDescriptor> onDisconnected)
+            Action<HidHeadsetDescriptor> onDisconnected,
+            IAppLogger logger)
         {
             _device         = device;
             _descriptor     = descriptor;
             _onConnected    = onConnected;
             _onDisconnected = onDisconnected;
+            _logger         = logger;
         }
 
         public void Start()
@@ -207,7 +217,7 @@ public sealed class HidHeadsetService : IDisposable
                         }
                         catch (Exception ex)
                         {
-                            AppLogger.Warning("HidHeadsetService.ReadLoop",
+                            _logger.Warning("HidHeadsetService.ReadLoop",
                                 $"{_descriptor.ModelName} seed query failed: {ex.Message}");
                         }
                     }
@@ -224,7 +234,7 @@ public sealed class HidHeadsetService : IDisposable
                         catch (OperationCanceledException) { return; }
                         catch (Exception ex)
                         {
-                            AppLogger.Warning("HidHeadsetService.ReadLoop",
+                            _logger.Warning("HidHeadsetService.ReadLoop",
                                 $"{_descriptor.ModelName} read error: {ex.Message}");
                             break;
                         }
@@ -236,7 +246,7 @@ public sealed class HidHeadsetService : IDisposable
                 catch (OperationCanceledException) { return; }
                 catch (Exception ex)
                 {
-                    AppLogger.Warning("HidHeadsetService.ReadLoop",
+                    _logger.Warning("HidHeadsetService.ReadLoop",
                         $"{_descriptor.ModelName} could not be opened: {ex.Message}");
                 }
                 finally
@@ -337,7 +347,7 @@ public sealed class HidHeadsetService : IDisposable
                     }
                     catch (Exception ex)
                     {
-                        AppLogger.Warning("HidHeadsetService.PollLoop",
+                        _logger.Warning("HidHeadsetService.PollLoop",
                             $"{_descriptor.ModelName} query error: {ex.Message}");
                     }
 
@@ -361,7 +371,7 @@ public sealed class HidHeadsetService : IDisposable
             }
             catch (Exception ex)
             {
-                AppLogger.Warning("HidHeadsetService.PollLoop",
+                _logger.Warning("HidHeadsetService.PollLoop",
                     $"{_descriptor.ModelName} could not be opened: {ex.Message}");
             }
         }
@@ -443,7 +453,7 @@ public sealed class HidHeadsetService : IDisposable
             try
             {
                 var hex = string.Join(" ", data.Take(length).Select(b => b.ToString("X2")));
-                AppLogger.Debug("HidHeadsetService.Report",
+                _logger.Debug("HidHeadsetService.Report",
                     $"{_descriptor.ModelName} [{length}]: {hex}");
             }
             catch { /* logging must never throw */ }

@@ -2,40 +2,44 @@ using System.IO;
 
 namespace VibeSwitcher.Helpers;
 
-public static class AppLogger
+public class AppLogger : IAppLogger
 {
     public static readonly string LogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "VibeSwitcher", "error.log");
 
-    // Set by tests only — overrides LogPath for all writes in this process.
-    internal static volatile string? _logPathOverride;
-
-    private static string EffectivePath => _logPathOverride ?? LogPath;
-
     private const long MaxLogBytes = 1 * 1024 * 1024; // 1 MB
     private const int BackupCount = 2;
 
-    // Truncate the log at startup so each session starts with a clean file.
-    public static void StartSession()
+    private readonly string _effectivePath;
+
+    public AppLogger(string? logDir = null)
+    {
+        _effectivePath = logDir != null
+            ? Path.Combine(logDir, "error.log")
+            : LogPath;
+        StartSession();
+    }
+
+    public void Debug(string context, string message) =>
+        Console.Error.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] {context}: {message}");
+
+    public void Info(string context, string message)    => Write("INFO",  context, message);
+    public void Warning(string context, string message) => Write("WARN",  context, message);
+    public void Error(string context, string message)   => Write("ERROR", context, message);
+    public void Error(string context, Exception ex)     => Write("ERROR", context, ex.ToString());
+
+    private void StartSession()
     {
         try
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(EffectivePath)!);
-            File.WriteAllText(EffectivePath, string.Empty);
+            Directory.CreateDirectory(Path.GetDirectoryName(_effectivePath)!);
+            File.WriteAllText(_effectivePath, string.Empty);
         }
         catch { }
     }
 
-    public static void Debug(string context, string message) =>
-        Console.Error.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] {context}: {message}");
-
-    public static void Info(string context, string message)    => Write("INFO",  context, message);
-    public static void Warning(string context, string message) => Write("WARN",  context, message);
-    public static void Error(string context, string message)   => Write("ERROR", context, message);
-    public static void Error(string context, Exception ex)     => Write("ERROR", context, ex.ToString());
-
-    private static void Write(string level, string context, string message)
+    private void Write(string level, string context, string message)
     {
         var line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{level}] {context}: {message}";
 
@@ -44,22 +48,20 @@ public static class AppLogger
         try
         {
             RotateIfNeeded();
-            File.AppendAllText(EffectivePath, line + Environment.NewLine);
+            File.AppendAllText(_effectivePath, line + Environment.NewLine);
         }
         catch { /* log write failure is non-fatal */ }
     }
 
-    private static void RotateIfNeeded()
+    private void RotateIfNeeded()
     {
-        var path = EffectivePath;
-        if (!File.Exists(path)) return;
-        if (new FileInfo(path).Length < MaxLogBytes) return;
+        if (!File.Exists(_effectivePath)) return;
+        if (new FileInfo(_effectivePath).Length < MaxLogBytes) return;
 
-        // Shift backups: .2 → delete, .1 → .2, error.log → .1
         for (int i = BackupCount; i >= 1; i--)
         {
-            var older = $"{path}.{i}";
-            var newer = i == 1 ? path : $"{path}.{i - 1}";
+            var older = $"{_effectivePath}.{i}";
+            var newer = i == 1 ? _effectivePath : $"{_effectivePath}.{i - 1}";
             if (File.Exists(older)) File.Delete(older);
             if (File.Exists(newer)) File.Move(newer, older);
         }

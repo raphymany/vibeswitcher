@@ -27,12 +27,17 @@ public class TrayService : IDisposable
     private CancellationTokenSource? _flashCts;
     private CancellationTokenSource? _muteFlashCts;
 
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
+
     // Wired up by App.xaml.cs after ProfileSwitchOrchestrator is created.
     internal Action<DeviceProfile>? SwitchRequested;
 
-    public TrayService(IConfigService configService)
+    public TrayService(IConfigService configService, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         _configService = configService;
+        _logger = logger;
+        _errorTracker = errorTracker;
 
         _taskbarIcon = new TaskbarIcon
         {
@@ -47,8 +52,8 @@ public class TrayService : IDisposable
         }
         catch (Exception ex)
         {
-            AppLogger.Error("TrayService", ex);
-            SessionErrorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
+            _logger.Error("TrayService", ex);
+            _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
                 $"The system tray icon failed to register: {ex.Message}");
         }
 
@@ -127,7 +132,7 @@ public class TrayService : IDisposable
         var activeId = _configService.Current.ActiveProfileId;
         var currentIndex = profiles.FindIndex(p => p.Id == activeId);
         if (currentIndex == -1)
-            AppLogger.Warning("TrayService.CycleNextProfile", "Active profile not found — cycling from first profile.");
+            _logger.Warning("TrayService.CycleNextProfile", "Active profile not found — cycling from first profile.");
         var nextIndex = (currentIndex + 1) % profiles.Count;
         SwitchRequested?.Invoke(profiles[nextIndex]);
     }
@@ -280,7 +285,7 @@ public class TrayService : IDisposable
             _contextMenu.Items.Add(headerItem);
             _contextMenu.Items.Add(BuildSeparator());
         }
-        catch (Exception ex) { AppLogger.Warning("TrayService.RebuildMenu", ex.Message); }
+        catch (Exception ex) { _logger.Warning("TrayService.RebuildMenu", ex.Message); }
 
         var activeId = _configService.Current.ActiveProfileId;
         var allProfiles = _configService.Current.Profiles.OrderBy(p => p.SortOrder).ToList();
@@ -343,8 +348,8 @@ public class TrayService : IDisposable
             try { Process.Start("control.exe", "/name Microsoft.Sound"); }
             catch (Exception ex)
             {
-                AppLogger.Warning("TrayService.SoundSettings", ex.Message);
-                SessionErrorTracker.Record(ErrorCode.SoundSettingsOpenFailed, "Sound Settings Could Not Open",
+                _logger.Warning("TrayService.SoundSettings", ex.Message);
+                _errorTracker.Record(ErrorCode.SoundSettingsOpenFailed, "Sound Settings Could Not Open",
                     $"Could not open Windows Sound settings: {ex.Message}");
             }
         };
@@ -395,8 +400,8 @@ public class TrayService : IDisposable
         }
         catch (Exception ex)
         {
-            AppLogger.Error("TrayService.RecreateIcon", ex);
-            SessionErrorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Restored",
+            _logger.Error("TrayService.RecreateIcon", ex);
+            _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Restored",
                 $"The tray icon failed to re-register after Explorer restarted: {ex.Message}");
         }
     }

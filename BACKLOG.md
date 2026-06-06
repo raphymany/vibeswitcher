@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-06 — Branch 48 (`refactor/architecture-cleanup`) merged — PR #100.
+**Last updated:** 2026-06-07 — Branch 51 (`refactor/injectable-services`) merged — PR #102.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -150,6 +150,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 ### ~~Branch 43: `feat/app-switching`~~ ✅ Merged — PR #96
 ### ~~Branch 47: `refactor/pre-release-audit`~~ ✅ Merged — PR #98
 ### ~~Branch 48: `refactor/architecture-cleanup`~~ ✅ Merged — PR #100
+### ~~Branch 51: `refactor/injectable-services`~~ ✅ Merged — PR #102
 
 *(Full item lists for all completed branches are in RECORD.md — Section 12.)*
 

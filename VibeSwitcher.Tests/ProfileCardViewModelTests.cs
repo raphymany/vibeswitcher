@@ -21,6 +21,8 @@ public class ProfileCardViewModelTests
             _fakeConfig,
             _fakeHotkey,
             _fakeDialog,
+            new FakeAppLogger(),
+            new FakeSessionErrorTracker(),
             Array.Empty<AudioDeviceInfo>(),
             Array.Empty<AudioDeviceInfo>(),
             _ => _changedCount++,
@@ -319,6 +321,7 @@ public class ProfileCardViewModelTests
         var changedCount = 0;
         using var card = new ProfileCardViewModel(
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
+            new FakeAppLogger(), new FakeSessionErrorTracker(),
             [], [],
             _ => changedCount++, _ => { }, _ => { }, _ => Task.CompletedTask);
 
@@ -337,6 +340,7 @@ public class ProfileCardViewModelTests
         var pb = new AudioDeviceInfo[] { new("id1", "Speakers", true) };
         using var card = new ProfileCardViewModel(
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
+            new FakeAppLogger(), new FakeSessionErrorTracker(),
             pb, [],
             _ => changedCount++, _ => { }, _ => { }, _ => Task.CompletedTask);
 
@@ -377,6 +381,7 @@ public class ProfileCardViewModelTests
         var calledWith = new List<string>();
         using var card = new ProfileCardViewModel(
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
+            new FakeAppLogger(), new FakeSessionErrorTracker(),
             pb, [],
             _ => { }, _ => { }, _ => { },
             id => { calledWith.Add(id); return Task.CompletedTask; });
@@ -396,6 +401,7 @@ public class ProfileCardViewModelTests
         var profile = new DeviceProfile { Name = "Test", RecordingDeviceId = "mic-id-1" };
         using var card = new ProfileCardViewModel(
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
+            new FakeAppLogger(), new FakeSessionErrorTracker(),
             [], rec,
             _ => { }, _ => { }, _ => { }, _ => Task.CompletedTask);
 

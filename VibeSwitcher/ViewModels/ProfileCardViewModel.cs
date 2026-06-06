@@ -15,6 +15,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly IConfigService _configService;
     private readonly IHotkeyService _hotkeyService;
     private readonly IDialogService _dialogService;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
     private readonly Action<ProfileCardViewModel> _onClone;
@@ -414,6 +416,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         IConfigService configService,
         IHotkeyService hotkeyService,
         IDialogService dialogService,
+        IAppLogger logger,
+        ISessionErrorTracker errorTracker,
         IReadOnlyList<AudioDeviceInfo> playbackDevices,
         IReadOnlyList<AudioDeviceInfo> recordingDevices,
         Action<ProfileCardViewModel> onChanged,
@@ -429,6 +433,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _configService = configService;
         _hotkeyService = hotkeyService;
         _dialogService = dialogService;
+        _logger = logger;
+        _errorTracker = errorTracker;
         _onChanged = onChanged;
         _onDelete = onDelete;
         _onClone = onClone;
@@ -529,7 +535,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _isTesting = true;
         CommandManager.InvalidateRequerySuggested();
         try { await _onTestSound(deviceId); }
-        catch (Exception ex) { AppLogger.Warning("ProfileCardViewModel.TestSound", ex.Message); }
+        catch (Exception ex) { _logger.Warning("ProfileCardViewModel.TestSound", ex.Message); }
         finally
         {
             _isTesting = false;
@@ -685,8 +691,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            AppLogger.Error("ProfileCardViewModel.ApplyGalleryIcon", ex);
-            SessionErrorTracker.Record(ErrorCode.IconCopyFailed, "Icon Render Failed",
+            _logger.Error("ProfileCardViewModel.ApplyGalleryIcon", ex);
+            _errorTracker.Record(ErrorCode.IconCopyFailed, "Icon Render Failed",
                 $"Could not render gallery icon: {ex.Message}");
             if (!silent)
                 _dialogService.ShowAlert("Icon Error", $"Could not save the gallery icon:\n{ex.Message}");
@@ -695,7 +701,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         // Delete the old icon if it was in iconsDir and is being replaced
         var previous = _iconPath;
-        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, exceptPath: dest);
+        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker, exceptPath: dest);
 
         // When dest matches _iconPath the file has been overwritten but SetField won't
         // detect a change (same path) — manually refresh the preview and notify bindings.
@@ -730,8 +736,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
             catch (Exception ex)
             {
-                AppLogger.Error("ProfileCardViewModel.BrowseIconFromDisk", ex);
-                SessionErrorTracker.Record(ErrorCode.IconCopyFailed, "Icon Copy Failed",
+                _logger.Error("ProfileCardViewModel.BrowseIconFromDisk", ex);
+                _errorTracker.Record(ErrorCode.IconCopyFailed, "Icon Copy Failed",
                     $"Could not copy icon file to app storage: {ex.Message}");
                 _dialogService.ShowAlert("Icon Error", $"Could not copy the icon file:\n{ex.Message}");
                 return;
@@ -740,7 +746,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         // Delete the old icon from iconsDir if we're replacing it
         var previous = _iconPath;
-        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, exceptPath: dest);
+        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker, exceptPath: dest);
 
         IconPath = dest;
     }
@@ -890,8 +896,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("ProfileCardViewModel.UpdateIconPreview", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.IconPreviewFailed, "Icon Preview Failed",
+            _logger.Warning("ProfileCardViewModel.UpdateIconPreview", ex.Message);
+            _errorTracker.Record(ErrorCode.IconPreviewFailed, "Icon Preview Failed",
                 $"Could not load icon preview: {ex.Message}");
             IconPreview = null;
         }

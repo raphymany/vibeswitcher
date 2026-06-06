@@ -58,34 +58,36 @@ public static class ErrorCodeExtensions
 
 public record SessionError(DateTime Timestamp, ErrorCode Code, string Title, string Message);
 
-public static class SessionErrorTracker
+public interface ISessionErrorTracker
 {
-    private static readonly object _lock = new();
-    private static readonly List<SessionError> _errors = new();
+    void Record(ErrorCode code, string title, string message);
+    IReadOnlyList<SessionError> Errors { get; }
+    bool HasErrors { get; }
+    int Count { get; }
+    event EventHandler? ErrorAdded;
+}
 
-    public static IReadOnlyList<SessionError> Errors
+public class SessionErrorTracker : ISessionErrorTracker
+{
+    private readonly object _lock = new();
+    private readonly List<SessionError> _errors = [];
+    public IReadOnlyList<SessionError> Errors
     {
         get { lock (_lock) { return _errors.ToList().AsReadOnly(); } }
     }
 
-    public static bool HasErrors { get { lock (_lock) { return _errors.Count > 0; } } }
+    public bool HasErrors { get { lock (_lock) { return _errors.Count > 0; } } }
 
-    public static int Count { get { lock (_lock) { return _errors.Count; } } }
+    public int Count { get { lock (_lock) { return _errors.Count; } } }
 
-    public static event EventHandler? ErrorAdded;
+    public event EventHandler? ErrorAdded;
 
-    public static void Record(ErrorCode code, string title, string message)
+    public void Record(ErrorCode code, string title, string message)
     {
         lock (_lock)
         {
             _errors.Add(new SessionError(DateTime.Now, code, title, message));
         }
-        ErrorAdded?.Invoke(null, EventArgs.Empty);
-    }
-
-    internal static void Reset()
-    {
-        lock (_lock) { _errors.Clear(); }
-        ErrorAdded = null;
+        ErrorAdded?.Invoke(this, EventArgs.Empty);
     }
 }
