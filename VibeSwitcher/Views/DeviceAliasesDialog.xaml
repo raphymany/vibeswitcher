@@ -177,10 +177,22 @@
 
         <StackPanel Grid.Row="1" Margin="24,14,24,24">
 
-            <TextBlock Text="Device Aliases"
-                       FontSize="15" FontWeight="SemiBold"
-                       Foreground="{DynamicResource PrimaryText}"
-                       Margin="0,0,0,4"/>
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Border Width="36" Height="36" CornerRadius="18"
+                        Background="{DynamicResource Accent}" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock Text="🏷" FontSize="17" LineHeight="17"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Device Aliases"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock Text="Custom names for your audio devices"
+                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
             <TextBlock Text="Custom names are shown everywhere a device appears — dropdowns, cards, and tooltips. Leave a field blank to use the Windows device name."
                        FontSize="12" Foreground="{DynamicResource SecondaryText}"
                        TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,14"/>

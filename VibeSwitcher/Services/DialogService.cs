@@ -38,8 +38,8 @@ public class DialogService : IDialogService
             $"Create a copy of \"{profileName}\"?",
             "Clone",
             subtitle: "A new profile will be created with the same settings.",
-            iconElement: BuildCopyIcon(badgeBg, accent),
-            iconBgResource: "HoverBg")
+            iconElement: BuildCopyIcon(accent, Brushes.Black),
+            iconBgResource: "Accent")
         { Owner = OwnerWindow };
         return dialog.ShowDialog() == true;
     }

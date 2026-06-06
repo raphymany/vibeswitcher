@@ -101,7 +101,11 @@
                         <ColumnDefinition Width="38"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="🔊" FontSize="22" VerticalAlignment="Center"/>
+                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17"
+                            Background="{DynamicResource Accent}" VerticalAlignment="Center">
+                        <TextBlock Text="🔊" FontSize="17" LineHeight="17"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="Playback Only" FontWeight="SemiBold" FontSize="13"
                                    Foreground="{DynamicResource PrimaryText}"/>
@@ -117,7 +121,11 @@
                         <ColumnDefinition Width="38"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="🎤" FontSize="22" VerticalAlignment="Center"/>
+                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17"
+                            Background="{DynamicResource Accent}" VerticalAlignment="Center">
+                        <TextBlock Text="🎤" FontSize="17" LineHeight="17"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="Recording Only" FontWeight="SemiBold" FontSize="13"
                                    Foreground="{DynamicResource PrimaryText}"/>
@@ -133,7 +141,11 @@
                         <ColumnDefinition Width="38"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="🔗" FontSize="22" VerticalAlignment="Center"/>
+                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17"
+                            Background="{DynamicResource Accent}" VerticalAlignment="Center">
+                        <TextBlock Text="🔗" FontSize="17" LineHeight="17"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="Both Devices" FontWeight="SemiBold" FontSize="13"
                                    Foreground="{DynamicResource PrimaryText}"/>
