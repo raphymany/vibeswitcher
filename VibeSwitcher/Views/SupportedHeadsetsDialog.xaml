@@ -64,23 +64,30 @@
             </Border>
 
             <!-- Action buttons -->
-            <DockPanel Margin="0,16,0,0" LastChildFill="False">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Content="Enable Auto-Switch"
+            <StackPanel Margin="0,16,0,0">
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0"
+                            Content="Enable Auto-Switch"
                             Style="{StaticResource PrimaryButton}"
                             IsDefault="True"
-                            Margin="0,0,8,0"
                             Click="Good_Click"/>
-                    <Button Content="Close"
+                    <Button Grid.Column="2"
+                            Content="Request wireless headset support"
                             Style="{StaticResource ActionButton}"
-                            IsCancel="True"
-                            Width="80"
-                            Click="Close_Click"/>
-                </StackPanel>
-                <Button Content="Request wireless headset support"
+                            Click="Request_Click"/>
+                </Grid>
+                <Button Content="Close"
                         Style="{StaticResource ActionButton}"
-                        Click="Request_Click"/>
-            </DockPanel>
+                        IsCancel="True"
+                        HorizontalAlignment="Right"
+                        Width="80"
+                        Click="Close_Click"/>
+            </StackPanel>
 
         </StackPanel>
     </Grid>
