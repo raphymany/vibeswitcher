@@ -84,7 +84,7 @@
                 <Button Content="Close"
                         Style="{StaticResource ActionButton}"
                         IsCancel="True"
-                        HorizontalAlignment="Right"
+                        HorizontalAlignment="Center"
                         Width="80"
                         Click="Close_Click"/>
             </StackPanel>
