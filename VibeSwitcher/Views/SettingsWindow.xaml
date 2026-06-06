@@ -944,36 +944,102 @@
                                                         </ToggleButton.Template>
                                                     </ToggleButton>
                                                 </Border>
-                                                <Button Command="{Binding ActivateCommand}"
-                                                        Margin="0,0,8,0">
-                                                    <Button.Style>
-                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                                            <Setter Property="Content" Value="Activate"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                    <Setter Property="Content" Value="✓ Active"/>
-                                                                    <Setter Property="Foreground" Value="#4CAF50"/>
-                                                                    <Setter Property="BorderBrush" Value="#4CAF50"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Button.Style>
-                                                </Button>
-                                                <Button Content="Clone"
-                                                        Style="{StaticResource ActionButton}"
-                                                        Command="{Binding CloneCommand}"
-                                                        Margin="0,0,8,0"
-                                                        ToolTip="Creates an exact copy of this profile with a new name, so you can customise it independently."/>
-                                                <Button Content="Add Schedule"
-                                                        Style="{StaticResource ActionButton}"
-                                                        Command="{Binding AddScheduleCommand}"
-                                                        Margin="0,0,8,0"
-                                                        ToolTip="Automatically switch to this profile at a set time on selected days. Multiple schedules can be added."/>
-                                                <Button Command="{Binding AddSwitchSoundCommand}"
-                                                        Margin="0,0,8,0"
-                                                        ToolTip="Play a sound when this profile is activated. Choose from built-in tones or a custom WAV file.">
-                                                    <Button.Style>
-                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                <!-- Activate icon button -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding ActivateCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTipService.InitialShowDelay="400"
+                                                            ToolTipService.ShowDuration="12000"
+                                                            ToolTip="Activate this profile — switches your audio devices immediately">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="◎" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                        <Setter TargetName="icon" Property="Text" Value="◉"/>
+                                                                        <Setter TargetName="icon" Property="Foreground" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                        <Setter TargetName="icon" Property="Opacity" Value="1"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Clone icon button -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding CloneCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTip="Creates an exact copy of this profile with a new name, so you can customise it independently.">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="⧉" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Schedule icon button -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding AddScheduleCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTipService.InitialShowDelay="400"
+                                                            ToolTipService.ShowDuration="12000"
+                                                            ToolTip="Automatically switch to this profile at a set time on selected days. Multiple schedules can be added.">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="⏰" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasSchedules}" Value="True">
+                                                                        <Setter TargetName="icon" Property="Foreground" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Switch sound icon button -->
+                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
+                                                        Width="36" Height="30"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding SoundOverride}" Value="True">
@@ -981,12 +1047,52 @@
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
-                                                    </Button.Style>
-                                                    <TextBlock Text="Add Switch Sound"/>
-                                                </Button>
-                                                <Button Content="Delete Profile"
-                                                        Style="{StaticResource DangerButton}"
-                                                        Command="{Binding DeleteCommand}"/>
+                                                    </Border.Style>
+                                                    <Button Command="{Binding AddSwitchSoundCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTip="Play a sound when this profile is activated. Choose from built-in tones or a custom WAV file.">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="🔊" FontSize="13"
+                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Delete icon button -->
+                                                <Border VerticalAlignment="Center"
+                                                        Width="36" Height="30"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding DeleteCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTip="Permanently delete this profile">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="🗑" FontSize="13"
+                                                                               Foreground="{DynamicResource ErrorText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
                                         </StackPanel>
                                         <!-- Schedule section — visible only when at least one schedule exists -->
                                         <Border Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="4"

@@ -63,6 +63,23 @@
 
         <StackPanel Grid.Row="1" Margin="28,18,28,24">
 
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18"
+                        Background="{DynamicResource Accent}" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock Text="⏰" FontSize="17" LineHeight="17"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Add Schedule"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock Text="Switch to this profile automatically at a set time"
+                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
             <!-- Step progress dots -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
                 <Ellipse x:Name="Dot0" Width="9" Height="9" Margin="5,0"/>

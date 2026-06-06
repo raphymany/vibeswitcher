@@ -77,13 +77,21 @@
         <StackPanel Grid.Row="1" Margin="28,18,28,24">
 
             <!-- Header -->
-            <TextBlock Text="Switch Sound"
-                       FontSize="15" FontWeight="SemiBold"
-                       Foreground="{DynamicResource PrimaryText}"
-                       Margin="0,0,0,4"/>
-            <TextBlock Text="Play a sound when this profile is activated."
-                       FontSize="12" Foreground="{DynamicResource SecondaryText}"
-                       TextWrapping="Wrap" Margin="0,0,0,20"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18"
+                        Background="{DynamicResource Accent}" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock Text="🔊" FontSize="17" LineHeight="17"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Switch Sound"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock Text="Play a sound when this profile is activated"
+                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
 
             <!-- Tone chips -->
             <TextBlock Text="Tone" FontSize="11" FontWeight="SemiBold"
