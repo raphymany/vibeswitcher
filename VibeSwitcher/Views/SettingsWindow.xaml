@@ -909,7 +909,7 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="plug" Text="🔌" FontSize="16"
+                                                                    <TextBlock x:Name="plug" Text="🔌" FontSize="18"
                                                                                Foreground="{DynamicResource DisabledText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
