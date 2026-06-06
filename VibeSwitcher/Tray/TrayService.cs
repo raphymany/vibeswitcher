@@ -324,7 +324,7 @@ public class TrayService : IDisposable
         }
 
         var settingsItem = new MenuItem { Header = BuildActionHeader("⚙", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
-        settingsItem.Click += (_, _) => OpenSettings();
+        settingsItem.Click += (_, _) => OpenSettingsExpanded();
         _contextMenu.Items.Add(settingsItem);
 
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
@@ -410,6 +410,12 @@ public class TrayService : IDisposable
     {
         if (Application.Current is App app)
             app.OpenSettingsWindow();
+    }
+
+    private static void OpenSettingsExpanded()
+    {
+        if (Application.Current is App app)
+            app.OpenSettingsWindowExpanded();
     }
 
     private static void OpenAbout()

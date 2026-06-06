@@ -36,7 +36,7 @@ public class AppWindowManager
         _onAppTriggersChanged = onAppTriggersChanged;
     }
 
-    public void OpenSettingsWindow()
+    public void OpenSettingsWindow(bool expandSettings = false)
     {
         var existing = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
         if (existing != null)
@@ -49,11 +49,13 @@ public class AppWindowManager
             existing.Show();
             existing.WindowState = WindowState.Normal;
             existing.Activate();
+            if (expandSettings) existing.ExpandSettings();
             return;
         }
 
         var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme, _switchProfile, _onReschedule, _onAppTriggersChanged);
         window.Show();
+        if (expandSettings) window.ExpandSettings();
     }
 
     public void NotifyProfileSwitched()

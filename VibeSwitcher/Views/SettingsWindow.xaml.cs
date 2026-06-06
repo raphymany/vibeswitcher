@@ -119,6 +119,8 @@ public partial class SettingsWindow : Window
 
     public void RefreshActiveStates() => _viewModel.RefreshActiveStates();
 
+    public void ExpandSettings() => _viewModel.SettingsCardExpanded = true;
+
     private void OnBoundsChanged(object? sender, EventArgs e)
     {
         if (_boundsTimer == null)
