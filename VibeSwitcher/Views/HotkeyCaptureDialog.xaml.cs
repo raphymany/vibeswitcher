@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 
 namespace VibeSwitcher.Views;
@@ -10,17 +11,19 @@ public partial class HotkeyCaptureDialog : Window
 
     public HotkeyDefinition? CapturedHotkey { get; private set; }
 
-    public HotkeyCaptureDialog(HotkeyDefinition current)
+    public HotkeyCaptureDialog(HotkeyDefinition current, string? subtitle = null)
     {
         InitializeComponent();
         _captured = CloneHotkey(current);
         HotkeyPreviewText.Text = _captured.ToDisplayString();
+        if (subtitle != null) HotkeySubtitleText.Text = subtitle;
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         Focusable = true;
         Focus();
+        try { HotkeyAppIcon.Source = IconHelper.GetAppIconImageSource(); } catch { }
     }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)

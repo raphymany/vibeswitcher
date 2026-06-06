@@ -27,7 +27,7 @@
             <Setter Property="Height"     Value="30"/>
             <Setter Property="Padding"    Value="10,0"/>
             <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -60,69 +60,6 @@
                                 <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
                             </MultiTrigger>
                         </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Volume slider — themed track (Accent fill) + white thumb -->
-        <Style x:Key="VolumeSlider" TargetType="Slider">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Height"    Value="20"/>
-            <Setter Property="Focusable" Value="False"/>
-            <Setter Property="Cursor"    Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Slider">
-                        <Grid VerticalAlignment="Center">
-                            <!-- Full-width background pill -->
-                            <Border Height="6" CornerRadius="3"
-                                    Background="{DynamicResource InputBorder}"
-                                    VerticalAlignment="Center"/>
-                            <Track x:Name="PART_Track">
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="Slider.DecreaseSmall">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate TargetType="RepeatButton">
-                                                <Border Height="6" CornerRadius="3"
-                                                        Background="{DynamicResource Accent}"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                    </RepeatButton>
-                                </Track.DecreaseRepeatButton>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="Slider.IncreaseSmall">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate TargetType="RepeatButton">
-                                                <Border Height="6" Background="Transparent"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                    </RepeatButton>
-                                </Track.IncreaseRepeatButton>
-                                <Track.Thumb>
-                                    <Thumb>
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Ellipse x:Name="ThumbCircle"
-                                                         Width="16" Height="16"
-                                                         Fill="White"
-                                                         Stroke="{DynamicResource Accent}"
-                                                         StrokeThickness="2"/>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="ThumbCircle" Property="Width"  Value="18"/>
-                                                        <Setter TargetName="ThumbCircle" Property="Height" Value="18"/>
-                                                    </Trigger>
-                                                    <Trigger Property="IsDragging" Value="True">
-                                                        <Setter TargetName="ThumbCircle" Property="Fill" Value="{DynamicResource HoverBg}"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                            </Track>
-                        </Grid>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -176,119 +113,6 @@
             <Setter Property="Foreground"        Value="{DynamicResource SecondaryText}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin"            Value="0,0,10,0"/>
-        </Style>
-
-        <Style TargetType="ComboBox">
-            <Setter Property="Height"          Value="30"/>
-            <Setter Property="FontSize"        Value="12"/>
-            <Setter Property="Foreground"      Value="{DynamicResource PrimaryText}"/>
-            <Setter Property="Background"      Value="{DynamicResource InputBg}"/>
-            <Setter Property="BorderBrush"     Value="{DynamicResource InputBorder}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding"         Value="8,0,28,0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid x:Name="root">
-                            <Border x:Name="bg"
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="8,0,28,0">
-                                <ContentPresenter x:Name="contentPresenter"
-                                                  Content="{TemplateBinding SelectionBoxItem}"
-                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                                  HorizontalAlignment="Stretch"
-                                                  VerticalAlignment="Center"
-                                                  IsHitTestVisible="False"/>
-                            </Border>
-                            <Path x:Name="arrow"
-                                  Data="M0,0 L3.5,4 L7,0"
-                                  Stroke="{DynamicResource SecondaryText}" StrokeThickness="1.5"
-                                  Fill="Transparent"
-                                  HorizontalAlignment="Right"
-                                  VerticalAlignment="Center"
-                                  Margin="0,0,10,0"
-                                  IsHitTestVisible="False"/>
-                            <ToggleButton x:Name="toggleButton"
-                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay,
-                                                      RelativeSource={RelativeSource TemplatedParent}}"
-                                          Focusable="False" OverridesDefaultStyle="True">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Border Background="Transparent"/>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-                            <Popup x:Name="PART_Popup"
-                                   AllowsTransparency="True"
-                                   IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                   Placement="Bottom"
-                                   PopupAnimation="Fade"
-                                   VerticalOffset="2">
-                                <Border Background="{DynamicResource CardBg}"
-                                        BorderBrush="{DynamicResource InputBorder}"
-                                        BorderThickness="1"
-                                        CornerRadius="6"
-                                        MinWidth="{Binding ActualWidth, ElementName=root}"
-                                        MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                    <Border.Effect>
-                                        <DropShadowEffect Color="#000000" Opacity="0.12"
-                                                          BlurRadius="10" ShadowDepth="3"/>
-                                    </Border.Effect>
-                                    <ScrollViewer Padding="4,4">
-                                        <ItemsPresenter/>
-                                    </ScrollViewer>
-                                </Border>
-                            </Popup>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger SourceName="toggleButton" Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                <Setter TargetName="arrow" Property="Stroke" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                            <Trigger SourceName="toggleButton" Property="IsChecked" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                <Setter TargetName="arrow" Property="Stroke" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style TargetType="ComboBoxItem">
-            <Setter Property="Padding"    Value="10,6"/>
-            <Setter Property="FontSize"   Value="12"/>
-            <Setter Property="Cursor"     Value="Hand"/>
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBoxItem">
-                        <Border x:Name="bg"
-                                Background="Transparent"
-                                CornerRadius="4"
-                                Margin="2,1"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource SelectedBg}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
 
         <Style x:Key="DayPillStyle" TargetType="ToggleButton">
@@ -969,19 +793,29 @@
                                                 Height="1" Background="{DynamicResource CardSeparator}" Margin="0,0,0,12"/>
 
                                         <!-- Bottom row: action buttons -->
-                                        <StackPanel Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4"
-                                                    HorizontalAlignment="Right" Orientation="Horizontal">
-                                                <!-- Bell toggle: hidden when switch sound is configured (its wizard handles banner separately) -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                        <Grid Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                                <!-- Bell toggle: dimmed/disabled when switch sound is configured (its wizard handles banner separately) -->
+                                                <Border Grid.Column="0" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Border.Style>
                                                         <Style TargetType="Border">
-                                                            <Setter Property="Visibility" Value="Visible"/>
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    <Setter Property="IsEnabled" Value="False"/>
+                                                                    <Setter Property="Opacity" Value="0.35"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
@@ -1001,8 +835,8 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="bell" Text="🔔" FontSize="13"
-                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                    <TextBlock x:Name="bell" Text="🔔" FontSize="16"
+                                                                               Foreground="{DynamicResource PrimaryText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                                 <ControlTemplate.Triggers>
@@ -1019,8 +853,8 @@
                                                     </ToggleButton>
                                                 </Border>
                                                 <!-- App launch trigger button -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="1" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <Button Command="{Binding OpenAppTriggersCommand}"
@@ -1038,8 +872,8 @@
                                                         <Button.Template>
                                                             <ControlTemplate TargetType="Button">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="icon" Text="▶" FontSize="13"
-                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                    <TextBlock x:Name="icon" Text="▶" FontSize="16"
+                                                                               Foreground="{DynamicResource PrimaryText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                                 <ControlTemplate.Triggers>
@@ -1055,8 +889,8 @@
                                                     </Button>
                                                 </Border>
                                                 <!-- Auto-switch on connect toggle (hidden for Recording-only profiles) -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="2" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
                                                         Visibility="{Binding TriggerOnConnectVisible}"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
@@ -1075,8 +909,8 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="plug" Text="🔌" FontSize="13"
-                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                    <TextBlock x:Name="plug" Text="🔌" FontSize="18"
+                                                                               Foreground="{DynamicResource PrimaryText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                                 <ControlTemplate.Triggers>
@@ -1092,8 +926,8 @@
                                                     </ToggleButton>
                                                 </Border>
                                                 <!-- Pin toggle -->
-                                                <Border Margin="0,0,8,0" VerticalAlignment="Center"
-                                                        Width="36" Height="30"
+                                                <Border Grid.Column="3" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
                                                         BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                         CornerRadius="6" Padding="2">
                                                     <ToggleButton IsChecked="{Binding IsPinned}"
@@ -1103,8 +937,8 @@
                                                         <ToggleButton.Template>
                                                             <ControlTemplate TargetType="ToggleButton">
                                                                 <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
-                                                                    <TextBlock x:Name="star" Text="☆" FontSize="13"
-                                                                               Foreground="{DynamicResource DisabledText}"
+                                                                    <TextBlock x:Name="star" Text="☆" FontSize="20"
+                                                                               Foreground="{DynamicResource PrimaryText}"
                                                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Border>
                                                                 <ControlTemplate.Triggers>
@@ -1120,50 +954,149 @@
                                                         </ToggleButton.Template>
                                                     </ToggleButton>
                                                 </Border>
-                                                <Button Command="{Binding ActivateCommand}"
-                                                        Margin="0,0,8,0">
-                                                    <Button.Style>
-                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                                            <Setter Property="Content" Value="Activate"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                    <Setter Property="Content" Value="✓ Active"/>
-                                                                    <Setter Property="Foreground" Value="#4CAF50"/>
-                                                                    <Setter Property="BorderBrush" Value="#4CAF50"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Button.Style>
-                                                </Button>
-                                                <Button Content="Clone"
-                                                        Style="{StaticResource ActionButton}"
-                                                        Command="{Binding CloneCommand}"
-                                                        Margin="0,0,8,0"
-                                                        ToolTip="Creates an exact copy of this profile with a new name, so you can customise it independently."/>
-                                                <Button Content="Add Schedule"
-                                                        Style="{StaticResource ActionButton}"
-                                                        Command="{Binding AddScheduleCommand}"
-                                                        Margin="0,0,8,0"
-                                                        ToolTip="Automatically switch to this profile at a set time on selected days. Multiple schedules can be added."/>
-                                                <Button Command="{Binding AddSwitchSoundCommand}"
-                                                        Margin="0,0,8,0"
-                                                        ToolTip="Play a sound when this profile is activated. Choose from built-in tones or a custom WAV file.">
-                                                    <Button.Style>
-                                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Button.Style>
-                                                    <TextBlock Text="Add Switch Sound"/>
-                                                </Button>
-                                                <Button Content="Delete Profile"
-                                                        Style="{StaticResource DangerButton}"
-                                                        Command="{Binding DeleteCommand}"/>
-                                        </StackPanel>
+                                                <!-- Activate icon button -->
+                                                <Border Grid.Column="4" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding ActivateCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTipService.InitialShowDelay="400"
+                                                            ToolTipService.ShowDuration="12000"
+                                                            ToolTip="Activate this profile — switches your audio devices immediately">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="◎" FontSize="20"
+                                                                               Foreground="{DynamicResource PrimaryText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                        <Setter TargetName="icon" Property="Text" Value="◉"/>
+                                                                        <Setter TargetName="icon" Property="Foreground" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                        <Setter TargetName="icon" Property="Opacity" Value="1"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Clone icon button -->
+                                                <Border Grid.Column="5" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding CloneCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTip="Creates an exact copy of this profile with a new name, so you can customise it independently.">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="⧉" FontSize="18"
+                                                                               Foreground="{DynamicResource PrimaryText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Schedule icon button -->
+                                                <Border Grid.Column="6" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding AddScheduleCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTipService.InitialShowDelay="400"
+                                                            ToolTipService.ShowDuration="12000"
+                                                            ToolTip="Automatically switch to this profile at a set time on selected days. Multiple schedules can be added.">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="⏰" FontSize="16"
+                                                                               Foreground="{DynamicResource PrimaryText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasSchedules}" Value="True">
+                                                                        <Setter TargetName="icon" Property="Foreground" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Switch sound icon button -->
+                                                <Border Grid.Column="7" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding ConfigureSoundCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTip="Play a sound when this profile is activated. Choose from built-in tones or a custom WAV file.">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="🎵" FontSize="16"
+                                                                               Foreground="{DynamicResource PrimaryText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                        <Setter TargetName="icon" Property="Foreground" Value="#4CAF50"/>
+                                                                    </DataTrigger>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                                <!-- Delete icon button -->
+                                                <Border Grid.Column="8" Margin="5,0" VerticalAlignment="Center"
+                                                        Height="32"
+                                                        BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                        CornerRadius="6" Padding="2">
+                                                    <Button Command="{Binding DeleteCommand}"
+                                                            Cursor="Hand" Focusable="False"
+                                                            OverridesDefaultStyle="True"
+                                                            ToolTip="Permanently delete this profile">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border x:Name="bg" Background="Transparent" CornerRadius="4" Padding="8,4">
+                                                                    <TextBlock x:Name="icon" Text="🗑" FontSize="16"
+                                                                               Foreground="{DynamicResource ErrorText}"
+                                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Border>
+                                        </Grid>
                                         <!-- Schedule section — visible only when at least one schedule exists -->
                                         <Border Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="4"
                                                 Margin="0,8,0,0">
@@ -1478,12 +1411,13 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0" Text="Theme" Style="{StaticResource LabelText}"/>
                                 <!-- Segmented theme picker: Follow Windows / Light / Dark -->
-                                <UniformGrid Grid.Column="1" Rows="1" Height="30">
-                                    <UniformGrid.Resources>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Height="30">
+                                    <StackPanel.Resources>
                                         <Style TargetType="RadioButton">
                                             <Setter Property="GroupName"              Value="ThemeGroup"/>
                                             <Setter Property="Cursor"                 Value="Hand"/>
                                             <Setter Property="FontSize"               Value="12"/>
+                                            <Setter Property="Padding"                Value="14,0"/>
                                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                             <Setter Property="VerticalContentAlignment"   Value="Center"/>
                                             <Setter Property="Foreground"             Value="{DynamicResource SecondaryText}"/>
@@ -1500,7 +1434,8 @@
                                                                 BorderThickness="{TemplateBinding BorderThickness}"
                                                                 CornerRadius="6">
                                                             <ContentPresenter HorizontalAlignment="Center"
-                                                                              VerticalAlignment="Center"/>
+                                                                              VerticalAlignment="Center"
+                                                                              Margin="{TemplateBinding Padding}"/>
                                                         </Border>
                                                         <ControlTemplate.Triggers>
                                                             <Trigger Property="IsMouseOver" Value="True">
@@ -1519,8 +1454,8 @@
                                                 </Trigger>
                                             </Style.Triggers>
                                         </Style>
-                                    </UniformGrid.Resources>
-                                    <RadioButton Content="Follow Windows" Tag="Auto"   Checked="ThemeRadio_Checked">
+                                    </StackPanel.Resources>
+                                    <RadioButton Content="Follow Windows" Tag="Auto" Margin="0,0,8,0" Checked="ThemeRadio_Checked">
                                         <RadioButton.Style>
                                             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                                                 <Style.Triggers>
@@ -1531,7 +1466,7 @@
                                             </Style>
                                         </RadioButton.Style>
                                     </RadioButton>
-                                    <RadioButton Content="Light" Tag="Light" Checked="ThemeRadio_Checked">
+                                    <RadioButton Content="Light" Tag="Light" Margin="0,0,8,0" Checked="ThemeRadio_Checked">
                                         <RadioButton.Style>
                                             <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                                                 <Style.Triggers>
@@ -1553,7 +1488,7 @@
                                             </Style>
                                         </RadioButton.Style>
                                     </RadioButton>
-                                </UniformGrid>
+                                </StackPanel>
                             </Grid>
                         </StackPanel>
                     </Border>

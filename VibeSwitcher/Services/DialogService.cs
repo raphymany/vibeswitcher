@@ -38,8 +38,8 @@ public class DialogService : IDialogService
             $"Create a copy of \"{profileName}\"?",
             "Clone",
             subtitle: "A new profile will be created with the same settings.",
-            iconElement: BuildCopyIcon(badgeBg, accent),
-            iconBgResource: "HoverBg")
+            iconElement: BuildCopyIcon(accent, Brushes.Black),
+            iconBgResource: "Accent")
         { Owner = OwnerWindow };
         return dialog.ShowDialog() == true;
     }
@@ -99,7 +99,20 @@ public class DialogService : IDialogService
             "Remove",
             subtitle: "This action cannot be undone.",
             icon: "🗑",
-            iconBgResource: "ErrorBg")
+            iconBgResource: "Accent")
+        { Owner = OwnerWindow };
+        return dialog.ShowDialog() == true;
+    }
+
+    public bool ShowConfirmSoundRemove()
+    {
+        var dialog = new ConfirmDialog(
+            "Remove Switch Sound?",
+            "Remove the switch sound from this profile?",
+            "Remove",
+            subtitle: "This action cannot be undone.",
+            icon: "🗑",
+            iconBgResource: "Accent")
         { Owner = OwnerWindow };
         return dialog.ShowDialog() == true;
     }

@@ -39,7 +39,7 @@ Every non-trivial implementation task must follow this exact order. Never skip s
 ### Step 4 — Commit and PR
 - Only commit after QA is clean.
 - Follow the PR rules in Section 4 below.
-- After the PR is merged, follow the post-merge update rules in Section 5 below.
+- Before the PR is merged, complete the pre-merge updates in Section 5 below.
 
 ---
 
@@ -93,9 +93,9 @@ Every non-trivial implementation task must follow this exact order. Never skip s
 
 ---
 
-## 5. Post-Merge Updates (mandatory after every merged PR)
+## 5. Pre-Merge Updates (mandatory before every merge)
 
-After every branch is merged, update these three files before starting any new work. Do not defer this.
+Before every branch is merged, update these three files. Complete all three before the PR is merged — do not defer.
 
 ### `RECORD.md`
 - Mark completed items as `✅ Done — PR #N`.

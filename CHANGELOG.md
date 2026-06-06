@@ -7,42 +7,27 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Settings tray menu item** — "Settings" appears in the tray right-click context menu as a direct shortcut to open the Settings window *(pre-release audit)*
+- **Close button on Supported Headsets dialog** — a Close button lets users dismiss the dialog without enabling auto-switch or being redirected to the browser *(pre-release audit)*
+- **`DeleteButton` global style** — new solid-red / white-text button style in `App.xaml` for destructive actions like Delete Profile; semantically distinct from the existing `DangerButton` style *(pre-release audit)*
+- **`AppLogger.Debug` level** — new `Debug(context, message)` method writes to `Console.Error` only and never touches the disk log; used by HID report tracing to prevent polling floods *(pre-release audit)*
+- **Profile card icon bar** — five text buttons (Activate, Clone, Add Schedule, Add Switch Sound, Delete Profile) converted to compact icon-only buttons; all nine card action buttons laid out in an equal-width Grid spanning the full card width *(pre-release audit)*
+- **Consistent dialog headers** — all popup dialogs now have an orange (`{DynamicResource Accent}`) circle badge with a black icon as the header; headers added to `ScheduleWizardDialog`, `SwitchSoundDialog`, `DeviceAliasesDialog`, `HotkeyCaptureDialog`, and `ProfileTypeDialog` *(pre-release audit)*
+- **`HotkeyCaptureDialog` context-aware subtitle** — the subtitle adapts per caller: per-profile hotkey vs. open-Settings shortcut vs. each mute scope; subtitle wraps correctly instead of clipping on long text *(pre-release audit)*
+- **`HelpDialog` FAQ cards** — each of the eight getting-started sections is now wrapped in its own card with a visible border and padding *(pre-release audit)*
 - **App launch triggers (F41)** — link one or more executables to a profile; VibeSwitcher automatically switches to that profile within ~2 seconds of the app launching; skips the switch if already on the target profile; the same exe cannot be linked to two profiles *(PR #96)*
 - **App trigger dialog** — new wizard dialog with All / Running / Installed / In Use filter chips; pre-populates from Start Menu shortcuts so you can find apps that aren't currently running; running apps are badged in the installed list; inline "Already added" and "Used by [Profile]" indicators; Browse for .exe fallback *(PR #96)*
 - **`▶` trigger button on profile cards** — opens the app trigger dialog; green when triggers are configured, gray otherwise *(PR #96)*
-
-### Fixed
-- **Shortcuts toggle switches removed** — the four enable/disable toggles in the Shortcuts section are gone; setting a hotkey now enables it automatically, and a new ✕ clear button (visible only when a hotkey is set) resets it to None and auto-disables *(PR #96)*
-- **Immediate switch on Done** — adding an app trigger no longer switches profiles immediately when the dialog closes; the switch now only fires when the assigned executable actually launches *(PR #96)*
-- **Settings hotkey auto-enable** — clearing the Open/Close shortcut now auto-disables it (consistent with mute hotkey behavior) *(PR #96)*
-
-### Added
 - **Supported headsets dialog** — opening the auto-switch toggle now shows a dialog listing all supported wireless headset brands and models (Logitech, Corsair, SteelSeries, HyperX) grouped by brand with Tested/Untested badges; "Enable Auto-Switch" confirms and enables; "Request wireless headset support" opens the GitHub issue template *(PR #94)*
 - **Auto-switch conflict detection** — enabling auto-switch on a profile that shares a playback device with another auto-switch-enabled profile shows a confirmation dialog; "Yes, Move It" reassigns auto-switch to the new profile and refreshes the displaced card *(PR #94)*
 - **Chained revert stack** — auto-switch reverts now maintain a full chain (e.g. Speaker → BT → Logitech); turning devices off in any order reverts through the chain correctly *(PR #94)*
 - **Expanded wireless headset HID support** — `HidHeadsetService` now monitors Corsair VOID/Pro/Elite Wireless (12 PIDs, event-driven), SteelSeries Arctis Legacy/Nova families (27 PIDs, poll-based), and HyperX Cloud Alpha/Cloud II Wireless (2 PIDs, poll-based) in addition to Logitech *(PR #92)*
 - **`KnownHidHeadsets` expanded** — 12 additional Logitech PIDs (G633, G635, G933, G935, G733, G535, G Pro, G Pro X Wireless, G Pro X 2) plus all Corsair, SteelSeries, and HyperX entries added to the registry *(PR #92)*
-
-### Fixed
-- **Playback-only auto-switch** — recording-only profiles no longer show the auto-switch toggle; `DeviceTriggerService` ignores recording devices entirely when evaluating which profile to switch to *(PR #94)*
-- **Auto-switch skips HID-managed profiles in Windows events** — Logitech wireless dongle profiles are now only triggered via HID signals, preventing false switches when other devices connect or disconnect *(PR #94)*
-
-### Added
 - **Auto-switch on device connect (F39)** — each profile now has a "Switch when device connects" toggle; when enabled, the app automatically activates that profile the moment its assigned playback or recording device is plugged in or powered on; reverts to the previous profile when the device disconnects *(PR #90)*
 - **Wireless headset HID support** — `HidHeadsetService` monitors known Logitech LIGHTSPEED wireless headsets via their HID++ vendor interface (usage page `0xFF43`), firing instant switch events when the headset powers on or off; eliminates the 3–5 second delay from Windows audio property notifications *(PR #90)*
 - **`KnownHidHeadsets` registry** — `KnownHidHeadsets.cs` holds the list of supported HID headsets (VID, PID, model name); currently includes Logitech PRO X Wireless (VID `046D` / PID `0ABA`) *(PR #90)*
 - **GitHub issue template for wireless headset support** — `.github/ISSUE_TEMPLATE/add-headset.yml` guides users through finding their headset's VID and PID from Device Manager so new headsets can be added to the HID registry *(PR #90)*
 - **README wireless headset section** — documents auto-switch behavior for USB, Bluetooth, and 3.5 mm audio jacks; lists supported wireless headsets with a link to the issue template for requesting new ones *(PR #90)*
-
-### Fixed
-- **Day-chip filter not activating** — selecting day-of-week chips (Mon, Tue, etc.) did not show the filter-active indicator or enable the "Clear" button because `ProfileFilter.IsActive` and `SettingsViewModel.IsAnyFilterActive` both omitted the `ActiveDays` check *(PR #88)*
-- **Sound summary stays stale** — the summary line on a profile card ("Click — 50%") did not update when the user browsed a custom WAV file (auto-selects "Custom" tone) because `SetProfileSoundTone` and the volume setter never notified `SoundSummary` *(PR #88)*
-- **Native OS dialog in session log** — "no log file yet" message used `MessageBox.Show` instead of the app-styled `AlertDialog`, violating the project's no-native-dialogs rule *(PR #88)*
-- **Path traversal in icon validation** — `IconHelper` used `StartsWith(iconsDir)` which matched sibling directories with the same name prefix (e.g. `Icons_evil/` would pass an `Icons/` check); now appends the path separator before comparing *(PR #88)*
-- **Dead code removed** — `AppConfig` had 4 properties (`SwitchSoundEnabled`, `SwitchSoundTone`, `SwitchSoundCustomPath`, `SwitchSoundVolume`) and `DeviceProfile` had `SoundMuted` that were defined but never read; `SwitchSoundService.Resolve`/`PlayAsync` had an unused `AppConfig` parameter; `ThemeService` had a duplicate `Apply()` overload; `ScheduleConflictDialog` XAML window defined but never instantiated; 8 inline tone-picker properties and `BrowseProfileSoundCommand` in `ProfileCardViewModel` were leftover from a replaced inline editor approach — all removed *(PR #88)*
-- **ConfigService.ExportTo swallowed errors** — failures during config export were silently caught and logged but not re-thrown, leaving the caller with no way to show the user an error message *(PR #88)*
-
-### Added
 - **"Has sound" filter chip** — new chip in the profile filter row; shows only profiles with a per-profile sound override enabled; consistent with Has hotkey, Has notes, Has icon, Has reminder *(PR #88)*
 - **Filter chips replace search bar** — the name search text box and "Remember last search" setting have been removed; filtering is now entirely chip-based for a cleaner, more consistent UI *(PR #88)*
 - **Help dialog updated** — the "?" getting-started dialog now includes a "Filtering profiles" section describing all available chips *(PR #88)*
@@ -56,10 +41,6 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Section auto-collapse** — the Schedules section header hides until at least one schedule exists; the Switch Sound section hides until a sound is configured *(PR #84)*
 - **Contextual action button labels** — "Edit Schedule", "Remove Schedule", "Edit Sound", "Remove Sound" so actions are unambiguous at a glance *(PR #84)*
 - **118 new unit tests** — `SwitchSoundTests` covers wizard output, banner flag, sound/notification separation, bell toggle visibility, and section collapse logic *(PR #84)*
-
-### Fixed
-- **Settings panel resize gray area** — resizing the window while the settings panel was expanded left gray empty space above the header or below the footer; the settings card now absorbs remaining window height so no dead area appears at either edge *(PR #84)*
-
 - **Profile search and filter bar (F35)** — always-visible name search field at the top of the Settings window with live filtering and Esc-to-clear; italic placeholder text explains all available filter options *(PR #82)*
 - **Filter chips** — Mode (Playback / Recording / Both), Pinned, Active, Silent, Has Hotkey, Scheduled, Has Icon, Has Notes, Has Reminder; each chip is a toggle, all combinable with each other and with the name search for intersection filtering *(PR #82)*
 - **Day-of-week chips** — appear below the Scheduled chip; narrow results to profiles that run on a specific day *(PR #82)*
@@ -125,34 +106,44 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Switching tooltip** — tray tooltip shows "Switching to {profile}..." while a switch is in progress; restores to the correct profile name on both success and failure *(PR #28)*
 - **Keyboard navigation in Settings** — arrow keys move focus between profile cards; read-only fields are excluded from the Tab order *(PR #28)*
 
-### Performance
-- **Config saves moved off the UI thread** — all config saves (profile switch and settings edits) now run on a background thread via `Task.Run`; no longer blocks the UI thread during disk writes *(PR #78)*
-- **Tray icon bytes cache** — raw icon bytes cached per profile after the first load; a fresh `Icon` object is reconstructed from memory on each switch so no disk I/O is needed on repeat switches *(PR #78)*
-- **Scheduler timer reduced** — `SchedulerService` background tick interval changed from 1 second to 10 seconds; minute-level precision is sufficient and eliminates over 3,000 unnecessary UI-thread wakeups per hour *(PR #78)*
-- **`AppLogger` write path optimized** — removed `Directory.CreateDirectory` syscall from every log write; the directory is guaranteed to exist after session start *(PR #78)*
-- **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
-
-### Changed
-- **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume *(PR #40)*
-- **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
-- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` owns the full async switch flow; `AppWindowManager` owns window management; `App.xaml.cs` reduced from 248 to ~120 lines *(PR #37)*
-- **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
-
 ### Fixed
+- **HidHeadsetService reconnects after read error** — read failures or device-open failures now trigger an automatic 2-second-backoff retry loop instead of permanently terminating the monitor task *(pre-release audit)*
+- **Window bounds saved off UI thread** — `SaveWindowBounds()` in `SettingsWindow` now dispatches disk writes to a background thread via `Task.Run`; no longer blocks the UI thread *(pre-release audit)*
+- **HID report logging no longer floods disk** — `LogDebugReport` uses the new `AppLogger.Debug` method (Console.Error only) instead of `AppLogger.Info`; HID polling events no longer accumulate in `error.log` *(pre-release audit)*
+- **Duplicate icon deletion code removed** — `ProfileCardViewModel` now delegates to `SettingsViewModel.DeleteOrphanedIcon` (extended with an optional `exceptPath` parameter) instead of duplicating the deletion logic inline *(pre-release audit)*
+- **AppTriggerDialog header badge now theme-aware** — hardcoded `#E8F5E9` / `#2E7D32` green replaced with `SuccessBadgeBg` / `SuccessBadgeText` DynamicResource keys present in both LightTheme and DarkTheme; the badge no longer renders white-on-white in dark mode *(pre-release audit)*
+- **CustomReminderDialog error text now theme-aware** — hardcoded `#CC3300` foreground replaced with `{DynamicResource ErrorText}` so the error message is readable in both themes *(pre-release audit)*
+- **Dialog button styles consolidated** — duplicate local `RoundedBtn`, `PrimaryBtn`, `SecondaryBtn`, `ActionBtn`, `DangerBtn`, `OkBtn`, and `Btn` style blocks removed from ErrorDialog, ConfirmDeleteDialog, IconGalleryDialog, AlertDialog, ConfirmDialog, and SessionLogWindow; all dialogs now reference the global `ActionButton`, `PrimaryButton`, and `DeleteButton` styles from `App.xaml` *(pre-release audit)*
+- **Global ComboBox and Slider styles** — `VolumeSlider` and implicit `ComboBox` / `ComboBoxItem` styles promoted from SettingsWindow and ScheduleWizardDialog into `App.xaml`; local copies removed; all dialogs and windows now inherit the same styled controls automatically *(pre-release audit)*
+- **DeviceAliasesDialog shared DataTemplate** — both Playback and Recording `ItemsControl` elements now use a single `DeviceAliasRowTemplate` defined in `Window.Resources`; no duplicate XAML markup *(pre-release audit)*
+- **HelpDialog stale instructions corrected** — "Right-click the tray → click the VibeSwitcher header" updated to "Right-click the tray → Settings"; left-click bullet gains "(can be changed in General Settings)" qualifier *(pre-release audit)*
+- **SupportedHeadsetsDialog Request button no longer dismisses dialog** — clicking "Request wireless headset support" opens the GitHub issue template in the browser but leaves the dialog open so users can still enable auto-switch or close independently *(pre-release audit)*
+- **`MicTestDialog` error state** — if the microphone fails to open, an error message is shown and the auto-close countdown is cancelled instead of counting down silently *(pre-release audit)*
+- **`DeviceAliasesDialog` Escape key** — `Save` incorrectly had `IsCancel="True"`; corrected so Escape closes without saving *(pre-release audit)*
+- **Test sound stacking** — clicking "Test Sound" rapidly in the Switch Sound dialog no longer queues multiple overlapping playbacks; the button is disabled for the duration of playback and re-enabled when done; the profile card "Test" button is similarly guarded so rapid clicks while a tone is already playing are dropped *(pre-release audit)*
+- **Remove Schedule dialog badge** — the confirmation dialog that appears when removing a schedule used a red (`ErrorBg`) badge; changed to `Accent` (orange) to match the app-wide dialog badge style *(pre-release audit)*
+- **Switch sound button now always visible** — the 🎵 icon button on profile cards was hidden when a switch sound was configured; it now stays visible and turns green (matching the Schedule and App Trigger buttons), and clicking it opens the sound configuration wizard *(pre-release audit)*
+- **Remove Sound confirmation dialog** — "Remove Sound" on a profile card now shows a confirmation dialog before removing, preventing accidental deletion *(pre-release audit)*
+- **Bell button no longer disappears when switch sound is configured** — the 🔔 icon now dims to 35% opacity and becomes non-interactive instead of collapsing; it remains in the icon bar as a visual placeholder *(pre-release audit)*
+- **Switch sound banner defaults to on** — opening the sound wizard for a profile with no sound configured now passes `showBanner: true` so the "Don't show notification banner" toggle starts unchecked (banner on); existing profiles with a sound already configured are unaffected *(pre-release audit)*
+- **`FakeDialogService` implements `ShowConfirmSoundRemove`** — test stub was missing the new interface method, causing CI build failure; added with `ConfirmSoundRemoveResult` property defaulting to `true` *(pre-release audit)*
+- **Tray "Settings" item now expands the settings card** — clicking Settings in the tray right-click menu now opens the window with the General Settings card already expanded; all other entry points (hotkey, header click, first-run, single-instance wakeup) are unaffected *(pre-release audit)*
+- **Shortcuts toggle switches removed** — the four enable/disable toggles in the Shortcuts section are gone; setting a hotkey now enables it automatically, and a new ✕ clear button (visible only when a hotkey is set) resets it to None and auto-disables *(PR #96)*
+- **Immediate switch on Done** — adding an app trigger no longer switches profiles immediately when the dialog closes; the switch now only fires when the assigned executable actually launches *(PR #96)*
+- **Settings hotkey auto-enable** — clearing the Open/Close shortcut now auto-disables it (consistent with mute hotkey behavior) *(PR #96)*
+- **Playback-only auto-switch** — recording-only profiles no longer show the auto-switch toggle; `DeviceTriggerService` ignores recording devices entirely when evaluating which profile to switch to *(PR #94)*
+- **Auto-switch skips HID-managed profiles in Windows events** — Logitech wireless dongle profiles are now only triggered via HID signals, preventing false switches when other devices connect or disconnect *(PR #94)*
+- **Day-chip filter not activating** — selecting day-of-week chips (Mon, Tue, etc.) did not show the filter-active indicator or enable the "Clear" button because `ProfileFilter.IsActive` and `SettingsViewModel.IsAnyFilterActive` both omitted the `ActiveDays` check *(PR #88)*
+- **Sound summary stays stale** — the summary line on a profile card ("Click — 50%") did not update when the user browsed a custom WAV file (auto-selects "Custom" tone) because `SetProfileSoundTone` and the volume setter never notified `SoundSummary` *(PR #88)*
+- **Native OS dialog in session log** — "no log file yet" message used `MessageBox.Show` instead of the app-styled `AlertDialog`, violating the project's no-native-dialogs rule *(PR #88)*
+- **Path traversal in icon validation** — `IconHelper` used `StartsWith(iconsDir)` which matched sibling directories with the same name prefix (e.g. `Icons_evil/` would pass an `Icons/` check); now appends the path separator before comparing *(PR #88)*
+- **Dead code removed** — `AppConfig` had 4 properties (`SwitchSoundEnabled`, `SwitchSoundTone`, `SwitchSoundCustomPath`, `SwitchSoundVolume`) and `DeviceProfile` had `SoundMuted` that were defined but never read; `SwitchSoundService.Resolve`/`PlayAsync` had an unused `AppConfig` parameter; `ThemeService` had a duplicate `Apply()` overload; `ScheduleConflictDialog` XAML window defined but never instantiated; 8 inline tone-picker properties and `BrowseProfileSoundCommand` in `ProfileCardViewModel` were leftover from a replaced inline editor approach — all removed *(PR #88)*
+- **ConfigService.ExportTo swallowed errors** — failures during config export were silently caught and logged but not re-thrown, leaving the caller with no way to show the user an error message *(PR #88)*
+- **Settings panel resize gray area** — resizing the window while the settings panel was expanded left gray empty space above the header or below the footer; the settings card now absorbs remaining window height so no dead area appears at either edge *(PR #84)*
 - **Taskbar pin no longer silently ignored** — clicking a pinned taskbar button while the app is already running now opens the Settings window; `SingleInstanceHelper` signals the running instance via a named `EventWaitHandle` (AutoReset, `Local\` scoped per user); a background listener calls `OpenSettingsWindow` via `Dispatcher.InvokeAsync` *(PR #80)*
 - **Alias TextBox placeholder overlapping typed text** — placeholder `TextBlock` now collapses immediately when the TextBox gains focus via a `DataTrigger` on `IsKeyboardFocusWithin` of the parent Grid, instead of waiting for `LostFocus` to update the bound property *(PR #80)*
 - **TextBox style scoped to SettingsWindow only** — the implicit TextBox style (rounded corners, themed background) was defined in SettingsWindow local resources; moved to App.xaml so all dialogs including DeviceAliasesDialog inherit it automatically *(PR #80)*
 - **`XamlParseException` on `Run.Text` binding** — `Run.Text` defaults to `TwoWay` binding mode, which throws at runtime on read-only properties; fixed with explicit `Mode=OneWay` on the `ProfileUsage` binding in DeviceAliasesDialog *(PR #80)*
-- **`ObjectDisposedException` on tray icon** — H.NotifyIcon disposes the old `Icon` object on each assignment; the previous icon object cache caused a crash when switching back to a profile whose icon had already been disposed. Fixed by caching raw bytes and always providing a fresh `Icon` instance *(PR #78)*
-- **`AccentColor` fallback for toggle animation** — toggle switch `ColorAnimation.To` now references `{StaticResource AccentColor}` instead of a hardcoded hex; a `Color` fallback in `App.xaml` satisfies parse-time resolution and theme files override it at runtime *(PR #72)*
-- **ConfirmDialog icon badge updates with theme** — badge background switched from `TryFindResource` to `SetResourceReference` so it responds to theme changes while the dialog is open *(PR #72)*
-- **`AboutWindow` removed from taskbar** — `ShowInTaskbar="False"` added; it was the only dialog in the app missing the attribute *(PR #72)*
-- **TitleBar `StateChanged` handler no longer leaks** — stored in `_stateChangedHandler` field and unsubscribed in a new `OnUnloaded` handler *(PR #72)*
-- **SettingsWindow close-time bounds save** — `_boundsTimer` stopped at the top of `OnClosing` before `SaveWindowBounds()` to prevent a redundant debounced write *(PR #72)*
-- **Settings header app icon restored** — icon now appears to the left of the "VibeSwitcher" heading in the Settings window *(PR #72)*
-- **Title bar maximize button vertically aligned** — □ now sits level with − and ✕ via a `TextBlock` wrapper with a 5 px bottom margin, correcting the font-metric baseline difference in Segoe UI *(PR #72)*
-- **Tray separators equalized** — all three separators render at the same height; changed from a 2.5 px rounded border inside a fixed-height `MenuItem` to a 1 px flat line with 4 px top/bottom margin *(PR #72)*
-- **Dead `ToggleInactiveBg` brush removed** — unused resource deleted from both `LightTheme.xaml` and `DarkTheme.xaml` *(PR #72)*
 - **Profile Silent incorrectly suppressed scheduled switch notifications** — `scheduleSilent` changed from `bool` to `bool?` in `ProfileSwitchOrchestrator`; null means manual (use `profile.Silent`), a value means scheduled (use that value, ignoring `profile.Silent`) *(PR #74)*
 - **Scheduler dedup blocked same-minute edits** — replaced the 2-minute elapsed-time guard with slot-based comparison (stored hour:minute:day); editing a schedule time now fires correctly within the same 2-minute window *(PR #74)*
 - **Dark-mode tooltip text unreadable** — `Foreground` setter added to the local `ToolTip` style in `SettingsWindow.xaml` and explicit `Foreground` on each tooltip `TextBlock` *(PR #74)*
@@ -192,6 +183,26 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **`ProfileCardViewModel` implements `IDisposable`** — icon preview is released when a profile card is removed *(PR #27)*
 - **Config file opened with `FileShare.ReadWrite`** — antivirus and backup tools scanning `config.json` concurrently no longer corrupt the deserialization pass *(PR #27)*
 - **Tray menu profile switch no longer triggers a full rebuild** — `SetActiveProfile` flips `IsChecked` only; `RebuildMenu` is called only when profiles actually change *(PR #27)*
+
+### Performance
+- **Config saves moved off the UI thread** — all config saves (profile switch and settings edits) now run on a background thread via `Task.Run`; no longer blocks the UI thread during disk writes *(PR #78)*
+- **Tray icon bytes cache** — raw icon bytes cached per profile after the first load; a fresh `Icon` object is reconstructed from memory on each switch so no disk I/O is needed on repeat switches *(PR #78)*
+- **Scheduler timer reduced** — `SchedulerService` background tick interval changed from 1 second to 10 seconds; minute-level precision is sufficient and eliminates over 3,000 unnecessary UI-thread wakeups per hour *(PR #78)*
+- **`AppLogger` write path optimized** — removed `Directory.CreateDirectory` syscall from every log write; the directory is guaranteed to exist after session start *(PR #78)*
+- **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
+
+### Changed
+- **Playback test tone** — frequency lowered from 440 Hz (A4) to 261 Hz (C4/middle C) and a linear fade-in/out envelope added; the tone is noticeably warmer and less startling *(pre-release audit)*
+- **"Don't show notification banner" toggle** — the sound wizard's banner toggle is now labelled "Don't show notification banner" (inverted from "Show notification banner"); the toggle starts unchecked by default so the banner is on unless the user explicitly suppresses it *(pre-release audit)*
+- **Appearance theme picker layout** — theme RadioButtons changed from a `UniformGrid` (equal-width, no gaps) to a `StackPanel` with `Padding="14,0"` per button and 8 px spacing between buttons; buttons now auto-size to their text and match the height of `ActionButton` *(pre-release audit)*
+- **Light mode border colors** — all border, separator, and input-border resources darkened (~20–30 hex steps) so card edges, input fields, and dividers are clearly visible against white/light-gray backgrounds *(pre-release audit)*
+- **Profile card icon foregrounds** — all nine icon buttons changed from `{DynamicResource DisabledText}` (light gray) to `{DynamicResource PrimaryText}` (black in light mode, white in dark mode); active-state indicator colors (green, gold) are unchanged *(pre-release audit)*
+- **Filter chip default text** — chip foreground changed from `SecondaryText` to `PrimaryText`; the active/checked state continues to show white text on orange *(pre-release audit)*
+- **All dialog badge backgrounds standardised** — `ConfirmDeleteDialog`, `HelpDialog` "?" badge, and the clone confirmation dialog now use `{DynamicResource Accent}` (orange) with a black icon, matching all other popup dialogs *(pre-release audit)*
+- **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume *(PR #40)*
+- **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
+- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` owns the full async switch flow; `AppWindowManager` owns window management; `App.xaml.cs` reduced from 248 to ~120 lines *(PR #37)*
+- **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ---
 

@@ -52,6 +52,8 @@ public partial class DeviceAliasesDialog : Window, INotifyPropertyChanged
         Close();
     }
 
+    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
     private void CommitFocusedTextBox()
     {
         if (System.Windows.Input.Keyboard.FocusedElement is TextBox tb)

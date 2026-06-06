@@ -45,7 +45,7 @@ public class MuteService
                 break;
         }
         MuteStateChanged?.Invoke();
-        Task.Run(() => PlaySound(scope, muting));
+        _ = Task.Run(() => PlaySound(scope, muting));
     }
 
     private static bool SetDeviceMute(EDataFlow flow, bool mute)

@@ -27,6 +27,9 @@ public static class AppLogger
         catch { }
     }
 
+    public static void Debug(string context, string message) =>
+        Console.Error.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [DEBUG] {context}: {message}");
+
     public static void Info(string context, string message)    => Write("INFO",  context, message);
     public static void Warning(string context, string message) => Write("WARN",  context, message);
     public static void Error(string context, string message)   => Write("ERROR", context, message);

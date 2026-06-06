@@ -1313,12 +1313,55 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 47: `refactor/code-quality`
-**Theme:** Code quality improvements identified during internal review of the scheduler branch.
+### Branch 47: `refactor/pre-release-audit` ✅ Done — PR #98
+**Theme:** Full pre-release codebase audit — bugs, dark-mode theming gaps, code quality, dialog polish, and documentation updates.
+
+| Item | Description | Status |
+|------|-------------|--------|
+| B2 | `HidHeadsetService.ReadLoop` reconnection — outer retry loop with 2 s backoff so a USB hiccup doesn't kill monitoring permanently | ✅ Done |
+| B3 | `MicTestDialog` error state — shows error message and cancels auto-close countdown if the mic fails to open | ✅ Done |
+| B4 | `DeviceAliasesDialog` Escape key — `Save` had `IsCancel="True"` by mistake; corrected so Escape closes without saving | ✅ Done |
+| B5 | Test sound stacking — `SwitchSoundDialog` "Test Sound" button disabled for the duration of playback; `ProfileCardViewModel.TestSound()` guards with `_isTesting` flag | ✅ Done |
+| B6 | Remove Schedule badge colour — confirmation dialog used `ErrorBg` (red); changed to `Accent` (orange) to match all other popup dialogs | ✅ Done |
+| B7 | Switch sound button always visible — 🎵 icon button was hidden when `SoundOverride=true`; now stays visible and turns green; clicking always opens the sound wizard | ✅ Done |
+| B8 | Remove Sound confirmation — clicking "Remove Sound" in the card body now shows a confirmation dialog before removing | ✅ Done |
+| B9 | Tray "Settings" item expands settings card — clicking Settings in the tray now calls `OpenSettingsWindowExpanded()`; `ExpandSettings()` on `SettingsWindow` sets `SettingsCardExpanded = true`; all other entry points (hotkey, header click, first-run) are unaffected | ✅ Done |
+| P1 | `SaveWindowBounds` off UI thread — disk write dispatched to `Task.Run` background thread | ✅ Done |
+| P2 | HID report logging — `LogDebugReport` moved from `AppLogger.Info` (disk) to `AppLogger.Debug` (Console.Error only) | ✅ Done |
+| R10 | `DeleteOrphanedIcon` deduplication — `ProfileCardViewModel` delegates to `SettingsViewModel.DeleteOrphanedIcon` | ✅ Done |
+| R11 | `MuteService` fire-and-forget — `_ = Task.Run(...)` discard suppresses CS4014 correctly | ✅ Done |
+| CQ1 | Duplicate button styles removed from 6 dialogs; all reference global `App.xaml` styles; `DeleteButton` style added | ✅ Done |
+| CQ7 | `ComboBox`/`ComboBoxItem` styles promoted to `App.xaml` | ✅ Done |
+| CQ8 | `VolumeSlider` style promoted to `App.xaml` | ✅ Done |
+| CQ10 | `DeviceAliasesDialog` shared `DeviceAliasRowTemplate` — single template replaces two copy-pasted inline templates | ✅ Done |
+| CQ11 | `CustomReminderDialog` error text — hardcoded `#CC3300` replaced with `{DynamicResource ErrorText}` | ✅ Done |
+| CQ12 | `AppTriggerDialog` header badge — hardcoded light-green hex replaced with `{DynamicResource Accent}` | ✅ Done |
+| T1 | `HelpDialog` — left-click bullet clarified; stale right-click instruction corrected | ✅ Done |
+| T4 | `SupportedHeadsetsDialog` — satellite → plug emoji; two-row button layout; Close button centred; brand badges theme-aware | ✅ Done |
+| T5 | Settings item restored to tray right-click context menu | ✅ Done |
+| T6 | Profile card icon bar — 5 text buttons converted to icon-only; 9-button equal `*` Grid spanning full card width | ✅ Done |
+| T7 | Dialog icon headers — orange-circle badge + title added to `ScheduleWizardDialog`, `SwitchSoundDialog`, `DeviceAliasesDialog`, `HotkeyCaptureDialog`, `ProfileTypeDialog` | ✅ Done |
+| T8 | Dialog badge standardisation — all popups use `{DynamicResource Accent}` (orange) + black icon; `ConfirmDeleteDialog`, `HelpDialog`, clone dialog updated | ✅ Done |
+| T9 | `HotkeyCaptureDialog` — context-aware subtitle per caller; wraps in `Grid` column; app icon sharp via `IconHelper.GetAppIconImageSource()` | ✅ Done |
+| T10 | Light mode borders — all border/separator resources darkened for clear visibility | ✅ Done |
+| T14 | Playback test tone — frequency lowered from 440 Hz to 261 Hz (C4/middle C) with fade-in/out envelope; less startling | ✅ Done |
+| T11 | Profile card icon foregrounds — `DisabledText` → `PrimaryText` (black in light, white in dark) | ✅ Done |
+| T12 | Filter chip text — default foreground `SecondaryText` → `PrimaryText` | ✅ Done |
+| T13 | `HelpDialog` FAQ cards — each of the 8 sections wrapped in its own card | ✅ Done |
+| T15 | Bell button dims when sound configured — 🔔 `IsEnabled="False"` + `Opacity="0.35"` DataTrigger when `SoundOverride=True` (was `Visibility="Collapsed"`) | ✅ Done |
+| T16 | "Don't show notification banner" toggle — label inverted; `BannerToggle.IsChecked = !showBanner`; `ConfigureSound` passes `showBanner: true` when no sound is set so toggle starts unchecked (banner on by default) | ✅ Done |
+| T17 | Appearance theme picker — `UniformGrid` → `StackPanel`, `Padding="14,0"` per button, 8 px margin between buttons, `Height="30"` to match `ActionButton` | ✅ Done |
+| CQ13 | `FakeDialogService` CI fix — `ShowConfirmSoundRemove()` added to test stub after `IDialogService` interface was extended; `ConfirmSoundRemoveResult` property defaults to `true` | ✅ Done |
+| Docs | `ARCHITECTURE.md` rewritten with all 12 services; `README.md` adds F41; `CHANGELOG.md` consolidated | ✅ Done |
+
+---
+
+### Branch 48: `refactor/architecture-cleanup`
+**Theme:** Architecture refactors deferred from Branch 47 — too large to bundle with the audit fixes.
 
 | # | Item | Status |
 |---|------|--------|
-| R7 | `AudioService` god class — splits into focused services: enumeration, switching, test-tone, mic-level monitor, device notifications | Open |
-| R8 | `ProfileCardViewModel` hotkey conflict `while(true)` loop — workflow logic belongs in a service or orchestrator, not a ViewModel | Open |
-| R9 | `AppLogger._logPathOverride` static hatch — used only in tests; correct fix is injecting a logger interface (`IAppLogger`) rather than bolting a test escape onto a static class | Open |
-| R10 | Icon deletion copy-paste — `DeleteOrphanedIcon` logic is duplicated verbatim between two methods in `ProfileCardViewModel`; extract to a single private helper | Open |
+| R7 | `AudioService` god class (~478 lines) — split into focused services: device enumeration, profile switching, test-tone playback, mic-level capture, device-change notifications | Open |
+| R8 | `ProfileCardViewModel` dialog workflow loops — three `while(true)` loops for hotkey-capture, add-schedule, and edit-schedule retry logic live in the ViewModel; move to a service or orchestrator | Open |
+| R9 | `AppLogger` injectable interface — extract `IAppLogger` so the static `_logPathOverride` test hatch can be removed and logger injection used instead | Open |
+| V2 | `AppTriggerDialog` loading indicator — `ScanStartMenuShortcuts` calls `thread.Join(15_000)` with no feedback; dialog should open immediately and populate asynchronously with a visible loading state | Open |

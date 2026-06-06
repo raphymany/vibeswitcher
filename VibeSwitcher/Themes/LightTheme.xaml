@@ -5,8 +5,8 @@
     <SolidColorBrush x:Key="AppBg"              Color="#F3F3F3"/>
     <SolidColorBrush x:Key="CardBg"             Color="#FFFFFF"/>
     <SolidColorBrush x:Key="InnerCardBg"        Color="#F8F9FA"/>
-    <SolidColorBrush x:Key="InnerCardBorderBrush" Color="#EBEBEB"/>
-    <SolidColorBrush x:Key="CardBorderBrush"    Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="InnerCardBorderBrush" Color="#C8C8C8"/>
+    <SolidColorBrush x:Key="CardBorderBrush"    Color="#C0C0C0"/>
 
     <!-- Text -->
     <SolidColorBrush x:Key="PrimaryText"        Color="#1A1A1A"/>
@@ -26,8 +26,8 @@
 
     <!-- Inputs -->
     <SolidColorBrush x:Key="InputBg"            Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="InputBorder"        Color="#DDDDDD"/>
-    <SolidColorBrush x:Key="InputHoverBorder"   Color="#AAAAAA"/>
+    <SolidColorBrush x:Key="InputBorder"        Color="#BBBBBB"/>
+    <SolidColorBrush x:Key="InputHoverBorder"   Color="#888888"/>
 
     <!-- Hover / Selection -->
     <SolidColorBrush x:Key="HoverBg"            Color="#FFF4E8"/>
@@ -46,8 +46,8 @@
     <SolidColorBrush x:Key="ChipHoverBg"        Color="#FFE8CC"/>
 
     <!-- Separators -->
-    <SolidColorBrush x:Key="SeparatorBrush"     Color="#C8C8C8"/>
-    <SolidColorBrush x:Key="CardSeparator"      Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="SeparatorBrush"     Color="#AAAAAA"/>
+    <SolidColorBrush x:Key="CardSeparator"      Color="#D4D4D4"/>
 
     <!-- Error / Danger -->
     <SolidColorBrush x:Key="ErrorText"          Color="#C00000"/>
@@ -63,6 +63,18 @@
     <SolidColorBrush x:Key="SuccessDot"         Color="#2DB55D"/>
     <SolidColorBrush x:Key="ErrorDot"           Color="#CC3333"/>
 
+    <!-- Success badge -->
+    <SolidColorBrush x:Key="SuccessBadgeBg"     Color="#E8F5E9"/>
+    <SolidColorBrush x:Key="SuccessBadgeText"   Color="#2E7D32"/>
+
+    <!-- Primary (blue) badge -->
+    <SolidColorBrush x:Key="PrimaryBadgeBg"     Color="#E3F2FD"/>
+    <SolidColorBrush x:Key="PrimaryBadgeText"   Color="#1565C0"/>
+
+    <!-- Warning (amber) badge -->
+    <SolidColorBrush x:Key="WarningBadgeBg"     Color="#FFF8E1"/>
+    <SolidColorBrush x:Key="WarningBadgeText"   Color="#E65C00"/>
+
     <!-- Warning -->
     <SolidColorBrush x:Key="WarningBg"          Color="#FFF8E0"/>
     <SolidColorBrush x:Key="WarningBorder"       Color="#FFE082"/>
@@ -76,31 +88,31 @@
 
     <!-- Tray context menu -->
     <SolidColorBrush x:Key="MenuBg"             Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="MenuBorder"         Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="MenuBorder"         Color="#BBBBBB"/>
     <SolidColorBrush x:Key="MenuItemHoverBg"    Color="#FFF4E8"/>
     <SolidColorBrush x:Key="MenuItemSelHoverBg" Color="#FFE8CC"/>
 
     <!-- Tooltip -->
     <SolidColorBrush x:Key="TooltipBg"          Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="TooltipBorder"      Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="TooltipBorder"      Color="#BBBBBB"/>
 
     <!-- HelpDialog footer -->
     <SolidColorBrush x:Key="FooterBg"           Color="#EBEBEB"/>
-    <SolidColorBrush x:Key="FooterBorder"       Color="#DDDDDD"/>
+    <SolidColorBrush x:Key="FooterBorder"       Color="#BBBBBB"/>
 
     <!-- Hotkey display box -->
     <SolidColorBrush x:Key="HotkeyBg"           Color="#F5F5F5"/>
-    <SolidColorBrush x:Key="HotkeyBorder"       Color="#D0D0D0"/>
+    <SolidColorBrush x:Key="HotkeyBorder"       Color="#AAAAAA"/>
 
     <!-- About window section cards -->
     <SolidColorBrush x:Key="AboutSectionBg"     Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="AboutSectionBorder" Color="#E8E8E8"/>
+    <SolidColorBrush x:Key="AboutSectionBorder" Color="#C8C8C8"/>
 
     <!-- Session log -->
     <SolidColorBrush x:Key="SessionListBg"      Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="SessionListBorder"  Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="SessionListBorder"  Color="#BBBBBB"/>
     <SolidColorBrush x:Key="SessionItemHoverBg" Color="#F8F8F8"/>
-    <SolidColorBrush x:Key="SessionSeparator"   Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="SessionSeparator"   Color="#D4D4D4"/>
     <SolidColorBrush x:Key="ErrorCodeText"      Color="#C00000"/>
     <SolidColorBrush x:Key="SessionMsgText"     Color="#333333"/>
 
@@ -115,9 +127,9 @@
 
     <!-- Icon gallery -->
     <SolidColorBrush x:Key="GalleryItemBg"      Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="GalleryItemBorder"  Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="GalleryItemBorder"  Color="#C0C0C0"/>
     <SolidColorBrush x:Key="ColorPillBg"        Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="ColorPillBorder"    Color="#DDDDDD"/>
+    <SolidColorBrush x:Key="ColorPillBorder"    Color="#BBBBBB"/>
     <SolidColorBrush x:Key="ColorPillText"      Color="#333333"/>
 
 </ResourceDictionary>

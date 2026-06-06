@@ -83,7 +83,7 @@
             <!-- Validation error -->
             <TextBlock x:Name="ErrorText"
                        Text="Total must be at least 1 minute"
-                       FontSize="11" Foreground="#CC3300"
+                       FontSize="11" Foreground="{DynamicResource ErrorText}"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,4"
                        Visibility="Collapsed"/>

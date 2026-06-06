@@ -328,9 +328,11 @@ public class AudioService : IAudioService
                     var renderClient = (IAudioRenderClient)rcObj;
                     try
                     {
-                        const float frequency  = 440f;
-                        const float amplitude  = 0.25f;
-                        const float durationSec = 0.35f;
+                        const float frequency   = 261f;   // C4 (middle C) — warmer, less startling than 440 Hz
+                        const float amplitude   = 0.22f;
+                        const float durationSec = 0.5f;
+                        const float attackFrac  = 0.10f;  // fade in over first 10%
+                        const float releaseFrac = 0.25f;  // fade out over last 25%
                         int totalFrames = (int)(sampleRate * durationSec);
 
                         client.Start();
@@ -346,7 +348,11 @@ public class AudioService : IAudioService
 
                             for (int i = 0; i < toWrite; i++)
                             {
-                                float sample = amplitude * (float)Math.Sin(2.0 * Math.PI * frequency * (written + i) / sampleRate);
+                                float t   = (float)(written + i) / totalFrames;
+                                float env = t < attackFrac ? t / attackFrac
+                                          : t > (1f - releaseFrac) ? (1f - t) / releaseFrac
+                                          : 1f;
+                                float sample = amplitude * env * (float)Math.Sin(2.0 * Math.PI * frequency * (written + i) / sampleRate);
                                 for (int ch = 0; ch < channels; ch++)
                                 {
                                     int byteOffset = (i * channels + ch) * bytesPerSample;

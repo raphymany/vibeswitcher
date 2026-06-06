@@ -23,6 +23,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
     private readonly Func<bool> _use12Hour;
     private readonly Action<Guid>? _onTriggerConflictResolved;
+    private bool _isTesting;
     private readonly Action? _onAppTriggersChanged;
 
     private string _name;
@@ -493,6 +494,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void RemoveSwitchSound()
     {
+        if (!_dialogService.ShowConfirmSoundRemove()) return;
         _model.SoundOverride   = false;
         _model.SoundShowBanner = false;
         OnPropertyChanged(nameof(SoundOverride));
@@ -507,7 +509,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             _model.SoundTone,
             _model.SoundCustomPath,
             _model.SoundVolume ?? 50,
-            _model.SoundShowBanner);
+            _model.SoundOverride ? _model.SoundShowBanner : true); // default banner ON for new sounds
         if (result == null) return;
         _model.SoundOverride    = result.Enabled;
         _model.SoundTone        = result.Tone;
@@ -521,10 +523,18 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private async Task TestSound()
     {
+        if (_isTesting) return;
         var deviceId = _selectedPlaybackDevice?.Id;
         if (string.IsNullOrEmpty(deviceId)) return;
+        _isTesting = true;
+        CommandManager.InvalidateRequerySuggested();
         try { await _onTestSound(deviceId); }
         catch (Exception ex) { AppLogger.Warning("ProfileCardViewModel.TestSound", ex.Message); }
+        finally
+        {
+            _isTesting = false;
+            CommandManager.InvalidateRequerySuggested();
+        }
     }
 
     private void TestMic()
@@ -686,19 +696,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         // Delete the old icon if it was in iconsDir and is being replaced
         var previous = _iconPath;
-        var iconsPrefix = _configService.IconsDir + System.IO.Path.DirectorySeparatorChar;
-        if (!string.IsNullOrEmpty(previous) &&
-            previous.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(previous, dest, StringComparison.OrdinalIgnoreCase))
-        {
-            try { System.IO.File.Delete(previous); }
-            catch (Exception ex)
-            {
-                AppLogger.Warning("ProfileCardViewModel.ApplyGalleryIcon", ex.Message);
-                SessionErrorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
-                    $"Could not delete old icon file (it may remain on disk): {ex.Message}");
-            }
-        }
+        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, exceptPath: dest);
 
         // When dest matches _iconPath the file has been overwritten but SetField won't
         // detect a change (same path) — manually refresh the preview and notify bindings.
@@ -743,19 +741,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         // Delete the old icon from iconsDir if we're replacing it
         var previous = _iconPath;
-        var iconsPrefix = _configService.IconsDir + System.IO.Path.DirectorySeparatorChar;
-        if (!string.IsNullOrEmpty(previous) &&
-            previous.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(previous, dest, StringComparison.OrdinalIgnoreCase))
-        {
-            try { System.IO.File.Delete(previous); }
-            catch (Exception ex)
-            {
-                AppLogger.Warning("ProfileCardViewModel.BrowseIconFromDisk", ex.Message);
-                SessionErrorTracker.Record(ErrorCode.IconDeleteFailed, "Icon Delete Failed",
-                    $"Could not delete old icon file (it may still be on disk): {ex.Message}");
-            }
-        }
+        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, exceptPath: dest);
 
         IconPath = dest;
     }

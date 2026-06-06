@@ -32,7 +32,7 @@ public partial class SwitchSoundDialog : Window
         VolumeSliderControl.Value = volume;
         VolumeLabel.Text          = $"{volume}%";
 
-        BannerToggle.IsChecked = showBanner;
+        BannerToggle.IsChecked = !showBanner; // toggle means "suppress banner", so checked = no banner
     }
 
     private void ToneChip_Click(object sender, RoutedEventArgs e)
@@ -86,12 +86,15 @@ public partial class SwitchSoundDialog : Window
 
     private void BannerToggle_Changed(object sender, RoutedEventArgs e)
     {
-        _showBanner = BannerToggle.IsChecked == true;
+        _showBanner = BannerToggle.IsChecked != true; // checked = suppress, so banner = NOT checked
     }
 
-    private void TestSound_Click(object sender, RoutedEventArgs e)
+    private async void TestSound_Click(object sender, RoutedEventArgs e)
     {
-        _ = new SwitchSoundService().TestAsync(_tone, _customPath, _volume);
+        var btn = (System.Windows.Controls.Button)sender;
+        btn.IsEnabled = false;
+        try { await new SwitchSoundService().TestAsync(_tone, _customPath, _volume); }
+        finally { btn.IsEnabled = true; }
     }
 
     private void Save_Click(object sender, RoutedEventArgs e)

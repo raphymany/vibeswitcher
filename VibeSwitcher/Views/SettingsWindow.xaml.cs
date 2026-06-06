@@ -119,6 +119,8 @@ public partial class SettingsWindow : Window
 
     public void RefreshActiveStates() => _viewModel.RefreshActiveStates();
 
+    public void ExpandSettings() => _viewModel.SettingsCardExpanded = true;
+
     private void OnBoundsChanged(object? sender, EventArgs e)
     {
         if (_boundsTimer == null)
@@ -222,7 +224,7 @@ public partial class SettingsWindow : Window
         cfg.WindowHeight = Height;
         cfg.WindowLeft   = Left;
         cfg.WindowTop    = Top;
-        _configService.SaveImmediate();
+        _ = Task.Run(_configService.SaveImmediate);
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -325,7 +327,7 @@ public partial class SettingsWindow : Window
         var dialogSeed = _viewModel.SettingsHotkey;
         while (true)
         {
-            var dialog = new HotkeyCaptureDialog(dialogSeed) { Owner = this };
+            var dialog = new HotkeyCaptureDialog(dialogSeed, "Press any key combination to assign a shortcut for opening Settings") { Owner = this };
             if (dialog.ShowDialog() != true || dialog.CapturedHotkey == null) break;
 
             var captured = dialog.CapturedHotkey;
@@ -386,9 +388,16 @@ public partial class SettingsWindow : Window
             _                                      => _viewModel.MuteBothHotkey,
         };
 
+        var muteSubtitle = scope switch
+        {
+            VibeSwitcher.Models.MuteScope.Mic      => "Press any key combination to assign a shortcut for muting the microphone",
+            VibeSwitcher.Models.MuteScope.Speakers => "Press any key combination to assign a shortcut for muting speakers",
+            _                                      => "Press any key combination to assign a shortcut for muting all audio",
+        };
+
         while (true)
         {
-            var dialog = new HotkeyCaptureDialog(dialogSeed) { Owner = this };
+            var dialog = new HotkeyCaptureDialog(dialogSeed, muteSubtitle) { Owner = this };
             if (dialog.ShowDialog() != true || dialog.CapturedHotkey == null) break;
 
             var captured = dialog.CapturedHotkey;

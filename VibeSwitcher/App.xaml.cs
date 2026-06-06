@@ -279,6 +279,8 @@ public partial class App : Application
 
     public void OpenSettingsWindow() => _windowManager?.OpenSettingsWindow();
 
+    public void OpenSettingsWindowExpanded() => _windowManager?.OpenSettingsWindow(expandSettings: true);
+
     public void OpenAboutWindow() => _windowManager?.OpenAboutWindow();
 
     protected override void OnExit(ExitEventArgs e)

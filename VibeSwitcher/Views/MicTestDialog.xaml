@@ -29,9 +29,16 @@
                        FontSize="12" Foreground="{DynamicResource SecondaryText}"
                        TextWrapping="Wrap" Margin="0,0,0,14"/>
 
-            <TextBlock Text="Speak into your microphone"
+            <TextBlock x:Name="SpeakPrompt"
+                       Text="Speak into your microphone"
                        FontSize="13" FontWeight="SemiBold"
                        Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,12"/>
+
+            <TextBlock x:Name="CaptureError"
+                       Text="Could not open the microphone. Check that it is not in use by another app."
+                       FontSize="12" Foreground="{DynamicResource ErrorText}"
+                       TextWrapping="Wrap" Margin="0,0,0,12"
+                       Visibility="Collapsed"/>
 
             <ProgressBar x:Name="LevelBar"
                          Minimum="0" Maximum="1" Value="0"

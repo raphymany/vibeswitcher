@@ -64,71 +64,6 @@
             </Setter>
         </Style>
 
-        <!-- Volume slider — Accent-colored fill track + white thumb -->
-        <Style x:Key="VolumeSlider" TargetType="Slider">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Height"    Value="20"/>
-            <Setter Property="Focusable" Value="False"/>
-            <Setter Property="Cursor"    Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Slider">
-                        <Grid VerticalAlignment="Center">
-                            <Border Height="6" CornerRadius="3"
-                                    Background="{DynamicResource InputBorder}"
-                                    VerticalAlignment="Center"/>
-                            <Track x:Name="PART_Track">
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="Slider.DecreaseSmall" Focusable="False">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate TargetType="RepeatButton">
-                                                <Border Height="6" CornerRadius="3,0,0,3"
-                                                        Background="{DynamicResource Accent}"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                    </RepeatButton>
-                                </Track.DecreaseRepeatButton>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="Slider.IncreaseSmall" Focusable="False">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate TargetType="RepeatButton">
-                                                <Border Background="Transparent"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                    </RepeatButton>
-                                </Track.IncreaseRepeatButton>
-                                <Track.Thumb>
-                                    <Thumb>
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Ellipse x:Name="Thumb" Width="16" Height="16"
-                                                         Fill="White"
-                                                         Stroke="{DynamicResource Accent}" StrokeThickness="2">
-                                                    <Ellipse.Effect>
-                                                        <DropShadowEffect Color="#000" Opacity="0.18"
-                                                                          BlurRadius="4" ShadowDepth="1"/>
-                                                    </Ellipse.Effect>
-                                                </Ellipse>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter TargetName="Thumb" Property="Stroke" Value="{DynamicResource AccentHover}"/>
-                                                    </Trigger>
-                                                    <Trigger Property="IsDragging" Value="True">
-                                                        <Setter TargetName="Thumb" Property="Stroke" Value="{DynamicResource AccentHover}"/>
-                                                        <Setter TargetName="Thumb" Property="Width"  Value="18"/>
-                                                        <Setter TargetName="Thumb" Property="Height" Value="18"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                            </Track>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -142,13 +77,21 @@
         <StackPanel Grid.Row="1" Margin="28,18,28,24">
 
             <!-- Header -->
-            <TextBlock Text="Switch Sound"
-                       FontSize="15" FontWeight="SemiBold"
-                       Foreground="{DynamicResource PrimaryText}"
-                       Margin="0,0,0,4"/>
-            <TextBlock Text="Play a sound when this profile is activated."
-                       FontSize="12" Foreground="{DynamicResource SecondaryText}"
-                       TextWrapping="Wrap" Margin="0,0,0,20"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18"
+                        Background="{DynamicResource Accent}" Margin="0,0,12,0" VerticalAlignment="Center">
+                    <TextBlock Text="🎵" FontSize="17" LineHeight="17"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Switch Sound"
+                               FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock Text="Play a sound when this profile is activated"
+                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
 
             <!-- Tone chips -->
             <TextBlock Text="Tone" FontSize="11" FontWeight="SemiBold"
@@ -213,10 +156,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
-                        <TextBlock Text="Show notification banner"
+                        <TextBlock Text="Don't show notification banner"
                                    FontSize="13" FontWeight="SemiBold"
                                    Foreground="{DynamicResource PrimaryText}"/>
-                        <TextBlock Text="Display a tray banner when this profile activates (no Windows ding)."
+                        <TextBlock Text="Suppress the tray banner when this profile activates."
                                    FontSize="11" Foreground="{DynamicResource SecondaryText}"
                                    TextWrapping="Wrap" Margin="0,3,0,0"/>
                     </StackPanel>
