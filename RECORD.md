@@ -1356,12 +1356,12 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 48: `refactor/architecture-cleanup`
+### Branch 48: `refactor/architecture-cleanup` ✅ Done — PR #100
 **Theme:** Architecture refactors deferred from Branch 47 — too large to bundle with the audit fixes.
 
 | # | Item | Status |
 |---|------|--------|
-| R7 | `AudioService` god class (~478 lines) — split into focused services: device enumeration, profile switching, test-tone playback, mic-level capture, device-change notifications | Open |
-| R8 | `ProfileCardViewModel` dialog workflow loops — three `while(true)` loops for hotkey-capture, add-schedule, and edit-schedule retry logic live in the ViewModel; move to a service or orchestrator | Open |
-| R9 | `AppLogger` injectable interface — extract `IAppLogger` so the static `_logPathOverride` test hatch can be removed and logger injection used instead | Open |
-| V2 | `AppTriggerDialog` loading indicator — `ScanStartMenuShortcuts` calls `thread.Join(15_000)` with no feedback; dialog should open immediately and populate asynchronously with a visible loading state | Open |
+| R7 | `AudioService` god class (485 lines) — extracted into four internal static helpers: `AudioDeviceEnumerator` (device listing), `AudioProfileApplier` (PolicyConfig switching), `AudioTestTonePlayer` (WASAPI sine-wave), `AudioMicMonitor` (WASAPI capture + RMS); `AudioService` is now a ~110-line coordinator; `IAudioService` and all callers unchanged | ✅ Done |
+| R8 | `ProfileCardViewModel` retry loops — three `while(true)` loops replaced with named-flag `while` (CaptureHotkey) and `do-while` (AddSchedule, EditSchedule); all exit paths behaviorally identical | ✅ Done |
+| R9 | `AppLogger` injectable interface — deferred; 107 call sites across 22 files make the risk-to-benefit ratio poor at this stage; the `_logPathOverride` test hatch continues to work | ⏸ Deferred |
+| V2 | `AppTriggerDialog` loading indicator — "Loading installed apps…" label visible while background discovery runs; `CancellationTokenSource` wired to `Closed` event so the UI-update callback is skipped if the dialog is dismissed early | ✅ Done |

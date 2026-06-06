@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-06 — Branch 47 (`refactor/pre-release-audit`) merged — PR #98.
+**Last updated:** 2026-06-06 — Branch 48 (`refactor/architecture-cleanup`) merged — PR #100.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -181,15 +181,8 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Branch 48: `refactor/architecture-cleanup`
-**Theme:** Architecture refactors deferred from Branch 47 — too large to bundle with the audit fixes. Covers the three remaining god-class / structural issues plus the AppTriggerDialog loading indicator.
-
-| # | Item |
-|---|------|
-| R7 | `AudioService` god class (~478 lines) — split into focused services: device enumeration, profile switching, test-tone playback, mic-level capture, device-change notifications |
-| R8 | `ProfileCardViewModel` dialog workflow loops — three `while(true)` loops for hotkey-capture conflict resolution, add-schedule, and edit-schedule retry logic live in the ViewModel; move to a service or orchestrator layer |
-| R9 | `AppLogger` injectable interface — extract `IAppLogger` so the static `_logPathOverride` test hatch can be removed and logger injection used instead |
-| V2 | `AppTriggerDialog` loading indicator — `ScanStartMenuShortcuts` calls `thread.Join(15_000)` with no feedback; dialog should open immediately and populate the Installed tab asynchronously with a visible loading state |
+### ~~Branch 48: `refactor/architecture-cleanup`~~ ✅ Merged — PR #100
+**Theme:** Architecture refactors deferred from Branch 47 — too large to bundle with the audit fixes.
 
 ---
 
