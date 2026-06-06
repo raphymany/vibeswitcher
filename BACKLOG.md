@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-06 — Branch 48 (`refactor/architecture-cleanup`) merged — PR #100.
+**Last updated:** 2026-06-07 — Branch 51 (`refactor/injectable-services`) merged — PR #102.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -150,6 +150,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 ### ~~Branch 43: `feat/app-switching`~~ ✅ Merged — PR #96
 ### ~~Branch 47: `refactor/pre-release-audit`~~ ✅ Merged — PR #98
 ### ~~Branch 48: `refactor/architecture-cleanup`~~ ✅ Merged — PR #100
+### ~~Branch 51: `refactor/injectable-services`~~ ✅ Merged — PR #102
 
 *(Full item lists for all completed branches are in RECORD.md — Section 12.)*
 
@@ -160,12 +161,19 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | # | Feature | Why deferred |
 |---|---------|--------------|
 | C2 / 8.1 | Installer (Inno Setup or WiX) | Saving for last |
-| C3 / 8.2 | Code signing (Authenticode) | No certificate yet |
 | F8 / 8.3 | Auto-updater (GitHub Releases check) | Needs installer first |
 | 8.7 | winget / Chocolatey package | Post-v1.0 distribution |
-| F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
 | 10.8 | Website ("coming soon") | External, not in this repo |
-| — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
 | — | Compact / mini Settings window | After UI/UX redesign |
+
+---
+
+### Dropped — Will not implement
+
+| # | Feature | Why dropped |
+|---|---------|-------------|
+| C3 / 8.2 | Code signing (Authenticode) | No certificate yet |
+| F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
+| — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
 | F38 | Temporary / transient profile switch | Not useful enough to prioritize |
 | F40 | Monitor / dock / environment triggers (display, USB device, power source, network location) | Too broad to scope right now |

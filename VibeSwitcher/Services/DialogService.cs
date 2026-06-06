@@ -11,6 +11,13 @@ namespace VibeSwitcher.Services;
 
 public class DialogService : IDialogService
 {
+    private readonly IAppLogger _logger;
+
+    public DialogService(IAppLogger logger)
+    {
+        _logger = logger;
+    }
+
     private static Window? OwnerWindow =>
         Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
 
@@ -80,7 +87,7 @@ public class DialogService : IDialogService
 
     public void ShowMicTest(string deviceId, string deviceName)
     {
-        new MicTestDialog(deviceId, deviceName) { Owner = OwnerWindow }.ShowDialog();
+        new MicTestDialog(deviceId, deviceName, _logger) { Owner = OwnerWindow }.ShowDialog();
     }
 
     public bool ShowScheduleConflict(string conflictDescription)
@@ -125,7 +132,7 @@ public class DialogService : IDialogService
 
     public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false)
     {
-        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, showBanner) { Owner = OwnerWindow };
+        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, _logger, showBanner) { Owner = OwnerWindow };
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 

@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Navigation;
 using VibeSwitcher.Helpers;
-
 
 namespace VibeSwitcher.Views;
 
@@ -12,16 +11,20 @@ public partial class AboutWindow : Window
 {
     private readonly string _version;
     private readonly int _profileCount;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
 
-    public AboutWindow(int profileCount = 0)
+    public AboutWindow(int profileCount, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         InitializeComponent();
         _profileCount = profileCount;
+        _logger = logger;
+        _errorTracker = errorTracker;
 
         var infoVer = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()
             ?.InformationalVersion
-            ?.Split('+')[0]; // strip git commit hash suffix appended by MSBuild
+            ?.Split('+')[0];
         _version = !string.IsNullOrEmpty(infoVer)
             ? infoVer
             : Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
@@ -38,8 +41,8 @@ public partial class AboutWindow : Window
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("AboutWindow.Hyperlink", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+            _logger.Warning("AboutWindow.Hyperlink", ex.Message);
+            _errorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
                 $"Could not open link: {ex.Message}");
         }
         e.Handled = true;
@@ -50,8 +53,8 @@ public partial class AboutWindow : Window
         try { Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues") { UseShellExecute = true }); }
         catch (Exception ex)
         {
-            AppLogger.Warning("AboutWindow", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+            _logger.Warning("AboutWindow", ex.Message);
+            _errorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
                 $"Could not open GitHub Issues: {ex.Message}");
         }
     }
@@ -61,8 +64,8 @@ public partial class AboutWindow : Window
         try { Process.Start(new ProcessStartInfo("https://github.com/raphymany/vibeswitcher/issues/new/choose") { UseShellExecute = true }); }
         catch (Exception ex)
         {
-            AppLogger.Warning("AboutWindow", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+            _logger.Warning("AboutWindow", ex.Message);
+            _errorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
                 $"Could not open GitHub Issues form: {ex.Message}");
         }
     }
@@ -71,7 +74,7 @@ public partial class AboutWindow : Window
     {
         try
         {
-            var errors = SessionErrorTracker.Errors;
+            var errors = _errorTracker.Errors;
             var info = new System.Text.StringBuilder();
             info.AppendLine("=== VibeSwitcher Diagnostic Info ===");
             info.AppendLine($"Version:        {_version}");
@@ -97,7 +100,7 @@ public partial class AboutWindow : Window
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("AboutWindow.CopyDiagnostics", ex.Message);
+            _logger.Warning("AboutWindow.CopyDiagnostics", ex.Message);
         }
     }
 

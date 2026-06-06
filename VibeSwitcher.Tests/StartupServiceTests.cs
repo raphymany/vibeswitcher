@@ -9,7 +9,7 @@ public class StartupServiceTests : IDisposable
     private const string RegistryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string ValueName = "VibeSwitcher";
 
-    private readonly StartupService _svc = new();
+    private readonly StartupService _svc = new(new FakeAppLogger(), new FakeSessionErrorTracker());
     private readonly string? _savedRegistryValue;
 
     public StartupServiceTests()

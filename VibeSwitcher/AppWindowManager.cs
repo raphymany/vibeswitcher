@@ -1,4 +1,5 @@
 using System.Windows;
+using VibeSwitcher.Helpers;
 using VibeSwitcher.Services;
 using VibeSwitcher.Tray;
 using VibeSwitcher.Views;
@@ -11,6 +12,8 @@ public class AppWindowManager
     private readonly IAudioService _audioService;
     private readonly IHotkeyService _hotkeyService;
     private readonly TrayService _trayService;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
     private readonly Action<string> _applyTheme;
     private readonly Action<Models.DeviceProfile>? _switchProfile;
     private readonly Action? _onReschedule;
@@ -21,6 +24,8 @@ public class AppWindowManager
         IAudioService audioService,
         IHotkeyService hotkeyService,
         TrayService trayService,
+        IAppLogger logger,
+        ISessionErrorTracker errorTracker,
         Action<string> applyTheme,
         Action<Models.DeviceProfile>? switchProfile = null,
         Action? onReschedule = null,
@@ -30,6 +35,8 @@ public class AppWindowManager
         _audioService         = audioService;
         _hotkeyService        = hotkeyService;
         _trayService          = trayService;
+        _logger               = logger;
+        _errorTracker         = errorTracker;
         _applyTheme           = applyTheme;
         _switchProfile        = switchProfile;
         _onReschedule         = onReschedule;
@@ -53,7 +60,8 @@ public class AppWindowManager
             return;
         }
 
-        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService, _applyTheme, _switchProfile, _onReschedule, _onAppTriggersChanged);
+        var window = new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService,
+            _logger, _errorTracker, _applyTheme, _switchProfile, _onReschedule, _onAppTriggersChanged);
         window.Show();
         if (expandSettings) window.ExpandSettings();
     }
@@ -68,7 +76,7 @@ public class AppWindowManager
     {
         var owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
         var profileCount = _configService.Current.Profiles.Count;
-        var about = new AboutWindow(profileCount);
+        var about = new AboutWindow(profileCount, _logger, _errorTracker);
         if (owner != null) about.Owner = owner;
         about.ShowDialog();
     }

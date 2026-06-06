@@ -14,6 +14,9 @@ public class ConfigServiceTests : IDisposable
         Directory.CreateDirectory(_dir);
     }
 
+    private ConfigService MakeSvc(string? dir = null)
+        => new(new FakeAppLogger(), new FakeSessionErrorTracker(), dir ?? _dir);
+
     public void Dispose()
     {
         if (Directory.Exists(_dir))
@@ -23,7 +26,7 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void Load_WhenNoConfigFile_SetsIsFirstRun()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         Assert.True(svc.IsFirstRun);
     }
@@ -31,7 +34,7 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void Load_WhenNoConfigFile_ReturnsDefaultConfig()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         Assert.NotNull(svc.Current);
         Assert.Empty(svc.Current.Profiles);
@@ -40,12 +43,12 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void Save_ThenLoad_RoundTrip_Preserves_CloseToTray()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         svc.Current.CloseToTray = false; // flip away from default
         svc.SaveImmediate();
 
-        var svc2 = new ConfigService(_dir);
+        var svc2 = MakeSvc();
         svc2.Load();
         Assert.False(svc2.Current.CloseToTray);
         Assert.False(svc2.IsFirstRun);
@@ -54,12 +57,12 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void Save_ThenLoad_RoundTrip_Preserves_Profile()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         svc.Current.Profiles.Add(new DeviceProfile { Name = "Gaming" });
         svc.SaveImmediate();
 
-        var svc2 = new ConfigService(_dir);
+        var svc2 = MakeSvc();
         svc2.Load();
         Assert.Single(svc2.Current.Profiles);
         Assert.Equal("Gaming", svc2.Current.Profiles[0].Name);
@@ -68,7 +71,7 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void Load_CorruptPrimary_FallsBackToBackup()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         svc.Current.ShowNotifications = false; // flip away from default
         svc.SaveImmediate(); // first save: creates config.json (no backup yet)
@@ -77,7 +80,7 @@ public class ConfigServiceTests : IDisposable
         // Now corrupt the primary
         File.WriteAllText(Path.Combine(_dir, "config.json"), "{ NOT VALID JSON }}}");
 
-        var svc2 = new ConfigService(_dir);
+        var svc2 = MakeSvc();
         svc2.Load();
         Assert.False(svc2.Current.ShowNotifications);
     }
@@ -88,7 +91,7 @@ public class ConfigServiceTests : IDisposable
         File.WriteAllText(Path.Combine(_dir, "config.json"),     "{ BAD }");
         File.WriteAllText(Path.Combine(_dir, "config.json.bak"), "{ BAD }");
 
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         Assert.True(svc.IsFirstRun);
     }
@@ -96,7 +99,7 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void Save_DoesNotLeaveTemporaryFile()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         svc.SaveImmediate();
 
@@ -107,7 +110,7 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void Load_WithConcurrentReader_DoesNotThrow()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         svc.SaveImmediate();
 
@@ -117,7 +120,7 @@ public class ConfigServiceTests : IDisposable
 
         var ex = Record.Exception(() =>
         {
-            var svc2 = new ConfigService(_dir);
+            var svc2 = MakeSvc();
             svc2.Load();
         });
         Assert.Null(ex);
@@ -130,7 +133,7 @@ public class ConfigServiceTests : IDisposable
             Path.Combine(_dir, "config.json"),
             """{"WindowLeft":-1,"WindowTop":-1,"Profiles":[]}""");
 
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
         Assert.Null(svc.Current.WindowLeft);
         Assert.Null(svc.Current.WindowTop);
@@ -145,7 +148,7 @@ public class ConfigServiceTests : IDisposable
             Path.Combine(_dir, "config.json"),
             """{"WindowLeft":-1,"WindowTop":200.0,"Profiles":[]}""");
 
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         svc.Load();
 
         Assert.Null(svc.Current.WindowLeft);
@@ -155,7 +158,7 @@ public class ConfigServiceTests : IDisposable
     [Fact]
     public void IconsDir_IsSubdirectoryOfBaseDir()
     {
-        var svc = new ConfigService(_dir);
+        var svc = MakeSvc();
         Assert.StartsWith(_dir, svc.IconsDir, StringComparison.OrdinalIgnoreCase);
     }
 }

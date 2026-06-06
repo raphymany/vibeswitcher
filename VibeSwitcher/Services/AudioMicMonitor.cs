@@ -6,7 +6,7 @@ namespace VibeSwitcher.Services;
 
 internal static class AudioMicMonitor
 {
-    internal static void RunMicLevelMonitor(string deviceId, CancellationToken ct, Action<float> onLevel)
+    internal static void RunMicLevelMonitor(string deviceId, CancellationToken ct, Action<float> onLevel, IAppLogger logger)
     {
         var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
         try
@@ -82,7 +82,7 @@ internal static class AudioMicMonitor
         }
         catch (Exception ex) when (!ct.IsCancellationRequested)
         {
-            AppLogger.Warning("AudioMicMonitor.RunMicLevelMonitor", ex.Message);
+            logger.Warning("AudioMicMonitor.RunMicLevelMonitor", ex.Message);
         }
         finally { Marshal.ReleaseComObject(enumerator); }
     }

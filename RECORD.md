@@ -1363,5 +1363,21 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 |---|------|--------|
 | R7 | `AudioService` god class (485 lines) — extracted into four internal static helpers: `AudioDeviceEnumerator` (device listing), `AudioProfileApplier` (PolicyConfig switching), `AudioTestTonePlayer` (WASAPI sine-wave), `AudioMicMonitor` (WASAPI capture + RMS); `AudioService` is now a ~110-line coordinator; `IAudioService` and all callers unchanged | ✅ Done |
 | R8 | `ProfileCardViewModel` retry loops — three `while(true)` loops replaced with named-flag `while` (CaptureHotkey) and `do-while` (AddSchedule, EditSchedule); all exit paths behaviorally identical | ✅ Done |
-| R9 | `AppLogger` injectable interface — deferred; 107 call sites across 22 files make the risk-to-benefit ratio poor at this stage; the `_logPathOverride` test hatch continues to work | ⏸ Deferred |
+| R9 | `AppLogger` injectable interface — implemented as `refactor/injectable-services`; `IAppLogger` and `ISessionErrorTracker` interfaces introduced; all services receive logger/errorTracker via constructor injection; `AppLog`/`AppErrors` static service locators retained for `RelayCommand` and `IconHelper` only | ✅ Done — PR #102 |
 | V2 | `AppTriggerDialog` loading indicator — "Loading installed apps…" label visible while background discovery runs; `CancellationTokenSource` wired to `Closed` event so the UI-update callback is skipped if the dialog is dismissed early | ✅ Done |
+
+---
+
+### Branch 51: `refactor/injectable-services` ✅ Done — PR #102
+**Theme:** Convert static `AppLogger` and `SessionErrorTracker` to instance classes with constructor injection throughout the codebase, enabling proper test isolation and open-source maintainability.
+
+| # | Item | Status |
+|---|------|--------|
+| R9 | `IAppLogger` interface introduced; `AppLogger` becomes an instance class with `AppLogger(string? logDir = null)` constructor; `LogPath` remains `static readonly` | ✅ Done |
+| R9 | `ISessionErrorTracker` interface introduced; `SessionErrorTracker` becomes a per-instance class; no more static `Reset()` or static `Errors` property | ✅ Done |
+| R9 | `AppLog` / `AppErrors` static service locators retained in `AppLog.cs` for `RelayCommand` and `IconHelper` only (the two callers that cannot receive injection); both fields marked `volatile` | ✅ Done |
+| R9 | All 14 services (`AudioService`, `ConfigService`, `HotkeyService`, `StartupService`, `MuteService`, `DialogService`, `DeviceTriggerService`, `HidHeadsetService`, `AppWatcherService`, `SwitchSoundService`, `AppTriggerService`, `TrayService`, and the four audio helpers via method parameters) accept logger/errorTracker via constructor or method injection | ✅ Done |
+| R9 | All ViewModels (`SettingsViewModel`, `ProfileCardViewModel`) and Views (`ErrorDialog`, `SessionLogWindow`, `AboutWindow`, `SettingsWindow`, `MicTestDialog`, `SwitchSoundDialog`) accept logger/errorTracker via constructor injection | ✅ Done |
+| R9 | `App.xaml.cs` creates `new AppLogger()` and `new SessionErrorTracker()` at startup and wires them through every service; `AppLog.Register` / `AppErrors.Register` called immediately after for the two static-locator consumers | ✅ Done |
+| R9 | `FakeAppLogger` and `FakeSessionErrorTracker` test doubles added; all 8 affected test files updated to pass fakes; `FakeSessionErrorTracker` uses lock for thread safety matching the production implementation | ✅ Done |
+| R9 | `ErrorAdded` event on `SessionErrorTracker` changed from manual add/remove accessors to compiler-generated event for thread-safe subscribe/unsubscribe | ✅ Done |

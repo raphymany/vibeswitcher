@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.NativeMethods;
@@ -31,10 +31,14 @@ public class HotkeyService : IHotkeyService
     private ushort _settingsAtom;
     private HotkeyDefinition? _settingsHotkeyDef;
     private readonly Dictionary<MuteScope, (ushort Atom, HotkeyDefinition Hotkey)> _muteAtoms = new();
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
 
-    public HotkeyService(IntPtr messageWindowHandle)
+    public HotkeyService(IntPtr messageWindowHandle, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         _hwnd = messageWindowHandle;
+        _logger = logger;
+        _errorTracker = errorTracker;
     }
 
     // Returns a list of conflicts found; non-conflicting hotkeys are still registered.
@@ -58,14 +62,14 @@ public class HotkeyService : IHotkeyService
             }
             catch (HotkeyAtomException ex)
             {
-                AppLogger.Error("HotkeyService.RegisterAll", ex);
-                SessionErrorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
+                _logger.Error("HotkeyService.RegisterAll", ex);
+                _errorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
                     $"Could not create global atom for '{profile.Name}' — the system atom table may be full.");
             }
             catch (Exception ex)
             {
-                AppLogger.Error("HotkeyService.RegisterAll", ex);
-                SessionErrorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
+                _logger.Error("HotkeyService.RegisterAll", ex);
+                _errorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
                     $"Could not register hotkey for '{profile.Name}': {ex.Message}");
             }
         }
@@ -117,7 +121,7 @@ public class HotkeyService : IHotkeyService
         ushort atom = WinApi.GlobalAddAtom(atomName);
         if (atom == 0)
         {
-            AppLogger.Warning("HotkeyService.RegisterMuteHotkey", $"GlobalAddAtom returned 0 for mute scope {scope}.");
+            _logger.Warning("HotkeyService.RegisterMuteHotkey", $"GlobalAddAtom returned 0 for mute scope {scope}.");
             return null;
         }
 
@@ -128,7 +132,7 @@ public class HotkeyService : IHotkeyService
             WinApi.GlobalDeleteAtom(atom);
             if (err == WinApi.ERROR_HOTKEY_ALREADY_REGISTERED)
                 return new HotkeyConflictException(hotkey);
-            AppLogger.Warning("HotkeyService.RegisterMuteHotkey", $"RegisterHotKey failed (error {err}) for mute scope {scope}.");
+            _logger.Warning("HotkeyService.RegisterMuteHotkey", $"RegisterHotKey failed (error {err}) for mute scope {scope}.");
             return null;
         }
 
@@ -166,7 +170,7 @@ public class HotkeyService : IHotkeyService
         ushort atom = WinApi.GlobalAddAtom("VibeSwitcher_Settings");
         if (atom == 0)
         {
-            AppLogger.Warning("HotkeyService.RegisterSettingsHotkey", "GlobalAddAtom returned 0 — atom table may be full.");
+            _logger.Warning("HotkeyService.RegisterSettingsHotkey", "GlobalAddAtom returned 0 — atom table may be full.");
             return null;
         }
 
@@ -177,7 +181,7 @@ public class HotkeyService : IHotkeyService
             WinApi.GlobalDeleteAtom(atom);
             if (err == WinApi.ERROR_HOTKEY_ALREADY_REGISTERED)
                 return new HotkeyConflictException(hotkey);
-            AppLogger.Warning("HotkeyService.RegisterSettingsHotkey", $"RegisterHotKey failed (error {err})");
+            _logger.Warning("HotkeyService.RegisterSettingsHotkey", $"RegisterHotKey failed (error {err})");
             return null;
         }
 
@@ -223,8 +227,8 @@ public class HotkeyService : IHotkeyService
 
         if (testAtom == 0)
         {
-            AppLogger.Warning("HotkeyService.TestHotkey", "GlobalAddAtom returned 0 — atom table may be full; conflict check skipped.");
-            SessionErrorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
+            _logger.Warning("HotkeyService.TestHotkey", "GlobalAddAtom returned 0 — atom table may be full; conflict check skipped.");
+            _errorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
                 "Could not probe for hotkey conflicts — the system atom table may be full.");
         }
         else
@@ -296,20 +300,20 @@ public class HotkeyService : IHotkeyService
         try { RegisterOne(profile); }
         catch (HotkeyConflictException ex)
         {
-            AppLogger.Error("HotkeyService.RegisterProfile", ex);
-            SessionErrorTracker.Record(HotkeyConflict, "Hotkey Conflict",
+            _logger.Error("HotkeyService.RegisterProfile", ex);
+            _errorTracker.Record(HotkeyConflict, "Hotkey Conflict",
                 $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
         }
         catch (HotkeyAtomException ex)
         {
-            AppLogger.Error("HotkeyService.RegisterProfile", ex);
-            SessionErrorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
+            _logger.Error("HotkeyService.RegisterProfile", ex);
+            _errorTracker.Record(HotkeyAtomCreateFailed, "Hotkey Atom Creation Failed",
                 "Could not create atom for hotkey — the system atom table may be full.");
         }
         catch (Exception ex)
         {
-            AppLogger.Error("HotkeyService.RegisterProfile", ex);
-            SessionErrorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
+            _logger.Error("HotkeyService.RegisterProfile", ex);
+            _errorTracker.Record(HotkeyRegistrationFailed, "Hotkey Registration Failed",
                 $"Could not register hotkey: {ex.Message}");
         }
     }

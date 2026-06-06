@@ -9,15 +9,18 @@ public sealed class AppTriggerService : IDisposable
     private readonly IConfigService _configService;
     private readonly AppWatcherService _watcher;
     private readonly Action<DeviceProfile> _switchCallback;
+    private readonly IAppLogger _logger;
 
     public AppTriggerService(
         IConfigService configService,
         AppWatcherService watcher,
-        Action<DeviceProfile> switchCallback)
+        Action<DeviceProfile> switchCallback,
+        IAppLogger logger)
     {
         _configService = configService;
         _watcher = watcher;
         _switchCallback = switchCallback;
+        _logger = logger;
         _watcher.ProcessLaunched += OnProcessLaunched;
         RefreshWatchList();
     }
@@ -43,7 +46,7 @@ public sealed class AppTriggerService : IDisposable
         if (profile == null) return;
         if (_configService.Current.ActiveProfileId == profile.Id) return;
 
-        AppLogger.Info("AppTriggerService", $"'{exeName}' launched — switching to '{profile.Name}'.");
+        _logger.Info("AppTriggerService", $"'{exeName}' launched — switching to '{profile.Name}'.");
 
         var dispatcher = System.Windows.Application.Current?.Dispatcher;
         if (dispatcher != null)

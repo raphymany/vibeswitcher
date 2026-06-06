@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 
 namespace VibeSwitcher.Services;
@@ -7,6 +7,15 @@ public class StartupService : IStartupService
 {
     private const string RegistryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string ValueName = "VibeSwitcher";
+
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
+
+    public StartupService(IAppLogger logger, ISessionErrorTracker errorTracker)
+    {
+        _logger = logger;
+        _errorTracker = errorTracker;
+    }
 
     public bool IsStartupEnabled()
     {
@@ -17,8 +26,8 @@ public class StartupService : IStartupService
         }
         catch (Exception ex)
         {
-            AppLogger.Error("StartupService.IsStartupEnabled", ex);
-            SessionErrorTracker.Record(ErrorCode.StartupRegistryReadFailed, "Startup Registry Read Failed",
+            _logger.Error("StartupService.IsStartupEnabled", ex);
+            _errorTracker.Record(ErrorCode.StartupRegistryReadFailed, "Startup Registry Read Failed",
                 $"Could not read the startup registry key: {ex.Message}");
             return false;
         }
@@ -31,8 +40,8 @@ public class StartupService : IStartupService
             var exePath = Environment.ProcessPath;
             if (string.IsNullOrEmpty(exePath))
             {
-                AppLogger.Error("StartupService.Enable", "Could not resolve executable path");
-                SessionErrorTracker.Record(ErrorCode.StartupPathResolutionFailed, "Startup Path Unavailable",
+                _logger.Error("StartupService.Enable", "Could not resolve executable path");
+                _errorTracker.Record(ErrorCode.StartupPathResolutionFailed, "Startup Path Unavailable",
                     "Could not determine the application path — 'Start with Windows' was not enabled.");
                 return;
             }
@@ -42,8 +51,8 @@ public class StartupService : IStartupService
         }
         catch (Exception ex)
         {
-            AppLogger.Error("StartupService.Enable", ex);
-            SessionErrorTracker.Record(ErrorCode.StartupRegistryFailed, "Startup Registry Failed",
+            _logger.Error("StartupService.Enable", ex);
+            _errorTracker.Record(ErrorCode.StartupRegistryFailed, "Startup Registry Failed",
                 $"Could not enable start with Windows: {ex.Message}");
         }
     }
@@ -57,8 +66,8 @@ public class StartupService : IStartupService
         }
         catch (Exception ex)
         {
-            AppLogger.Error("StartupService.Disable", ex);
-            SessionErrorTracker.Record(ErrorCode.StartupRegistryFailed, "Startup Registry Failed",
+            _logger.Error("StartupService.Disable", ex);
+            _errorTracker.Record(ErrorCode.StartupRegistryFailed, "Startup Registry Failed",
                 $"Could not disable start with Windows: {ex.Message}");
         }
     }
@@ -78,14 +87,14 @@ public class StartupService : IStartupService
             var expected = $"\"{exePath}\"";
             if (!string.Equals(stored, expected, StringComparison.OrdinalIgnoreCase))
             {
-                AppLogger.Info("StartupService.RefreshRegistryPath",
+                _logger.Info("StartupService.RefreshRegistryPath",
                     $"Startup registry path outdated; updating to current exe location.");
                 Enable();
             }
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("StartupService.RefreshRegistryPath", ex.Message);
+            _logger.Warning("StartupService.RefreshRegistryPath", ex.Message);
         }
     }
 }

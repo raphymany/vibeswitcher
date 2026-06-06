@@ -26,15 +26,19 @@ public sealed class DeviceTriggerService : IDisposable
     private readonly object _stateLock = new();
     private readonly List<HidHeadsetDescriptor> _hidDescriptors = [];
 
+    private readonly IAppLogger _logger;
+
     public DeviceTriggerService(
         IAudioService audioService,
         IConfigService configService,
         Action<DeviceProfile> switchCallback,
+        IAppLogger logger,
         Func<DateTime>? clock = null)
     {
         _audioService    = audioService;
         _configService   = configService;
         _switchCallback  = switchCallback;
+        _logger          = logger;
         _clock           = clock ?? (() => DateTime.UtcNow);
         _connectedIds    = BuildConnectedSet();
         _audioService.DevicesChanged        += OnDevicesChanged;
@@ -183,7 +187,7 @@ public sealed class DeviceTriggerService : IDisposable
         lock (_stateLock)
             _revertStack.Push(new RevertInfo(profile.Id, _configService.Current.ActiveProfileId, IsHidTriggered: true));
 
-        AppLogger.Info("DeviceTriggerService.HidConnect",
+        _logger.Info("DeviceTriggerService.HidConnect",
             $"{descriptor.ModelName}: switching to '{profile.Name}'.");
         DispatchSwitch(profile);
     }
@@ -199,14 +203,14 @@ public sealed class DeviceTriggerService : IDisposable
 
         if (!ri.HasValue)
         {
-            AppLogger.Info("DeviceTriggerService.HidRevert",
+            _logger.Info("DeviceTriggerService.HidRevert",
                 $"{descriptor.ModelName}: no revert info set — skipping.");
             return;
         }
 
         if (_configService.Current.ActiveProfileId != ri.Value.TriggeredProfileId)
         {
-            AppLogger.Info("DeviceTriggerService.HidRevert",
+            _logger.Info("DeviceTriggerService.HidRevert",
                 $"{descriptor.ModelName}: active profile changed since trigger — skipping revert.");
             return;
         }
@@ -216,19 +220,19 @@ public sealed class DeviceTriggerService : IDisposable
 
         if (triggeredProfile == null)
         {
-            AppLogger.Info("DeviceTriggerService.HidRevert",
+            _logger.Info("DeviceTriggerService.HidRevert",
                 $"{descriptor.ModelName}: triggered profile not found — skipping.");
             return;
         }
 
         if (!IsProfileForDescriptor(triggeredProfile, descriptor))
         {
-            AppLogger.Info("DeviceTriggerService.HidRevert",
+            _logger.Info("DeviceTriggerService.HidRevert",
                 $"{descriptor.ModelName}: triggered profile '{triggeredProfile.Name}' does not match descriptor — skipping.");
             return;
         }
 
-        AppLogger.Info("DeviceTriggerService.HidRevert",
+        _logger.Info("DeviceTriggerService.HidRevert",
             $"{descriptor.ModelName}: reverting from '{triggeredProfile.Name}'.");
         lock (_stateLock) _revertStack.Pop();
         RevertToPrevious(ri.Value.PreviousProfileId);
@@ -250,7 +254,7 @@ public sealed class DeviceTriggerService : IDisposable
 
         // Fallback: Windows names USB audio devices using the product string, which typically
         // matches or contains the HID model name (e.g. "Headphones (Logitech PRO X Wireless)").
-        AppLogger.Info("DeviceTriggerService.HidRevert",
+        _logger.Info("DeviceTriggerService.HidRevert",
             $"Path not available for '{profile.Name}' — falling back to friendly name match for '{descriptor.ModelName}'.");
         return FriendlyNameMatchesModel(profile.PlaybackDeviceId, descriptor.ModelName)
             || FriendlyNameMatchesModel(profile.RecordingDeviceId, descriptor.ModelName);
@@ -263,7 +267,7 @@ public sealed class DeviceTriggerService : IDisposable
             .Concat(_audioService.GetRecordingDevices())
             .FirstOrDefault(d => string.Equals(d.Id, audioDeviceId, StringComparison.OrdinalIgnoreCase));
         if (device == null) return false;
-        AppLogger.Info("DeviceTriggerService.HidRevert",
+        _logger.Info("DeviceTriggerService.HidRevert",
             $"  Audio device name=[{device.FriendlyName}] vs model=[{modelName}]");
         // Match if the Windows name contains the model name or vice versa.
         return device.FriendlyName.Contains(modelName, StringComparison.OrdinalIgnoreCase)

@@ -7,7 +7,8 @@ namespace VibeSwitcher.Services;
 
 internal static class AudioProfileApplier
 {
-    internal static ProfileSwitchResult Apply(DeviceProfile profile)
+    internal static ProfileSwitchResult Apply(
+        DeviceProfile profile, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
         var rawPolicy = new PolicyConfigClient();
@@ -23,8 +24,8 @@ internal static class AudioProfileApplier
                     (hr = modern.SetDefaultEndpoint(id, ERole.Communications)) != 0)
                 {
                     var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
-                    AppLogger.Error("AudioProfileApplier.Apply", msg);
-                    SessionErrorTracker.Record(ErrorCode.PolicySetDefaultFailed,
+                    logger.Error("AudioProfileApplier.Apply", msg);
+                    errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
                         "Set Default Audio Endpoint Failed", msg);
                 }
             },
@@ -36,8 +37,8 @@ internal static class AudioProfileApplier
                     (hr = vista.SetDefaultEndpoint(id, ERole.Communications)) != 0)
                 {
                     var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
-                    AppLogger.Error("AudioProfileApplier.Apply", msg);
-                    SessionErrorTracker.Record(ErrorCode.PolicySetDefaultFailed,
+                    logger.Error("AudioProfileApplier.Apply", msg);
+                    errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
                         "Set Default Audio Endpoint Failed", msg);
                 }
             },
@@ -47,8 +48,8 @@ internal static class AudioProfileApplier
         if (setDefault == null)
         {
             var msg = "PolicyConfig COM interface is not supported on this Windows version. Audio switching is unavailable.";
-            AppLogger.Error("AudioProfileApplier.Apply", msg);
-            SessionErrorTracker.Record(ErrorCode.PolicyConfigUnsupported, "PolicyConfig Not Supported", msg);
+            logger.Error("AudioProfileApplier.Apply", msg);
+            errorTracker.Record(ErrorCode.PolicyConfigUnsupported, "PolicyConfig Not Supported", msg);
             throw new NotSupportedException(msg);
         }
 
@@ -90,8 +91,8 @@ internal static class AudioProfileApplier
         catch (COMException ex) when (ex.HResult == unchecked((int)0x80070424))
         {
             var msg = "Windows Audio service is not running. Start the Audio service and try again.";
-            AppLogger.Error("AudioProfileApplier.Apply", msg);
-            SessionErrorTracker.Record(ErrorCode.AudioServiceUnavailable, "Audio Service Unavailable", msg);
+            logger.Error("AudioProfileApplier.Apply", msg);
+            errorTracker.Record(ErrorCode.AudioServiceUnavailable, "Audio Service Unavailable", msg);
             throw new InvalidOperationException(msg, ex);
         }
         finally

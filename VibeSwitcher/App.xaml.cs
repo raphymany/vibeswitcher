@@ -12,6 +12,8 @@ namespace VibeSwitcher;
 public partial class App : Application
 {
     private readonly SingleInstanceHelper _singleInstance = new();
+    private IAppLogger? _logger;
+    private ISessionErrorTracker? _errorTracker;
     private IConfigService? _configService;
     private IAudioService? _audioService;
     private IHotkeyService? _hotkeyService;
@@ -31,14 +33,17 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        AppLogger.StartSession();
+        _logger = new AppLogger();
+        _errorTracker = new SessionErrorTracker();
+        AppLog.Register(_logger);
+        AppErrors.Register(_errorTracker);
 
         // Last-resort handler for exceptions that escape all other catch blocks on the UI thread.
         // Marking Handled=true keeps the app alive for recoverable cases (e.g. a bad tray click).
         // Truly unexpected exceptions are still logged so they appear in the error log.
         DispatcherUnhandledException += (_, args) =>
         {
-            AppLogger.Error("DispatcherUnhandledException", args.Exception);
+            _logger.Error("DispatcherUnhandledException", args.Exception);
             args.Handled = true;
         };
 
@@ -46,13 +51,13 @@ public partial class App : Application
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
             if (args.ExceptionObject is Exception ex)
-                AppLogger.Error("UnhandledException", ex);
+                _logger.Error("UnhandledException", ex);
         };
 
         // Catches exceptions from fire-and-forget Tasks that were never awaited.
         TaskScheduler.UnobservedTaskException += (_, args) =>
         {
-            AppLogger.Error("UnobservedTaskException", args.Exception);
+            _logger.Error("UnobservedTaskException", args.Exception);
             args.SetObserved();
         };
 
@@ -66,7 +71,7 @@ public partial class App : Application
         }
 
         // 2. Load configuration
-        _configService = new ConfigService();
+        _configService = new ConfigService(_logger, _errorTracker);
         _configService.Load();
 
         // 2a. Apply theme before any UI is shown
@@ -75,7 +80,7 @@ public partial class App : Application
         _themeService.StartListening();
 
         // 2b. Self-correct the startup registry path if the exe was moved since last enable
-        new StartupService().RefreshRegistryPath();
+        new StartupService(_logger, _errorTracker).RefreshRegistryPath();
 
         // 3. Dedicated message-only HwndSource for WM_HOTKEY (never shown)
         _hwndSource = new HwndSource(new HwndSourceParameters("AudioSwitcherHotkeys")
@@ -88,18 +93,19 @@ public partial class App : Application
         _hwndSource.AddHook(WndProc);
 
         // 4. Initialise services
-        _audioService = new AudioService();
-        _hotkeyService = new HotkeyService(_hwndSource.Handle);
-        _trayService = new TrayService(_configService);
+        _audioService = new AudioService(_logger, _errorTracker);
+        _hotkeyService = new HotkeyService(_hwndSource.Handle, _logger, _errorTracker);
+        _trayService = new TrayService(_configService, _logger, _errorTracker);
         _themeService.ThemeApplied += () => _trayService.RebuildMenu();
 
         // 5. Initialise orchestrators
-        var switchSoundService = new SwitchSoundService();
-        _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher);
-        _muteService = new MuteService();
+        var switchSoundService = new SwitchSoundService(_logger);
+        _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher, _logger, _errorTracker);
+        _muteService = new MuteService(_logger);
         _muteService.MuteStateChanged += () =>
             _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
-        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService, _themeService.Apply,
+        _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService,
+            _logger, _errorTracker, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile),
             onReschedule: () => _schedulerService?.Reschedule(),
             onAppTriggersChanged: () => _appTriggerService?.RefreshWatchList());
@@ -120,7 +126,7 @@ public partial class App : Application
         if (_configService.Current.ActiveProfileId.HasValue &&
             !_configService.Current.Profiles.Any(p => p.Id == _configService.Current.ActiveProfileId))
         {
-            AppLogger.Warning("App.OnStartup", "ActiveProfileId in config does not match any profile — resetting.");
+            _logger.Warning("App.OnStartup", "ActiveProfileId in config does not match any profile — resetting.");
             _configService.Current.ActiveProfileId = null;
             _configService.SaveImmediate();
         }
@@ -150,11 +156,12 @@ public partial class App : Application
         _deviceTriggerService = new DeviceTriggerService(
             _audioService,
             _configService,
-            profile => _orchestrator.SwitchToProfile(profile));
+            profile => _orchestrator.SwitchToProfile(profile),
+            _logger);
 
         // 9d. HID headset monitor — detects wireless power-off for supported headsets
         //     and triggers the revert that the audio API can't detect on its own.
-        _hidHeadsetService = new HidHeadsetService();
+        _hidHeadsetService = new HidHeadsetService(_logger);
         _hidHeadsetService.DeviceMonitoringStarted +=
             d => _deviceTriggerService.RegisterHidDescriptor(d);
         _hidHeadsetService.WirelessConnected    +=
@@ -164,11 +171,12 @@ public partial class App : Application
         _hidHeadsetService.Start();
 
         // 9e. App launch trigger — switches profile when a linked executable launches
-        _appWatcherService = new AppWatcherService();
+        _appWatcherService = new AppWatcherService(_logger);
         _appTriggerService = new AppTriggerService(
             _configService,
             _appWatcherService,
-            profile => _orchestrator.SwitchToProfile(profile));
+            profile => _orchestrator.SwitchToProfile(profile),
+            _logger);
 
         // 10. Open settings on first run, or if the user has turned off start-minimized
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
@@ -183,7 +191,7 @@ public partial class App : Application
         var conflict = _hotkeyService!.RegisterSettingsHotkey(hotkey);
         if (conflict != null)
         {
-            SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+            _errorTracker!.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
                 $"Could not register Settings hotkey '{conflict.Hotkey.ToDisplayString()}' — another app is using it.");
             _trayService!.ShowBalloon("Hotkey Conflict",
                 $"Settings hotkey '{conflict.Hotkey.ToDisplayString()}' is in use by another app.");
@@ -204,7 +212,7 @@ public partial class App : Application
         var conflict = _hotkeyService!.RegisterMuteHotkey(scope, hotkey);
         if (conflict != null)
         {
-            SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+            _errorTracker!.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
                 $"Could not register mute hotkey '{conflict.Hotkey.ToDisplayString()}' — another app is using it.");
             _trayService!.ShowBalloon("Hotkey Conflict",
                 $"Mute hotkey '{conflict.Hotkey.ToDisplayString()}' is in use by another app.");
@@ -216,7 +224,7 @@ public partial class App : Application
         var conflicts = _hotkeyService!.RegisterAll(_configService!.Current.Profiles);
         foreach (var ex in conflicts)
         {
-            SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+            _errorTracker!.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
                 $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             _trayService!.ShowBalloon(
                 "Hotkey Conflict",

@@ -30,12 +30,17 @@ public class AudioService : IAudioService
     private readonly DeviceNotificationClient _notifClient;
     private IntPtr _notifClientPtr;
     private volatile bool _disposed;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
 
     public event Action? DevicesChanged;
     public event Action<string>? DevicePropertyChanged;
 
-    public AudioService()
+    public AudioService(IAppLogger logger, ISessionErrorTracker errorTracker)
     {
+        _logger = logger;
+        _errorTracker = errorTracker;
+
         _notifEnumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
         _notifClient = new DeviceNotificationClient();
         _notifClient.DevicesChanged += () => DevicesChanged?.Invoke();
@@ -47,8 +52,8 @@ public class AudioService : IAudioService
             int hr = _notifEnumerator.RegisterEndpointNotificationCallback(_notifClientPtr);
             if (hr != 0)
             {
-                AppLogger.Warning("AudioService", $"RegisterEndpointNotificationCallback returned 0x{hr:X8} — device list will not refresh automatically on plug/unplug");
-                SessionErrorTracker.Record(ErrorCode.DeviceNotificationFailed, "Device Notification Setup Failed",
+                _logger.Warning("AudioService", $"RegisterEndpointNotificationCallback returned 0x{hr:X8} — device list will not refresh automatically on plug/unplug");
+                _errorTracker.Record(ErrorCode.DeviceNotificationFailed, "Device Notification Setup Failed",
                     $"Could not subscribe to device change events (HRESULT 0x{hr:X8}). The device list will not refresh automatically.");
                 Marshal.Release(_notifClientPtr);
                 _notifClientPtr = IntPtr.Zero;
@@ -56,8 +61,8 @@ public class AudioService : IAudioService
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("AudioService", $"Could not register device notification callback: {ex.Message}");
-            SessionErrorTracker.Record(ErrorCode.DeviceNotificationFailed, "Device Notification Setup Failed",
+            _logger.Warning("AudioService", $"Could not register device notification callback: {ex.Message}");
+            _errorTracker.Record(ErrorCode.DeviceNotificationFailed, "Device Notification Setup Failed",
                 $"Could not subscribe to device change events: {ex.Message}");
             _notifClientPtr = IntPtr.Zero;
         }
@@ -76,16 +81,16 @@ public class AudioService : IAudioService
     }
 
     public IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices() =>
-        _disposed ? [] : AudioDeviceEnumerator.GetDevices(EDataFlow.Render);
+        _disposed ? [] : AudioDeviceEnumerator.GetDevices(EDataFlow.Render, _logger, _errorTracker);
 
     public IReadOnlyList<AudioDeviceInfo> GetRecordingDevices() =>
-        _disposed ? [] : AudioDeviceEnumerator.GetDevices(EDataFlow.Capture);
+        _disposed ? [] : AudioDeviceEnumerator.GetDevices(EDataFlow.Capture, _logger, _errorTracker);
 
     public Task<ProfileSwitchResult> ApplyProfileAsync(DeviceProfile profile) =>
-        Task.Run(() => AudioProfileApplier.Apply(profile));
+        Task.Run(() => AudioProfileApplier.Apply(profile, _logger, _errorTracker));
 
     public Task TestSoundAsync(string deviceId) =>
-        Task.Run(() => AudioTestTonePlayer.Play(deviceId));
+        Task.Run(() => AudioTestTonePlayer.Play(deviceId, _logger));
 
     // Returns the symbolic device path for the given audio endpoint (e.g.
     // "\\?\USB#VID_046D&PID_0ABA&MI_00#...") which embeds VID/PID for USB devices.

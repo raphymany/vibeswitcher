@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -40,8 +40,8 @@ public static class IconHelper
                                           + Path.DirectorySeparatorChar;
                 if (!canonical.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    AppLogger.Warning("IconHelper.LoadIcon", $"Rejected icon path outside icons directory: '{canonical}'");
-                    SessionErrorTracker.Record(ErrorCode.IconLoadFailed, "Icon Path Rejected",
+                    AppLog.Warning("IconHelper.LoadIcon", $"Rejected icon path outside icons directory: '{canonical}'");
+                    AppErrors.Record(ErrorCode.IconLoadFailed, "Icon Path Rejected",
                         $"Icon path '{iconPath}' is outside the expected directory and was not loaded.");
                     return CopyIcon(GetDefaultIcon());
                 }
@@ -56,8 +56,8 @@ public static class IconHelper
             }
             catch (Exception ex)
             {
-                AppLogger.Warning("IconHelper.LoadIcon", ex.Message);
-                SessionErrorTracker.Record(ErrorCode.IconLoadFailed, "Icon Load Failed",
+                AppLog.Warning("IconHelper.LoadIcon", ex.Message);
+                AppErrors.Record(ErrorCode.IconLoadFailed, "Icon Load Failed",
                     $"Could not load icon from '{iconPath}': {ex.Message}");
             }
         }
@@ -68,8 +68,8 @@ public static class IconHelper
         }
         catch (Exception ex)
         {
-            AppLogger.Error("IconHelper.LoadIcon", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.GdiRenderFailed, "GDI Render Failed",
+            AppLog.Error("IconHelper.LoadIcon", ex.Message);
+            AppErrors.Record(ErrorCode.GdiRenderFailed, "GDI Render Failed",
                 $"Could not create default icon: {ex.Message}");
             throw;
         }
@@ -92,7 +92,7 @@ public static class IconHelper
                     return _defaultIcon;
                 }
             }
-            catch (Exception ex) { AppLogger.Warning("IconHelper.GetDefaultIcon", ex.Message); }
+            catch (Exception ex) { AppLog.Warning("IconHelper.GetDefaultIcon", ex.Message); }
             _defaultIcon = CreateColorIcon(System.Drawing.Color.FromArgb(0, 120, 212));
             return _defaultIcon;
         }
@@ -119,7 +119,7 @@ public static class IconHelper
                     return _balloonIconHandle;
                 }
             }
-            catch (Exception ex) { AppLogger.Warning("IconHelper.GetBalloonIconHandle", ex.Message); }
+            catch (Exception ex) { AppLog.Warning("IconHelper.GetBalloonIconHandle", ex.Message); }
             return GetDefaultIcon().Handle;
         }
     }
@@ -141,7 +141,7 @@ public static class IconHelper
             }
             catch (Exception ex)
             {
-                AppLogger.Warning("IconHelper.GetAppIconImageSource", ex.Message);
+                AppLog.Warning("IconHelper.GetAppIconImageSource", ex.Message);
                 _appIconImageSource = ToImageSource(GetDefaultIcon());
                 return _appIconImageSource;
             }
@@ -192,8 +192,8 @@ public static class IconHelper
         }
         catch (Exception ex)
         {
-            AppLogger.Error("IconHelper.ToImageSource", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.IconRenderFailed, "Icon Render Failed",
+            AppLog.Error("IconHelper.ToImageSource", ex.Message);
+            AppErrors.Record(ErrorCode.IconRenderFailed, "Icon Render Failed",
                 $"Could not convert icon to image: {ex.Message}");
             throw;
         }

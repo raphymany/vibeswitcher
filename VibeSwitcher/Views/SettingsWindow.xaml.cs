@@ -21,6 +21,8 @@ public partial class SettingsWindow : Window
     private readonly TrayService _trayService;
     private readonly IConfigService _configService;
     private readonly IHotkeyService _hotkeyService;
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
     private readonly EventHandler _errorAddedHandler;
 
     private System.Windows.Threading.DispatcherTimer? _boundsTimer;
@@ -41,6 +43,8 @@ public partial class SettingsWindow : Window
         IAudioService audioService,
         IHotkeyService hotkeyService,
         TrayService trayService,
+        IAppLogger logger,
+        ISessionErrorTracker errorTracker,
         Action<string> applyTheme,
         Action<Models.DeviceProfile>? switchProfile = null,
         Action? onReschedule = null,
@@ -50,15 +54,19 @@ public partial class SettingsWindow : Window
         _trayService = trayService;
         _configService = configService;
         _hotkeyService = hotkeyService;
+        _logger = logger;
+        _errorTracker = errorTracker;
 
-        var startupService = new StartupService();
-        var dialogService = new DialogService();
+        var startupService = new StartupService(logger, errorTracker);
+        var dialogService = new DialogService(logger);
         _viewModel = new SettingsViewModel(
             configService,
             audioService,
             hotkeyService,
             startupService,
             dialogService,
+            logger,
+            errorTracker,
             onProfilesChanged: () =>
             {
                 trayService.ClearIconCache();
@@ -70,7 +78,7 @@ public partial class SettingsWindow : Window
             },
             onHotkeyConflict: ex =>
             {
-                SessionErrorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                errorTracker.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
                     $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
                 trayService.ShowBalloon(
                     "Hotkey Conflict",
@@ -106,13 +114,13 @@ public partial class SettingsWindow : Window
         {
             if ((bool)e.NewValue)
             {
-                SessionErrorTracker.ErrorAdded += _errorAddedHandler;
+                _errorTracker.ErrorAdded += _errorAddedHandler;
                 UpdateLogsButton();
                 _viewModel.RefreshActiveStates();
             }
             else
             {
-                SessionErrorTracker.ErrorAdded -= _errorAddedHandler;
+                _errorTracker.ErrorAdded -= _errorAddedHandler;
             }
         };
     }
@@ -174,7 +182,7 @@ public partial class SettingsWindow : Window
 
     private void UpdateLogsButton()
     {
-        var count = SessionErrorTracker.Count;
+        var count = _errorTracker.Count;
         if (count == 0)
         {
             LogsButton.Visibility = Visibility.Collapsed;
@@ -188,7 +196,7 @@ public partial class SettingsWindow : Window
 
     private void LogsButton_Click(object sender, RoutedEventArgs e)
     {
-        new SessionLogWindow { Owner = this }.ShowDialog();
+        new SessionLogWindow(_logger, _errorTracker) { Owner = this }.ShowDialog();
     }
 
     private void RestoreWindowBounds()
@@ -313,8 +321,8 @@ public partial class SettingsWindow : Window
         try { Process.Start("control.exe", "/name Microsoft.Sound"); }
         catch (Exception ex)
         {
-            AppLogger.Warning("SettingsWindow.OpenSoundSettings", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.SoundSettingsOpenFailed, "Sound Settings Could Not Open",
+            _logger.Warning("SettingsWindow.OpenSoundSettings", ex.Message);
+            _errorTracker.Record(ErrorCode.SoundSettingsOpenFailed, "Sound Settings Could Not Open",
                 $"Could not open Windows Sound settings: {ex.Message}");
         }
     }
@@ -458,8 +466,8 @@ public partial class SettingsWindow : Window
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("SettingsWindow.Hyperlink", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
+            _logger.Warning("SettingsWindow.Hyperlink", ex.Message);
+            _errorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Link Could Not Be Opened",
                 $"Could not open '{e.Uri.AbsoluteUri}': {ex.Message}");
         }
         e.Handled = true;

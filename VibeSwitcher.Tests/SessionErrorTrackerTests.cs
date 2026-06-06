@@ -2,36 +2,35 @@ using VibeSwitcher.Helpers;
 
 namespace VibeSwitcher.Tests;
 
-public class SessionErrorTrackerTests : IDisposable
+public class SessionErrorTrackerTests
 {
-    public SessionErrorTrackerTests() => SessionErrorTracker.Reset();
-    public void Dispose() => SessionErrorTracker.Reset();
+    private readonly SessionErrorTracker _tracker = new();
 
     [Fact]
-    public void HasErrors_IsFalseAfterReset()
+    public void HasErrors_IsFalseInitially()
     {
-        Assert.False(SessionErrorTracker.HasErrors);
+        Assert.False(_tracker.HasErrors);
     }
 
     [Fact]
-    public void Count_IsZeroAfterReset()
+    public void Count_IsZeroInitially()
     {
-        Assert.Equal(0, SessionErrorTracker.Count);
+        Assert.Equal(0, _tracker.Count);
     }
 
     [Fact]
     public void Record_IncrementsCount()
     {
-        SessionErrorTracker.Record(ErrorCode.ConfigLoadFailed, "T", "M");
-        Assert.Equal(1, SessionErrorTracker.Count);
-        Assert.True(SessionErrorTracker.HasErrors);
+        _tracker.Record(ErrorCode.ConfigLoadFailed, "T", "M");
+        Assert.Equal(1, _tracker.Count);
+        Assert.True(_tracker.HasErrors);
     }
 
     [Fact]
     public void Record_StoresCorrectFields()
     {
-        SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "My Title", "My Message");
-        var err = SessionErrorTracker.Errors[0];
+        _tracker.Record(ErrorCode.ProfileSwitchFailed, "My Title", "My Message");
+        var err = _tracker.Errors[0];
         Assert.Equal(ErrorCode.ProfileSwitchFailed, err.Code);
         Assert.Equal("My Title", err.Title);
         Assert.Equal("My Message", err.Message);
@@ -41,9 +40,9 @@ public class SessionErrorTrackerTests : IDisposable
     public void Record_TimestampIsRecent()
     {
         var before = DateTime.Now.AddSeconds(-1);
-        SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "T", "M");
+        _tracker.Record(ErrorCode.ProfileSwitchFailed, "T", "M");
         var after  = DateTime.Now.AddSeconds(1);
-        var ts = SessionErrorTracker.Errors[0].Timestamp;
+        var ts = _tracker.Errors[0].Timestamp;
         Assert.InRange(ts, before, after);
     }
 
@@ -52,25 +51,18 @@ public class SessionErrorTrackerTests : IDisposable
     {
         bool fired = false;
         EventHandler handler = (_, _) => fired = true;
-        SessionErrorTracker.ErrorAdded += handler;
-        try
-        {
-            SessionErrorTracker.Record(ErrorCode.ConfigSaveFailed, "T", "M");
-            Assert.True(fired);
-        }
-        finally
-        {
-            SessionErrorTracker.ErrorAdded -= handler;
-        }
+        _tracker.ErrorAdded += handler;
+        _tracker.Record(ErrorCode.ConfigSaveFailed, "T", "M");
+        Assert.True(fired);
     }
 
     [Fact]
     public void Errors_ReturnsImmutableSnapshot()
     {
-        SessionErrorTracker.Record(ErrorCode.ConfigLoadFailed, "T", "M");
-        var snapshot = SessionErrorTracker.Errors;
-        SessionErrorTracker.Record(ErrorCode.ConfigSaveFailed, "T2", "M2");
-        Assert.Single(snapshot); // snapshot captured before the second Record
+        _tracker.Record(ErrorCode.ConfigLoadFailed, "T", "M");
+        var snapshot = _tracker.Errors;
+        _tracker.Record(ErrorCode.ConfigSaveFailed, "T2", "M2");
+        Assert.Single(snapshot);
     }
 
     [Fact]
@@ -79,7 +71,7 @@ public class SessionErrorTrackerTests : IDisposable
         const int threadCount = 10;
         await Task.WhenAll(Enumerable.Range(0, threadCount)
             .Select(_ => Task.Run(() =>
-                SessionErrorTracker.Record(ErrorCode.ProfileSwitchFailed, "T", "M"))));
-        Assert.Equal(threadCount, SessionErrorTracker.Count);
+                _tracker.Record(ErrorCode.ProfileSwitchFailed, "T", "M"))));
+        Assert.Equal(threadCount, _tracker.Count);
     }
 }

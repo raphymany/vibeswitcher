@@ -5,7 +5,6 @@ using VibeSwitcher.Helpers;
 
 namespace VibeSwitcher.Views;
 
-// Thin view model for each row in the session log list.
 internal record SessionErrorRow(SessionError Error)
 {
     public string CodeDisplay => Error.Code.ToCode();
@@ -15,11 +14,16 @@ internal record SessionErrorRow(SessionError Error)
 
 public partial class SessionLogWindow : Window
 {
-    public SessionLogWindow()
+    private readonly IAppLogger _logger;
+    private readonly ISessionErrorTracker _errorTracker;
+
+    public SessionLogWindow(IAppLogger logger, ISessionErrorTracker errorTracker)
     {
         InitializeComponent();
+        _logger = logger;
+        _errorTracker = errorTracker;
 
-        ErrorList.ItemsSource = SessionErrorTracker.Errors
+        ErrorList.ItemsSource = errorTracker.Errors
             .Select(e => new SessionErrorRow(e))
             .ToList();
     }
@@ -40,8 +44,8 @@ public partial class SessionLogWindow : Window
         }
         catch (Exception ex)
         {
-            AppLogger.Warning("SessionLogWindow.OpenLog", ex.Message);
-            SessionErrorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Log File Could Not Be Opened",
+            _logger.Warning("SessionLogWindow.OpenLog", ex.Message);
+            _errorTracker.Record(ErrorCode.HyperlinkOpenFailed, "Log File Could Not Be Opened",
                 $"Could not open the error log: {ex.Message}");
         }
     }
