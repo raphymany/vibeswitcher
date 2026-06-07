@@ -14,14 +14,17 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 - **Both audio roles** — sets Default Device *and* Default Communications Device on every switch, so apps like Discord don't fall out of sync
 - **Custom icons** — browse a built-in gallery or point to your own `.ico` file per profile
 - **Friendly device names** — give each audio device a short alias (e.g. "GoXLR") shown throughout the app instead of the raw Windows device name
+- **Device connectivity indicators** — green/red dot next to each device in dropdowns shows at a glance whether it is active, disabled, or unplugged
+- **Test sound and mic test** — play a tone through the selected playback device or open a live mic level meter directly from the profile card, without switching your active profile
 - **Per-profile schedule** — automatically activate a profile at a set time and day of week, with an optional reminder notification before it fires
-- **Switch sounds** — play a configurable tone on every profile switch; set a global default and override it per profile
+- **Switch sounds** — each profile can optionally play a tone when activated; choose from 8 built-in tones or a custom WAV file, with adjustable volume and an optional notification banner toggle per profile
+- **Silent switch** — per-profile toggle to suppress the Windows notification banner when that profile activates
 - **Panic / deafen hotkey** — instantly mute your mic, speakers, or both from anywhere; press again to unmute; tray flashes to show mute state
 - **Pinned profiles** — star a profile to keep it at the top of the tray menu
 - **Profile notes** — attach a short description to any profile, visible on its card
 - **Filter chips** — quickly narrow the profile list by mode, pinned, active, hotkey, sound, schedule, and more
 - **Auto-switch on connect** — switch to a profile the moment a USB or 3.5mm audio device is plugged in, and revert when it is removed; supported wireless headsets also detect power-on/off through the USB dongle without needing to unplug anything
-- **App launch triggers** — link an executable to a profile; VibeSwitcher switches automatically when that app launches and stays on the linked profile until you switch manually
+- **App launch triggers** — link one or more executables to a profile; VibeSwitcher switches automatically when any of those apps launches and stays on the linked profile until you switch manually
 - **Drag-and-drop reorder** — rearrange profile cards by dragging them
 - **Import / export** — back up your full configuration to a `.json` file and restore it on any machine
 - **Light / dark / system theme** — follows the Windows OS theme automatically, or lock it to light or dark
