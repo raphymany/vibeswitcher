@@ -11,6 +11,20 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **`FakeAppLogger` and `FakeSessionErrorTracker` test doubles** — new in-memory implementations of both interfaces used throughout the test suite; all tests are now fully isolated with no shared static state *(PR #102)*
 - **`SessionErrorTracker.ErrorAdded` event thread safety** — replaced manual add/remove event accessors with a compiler-generated event backed by `Interlocked.CompareExchange` for safe concurrent subscribe/unsubscribe *(PR #102)*
 - **`AppLog` / `AppErrors` service locators** — retained for `RelayCommand` and `IconHelper` (the two callers that cannot receive injection); both backing fields marked `volatile` to prevent read/write reordering across threads *(PR #102)*
+- **`AudioService` split into focused helpers** — internal implementation extracted into `AudioDeviceEnumerator`, `AudioProfileApplier`, `AudioTestTonePlayer`, and `AudioMicMonitor`; `AudioService` is now a thin ~110-line coordinator; `IAudioService` interface and all callers are unchanged *(architecture cleanup)*
+- **`ProfileCardViewModel` retry loops** — three `while(true)` loops for hotkey-capture and schedule conflict resolution replaced with named-flag `while` and `do-while` patterns; all behavior is identical *(architecture cleanup)*
+- **`AppTriggerDialog` shows loading state** — a "Loading installed apps…" label is visible while background app discovery runs and collapses when the list is ready; closing the dialog before loading finishes cancels the pending UI update *(architecture cleanup)*
+- **Playback test tone** — frequency lowered from 440 Hz (A4) to 261 Hz (C4/middle C) and a linear fade-in/out envelope added; the tone is noticeably warmer and less startling *(pre-release audit)*
+- **"Don't show notification banner" toggle** — the sound wizard's banner toggle is now labelled "Don't show notification banner" (inverted from "Show notification banner"); the toggle starts unchecked by default so the banner is on unless the user explicitly suppresses it *(pre-release audit)*
+- **Appearance theme picker layout** — theme RadioButtons changed from a `UniformGrid` (equal-width, no gaps) to a `StackPanel` with `Padding="14,0"` per button and 8 px spacing between buttons; buttons now auto-size to their text and match the height of `ActionButton` *(pre-release audit)*
+- **Light mode border colors** — all border, separator, and input-border resources darkened (~20–30 hex steps) so card edges, input fields, and dividers are clearly visible against white/light-gray backgrounds *(pre-release audit)*
+- **Profile card icon foregrounds** — all nine icon buttons changed from `{DynamicResource DisabledText}` (light gray) to `{DynamicResource PrimaryText}` (black in light mode, white in dark mode); active-state indicator colors (green, gold) are unchanged *(pre-release audit)*
+- **Filter chip default text** — chip foreground changed from `SecondaryText` to `PrimaryText`; the active/checked state continues to show white text on orange *(pre-release audit)*
+- **All dialog badge backgrounds standardised** — `ConfirmDeleteDialog`, `HelpDialog` "?" badge, and the clone confirmation dialog now use `{DynamicResource Accent}` (orange) with a black icon, matching all other popup dialogs *(pre-release audit)*
+- **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume *(PR #40)*
+- **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
+- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` owns the full async switch flow; `AppWindowManager` owns window management; `App.xaml.cs` reduced from 248 to ~120 lines *(PR #37)*
+- **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ### Added
 - **Settings tray menu item** — "Settings" appears in the tray right-click context menu as a direct shortcut to open the Settings window *(pre-release audit)*
@@ -196,22 +210,6 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Scheduler timer reduced** — `SchedulerService` background tick interval changed from 1 second to 10 seconds; minute-level precision is sufficient and eliminates over 3,000 unnecessary UI-thread wakeups per hour *(PR #78)*
 - **`AppLogger` write path optimized** — removed `Directory.CreateDirectory` syscall from every log write; the directory is guaranteed to exist after session start *(PR #78)*
 - **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
-
-### Changed
-- **`AudioService` split into focused helpers** — internal implementation extracted into `AudioDeviceEnumerator`, `AudioProfileApplier`, `AudioTestTonePlayer`, and `AudioMicMonitor`; `AudioService` is now a thin ~110-line coordinator; `IAudioService` interface and all callers are unchanged *(architecture cleanup)*
-- **`ProfileCardViewModel` retry loops** — three `while(true)` loops for hotkey-capture and schedule conflict resolution replaced with named-flag `while` and `do-while` patterns; all behavior is identical *(architecture cleanup)*
-- **`AppTriggerDialog` shows loading state** — a "Loading installed apps…" label is visible while background app discovery runs and collapses when the list is ready; closing the dialog before loading finishes cancels the pending UI update *(architecture cleanup)*
-- **Playback test tone** — frequency lowered from 440 Hz (A4) to 261 Hz (C4/middle C) and a linear fade-in/out envelope added; the tone is noticeably warmer and less startling *(pre-release audit)*
-- **"Don't show notification banner" toggle** — the sound wizard's banner toggle is now labelled "Don't show notification banner" (inverted from "Show notification banner"); the toggle starts unchecked by default so the banner is on unless the user explicitly suppresses it *(pre-release audit)*
-- **Appearance theme picker layout** — theme RadioButtons changed from a `UniformGrid` (equal-width, no gaps) to a `StackPanel` with `Padding="14,0"` per button and 8 px spacing between buttons; buttons now auto-size to their text and match the height of `ActionButton` *(pre-release audit)*
-- **Light mode border colors** — all border, separator, and input-border resources darkened (~20–30 hex steps) so card edges, input fields, and dividers are clearly visible against white/light-gray backgrounds *(pre-release audit)*
-- **Profile card icon foregrounds** — all nine icon buttons changed from `{DynamicResource DisabledText}` (light gray) to `{DynamicResource PrimaryText}` (black in light mode, white in dark mode); active-state indicator colors (green, gold) are unchanged *(pre-release audit)*
-- **Filter chip default text** — chip foreground changed from `SecondaryText` to `PrimaryText`; the active/checked state continues to show white text on orange *(pre-release audit)*
-- **All dialog badge backgrounds standardised** — `ConfirmDeleteDialog`, `HelpDialog` "?" badge, and the clone confirmation dialog now use `{DynamicResource Accent}` (orange) with a black icon, matching all other popup dialogs *(pre-release audit)*
-- **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume *(PR #40)*
-- **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
-- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` owns the full async switch flow; `AppWindowManager` owns window management; `App.xaml.cs` reduced from 248 to ~120 lines *(PR #37)*
-- **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ---
 
