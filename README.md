@@ -70,11 +70,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for IDE setup and project structure.
 
 ## Usage
 
-1. Run `VibeSwitcher.exe` — it appears in your system tray
-2. Right-click the tray icon → **Settings** to create profiles
-3. For each profile, choose a playback device and/or microphone
-4. Optionally assign a global hotkey and a custom icon
-5. Switch profiles via the tray menu or your hotkey
+1. Run `VibeSwitcher.exe` — it appears in your system tray and opens Settings automatically on first launch
+2. Create profiles — for each profile, choose a playback device and/or microphone and give it a name
+3. Optionally assign a hotkey, custom icon, schedule, switch sound, or app launch triggers per profile
+4. Switch profiles via the tray right-click menu, a global hotkey, or by left-clicking the tray icon to cycle through them in order
+5. Re-open Settings any time via right-click → **Settings** or your configured open/close hotkey
 
 ## Known Limitations
 
