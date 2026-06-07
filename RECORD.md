@@ -570,6 +570,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
+| F44 | Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand; part of planned UI/UX redesign phase | Deferred |
 
 ---
 
@@ -598,7 +599,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 **All remaining work is tracked in BACKLOG.md — Planned Branches (Branches 28–43, in execution order).**
 
-**Explicitly deferred (no branch):** C2/8.1 (installer — saving for last), C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — needs installer first), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (winget/Chocolatey — post-v1.0), 10.8 (website), Mica/Acrylic + compact mode (UI/UX redesign phase).
+**Explicitly deferred (no branch):** C2/8.1 (installer — saving for last), C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — needs installer first), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (distribution and discovery — post-v1.0), 10.8 (website), Mica/Acrylic + F44/compact mode (UI/UX redesign phase).
 
 *(M16, M17 resolved PR #40; M18, M19 resolved PR #42; L21, L22, L23 resolved PR #44; L20/8.9 resolved PR #46; 7.16 resolved PR #48)*
 
@@ -698,58 +699,6 @@ This section captures the agreed grouping of remaining work into branches so it 
 | L8 / 4.10 | Hotkey capture dialog doesn't show held modifiers before final key press | ✅ Done |
 | L10 / 4.5 | Hotkey conflict uses plain Windows `MessageBox` — visually inconsistent | ✅ Done |
 | 4.16 | Delete dialog Cancel button should be `IsDefault` so Enter = cancel, not delete | ✅ Done |
-
----
-
-### Recommended Execution Order
-
-| # | Branch | Status |
-|---|--------|--------|
-| ~~1~~ | ~~`fix/hotkey-reliability`~~ | ✅ Done — PR #13 |
-| ~~2~~ | ~~`fix/startup-and-exceptions`~~ | ✅ Done — PR #14 |
-| ~~3~~ | ~~`fix/config-data-integrity`~~ | ✅ Done — PR #16 |
-| ~~4~~ | ~~`fix/settings-ux`~~ | ✅ Done — PR #17 |
-| ~~5~~ | ~~`fix/dpi-and-windows`~~ | ✅ Done — PR #18 |
-| ~~6~~ | ~~`fix/tray-and-performance`~~ | ✅ Done — PR #19 |
-| ~~7~~ | ~~`feat/error-codes-and-logs`~~ | ✅ Done — PR #20 |
-| ~~8~~ | ~~`fix/polish-and-compat`~~ | ✅ Done — icon path safety, popup Escape, sound link, JSON cleanup, exe icon, diagnostics, docs |
-| ~~9~~ | ~~`fix/reliability`~~ | ✅ Done — RunOnSta removed, startup registry self-repair |
-| ~~10~~ | ~~`fix/settings-ux-3`~~ | ✅ Done — toggle switches, sound panel toggle, (None) device, hotkey in tray, styles in App.xaml, font consistency |
-| ~~11~~ | ~~`fix/code-quality`~~ | ✅ Done — PR #27 |
-| ~~12~~ | ~~`fix/ux-polish`~~ | ✅ Done — PR #28 |
-| ~~13~~ | ~~`refactor/system-text-json`~~ | ✅ Done — PR #29 |
-| ~~14~~ | ~~`feat/audio-reliability`~~ | ✅ Done — PR #30 |
-| ~~15~~ | ~~`fix/keyboard-nav-focus`~~ | ✅ Done — PR #31 |
-| ~~16~~ | ~~`test/unit-tests`~~ | ✅ Done — PR #33 |
-| ~~17~~ | ~~`refactor/interfaces`~~ | ✅ Done — PR #35 |
-| ~~18~~ | ~~`refactor/viewmodel-dialogs`~~ | ✅ Done — PR #36 |
-| ~~19~~ | ~~`refactor/god-class`~~ | ✅ Done — PR #37 |
-| ~~20~~ | ~~`ci/cd-pipeline`~~ | ✅ Done — PR #38 |
-| ~~21~~ | ~~`fix/switch-reliability`~~ | ✅ Done — PR #40 |
-| ~~22~~ | ~~`fix/settings-async`~~ | ✅ Done — PR #42 |
-| ~~23~~ | ~~`fix/null-safety`~~ | ✅ Done — PR #44 |
-| ~~24~~ | ~~`ci/sha256-checksums`~~ | ✅ Done — PR #46 |
-| ~~25~~ | ~~`test/additional-coverage`~~ | ✅ Done — PR #48 |
-| ~~26~~ | ~~`feat/app-icon-refresh`~~ | ✅ Done — PR #50 |
-| ~~27~~ | ~~`feat/toast-notifications`~~ | ✅ Done — PR #53 |
-| ~~28~~ | ~~`feat/tray-interactions`~~ | ✅ Done — PR #57 |
-| ~~29~~ | ~~`feat/profile-management`~~ | ✅ Done — PR #59 |
-| ~~30~~ | ~~`feat/device-enhancements`~~ | ✅ Done — PR #61 |
-| ~~44~~ | ~~`feat/settings-ux`~~ | ✅ Done — PR #64 |
-| ~~31~~ | ~~`feat/profile-visual`~~ | ✅ Done — PR #66 |
-| ~~32~~ | ~~`feat/settings-polish`~~ | ✅ Done — PR #68 |
-| ~~45~~ | ~~`feat/appearance-modes`~~ | ✅ Done — PR #70 |
-| ~~46~~ | ~~`fix/appearance-qa`~~ | ✅ Done — PR #72 |
-| ~~33~~ | ~~`feat/profile-scheduler`~~ | ✅ Done — PR #74 |
-| ~~35~~ | ~~`feat/profile-card-extras`~~ | ✅ Done — PR #76 |
-| ~~48~~ | ~~`perf/switch-optimizations`~~ | ✅ Done — PR #78 |
-| ~~36~~ | ~~`feat/device-aliases`~~ | ✅ Done — PR #80 |
-| ~~37~~ | ~~`feat/settings-search`~~ | ✅ Done — PR #82 |
-| ~~38~~ | ~~`feat/switch-sound`~~ | ✅ Done — PR #84 |
-| ~~39~~ | ~~`feat/panic-hotkey`~~ | ✅ Done — PR #86 |
-| ~~49~~ | ~~`fix/codebase-audit-49`~~ | ✅ Done — PR #88 |
-| ~~43~~ | ~~`feat/app-switching`~~ | ✅ Done — PR #96 |
-| 47 | `refactor/code-quality` | Planned |
 
 ---
 
@@ -1264,7 +1213,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 50: `feat/headset-expansion` ✅ Done — PR #92
+### ~~Branch 50: `feat/headset-expansion`~~ ✅ Done — PR #92
 **Theme:** Expand wireless headset HID support to Corsair, SteelSeries, and HyperX; add remaining Logitech PIDs.
 
 | Item | Description | Status |
@@ -1283,7 +1232,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 51: `feat/auto-switch-ux` ✅ Done — PR #94
+### ~~Branch 51: `feat/auto-switch-ux`~~ ✅ Done — PR #94
 **Theme:** Auto-switch UX improvements — supported headsets dialog, playback-only restriction, and conflict detection.
 
 | Item | Description | Status |
@@ -1299,7 +1248,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 43: `feat/app-switching` ✅ Done — PR #96
+### ~~Branch 43: `feat/app-switching`~~ ✅ Done — PR #96
 **Theme:** Automatic profile switching based on running application, plus shortcuts UX redesign.
 
 | Item | Description | Status |
@@ -1313,7 +1262,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 47: `refactor/pre-release-audit` ✅ Done — PR #98
+### ~~Branch 47: `refactor/pre-release-audit`~~ ✅ Done — PR #98
 **Theme:** Full pre-release codebase audit — bugs, dark-mode theming gaps, code quality, dialog polish, and documentation updates.
 
 | Item | Description | Status |
@@ -1356,7 +1305,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 48: `refactor/architecture-cleanup` ✅ Done — PR #100
+### ~~Branch 48: `refactor/architecture-cleanup`~~ ✅ Done — PR #100
 **Theme:** Architecture refactors deferred from Branch 47 — too large to bundle with the audit fixes.
 
 | # | Item | Status |
@@ -1368,7 +1317,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 51: `refactor/injectable-services` ✅ Done — PR #102
+### ~~Branch 51: `refactor/injectable-services`~~ ✅ Done — PR #102
 **Theme:** Convert static `AppLogger` and `SessionErrorTracker` to instance classes with constructor injection throughout the codebase, enabling proper test isolation and open-source maintainability.
 
 | # | Item | Status |
