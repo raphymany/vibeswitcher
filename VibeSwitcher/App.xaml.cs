@@ -29,7 +29,7 @@ public partial class App : Application
     private AppWatcherService? _appWatcherService;
     private AppTriggerService? _appTriggerService;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
@@ -178,7 +178,12 @@ public partial class App : Application
             profile => _orchestrator.SwitchToProfile(profile),
             _logger);
 
-        // 10. Open settings on first run, or if the user has turned off start-minimized
+        // 10. Show splash, then open settings on first run or if not start-minimized
+        var splash = new Views.SplashWindow();
+        splash.Show();
+        await Task.Delay(2200);
+        splash.Close();
+
         if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
             OpenSettingsWindow();
     }
