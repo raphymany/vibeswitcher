@@ -258,6 +258,12 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool HasAppTriggers => _model.AppTriggers.Count > 0;
 
+    public bool IsHotkeySet => !_model.Hotkey.IsEmpty;
+
+    public ICommand ToggleSilentCommand           => new RelayCommand(() => Silent = !Silent);
+    public ICommand TogglePinnedCommand           => new RelayCommand(() => IsPinned = !IsPinned);
+    public ICommand ToggleTriggerOnConnectCommand => new RelayCommand(() => TriggerOnConnect = !TriggerOnConnect);
+
     private void OpenAppTriggerWizard()
     {
         var usedByOthers = _configService.Current.Profiles
