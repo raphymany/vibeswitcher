@@ -132,4 +132,26 @@
     <SolidColorBrush x:Key="ColorPillBorder"    Color="#BBBBBB"/>
     <SolidColorBrush x:Key="ColorPillText"      Color="#333333"/>
 
+    <!-- NEW VS keys — light equivalents -->
+    <SolidColorBrush x:Key="VSTitleBarBg"       Color="#E8E8E8"/>
+    <SolidColorBrush x:Key="VSNavBg"            Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="VSNavBorder"        Color="#D0D0D0"/>
+    <SolidColorBrush x:Key="VSSurface2"         Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="VSSurface3"         Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="VSModalBg"          Color="#FFFFFF"/>
+    <SolidColorBrush x:Key="VSModalBorder"      Color="#FFD0A0"/>
+    <SolidColorBrush x:Key="VSAccentDim"        Color="#FFF0E0"/>
+    <SolidColorBrush x:Key="VSAccentBorder"     Color="#FFB366"/>
+    <SolidColorBrush x:Key="VSAccentGlow"       Color="#FFF8F0"/>
+    <SolidColorBrush x:Key="VSGreen"            Color="#2DB55D"/>
+    <SolidColorBrush x:Key="VSBlue"             Color="#1565C0"/>
+    <SolidColorBrush x:Key="VSMint"             Color="#2E7D32"/>
+    <SolidColorBrush x:Key="VSPurple"           Color="#6A1B9A"/>
+    <SolidColorBrush x:Key="VSActBg"            Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="VSActBorder"        Color="#D0D0D0"/>
+    <SolidColorBrush x:Key="VSActIcon"          Color="#888888"/>
+    <SolidColorBrush x:Key="VSActHoverBg"       Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="VSActHoverBorder"   Color="#BBBBBB"/>
+    <SolidColorBrush x:Key="VSActHoverIcon"     Color="#444444"/>
+
 </ResourceDictionary>
