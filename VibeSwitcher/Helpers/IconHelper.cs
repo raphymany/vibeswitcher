@@ -120,7 +120,14 @@ public static class IconHelper
                 }
             }
             catch (Exception ex) { AppLog.Warning("IconHelper.GetBalloonIconHandle", ex.Message); }
-            return GetDefaultIcon().Handle;
+            // Balloon API requires exactly 32×32; GetDefaultIcon() may be 64×64, so create a dedicated fallback.
+            using (var bmp = new Bitmap(32, 32))
+            using (var g = Graphics.FromImage(bmp))
+            {
+                g.Clear(System.Drawing.Color.FromArgb(0, 120, 212));
+                _balloonIconHandle = bmp.GetHicon();
+            }
+            return _balloonIconHandle;
         }
     }
 
