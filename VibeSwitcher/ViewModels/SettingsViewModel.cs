@@ -327,12 +327,20 @@ public class SettingsViewModel : ViewModelBase
         set { if (!SetField(ref _soundFilter, value)) return; ApplyFilter(); }
     }
 
+    private string _searchText = "";
+    public string SearchText
+    {
+        get => _searchText;
+        set { if (SetField(ref _searchText, value)) ApplyFilter(); }
+    }
+
     public bool IsAnyFilterActive =>
         _modeFilter != "Any mode"               ||
         _pinnedFilter  || _activeFilter  || _silentFilter  ||
         _hotkeyFilter  || _notesFilter   || _iconFilter    ||
         _warningFilter || _scheduledFilter || _reminderFilter ||
-        _soundFilter   || DayChips.Any(d => d.IsSelected);
+        _soundFilter   || DayChips.Any(d => d.IsSelected)  ||
+        !string.IsNullOrEmpty(_searchText);
 
     public ICommand ClearFiltersCommand { get; }
 
@@ -351,6 +359,7 @@ public class SettingsViewModel : ViewModelBase
         _scheduledFilter = false;
         _reminderFilter  = false;
         _soundFilter     = false;
+        _searchText      = "";
         foreach (var chip in DayChips) chip.IsSelected = false;
         _clearing = false;
 
@@ -367,6 +376,7 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ScheduledFilter));
         OnPropertyChanged(nameof(ReminderFilter));
         OnPropertyChanged(nameof(SoundFilter));
+        OnPropertyChanged(nameof(SearchText));
         ApplyFilter();
     }
 
@@ -395,8 +405,10 @@ public class SettingsViewModel : ViewModelBase
             ActiveDays    = DayChips.Where(d => d.IsSelected).Select(d => d.Day).ToHashSet(),
         };
         foreach (var card in Profiles)
-            card.IsVisible = card.MatchesFilter(filter);
-        HasNoFilterResults = IsAnyFilterActive && Profiles.All(p => !p.IsVisible);
+            card.IsVisible = card.MatchesFilter(filter) &&
+                (string.IsNullOrEmpty(_searchText) ||
+                 card.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase));
+        HasNoFilterResults = IsAnyFilterActive && Profiles.Any() && Profiles.All(p => !p.IsVisible);
         OnPropertyChanged(nameof(IsAnyFilterActive));
     }
 

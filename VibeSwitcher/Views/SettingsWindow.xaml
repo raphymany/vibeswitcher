@@ -190,6 +190,65 @@
             </Setter>
         </Style>
 
+        <!-- FAQ accordion item -->
+        <Style x:Key="FaqExpander" TargetType="Expander">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Expander">
+                        <StackPanel>
+                            <ToggleButton x:Name="Hdr"
+                                          IsChecked="{Binding IsExpanded, Mode=TwoWay,
+                                              RelativeSource={RelativeSource TemplatedParent}}"
+                                          OverridesDefaultStyle="True" Cursor="Hand"
+                                          Content="{TemplateBinding Header}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="Transparent">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <ContentPresenter Grid.Column="0"
+                                                                  HorizontalAlignment="Left"
+                                                                  VerticalAlignment="Center">
+                                                    <ContentPresenter.ContentTemplate>
+                                                        <DataTemplate>
+                                                            <TextBlock Text="{Binding}"
+                                                                       TextWrapping="Wrap"
+                                                                       FontSize="13" FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource PrimaryText}"/>
+                                                        </DataTemplate>
+                                                    </ContentPresenter.ContentTemplate>
+                                                </ContentPresenter>
+                                                <TextBlock Grid.Column="1" x:Name="Chv"
+                                                           Text="▾" FontSize="11"
+                                                           Foreground="{DynamicResource MutedText}"
+                                                           Margin="12,0,0,0"
+                                                           VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Chv" Property="Text" Value="▴"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <ContentPresenter x:Name="Body" Visibility="Collapsed"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="True">
+                                <Setter TargetName="Body" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- ToolTip override — needed by existing tooltips that use ToolTip as content -->
         <Style TargetType="ToolTip">
             <Setter Property="Background"   Value="{DynamicResource TooltipBg}"/>
@@ -263,6 +322,8 @@
                     <ColumnDefinition Width="8"/>
                     <ColumnDefinition Width="Auto"/>   <!-- logs btn -->
                     <ColumnDefinition Width="*"/>      <!-- spacer -->
+                    <ColumnDefinition Width="Auto"/>   <!-- FAQ -->
+                    <ColumnDefinition Width="4"/>
                     <ColumnDefinition Width="Auto"/>   <!-- About -->
                     <ColumnDefinition Width="4"/>
                     <ColumnDefinition Width="Auto"/>   <!-- Settings -->
@@ -321,6 +382,7 @@
                                    VerticalAlignment="Center" Margin="0,0,6,0"/>
                         <TextBox Grid.Column="1"
                                  x:Name="SearchBox"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                  Background="Transparent"
                                  BorderThickness="0"
                                  Height="30"
@@ -377,13 +439,24 @@
                     <TextBlock x:Name="LogsButtonText" FontSize="11" Foreground="{DynamicResource WarningText}"/>
                 </Button>
 
-                <!-- Divider at col 14 -->
-                <Border Grid.Column="14" Width="1" Height="22"
+                <!-- Divider at col 16 -->
+                <Border Grid.Column="16" Width="1" Height="22"
                         Background="{DynamicResource InputBorder}"
                         VerticalAlignment="Center"/>
 
-                <!-- About button -->
+                <!-- FAQ button -->
                 <Button Grid.Column="10"
+                        x:Name="FaqBtn"
+                        Style="{StaticResource NavIconBtn}"
+                        Click="ShowFaq_Click"
+                        ToolTip="FAQ">
+                    <TextBlock Text="?" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource MutedText}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+
+                <!-- About button -->
+                <Button Grid.Column="12"
                         x:Name="AboutBtn"
                         Style="{StaticResource NavIconBtn}"
                         Click="ShowAbout_Click"
@@ -396,7 +469,7 @@
                 </Button>
 
                 <!-- Settings button -->
-                <Button Grid.Column="12"
+                <Button Grid.Column="14"
                         x:Name="SettingsBtn"
                         Style="{StaticResource NavIconBtn}"
                         Click="ShowSettings_Click"
@@ -408,7 +481,7 @@
                 </Button>
 
                 <!-- + New Profile button -->
-                <Button Grid.Column="16"
+                <Button Grid.Column="18"
                         Style="{StaticResource PrimaryButton}"
                         Height="34" Padding="15,0"
                         Command="{Binding AddProfileCommand}"
@@ -1232,7 +1305,110 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- ── D. Profile Detail Modal Overlay ── -->
+            <!-- ── D. FAQ Panel ── -->
+            <ScrollViewer x:Name="FaqPanel"
+                          Visibility="Collapsed"
+                          VerticalScrollBarVisibility="Auto"
+                          Background="{DynamicResource AppBg}">
+                <StackPanel Margin="28,26" MaxWidth="640" HorizontalAlignment="Left">
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,26">
+                        <Button Style="{StaticResource ActionButton}"
+                                Width="34" Height="34" Padding="0"
+                                Click="ShowProfiles_Click"
+                                ToolTip="Back to profiles">
+                            <TextBlock Text="←" FontSize="14"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                        <TextBlock Text="FAQ"
+                                   FontFamily="Segoe UI" FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource PrimaryText}"
+                                   VerticalAlignment="Center"
+                                   Margin="12,0,0,0"/>
+                    </StackPanel>
+
+                    <Border Style="{StaticResource InnerCardBorder}" Padding="0">
+                        <StackPanel>
+
+                            <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="How do I set a hotkey for a profile?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="Open a profile card and press &#x22;Set Hotkey&#x22; in the Hotkey field. Press your desired key combination, then confirm. Hotkeys are registered system-wide and work even when VibeSwitcher is minimized."/>
+                                </Expander>
+                            </Border>
+
+                            <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="Can profiles switch automatically?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="Yes! Use the App Trigger button on a card to link an executable — the profile switches when that app launches. Use the Scheduler to set time-based rules."/>
+                                </Expander>
+                            </Border>
+
+                            <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="What is Auto-Switch?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="Auto-Switch detects when a profile&#x2019;s linked audio device physically connects to your computer and automatically activates that profile. Great for USB headsets."/>
+                                </Expander>
+                            </Border>
+
+                            <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="How do I create a Playback-only or Recording-only profile?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="Click the + button to add a profile. In the mode selector, choose &#x22;Playback&#x22; or &#x22;Recording&#x22;. Only the relevant device field will be shown."/>
+                                </Expander>
+                            </Border>
+
+                            <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="What does &#x22;No Notification&#x22; do?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="By default, VibeSwitcher shows a banner notification when a profile is activated. Enabling &#x22;No Notification&#x22; on a profile suppresses that banner for silent, seamless switching."/>
+                                </Expander>
+                            </Border>
+
+                            <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="Why does my profile show a warning?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="A warning appears when a profile&#x2019;s assigned device is disconnected or unavailable. Connect the device and the warning clears automatically."/>
+                                </Expander>
+                            </Border>
+
+                            <Border BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1" Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="Where are my profiles saved?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="Profiles are stored at %APPDATA%\VibeSwitcher\config.json. VibeSwitcher writes atomically (temp then rename) with an automatic backup at config.json.bak."/>
+                                </Expander>
+                            </Border>
+
+                            <Border Padding="16,14">
+                                <Expander Style="{StaticResource FaqExpander}"
+                                          Header="How do I set a custom switch sound?">
+                                    <TextBlock TextWrapping="Wrap" Margin="0,8,0,0"
+                                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                                               Text="Press the Sound Switch button on a profile card to open the sound override dialog. You can choose from built-in tones or pick a custom audio file."/>
+                                </Expander>
+                            </Border>
+
+                        </StackPanel>
+                    </Border>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ── E. Profile Detail Modal Overlay ── -->
             <Grid x:Name="ProfileDetailOverlay"
                   Visibility="Collapsed"
                   Panel.ZIndex="10">

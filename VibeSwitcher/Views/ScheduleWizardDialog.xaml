@@ -145,7 +145,7 @@
                 <TextBlock x:Name="NoDaysHint"
                            Text="No days selected — this schedule won't activate"
                            FontSize="11" HorizontalAlignment="Center"
-                           Foreground="#CC6600" Margin="0,12,0,0"
+                           Foreground="{DynamicResource WarningText}" Margin="0,12,0,0"
                            Visibility="Collapsed"/>
             </StackPanel>
 

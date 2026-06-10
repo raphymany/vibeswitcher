@@ -28,7 +28,7 @@ public partial class SettingsWindow : Window
 
     private System.Windows.Threading.DispatcherTimer? _boundsTimer;
 
-    private enum ActivePanel { Profiles, Settings, About }
+    private enum ActivePanel { Profiles, Settings, About, Faq }
     private bool _filtersOpen = false;
     private ProfileCardViewModel? _detailVm;
 
@@ -116,11 +116,13 @@ public partial class SettingsWindow : Window
         ProfileGridView.Visibility = panel == ActivePanel.Profiles ? Visibility.Visible : Visibility.Collapsed;
         SettingsPanel.Visibility   = panel == ActivePanel.Settings  ? Visibility.Visible : Visibility.Collapsed;
         AboutPanel.Visibility      = panel == ActivePanel.About     ? Visibility.Visible : Visibility.Collapsed;
+        FaqPanel.Visibility        = panel == ActivePanel.Faq       ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void ShowProfiles_Click(object sender, RoutedEventArgs e) => ShowPanel(ActivePanel.Profiles);
     private void ShowSettings_Click(object sender, RoutedEventArgs e) => ShowPanel(ActivePanel.Settings);
     private void ShowAbout_Click(object sender, RoutedEventArgs e)    => ShowPanel(ActivePanel.About);
+    private void ShowFaq_Click(object sender, RoutedEventArgs e)      => ShowPanel(ActivePanel.Faq);
 
     // ── Filter bar animation ──────────────────────────────────────────────
 
