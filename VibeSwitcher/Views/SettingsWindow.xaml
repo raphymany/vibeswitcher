@@ -945,12 +945,20 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 3. Auto-switch — power plug -->
+                                                        <!-- 3. Auto-switch — power plug (dim when Recording-only, not supported) -->
                                                         <ToggleButton Grid.Column="2" HorizontalAlignment="Center"
                                                                       IsChecked="{Binding TriggerOnConnect}"
-                                                                      Visibility="{Binding TriggerOnConnectVisible}"
-                                                                      Style="{StaticResource CardActionToggle}"
                                                                       ToolTip="Auto-switch on device connect">
+                                                            <ToggleButton.Style>
+                                                                <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding TriggerOnConnectVisible}" Value="Collapsed">
+                                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                                            <Setter Property="Opacity" Value="0.28"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ToggleButton.Style>
                                                             <Viewbox Width="14" Height="14">
                                                                 <Canvas Width="16" Height="16">
                                                                     <Path Data="M6,1.5 L6,5 M10,1.5 L10,5 M3.5,5 H12.5 V7.5 A4.5,4.5 0 0 1 8,12 A4.5,4.5 0 0 1 3.5,7.5 Z M8,12 L8,14.5 M6,14.5 L10,14.5"
@@ -1042,27 +1050,64 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 8. Sound — sine wave -->
-                                                        <Button Margin="5,0"
-                                                                Command="{Binding ConfigureSoundCommand}" ToolTip="Switch sound">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                            <Setter Property="Foreground" Value="#2DCA72"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                            <Viewbox Width="14" Height="14">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Path Data="M1,8 Q2.5,3.5 4,8 Q5.5,12.5 7,8 Q8.5,3.5 10,8 Q11.5,12.5 13,8 Q14,5.5 15,8"
-                                                                          Fill="Transparent"
-                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                          StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </Button>
+                                                        <!-- 8. Sound — sine wave + remove badge when active -->
+                                                        <Grid Margin="5,0">
+                                                            <Button Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound">
+                                                                <Button.Style>
+                                                                    <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                                <Setter Property="Foreground" Value="#2DCA72"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                                <Viewbox Width="14" Height="14">
+                                                                    <Canvas Width="16" Height="16">
+                                                                        <Path Data="M1,8 Q2.5,3.5 4,8 Q5.5,12.5 7,8 Q8.5,3.5 10,8 Q11.5,12.5 13,8 Q14,5.5 15,8"
+                                                                              Fill="Transparent"
+                                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                              StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                            </Button>
+                                                            <!-- × remove badge: only visible when a sound is configured -->
+                                                            <Button Command="{Binding RemoveSwitchSoundCommand}"
+                                                                    Width="14" Height="14"
+                                                                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                    Margin="0,-5,-5,0"
+                                                                    Padding="0"
+                                                                    ToolTip="Remove switch sound"
+                                                                    Background="#CC2B2B" Foreground="White"
+                                                                    BorderThickness="0">
+                                                                <Button.Style>
+                                                                    <Style TargetType="Button">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Setter Property="Template">
+                                                                            <Setter.Value>
+                                                                                <ControlTemplate TargetType="Button">
+                                                                                    <Border x:Name="bg" Background="#CC2B2B" CornerRadius="7">
+                                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                    </Border>
+                                                                                    <ControlTemplate.Triggers>
+                                                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                                                            <Setter TargetName="bg" Property="Background" Value="#E06060"/>
+                                                                                        </Trigger>
+                                                                                    </ControlTemplate.Triggers>
+                                                                                </ControlTemplate>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                                <TextBlock Text="×" FontSize="10" FontWeight="Bold" Foreground="White"
+                                                                           Margin="0,-1,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Button>
+                                                        </Grid>
                                                         <!-- 9. Delete — trash can -->
                                                         <Button Margin="5,0"
                                                                 Command="{Binding DeleteCommand}" ToolTip="Delete this profile">
@@ -1751,7 +1796,7 @@
                         MouseLeftButtonDown="OverlayBackdrop_MouseDown"/>
 
                 <!-- Modal card -->
-                <Border MaxWidth="500"
+                <Border MaxWidth="500" MinWidth="400"
                         HorizontalAlignment="Center" VerticalAlignment="Center"
                         Margin="20"
                         Background="{DynamicResource VSModalBg}"
@@ -1844,7 +1889,9 @@
                                 <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,10">
                                     <WrapPanel.Style>
                                         <Style TargetType="WrapPanel">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <!-- Hidden (not Collapsed) so the row keeps its height when suggestions disappear,
+                                                 preventing the dialog from shrinking as the user types a name. -->
+                                            <Setter Property="Visibility" Value="Hidden"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding ShowNameSuggestions}" Value="True">
                                                     <Setter Property="Visibility" Value="Visible"/>

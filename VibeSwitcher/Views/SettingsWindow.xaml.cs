@@ -93,7 +93,7 @@ public partial class SettingsWindow : Window
         DataContext = _viewModel;
         RestoreWindowBounds();
         try { AboutPanelIcon.Source = IconHelper.GetAppIconImageSource(); } catch { }
-        StartNavLogoAnimation();
+        Loaded += (_, _) => StartNavLogoAnimation();
         try
         {
             var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;

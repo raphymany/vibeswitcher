@@ -114,13 +114,21 @@ public static class IconHelper
                 {
                     using (info.Stream)
                     using (var icon = new Icon(info.Stream, new System.Drawing.Size(32, 32)))
-                    using (var bmp = icon.ToBitmap())
-                        _balloonIconHandle = bmp.GetHicon();
+                    using (var src = icon.ToBitmap())
+                    using (var bmp32 = new Bitmap(32, 32))
+                    using (var g = Graphics.FromImage(bmp32))
+                    {
+                        // ToBitmap() returns whatever frame the ICO contains (may be 256×256).
+                        // DrawImage forces an exact 32×32 output that H.NotifyIcon requires.
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.DrawImage(src, 0, 0, 32, 32);
+                        _balloonIconHandle = bmp32.GetHicon();
+                    }
                     return _balloonIconHandle;
                 }
             }
             catch (Exception ex) { AppLog.Warning("IconHelper.GetBalloonIconHandle", ex.Message); }
-            // Balloon API requires exactly 32×32; GetDefaultIcon() may be 64×64, so create a dedicated fallback.
+            // Fallback: solid-color 32×32 (exact size required by balloon API).
             using (var bmp = new Bitmap(32, 32))
             using (var g = Graphics.FromImage(bmp))
             {
