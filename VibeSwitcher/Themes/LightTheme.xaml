@@ -8,6 +8,12 @@
     <SolidColorBrush x:Key="InnerCardBorderBrush" Color="#C8C8C8"/>
     <SolidColorBrush x:Key="CardBorderBrush"    Color="#C0C0C0"/>
 
+    <!-- Title bar / nav bar (new shell layout) -->
+    <SolidColorBrush x:Key="VSTitleBarBg"       Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="VSNavBg"            Color="#F9F9F9"/>
+    <SolidColorBrush x:Key="VSNavBorder"        Color="#DDDDDD"/>
+    <SolidColorBrush x:Key="VSModalBg"          Color="#FFFFFF"/>
+
     <!-- Text -->
     <SolidColorBrush x:Key="PrimaryText"        Color="#1A1A1A"/>
     <SolidColorBrush x:Key="SecondaryText"      Color="#555555"/>

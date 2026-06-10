@@ -83,7 +83,7 @@ public static class IconHelper
             if (_defaultIcon != null) return _defaultIcon;
             try
             {
-                var uri = new Uri("pack://application:,,,/Resources/Icons/app.ico", UriKind.Absolute);
+                var uri = new Uri("pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico", UriKind.Absolute);
                 var info = System.Windows.Application.GetResourceStream(uri);
                 if (info != null)
                 {
@@ -108,7 +108,7 @@ public static class IconHelper
             if (_balloonIconHandle != IntPtr.Zero) return _balloonIconHandle;
             try
             {
-                var uri = new Uri("pack://application:,,,/Resources/Icons/app.ico", UriKind.Absolute);
+                var uri = new Uri("pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico", UriKind.Absolute);
                 var info = System.Windows.Application.GetResourceStream(uri);
                 if (info != null)
                 {
@@ -132,7 +132,7 @@ public static class IconHelper
             if (_appIconImageSource != null) return _appIconImageSource;
             try
             {
-                var uri = new Uri("pack://application:,,,/Resources/Icons/app.ico", UriKind.Absolute);
+                var uri = new Uri("pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico", UriKind.Absolute);
                 var decoder = BitmapDecoder.Create(uri, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                 var frame = decoder.Frames.OrderByDescending(f => f.PixelWidth).First();
                 frame.Freeze();

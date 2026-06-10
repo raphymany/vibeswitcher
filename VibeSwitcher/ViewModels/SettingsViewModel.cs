@@ -334,6 +334,38 @@ public class SettingsViewModel : ViewModelBase
         _warningFilter || _scheduledFilter || _reminderFilter ||
         _soundFilter   || DayChips.Any(d => d.IsSelected);
 
+    public int ActiveFilterCount
+    {
+        get
+        {
+            int count = 0;
+            if (_modeFilter != "Any mode") count++;
+            if (_pinnedFilter)    count++;
+            if (_activeFilter)    count++;
+            if (_silentFilter)    count++;
+            if (_hotkeyFilter)    count++;
+            if (_notesFilter)     count++;
+            if (_iconFilter)      count++;
+            if (_warningFilter)   count++;
+            if (_scheduledFilter) count++;
+            if (_reminderFilter)  count++;
+            if (_soundFilter)     count++;
+            count += DayChips.Count(d => d.IsSelected);
+            return count;
+        }
+    }
+
+    private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetField(ref _searchText, value))
+                ApplyFilter();
+        }
+    }
+
     public ICommand ClearFiltersCommand { get; }
 
     private bool _clearing;
@@ -394,10 +426,18 @@ public class SettingsViewModel : ViewModelBase
             SoundOnly     = _soundFilter,
             ActiveDays    = DayChips.Where(d => d.IsSelected).Select(d => d.Day).ToHashSet(),
         };
+        var search = _searchText?.Trim() ?? string.Empty;
         foreach (var card in Profiles)
-            card.IsVisible = card.MatchesFilter(filter);
-        HasNoFilterResults = IsAnyFilterActive && Profiles.All(p => !p.IsVisible);
+        {
+            var matchesFilter = card.MatchesFilter(filter);
+            var matchesSearch = string.IsNullOrEmpty(search) ||
+                                card.Name.Contains(search, StringComparison.OrdinalIgnoreCase);
+            card.IsVisible = matchesFilter && matchesSearch;
+        }
+        var anyActive = IsAnyFilterActive || !string.IsNullOrEmpty(search);
+        HasNoFilterResults = anyActive && Profiles.All(p => !p.IsVisible);
         OnPropertyChanged(nameof(IsAnyFilterActive));
+        OnPropertyChanged(nameof(ActiveFilterCount));
     }
 
     public HotkeyDefinition SettingsHotkey

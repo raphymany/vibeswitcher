@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using Microsoft.Win32;
@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
@@ -26,6 +27,7 @@ public partial class SettingsWindow : Window
     private readonly EventHandler _errorAddedHandler;
 
     private System.Windows.Threading.DispatcherTimer? _boundsTimer;
+    private bool _filterBarOpen = false;
 
     // Drag-and-drop state for profile card reordering
     private Point _dragStart;
@@ -90,26 +92,22 @@ public partial class SettingsWindow : Window
 
         DataContext = _viewModel;
         RestoreWindowBounds();
+        try { AboutPanelIcon.Source = IconHelper.GetAppIconImageSource(); } catch { }
+        StartNavLogoAnimation();
         try
         {
-            var icon = IconHelper.GetAppIconImageSource();
-            AppTitleBar.IconSource = icon;
-            AppHeaderIcon.Source   = icon;
+            var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            AboutVersionText.Text = v != null ? $"Version {v.Major}.{v.Minor}.{v.Build} — Windows 10/11" : "Windows 10/11";
         }
         catch { }
 
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-        // Sync initial row height in case settings starts expanded.
-        Loaded += (_, _) => UpdateProfilesRowHeight();
-
         SizeChanged     += OnBoundsChanged;
-        SizeChanged     += (_, _) => { if (_viewModel.SettingsCardExpanded) UpdateSettingsBodyMaxHeight(); };
         LocationChanged += OnBoundsChanged;
 
         _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
 
-        // Subscribe only while visible so hide-and-reshow cycles don't accumulate handlers.
         IsVisibleChanged += (_, e) =>
         {
             if ((bool)e.NewValue)
@@ -127,7 +125,74 @@ public partial class SettingsWindow : Window
 
     public void RefreshActiveStates() => _viewModel.RefreshActiveStates();
 
-    public void ExpandSettings() => _viewModel.SettingsCardExpanded = true;
+    public void ExpandSettings()
+    {
+        _viewModel.SettingsCardExpanded = true;
+        ShowPanel(SettingsBodyScrollViewer);
+    }
+
+    // ── Panel navigation ────────────────────────────────────────────
+
+    private void ShowPanel(UIElement panel)
+    {
+        ProfileDetailOverlay.Visibility    = Visibility.Collapsed;
+        if (_filterBarOpen)
+        {
+            _filterBarOpen = false;
+            FilterBarBorder.BeginAnimation(MaxHeightProperty,
+                new DoubleAnimation { To = 0, Duration = TimeSpan.FromMilliseconds(200) });
+        }
+        ProfilesPanel.Visibility          = Visibility.Collapsed;
+        SettingsBodyScrollViewer.Visibility = Visibility.Collapsed;
+        AboutPanel.Visibility             = Visibility.Collapsed;
+        FaqPanel.Visibility               = Visibility.Collapsed;
+        panel.Visibility                  = Visibility.Visible;
+    }
+
+    private void NavProfiles_Click(object sender, RoutedEventArgs e) => ShowPanel(ProfilesPanel);
+    private void NavSettings_Click(object sender, RoutedEventArgs e) { _viewModel.SettingsCardExpanded = true; ShowPanel(SettingsBodyScrollViewer); }
+    private void NavAbout_Click(object sender, RoutedEventArgs e)    => ShowPanel(AboutPanel);
+    private void NavFaq_Click(object sender, RoutedEventArgs e)      => ShowPanel(FaqPanel);
+
+    // ── Title bar controls ───────────────────────────────────────────
+
+    private void TitleMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+    private void TitleMaximize_Click(object sender, RoutedEventArgs e)
+        => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    private void TitleClose_Click(object sender, RoutedEventArgs e) => Close();
+
+    // ── Filter bar toggle ────────────────────────────────────────────
+
+    private void FiltersBtn_Click(object sender, RoutedEventArgs e)
+    {
+        _filterBarOpen = !_filterBarOpen;
+        var anim = new DoubleAnimation
+        {
+            To = _filterBarOpen ? 115 : 0,
+            Duration = TimeSpan.FromMilliseconds(300),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+        };
+        FilterBarBorder.BeginAnimation(MaxHeightProperty, anim);
+    }
+
+    // ── Profile detail overlay ───────────────────────────────────────
+
+    private void ProfileCard_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is ProfileCardViewModel vm)
+        {
+            ProfileDetailContent.DataContext = vm;
+            ProfileDetailOverlay.Visibility  = Visibility.Visible;
+        }
+    }
+
+    private void OverlayClose_Click(object sender, RoutedEventArgs e)
+        => ProfileDetailOverlay.Visibility = Visibility.Collapsed;
+
+    private void OverlayBackdrop_MouseDown(object sender, MouseButtonEventArgs e)
+        => ProfileDetailOverlay.Visibility = Visibility.Collapsed;
+
+    // ── Bounds tracking ─────────────────────────────────────────────
 
     private void OnBoundsChanged(object? sender, EventArgs e)
     {
@@ -147,37 +212,9 @@ public partial class SettingsWindow : Window
     {
         if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded))
         {
-            UpdateProfilesRowHeight();
             if (_viewModel.SettingsCardExpanded)
-                Dispatcher.InvokeAsync(UpdateSettingsBodyMaxHeight, System.Windows.Threading.DispatcherPriority.Loaded);
+                ShowPanel(SettingsBodyScrollViewer);
         }
-    }
-
-    private void UpdateProfilesRowHeight()
-    {
-        if (_viewModel.SettingsCardExpanded)
-        {
-            MainGrid.RowDefinitions[2].Height = new GridLength(0);
-            MainGrid.RowDefinitions[3].Height = new GridLength(1, GridUnitType.Star);
-        }
-        else
-        {
-            MainGrid.RowDefinitions[2].Height = new GridLength(1, GridUnitType.Star);
-            MainGrid.RowDefinitions[3].Height = GridLength.Auto;
-        }
-    }
-
-    private void UpdateSettingsBodyMaxHeight()
-    {
-        if (WindowState != WindowState.Normal) return;
-        // Bound the settings body so it never overflows the window.
-        // Available = MainGrid height minus header, footer, settings card header (≈50px), and spacing.
-        var available = MainGrid.ActualHeight
-            - HeaderPanel.ActualHeight
-            - FooterGrid.ActualHeight
-            - 50   // settings card header row
-            - 60;  // vertical breathing room
-        SettingsBodyScrollViewer.MaxHeight = Math.Max(80, available);
     }
 
     private void UpdateLogsButton()
@@ -213,8 +250,6 @@ public partial class SettingsWindow : Window
             var vsw = SystemParameters.VirtualScreenWidth;
             var vsh = SystemParameters.VirtualScreenHeight;
 
-            // Clamp so the entire window stays within the virtual screen even if the
-            // monitor it was saved on is no longer connected or has a different resolution.
             var left = Math.Clamp(cfg.WindowLeft.Value, vsl, Math.Max(vsl, vsl + vsw - Width));
             var top  = Math.Clamp(cfg.WindowTop.Value,  vst, Math.Max(vst, vst + vsh - Height));
 
@@ -242,7 +277,6 @@ public partial class SettingsWindow : Window
 
         if (_viewModel.CloseToTray)
         {
-            // Hide instead of close — app stays alive in tray
             e.Cancel = true;
             Hide();
         }
@@ -252,8 +286,6 @@ public partial class SettingsWindow : Window
         }
     }
 
-    private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
-
     private void ManageAliasesButton_Click(object sender, RoutedEventArgs e)
     {
         var vm = (ViewModels.SettingsViewModel)DataContext;
@@ -261,22 +293,17 @@ public partial class SettingsWindow : Window
         dialog.ShowDialog();
     }
 
-    private void AboutButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (Application.Current is App app)
-            app.OpenAboutWindow();
-    }
-
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key == Key.Escape)
         {
-            // Close any open icon-info popup first; only close the window if none were open.
-            if (CloseOpenIconPopups())
+            if (ProfileDetailOverlay.Visibility == Visibility.Visible)
             {
+                ProfileDetailOverlay.Visibility = Visibility.Collapsed;
                 e.Handled = true;
                 return;
             }
+            if (CloseOpenIconPopups()) { e.Handled = true; return; }
             Close();
         }
     }
@@ -329,7 +356,6 @@ public partial class SettingsWindow : Window
 
     private void SettingsHotkeyButton_Click(object sender, RoutedEventArgs e)
     {
-        // Unregister all hotkeys so profile hotkeys can't fire while the dialog is open.
         _hotkeyService.UnregisterAll();
 
         var dialogSeed = _viewModel.SettingsHotkey;
@@ -356,7 +382,6 @@ public partial class SettingsWindow : Window
             break;
         }
 
-        // Always re-register everything (profiles + Settings + mute hotkeys) after the dialog closes.
         _viewModel.ReregisterHotkeys();
     }
 
@@ -473,28 +498,45 @@ public partial class SettingsWindow : Window
         e.Handled = true;
     }
 
-    private void DragGrip_MouseDown(object sender, MouseButtonEventArgs e)
+    private void StartNavLogoAnimation()
     {
-        _dragStart = e.GetPosition(null);
-        _dragSource = (sender as FrameworkElement)?.DataContext as ProfileCardViewModel;
+        var sb = new Storyboard { RepeatBehavior = RepeatBehavior.Forever };
+
+        // V chevron breathe — translateY(0 → -5px → 2.5px → 0), 1.1s loop
+        var vAnim = new DoubleAnimationUsingKeyFrames { Duration = TimeSpan.FromSeconds(1.1) };
+        var vEase = new SineEase { EasingMode = EasingMode.EaseInOut };
+        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(0,    KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.00))) { EasingFunction = vEase });
+        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(-5,   KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.33))) { EasingFunction = vEase });
+        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(2.5,  KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.77))) { EasingFunction = vEase });
+        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(0,    KeyTime.FromTimeSpan(TimeSpan.FromSeconds(1.10))) { EasingFunction = vEase });
+        Storyboard.SetTarget(vAnim, NavVChevronTranslate);
+        Storyboard.SetTargetProperty(vAnim, new PropertyPath(TranslateTransform.YProperty));
+        sb.Children.Add(vAnim);
+
+        // Equalizer bars — durations and keyframes match reference CSS exactly
+        // navEq1: 0.85s  peaks at 40%→2.2, dips at 72%→0.55
+        AddNavBarAnim(sb, NLBar1Scale, 0.85, new[] { (0.0, 1.0), (0.40, 2.20), (0.72, 0.55), (1.0, 1.0) });
+        // navEq2: 0.68s  peaks at 35%→1.9, dips at 68%→0.55
+        AddNavBarAnim(sb, NLBar2Scale, 0.68, new[] { (0.0, 1.0), (0.35, 1.90), (0.68, 0.55), (1.0, 1.0) });
+        // navEq3: 0.60s  peaks at 30%→1.75, dips at 65%→0.65
+        AddNavBarAnim(sb, NLBar3Scale, 0.60, new[] { (0.0, 1.0), (0.30, 1.75), (0.65, 0.65), (1.0, 1.0) });
+        // navEq4: 0.74s  peaks at 38%→1.85, dips at 72%→0.60
+        AddNavBarAnim(sb, NLBar4Scale, 0.74, new[] { (0.0, 1.0), (0.38, 1.85), (0.72, 0.60), (1.0, 1.0) });
+        // navEq5: 0.78s  peaks at 45%→2.0, dips at 72%→0.55
+        AddNavBarAnim(sb, NLBar5Scale, 0.78, new[] { (0.0, 1.0), (0.45, 2.00), (0.72, 0.55), (1.0, 1.0) });
+
+        sb.Begin(this, true);
     }
 
-    private void DragGrip_MouseUp(object sender, MouseButtonEventArgs e)
+    private static void AddNavBarAnim(Storyboard sb, ScaleTransform target, double dur, (double pct, double scale)[] frames)
     {
-        // Clear stale drag source if the user released without crossing the drag threshold.
-        _dragSource = null;
-    }
-
-    private void DragGrip_MouseMove(object sender, MouseEventArgs e)
-    {
-        if (e.LeftButton != MouseButtonState.Pressed || _dragSource == null) return;
-        var pos = e.GetPosition(null);
-        if (Math.Abs(pos.X - _dragStart.X) > SystemParameters.MinimumHorizontalDragDistance ||
-            Math.Abs(pos.Y - _dragStart.Y) > SystemParameters.MinimumVerticalDragDistance)
-        {
-            DragDrop.DoDragDrop((DependencyObject)sender, _dragSource, DragDropEffects.Move);
-            _dragSource = null;
-        }
+        var anim = new DoubleAnimationUsingKeyFrames { Duration = TimeSpan.FromSeconds(dur) };
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+        foreach (var (pct, scale) in frames)
+            anim.KeyFrames.Add(new EasingDoubleKeyFrame(scale, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(pct * dur))) { EasingFunction = ease });
+        Storyboard.SetTarget(anim, target);
+        Storyboard.SetTargetProperty(anim, new PropertyPath(ScaleTransform.ScaleYProperty));
+        sb.Children.Add(anim);
     }
 
     private void Card_DragEnter(object sender, DragEventArgs e)
@@ -505,7 +547,6 @@ public partial class SettingsWindow : Window
 
     private void Card_DragLeave(object sender, DragEventArgs e)
     {
-        // Only reset when the drag has truly left the card bounds, not just crossed into a child element.
         if (sender is not Border border) return;
         var pos = e.GetPosition(border);
         if (pos.X < 0 || pos.Y < 0 || pos.X > border.ActualWidth || pos.Y > border.ActualHeight)
@@ -535,11 +576,6 @@ public partial class SettingsWindow : Window
     {
         if (sender is System.Windows.Controls.Primitives.ToggleButton rb && rb.Tag is string tag)
             _viewModel.Theme = tag;
-    }
-
-    private void HelpButton_Click(object sender, RoutedEventArgs e)
-    {
-        new HelpDialog { Owner = this }.ShowDialog();
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)

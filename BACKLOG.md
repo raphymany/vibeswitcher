@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-07 — Branch 51 (`refactor/injectable-services`) merged — PR #102.
+**Last updated:** 2026-06-10 — Branch 52 (`feat/ui-redesign`) merged — PR #105.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -131,7 +131,8 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
-| F44 | Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand; part of planned UI/UX redesign phase | Deferred |
+| F44 | Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand; part of planned UI/UX redesign phase | Superseded by feat/ui-redesign (PR #105) |
+| F45 | Light theme support for redesigned UI — profile cards, action strips, overlays, and icon frames use hardcoded dark hex values from the G HUB-inspired redesign; needs theme-aware resource keys for each | Deferred |
 
 ---
 
@@ -160,7 +161,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | F8 / 8.3 | Auto-updater (GitHub Releases check) | Needs installer first |
 | 8.7 | Distribution and discovery — package managers (winget, Chocolatey, Scoop); community posts (Reddit r/Windows + r/Windows11 + r/pcmasterrace, Hacker News Show HN, Product Hunt); AlternativeTo listing; GitHub repo topics; short YouTube demo | Post-v1.0 |
 | 10.8 | Website ("coming soon") | External, not in this repo |
-| F44 | Compact / mini Settings window | After UI/UX redesign |
+| F44 | Compact / mini Settings window | Superseded by feat/ui-redesign (PR #105) |
 
 ---
 

@@ -1330,3 +1330,22 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | R9 | `App.xaml.cs` creates `new AppLogger()` and `new SessionErrorTracker()` at startup and wires them through every service; `AppLog.Register` / `AppErrors.Register` called immediately after for the two static-locator consumers | ✅ Done |
 | R9 | `FakeAppLogger` and `FakeSessionErrorTracker` test doubles added; all 8 affected test files updated to pass fakes; `FakeSessionErrorTracker` uses lock for thread safety matching the production implementation | ✅ Done |
 | R9 | `ErrorAdded` event on `SessionErrorTracker` changed from manual add/remove accessors to compiler-generated event for thread-safe subscribe/unsubscribe | ✅ Done |
+
+---
+
+### Branch 52: `feat/ui-redesign` ✅ Done — PR #105
+**Theme:** Full visual redesign of `SettingsWindow` from a plain vertical list to a G HUB-inspired dark card grid — new title bar, tab navigation, compact profile cards with always-visible action strips, filter bar with animated expand, profile detail overlay, About panel, FAQ panel, and Settings panel, all rebuilt in XAML while all services, ViewModels, and business logic remain unchanged.
+
+| # | Item | Status |
+|---|------|--------|
+| UI | `SettingsWindow.xaml` fully rebuilt: 4-row outer Grid — title bar (30px), tab nav (54px), animated filter bar (0↔115px), main panel area (*) | ✅ Done |
+| UI | Compact profile card DataTemplate (Width=192) — icon, name, mode badge, device rows, hotkey chip, always-visible 2-row action strip with 9 buttons | ✅ Done |
+| UI | Profile detail overlay — `Grid` with `Panel.ZIndex=10`, dismiss on Esc / backdrop click / close button | ✅ Done |
+| UI | Tab navigation: Profiles / Settings / About / FAQ — `ShowPanel()` helper collapses all panels, dismisses overlay, closes filter bar | ✅ Done |
+| UI | Filter bar: animated `MaxHeight` 0↔115px with `CubicEase`; search box with placeholder TextBlock overlay; category + day-of-week chips | ✅ Done |
+| UI | About panel: app icon + version (read from assembly), description, GitHub/Changelog/License/Report a bug links, Built With section, Raphael Mansour credit, copyright | ✅ Done |
+| UI | Settings panel: all existing setting sections retained; new Diagnostics section with "View session log" button | ✅ Done |
+| UI | FAQ panel: 8 help sections rebuilt as cards; fixed literal `u{XXXX}` escape sequences to proper XML entities | ✅ Done |
+| UI | `DarkTheme.xaml`: all new resource keys (VSTitleBarBg, VSNavBg, VSNavBorder, VSModalBg, SaveFlashBg, InnerCardBg, InnerCardBorderBrush, ChipBg/Border/Text/HoverBg, HotkeyBg/Border, SectionLabelText, DisabledText, TertiaryText, SuccessDot, ErrorDot, WarningBg/Border/Text, HoverBg, TooltipBg/Border) | ✅ Done |
+| UI | `LightTheme.xaml`: VSTitleBarBg, VSNavBg, VSNavBorder, VSModalBg added for theme parity | ✅ Done |
+| UI | `SettingsWindow.xaml.cs`: `ShowPanel()` added; `FiltersBtn_Click` with `DoubleAnimation`; `ProfileCard_Click`, `OverlayClose_Click`, `OverlayBackdrop_MouseDown`; `Window_KeyDown` Esc priority; `AboutPanelIcon` + `AboutVersionText` set on load | ✅ Done |

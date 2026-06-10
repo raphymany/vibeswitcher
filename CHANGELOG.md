@@ -6,6 +6,15 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **G HUB-inspired dark card grid UI** — `SettingsWindow` rebuilt from scratch: custom title bar with `WindowChrome`, tab navigation (Profiles / Settings / About / FAQ), compact 192px profile cards in a `CenteredWrapPanel`, animated filter bar (expand/collapse), and profile detail overlay *(PR #105)*
+- **Always-visible profile card action strip** — two rows of icon buttons (silent toggle, app triggers, auto-switch, pin, activate / clone, schedule, switch sound, delete) are permanently visible on every card without requiring hover *(PR #105)*
+- **Profile card separators** — visual dividers between the mode badge, device rows, and hotkey chip sections on each card *(PR #105)*
+- **Filter bar with search placeholder** — collapsible filter bar with a real-time search box, placeholder text overlay, and category/day-of-week chip filters; animates open and closed with `CubicEase` *(PR #105)*
+- **About panel** — rebuilt inside the main window: app icon, version read from assembly, description, GitHub / Changelog / License / Report a bug links, Built With section (WPF/.NET 8, NAudio, CoreAudio, HID API), Raphael Mansour credit, copyright *(PR #105)*
+- **"View session log" button in Settings panel** — Diagnostics section at the bottom of the Settings panel opens the session log window directly *(PR #105)*
+- **Panel navigation auto-cleanup** — switching tabs dismisses the profile detail overlay and collapses the filter bar automatically *(PR #105)*
+
 ### Changed
 - **Injectable `IAppLogger` and `ISessionErrorTracker`** — `AppLogger` and `SessionErrorTracker` are now instance classes implementing `IAppLogger` and `ISessionErrorTracker` interfaces; all services, ViewModels, and dialogs receive them via constructor injection; enables proper test isolation and is the correct pattern for an open-source codebase *(PR #102)*
 - **`FakeAppLogger` and `FakeSessionErrorTracker` test doubles** — new in-memory implementations of both interfaces used throughout the test suite; all tests are now fully isolated with no shared static state *(PR #102)*

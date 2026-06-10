@@ -397,6 +397,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
 
+    public bool IsHotkeySet => !string.IsNullOrWhiteSpace(_hotkeyDisplay) &&
+                               _hotkeyDisplay != "—" && _hotkeyDisplay != "None";
+
     public ICommand ActivateCommand { get; }
     public ICommand CaptureHotkeyCommand { get; }
     public ICommand PickIconCommand { get; }
@@ -410,6 +413,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand AddSwitchSoundCommand { get; }
     public ICommand RemoveSwitchSoundCommand { get; }
     public ICommand OpenAppTriggersCommand { get; }
+    public ICommand ToggleSilentCommand { get; }
+    public ICommand TogglePinnedCommand { get; }
+    public ICommand ToggleTriggerOnConnectCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -482,6 +488,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         AddSwitchSoundCommand = new RelayCommand(AddSwitchSound);
         RemoveSwitchSoundCommand = new RelayCommand(RemoveSwitchSound);
         OpenAppTriggersCommand = new RelayCommand(OpenAppTriggerWizard);
+        ToggleSilentCommand = new RelayCommand(() => Silent = !Silent);
+        TogglePinnedCommand = new RelayCommand(() => IsPinned = !IsPinned);
+        ToggleTriggerOnConnectCommand = new RelayCommand(() => TriggerOnConnect = !TriggerOnConnect);
     }
 
     private void AddSwitchSound()
