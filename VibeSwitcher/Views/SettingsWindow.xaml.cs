@@ -190,6 +190,9 @@ public partial class SettingsWindow : Window
         {
             ProfileDetailCard.MinHeight = 0;
             vm.NotifyDetailModalOpened();
+            // When the user picks a chip the VM collapses the row and fires this
+            // callback so we release the MinHeight lock and let the card shrink.
+            vm.OnSuggestionSelected = () => ProfileDetailCard.MinHeight = 0;
             ProfileDetailContent.DataContext = vm;
             ProfileDetailOverlay.Visibility  = Visibility.Visible;
             // Lock MinHeight after layout so typing/chip-hide can't shrink the dialog.

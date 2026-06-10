@@ -97,6 +97,11 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     // the user types (Hidden, not Collapsed), without leaving a gap for profiles
     // that already have a real name (Collapsed from the start).
     private bool _suggestionsWereShownAtOpen;
+
+    // Set by the view each time the modal opens; called back when the user
+    // picks a name chip so the view can release its MinHeight lock.
+    public Action? OnSuggestionSelected { get; set; }
+
     public void NotifyDetailModalOpened()
     {
         _suggestionsWereShownAtOpen = ShowNameSuggestions;
@@ -797,6 +802,11 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             if (item != null)
                 ApplyGalleryIcon(item, IconColor.Auto, silent: true);
         }
+
+        // Collapse the chips row immediately and let the view release its MinHeight lock.
+        _suggestionsWereShownAtOpen = false;
+        OnPropertyChanged(nameof(SuggestionsVisibility));
+        OnSuggestionSelected?.Invoke();
     }
 
     private void CloneProfile()
