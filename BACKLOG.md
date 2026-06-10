@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-07 — Branch 51 (`refactor/injectable-services`) merged — PR #102.
+**Last updated:** 2026-06-10 — Branch 52 (`feat/ui-redesign`) open — PR #105.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -145,6 +145,12 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 Grouped by shared UI surface or implementation concern. Features within each branch can ship together without stepping on each other.
 
 *(Completed branches and their full item lists are documented in RECORD.md — Section 12.)*
+
+---
+
+### Branch 52: `feat/ui-redesign` — PR #105 (open)
+
+Complete visual redesign — G HUB-inspired dark theme, card grid layout, SplashWindow, ProfileCardView, ProfileDetailModal, animated filter bar, live search, FAQ panel, dialog restyling. XAML-only changes (plus two ViewModel additions for search/FAQ).
 
 ---
 

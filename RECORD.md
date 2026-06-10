@@ -1330,3 +1330,23 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | R9 | `App.xaml.cs` creates `new AppLogger()` and `new SessionErrorTracker()` at startup and wires them through every service; `AppLog.Register` / `AppErrors.Register` called immediately after for the two static-locator consumers | ✅ Done |
 | R9 | `FakeAppLogger` and `FakeSessionErrorTracker` test doubles added; all 8 affected test files updated to pass fakes; `FakeSessionErrorTracker` uses lock for thread safety matching the production implementation | ✅ Done |
 | R9 | `ErrorAdded` event on `SessionErrorTracker` changed from manual add/remove accessors to compiler-generated event for thread-safe subscribe/unsubscribe | ✅ Done |
+
+---
+
+### Branch 52: `feat/ui-redesign` — PR #105 (open)
+**Theme:** Complete visual redesign of VibeSwitcher — G HUB-inspired dark aesthetic. XAML-only changes; no services, ViewModels, or business logic modified (except two ViewModel additions to support search and FAQ).
+
+| # | Item | Status |
+|---|------|--------|
+| — | `DarkTheme.xaml` updated with full VS token set: `VSTitleBarBg`, `VSNavBg`, `VSModalBg`, `VSActBg`, `VSAccentDim`, `VSAccentBorder`, `VSAccentGlow`, `WarningBadgeBg`, `WarningBadgeText`, and more | ✅ Done |
+| — | `SplashWindow.xaml` / `.cs` rebuilt: frameless dark window, V-chevron path with TranslateTransform, 5 equalizer bars (Bar1–Bar5 with ScaleTransform), looping equalizer animation, `AnimationComplete` event replacing old `Task.Delay`; `App.xaml.cs` wired to event | ✅ Done |
+| — | `ProfileCardView.xaml` new UserControl: 192×244 dark card, active-profile gradient bar, 76×76 icon area with orange glow, mode badge (DataTriggers on ModeLabel), device rows, status footer, validation warning badge, 9-button hover action strip | ✅ Done |
+| — | `ProfileCardViewModel.cs`: added `IsHotkeySet`, `ToggleSilentCommand`, `TogglePinnedCommand`, `ToggleTriggerOnConnectCommand` | ✅ Done |
+| — | `CenteredWrapPanel.cs` custom Panel for centering profile cards in grid | ✅ Done |
+| — | `SettingsWindow.xaml` fully rebuilt: 4-row frameless layout (custom title bar, top nav bar, animated filter bar, Row 3 panel swap); ProfileCardView ItemsControl with CenteredWrapPanel; profile detail modal overlay with ScaleTransform/TranslateTransform animation; Settings/About/FAQ panels with back-arrow navigation | ✅ Done |
+| — | `SettingsWindow.xaml.cs`: `ActivePanel` enum (Profiles/Settings/About/Faq), `ShowPanel()`, filter bar animation, modal open/close animation, window chrome handlers | ✅ Done |
+| — | Search bar: `SearchText` property in `SettingsViewModel`; `ApplyFilter()` extended to AND-gate name search; `ClearFilters()` clears search; `SearchBox` bound via `UpdateSourceTrigger=PropertyChanged` | ✅ Done |
+| — | FAQ panel: `FaqExpander` style, 8 hardcoded FAQ accordion items, `ShowFaq_Click` handler | ✅ Done |
+| — | `HotkeyCaptureDialog.xaml`: removed local `DialogButton`/`PrimaryButton` styles; uses global `ActionButton`/`PrimaryButton` | ✅ Done |
+| — | `ScheduleWizardDialog.xaml`: replaced `#CC6600` with `{DynamicResource WarningText}` | ✅ Done |
+| — | Bug fix: `HasNoFilterResults` now guards `Profiles.Any()` to prevent double empty-state when list is empty | ✅ Done |

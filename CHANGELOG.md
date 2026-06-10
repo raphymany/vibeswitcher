@@ -6,6 +6,24 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- **Full UI redesign — G HUB-inspired dark theme** — complete visual rebuild of all views; new dark token set in `DarkTheme.xaml` (`VSTitleBarBg`, `VSNavBg`, `VSModalBg`, `VSAccentDim`, `VSAccentBorder`, `VSAccentGlow`, `WarningBadgeBg`, and others) *(PR #105)*
+- **SplashWindow** — new frameless dark splash screen with V-chevron icon and 5 animated equalizer bars; bars animate with sine easing in a looping equalizer pattern (~3.75 s total); `AnimationComplete` event replaces the old `Task.Delay` approach in `App.xaml.cs` *(PR #105)*
+- **ProfileCardView UserControl** — 192×244 px dark card replacing the old settings list; active-profile gradient bar, 76×76 icon area with orange glow, mode badge, device rows, status footer (active/pinned/scheduled dots + hotkey chip), validation warning badge, and 9 action buttons in a hover action strip *(PR #105)*
+- **CenteredWrapPanel** — custom Panel subclass for centering profile cards in the grid *(PR #105)*
+- **Profile detail modal** — inline overlay (not a separate Window) with ScaleTransform + TranslateTransform open animation; editable fields for name, mode pills, notes, device dropdowns, hotkey, and icon *(PR #105)*
+- **FAQ panel** — accordion with 8 Q&A items accessible via the ? nav button; custom `FaqExpander` style with rotating chevron *(PR #105)*
+- **Live search bar** — `SearchText` property in `SettingsViewModel` extends `ApplyFilter()` to AND-gate profile name search with existing chip filters; `ClearFilters()` also clears search *(PR #105)*
+- **Animated filter bar** — collapsible filter bar (MaxHeight 0↔52 px, CubicEase, 300 ms) with 10 filter chips *(PR #105)*
+
+### Changed
+- **SettingsWindow fully rebuilt** — 4-row frameless window: custom title bar, top nav bar (logo, search, Filters, logs indicator, FAQ/About/Settings icons, + New Profile), animated filter bar, and a Row 3 that swaps between Profiles / Settings / About / FAQ panels without a separate window *(PR #105)*
+- **HotkeyCaptureDialog** — removed locally-defined `DialogButton`/`PrimaryButton` styles; now uses global `ActionButton`/`PrimaryButton` from `App.xaml` *(PR #105)*
+- **ScheduleWizardDialog** — replaced hardcoded `#CC6600` warning color with `{DynamicResource WarningText}` *(PR #105)*
+
+### Fixed
+- **`HasNoFilterResults` vacuous-All edge case** — guarded against the empty profile list case where `Profiles.All(...)` returns true vacuously, which previously caused both the "No profiles yet" and "No matches" empty states to render simultaneously *(PR #105)*
+
 ### Changed
 - **Injectable `IAppLogger` and `ISessionErrorTracker`** — `AppLogger` and `SessionErrorTracker` are now instance classes implementing `IAppLogger` and `ISessionErrorTracker` interfaces; all services, ViewModels, and dialogs receive them via constructor injection; enables proper test isolation and is the correct pattern for an open-source codebase *(PR #102)*
 - **`FakeAppLogger` and `FakeSessionErrorTracker` test doubles** — new in-memory implementations of both interfaces used throughout the test suite; all tests are now fully isolated with no shared static state *(PR #102)*
