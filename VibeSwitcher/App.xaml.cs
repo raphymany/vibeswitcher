@@ -178,14 +178,14 @@ public partial class App : Application
             profile => _orchestrator.SwitchToProfile(profile),
             _logger);
 
-        // 10. Show splash, then open settings on first run or if not start-minimized
+        // 10. Show splash — AnimationComplete fires at ~3750ms then opens settings
         var splash = new Views.SplashWindow();
+        splash.AnimationComplete += (_, _) =>
+        {
+            if (_configService!.IsFirstRun || !_configService.Current.StartMinimized)
+                OpenSettingsWindow();
+        };
         splash.Show();
-        await Task.Delay(2200);
-        splash.Close();
-
-        if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
-            OpenSettingsWindow();
     }
 
     private void RegisterSettingsHotkey()

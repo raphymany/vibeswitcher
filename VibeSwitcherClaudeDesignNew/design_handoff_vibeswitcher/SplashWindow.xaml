@@ -1,3 +1,19 @@
+<!--
+  SplashWindow.xaml  — FINAL VERSION (matches VibeSwitcher.html prototype)
+  ═══════════════════════════════════════════════════════════════════════════
+  Add to VibeSwitcher/Views/SplashWindow.xaml
+  Requires SplashWindow.xaml.cs (see bottom of this file).
+
+  Animation sequence:
+    0–300ms   : Fade in (whole panel)
+    420ms     : V chevron rises up (-16px), then slams down (+11px), bounces, settles (1.6s total)
+    420ms     : Bars react to press — compress then wave outward center→edge (1.6s, clipped at y=62)
+    1820ms    : App name + tagline fade in from below
+    2060ms    : Code-behind starts looping equalizer on bars (RepeatBehavior=Forever)
+    3400ms    : Code-behind stops looping equalizer, main storyboard fades out
+    3750ms    : Window closes → App.xaml.cs opens SettingsWindow
+  ═══════════════════════════════════════════════════════════════════════════
+-->
 <Window x:Class="VibeSwitcher.Views.SplashWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,12 +30,15 @@
     <Window.Resources>
 
         <!--
+        ════════════════════════════════════════════════════════════════
           PRESS STORYBOARD — runs once on Loaded.
-          Code-behind calls: ((Storyboard)Resources["PressStoryboard"]).Begin(this);
+          Code-behind in SplashWindow.xaml.cs calls:
+              ((Storyboard)Resources["PressStoryboard"]).Begin(this);
+        ════════════════════════════════════════════════════════════════
         -->
         <Storyboard x:Key="PressStoryboard">
 
-            <!-- 1. Fade whole panel in (0–300ms) -->
+            <!-- ── 1. Fade whole panel in (0–300ms) ── -->
             <DoubleAnimation
                 Storyboard.TargetName="RootPanel"
                 Storyboard.TargetProperty="Opacity"
@@ -28,11 +47,17 @@
                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
 
-            <!-- 2. V chevron press (starts at 420ms, 1600ms total) -->
+            <!-- ── 2. V chevron press (starts at 420ms, 1600ms animation) ── -->
+            <!--
+              The V path (VChevron) has a TranslateTransform named VTranslate.
+              It rises up then slams into the bars, bounces, and settles.
+              All Y values are in Canvas units (80px canvas = 80 units).
+            -->
             <DoubleAnimationUsingKeyFrames
                 Storyboard.TargetName="VTranslate"
                 Storyboard.TargetProperty="Y"
                 BeginTime="0:0:0.42">
+                <!-- Static hold -->
                 <LinearDoubleKeyFrame  Value="0"    KeyTime="0:0:0"/>
                 <LinearDoubleKeyFrame  Value="0"    KeyTime="0:0:0.416"/>
                 <!-- Rise up -->
@@ -57,7 +82,7 @@
                 </EasingDoubleKeyFrame>
             </DoubleAnimationUsingKeyFrames>
 
-            <!-- 3. Bar 3 (center) press wave — biggest reaction -->
+            <!-- ── 3. Bar 3 (center) press wave — biggest reaction ── -->
             <DoubleAnimationUsingKeyFrames
                 Storyboard.TargetName="Bar3Scale"
                 Storyboard.TargetProperty="ScaleY"
@@ -76,7 +101,7 @@
                 <EasingDoubleKeyFrame  Value="1"    KeyTime="0:0:1.6"/>
             </DoubleAnimationUsingKeyFrames>
 
-            <!-- 4. Bars 2 & 4 (inner) press wave — medium, slightly delayed -->
+            <!-- ── 4. Bars 2 & 4 (inner) press wave — medium, slightly delayed ── -->
             <DoubleAnimationUsingKeyFrames
                 Storyboard.TargetName="Bar2Scale"
                 Storyboard.TargetProperty="ScaleY"
@@ -112,7 +137,7 @@
                 <EasingDoubleKeyFrame  Value="1"    KeyTime="0:0:1.6"/>
             </DoubleAnimationUsingKeyFrames>
 
-            <!-- 5. Bars 1 & 5 (outer) press wave — smallest, most delayed -->
+            <!-- ── 5. Bars 1 & 5 (outer) press wave — smallest, most delayed ── -->
             <DoubleAnimationUsingKeyFrames
                 Storyboard.TargetName="Bar1Scale"
                 Storyboard.TargetProperty="ScaleY"
@@ -148,7 +173,7 @@
                 <EasingDoubleKeyFrame  Value="1"    KeyTime="0:0:1.6"/>
             </DoubleAnimationUsingKeyFrames>
 
-            <!-- 6. Text fades in after V settles (1820–2070ms) -->
+            <!-- ── 6. Text fades in after V settles (1820–2070ms) ── -->
             <DoubleAnimation
                 Storyboard.TargetName="TextGroup"
                 Storyboard.TargetProperty="Opacity"
@@ -166,7 +191,7 @@
                 <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
 
-            <!-- 7. Fade out at 3400ms -->
+            <!-- ── 7. Fade out at 3400ms ── -->
             <DoubleAnimation
                 Storyboard.TargetName="RootPanel"
                 Storyboard.TargetProperty="Opacity"
@@ -192,7 +217,7 @@
                         Opacity="0"
                         Margin="0,32,0,32">
 
-                <!-- VS Icon -->
+                <!-- ══ VS Icon ══ -->
                 <Border HorizontalAlignment="Center" Margin="0,0,0,16"
                         Width="96" Height="96" CornerRadius="22"
                         Background="#13131E">
@@ -203,13 +228,17 @@
                     <Border BorderBrush="#3D2908" BorderThickness="1" CornerRadius="22">
 
                         <!--
-                          80×80 Canvas. Scale factor: 96px / 80units = 1.2
-                          VChevron animates via VTranslate independently.
-                          Bars are clipped at y=62 (hard ceiling below chevron tip at y=54).
+                          80×80 Canvas. Scale factor: 96px / 80units = 1.2 — all coordinates
+                          are in SVG-equivalent units, same as the HTML prototype.
+
+                          Structure:
+                            VChevron  — Path with TranslateTransform (animated independently)
+                            BarsClip  — Border with ClipToBounds acting as ceiling at y=62
+                              BarsCanvas — Canvas holding 5 bars, each with ScaleTransform
                         -->
                         <Canvas Width="80" Height="80" Margin="8">
 
-                            <!-- V chevron — animated independently -->
+                            <!-- V chevron — animates independently -->
                             <Path x:Name="VChevron"
                                   Canvas.Left="0" Canvas.Top="0"
                                   Data="M 19,22 L 40,54 L 61,22"
@@ -224,8 +253,16 @@
                             </Path>
 
                             <!--
-                              Bars clip border at Canvas y=62, height=18.
-                              ClipToBounds prevents bars from growing above y=62.
+                              Bars clip border: positioned at Canvas y=62,
+                              height=18 (bars live in y=62–80).
+                              ClipToBounds acts as a hard ceiling — bars cannot
+                              grow above y=62 and overlap the V chevron.
+
+                              Bar positions inside BarsCanvas (local coordinates, origin = y=62):
+                                Bar1,5 (outer): local top=9, height=5, bottom=14
+                                Bar2,4 (inner): local top=7, height=7, bottom=14
+                                Bar3   (center): local top=6, height=8, bottom=14
+                              All bars bottom at local y=14 (= main y=76).
                             -->
                             <Border Canvas.Left="14" Canvas.Top="62"
                                     Width="54" Height="18"
@@ -233,7 +270,7 @@
                                     Background="Transparent">
                                 <Canvas x:Name="BarsCanvas" Width="54" Height="18">
 
-                                    <!-- Bar 1 — outer left -->
+                                    <!-- Bar 1 — outer left (opacity 0.38) -->
                                     <Rectangle x:Name="Bar1"
                                                Canvas.Left="8" Canvas.Top="9"
                                                Width="4.5" Height="5"
@@ -245,7 +282,7 @@
                                         </Rectangle.RenderTransform>
                                     </Rectangle>
 
-                                    <!-- Bar 2 — inner left -->
+                                    <!-- Bar 2 — inner left (opacity 0.62) -->
                                     <Rectangle x:Name="Bar2"
                                                Canvas.Left="15.5" Canvas.Top="7"
                                                Width="4.5" Height="7"
@@ -257,7 +294,7 @@
                                         </Rectangle.RenderTransform>
                                     </Rectangle>
 
-                                    <!-- Bar 3 — center (tallest) -->
+                                    <!-- Bar 3 — center (full opacity, tallest) -->
                                     <Rectangle x:Name="Bar3"
                                                Canvas.Left="23.75" Canvas.Top="6"
                                                Width="4.5" Height="8"
@@ -269,7 +306,7 @@
                                         </Rectangle.RenderTransform>
                                     </Rectangle>
 
-                                    <!-- Bar 4 — inner right -->
+                                    <!-- Bar 4 — inner right (opacity 0.62) -->
                                     <Rectangle x:Name="Bar4"
                                                Canvas.Left="32" Canvas.Top="7"
                                                Width="4.5" Height="7"
@@ -281,7 +318,7 @@
                                         </Rectangle.RenderTransform>
                                     </Rectangle>
 
-                                    <!-- Bar 5 — outer right -->
+                                    <!-- Bar 5 — outer right (opacity 0.38) -->
                                     <Rectangle x:Name="Bar5"
                                                Canvas.Left="39.5" Canvas.Top="9"
                                                Width="4.5" Height="5"
@@ -300,7 +337,7 @@
                     </Border>
                 </Border>
 
-                <!-- Text group (fades in after V settles) -->
+                <!-- ══ Text group (fades in after V settles) ══ -->
                 <StackPanel x:Name="TextGroup"
                             HorizontalAlignment="Center"
                             Opacity="0">
@@ -328,3 +365,126 @@
     </Border>
 
 </Window>
+
+<!--
+══════════════════════════════════════════════════════════════════════════════
+  SplashWindow.xaml.cs  — complete code-behind
+  Save as VibeSwitcher/Views/SplashWindow.xaml.cs
+══════════════════════════════════════════════════════════════════════════════
+
+using System;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+
+namespace VibeSwitcher.Views;
+
+public partial class SplashWindow : Window
+{
+    private Storyboard? _loopStoryboard;
+    public event EventHandler? AnimationComplete;
+
+    public SplashWindow()
+    {
+        InitializeComponent();
+        Loaded += OnLoaded;
+    }
+
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        // Start the press animation (defined in XAML)
+        ((Storyboard)Resources["PressStoryboard"]).Begin(this);
+
+        // At t=2060ms: switch bars from press-wave to looping equalizer
+        await Task.Delay(2060);
+        if (!IsLoaded) return;
+        StartLoopingEqualizer();
+
+        // At t=3400ms: stop loop, let press storyboard fade-out run
+        await Task.Delay(1340); // 3400 - 2060
+        if (!IsLoaded) return;
+        _loopStoryboard?.Stop(this);
+
+        // At t=3750ms: close and signal app to open main window
+        await Task.Delay(350); // 3750 - 3400
+        AnimationComplete?.Invoke(this, EventArgs.Empty);
+        Close();
+    }
+
+    private void StartLoopingEqualizer()
+    {
+        _loopStoryboard = new Storyboard { RepeatBehavior = RepeatBehavior.Forever };
+
+        // Outer bars (short, fast, dramatic swing)
+        AddEqAnimation(_loopStoryboard, Bar1Scale, 0.52, new[]
+        {
+            (0.00, 0.60), (0.50, 2.40), (1.00, 0.60)
+        });
+        AddEqAnimation(_loopStoryboard, Bar5Scale, 0.48, new[]
+        {
+            (0.00, 0.55), (0.55, 2.20), (1.00, 0.55)
+        });
+
+        // Inner bars
+        AddEqAnimation(_loopStoryboard, Bar2Scale, 0.41, new[]
+        {
+            (0.00, 0.70), (0.38, 1.85), (0.72, 0.55), (1.00, 0.70)
+        });
+        AddEqAnimation(_loopStoryboard, Bar4Scale, 0.45, new[]
+        {
+            (0.00, 0.65), (0.42, 1.90), (0.78, 0.60), (1.00, 0.65)
+        });
+
+        // Center bar (tallest, most visible)
+        AddEqAnimation(_loopStoryboard, Bar3Scale, 0.36, new[]
+        {
+            (0.00, 0.50), (0.30, 1.70), (0.65, 0.75), (1.00, 0.50)
+        });
+
+        _loopStoryboard.Begin(this, true);
+    }
+
+    private static void AddEqAnimation(
+        Storyboard sb,
+        ScaleTransform target,
+        double durationSeconds,
+        (double pct, double scale)[] frames)
+    {
+        var anim = new DoubleAnimationUsingKeyFrames();
+        anim.Duration = TimeSpan.FromSeconds(durationSeconds);
+
+        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
+
+        foreach (var (pct, scale) in frames)
+        {
+            anim.KeyFrames.Add(new EasingDoubleKeyFrame(scale,
+                KeyTime.FromTimeSpan(TimeSpan.FromSeconds(pct * durationSeconds)))
+            {
+                EasingFunction = ease
+            });
+        }
+
+        Storyboard.SetTarget(anim, target);
+        Storyboard.SetTargetProperty(anim, new PropertyPath(ScaleTransform.ScaleYProperty));
+        sb.Children.Add(anim);
+    }
+}
+
+
+── Wire in App.xaml.cs ──────────────────────────────────────────────────────
+
+Replace the existing OpenSettingsWindow() call at the end of OnStartup with:
+
+    var splash = new SplashWindow();
+    splash.AnimationComplete += (_, _) =>
+    {
+        if (_configService!.IsFirstRun || !_configService.Current.StartMinimized)
+            OpenSettingsWindow();
+    };
+    splash.Show();
+
+    // If StartMinimized, the app just quietly hides after splash — no main window shown.
+
+═══════════════════════════════════════════════════════════════════════════════
+-->
