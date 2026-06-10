@@ -5,7 +5,7 @@
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         xmlns:controls="clr-namespace:VibeSwitcher.Controls"
         Title="VibeSwitcher"
-        Icon="pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico"
+        Icon="pack://application:,,,/Resources/Icons/vs-icon-64.png"
         UseLayoutRounding="True"
         Width="920" Height="720"
         MinWidth="700" MinHeight="500"
@@ -417,8 +417,9 @@
 
                 <!-- Left: title (draggable via WindowChrome caption area) -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
-                    <Image Source="pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico"
-                           Width="16" Height="16" Stretch="Uniform" Margin="0,0,6,0"/>
+                    <Image Source="pack://application:,,,/Resources/Icons/vs-icon-32.png"
+                           Width="16" Height="16" Stretch="Uniform" Margin="0,0,6,0"
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
                     <TextBlock Text="VibeSwitcher"
                                FontSize="11.5" FontWeight="SemiBold"
                                Foreground="{DynamicResource Accent}"
@@ -1568,7 +1569,7 @@
                             <Border Grid.Column="0" Width="128" Height="128" CornerRadius="32"
                                     Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                                     Margin="0,0,16,0">
-                                <controls:NavLogoIcon Width="120" Height="120"/>
+                                <controls:AboutLogoIcon Width="120" Height="120"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock FontSize="20" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}">
@@ -2125,8 +2126,6 @@
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Button Style="{StaticResource ActionButton}" Content="Activate"
                                             Command="{Binding ActivateCommand}" Margin="0,0,6,0"/>
-                                    <Button Style="{StaticResource ActionButton}" Content="Add Schedule"
-                                            Command="{Binding AddScheduleCommand}" Margin="0,0,6,0"/>
                                     <Button Style="{StaticResource ActionButton}" Content="Clone"
                                             Command="{Binding CloneCommand}" Margin="0,0,6,0"/>
                                     <Button Style="{StaticResource DangerButton}" Content="Delete"

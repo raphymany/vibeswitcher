@@ -38,6 +38,8 @@ public class SettingsViewModel : ViewModelBase
     public ObservableCollection<ProfileCardViewModel> Profiles { get; }
     public ObservableCollection<DeviceAliasItem> DeviceAliases { get; } = new();
 
+    public event Action? ProfileDeletedOrCloned;
+
     public bool HasNoProfiles => Profiles.Count == 0;
     // True when at least one audio device is known — used to show/hide the empty-state label.
     public bool HasKnownDevices => DeviceAliases.Count > 0;
@@ -927,6 +929,7 @@ public class SettingsViewModel : ViewModelBase
         newCard.LoadDevices(GetDevicesForDisplay(_playbackDevices), GetDevicesForDisplay(_recordingDevices));
         Profiles.Add(newCard);
         _onProfilesChanged();
+        ProfileDeletedOrCloned?.Invoke();
     }
 
     internal void MoveProfile(ProfileCardViewModel from, ProfileCardViewModel to)
@@ -975,6 +978,7 @@ public class SettingsViewModel : ViewModelBase
         DeleteOrphanedIcon(iconPath, _configService.IconsDir, _logger, _errorTracker);
         ReregisterHotkeys();
         _onProfilesChanged();
+        ProfileDeletedOrCloned?.Invoke();
     }
 
     internal static void DeleteOrphanedIcon(string? iconPath, string iconsDir, IAppLogger logger, ISessionErrorTracker errorTracker, string? exceptPath = null)

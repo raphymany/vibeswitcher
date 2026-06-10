@@ -17,6 +17,10 @@
   <ItemGroup>
     <Resource Include="Resources\Icons\app.ico" />
     <Resource Include="Resources\Icons\VibeSwitcherIcon.ico" />
+    <Resource Include="Resources\Icons\vs-icon-16.png" />
+    <Resource Include="Resources\Icons\vs-icon-32.png" />
+    <Resource Include="Resources\Icons\vs-icon-64.png" />
+    <Resource Include="Resources\Icons\vs-icon-256.png" />
     <Resource Include="Themes\LightTheme.xaml" />
     <Resource Include="Themes\DarkTheme.xaml" />
   </ItemGroup>

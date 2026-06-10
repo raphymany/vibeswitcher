@@ -91,6 +91,7 @@ public partial class SettingsWindow : Window
             onAppTriggersChanged: onAppTriggersChanged);
 
         DataContext = _viewModel;
+        _viewModel.ProfileDeletedOrCloned += CloseProfileDetailOverlay;
         RestoreWindowBounds();
         try
         {

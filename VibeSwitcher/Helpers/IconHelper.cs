@@ -83,12 +83,28 @@ public static class IconHelper
             if (_defaultIcon != null) return _defaultIcon;
             try
             {
-                var uri = new Uri("pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico", UriKind.Absolute);
+                var uri = new Uri("pack://application:,,,/Resources/Icons/vs-icon-64.png", UriKind.Absolute);
                 var info = System.Windows.Application.GetResourceStream(uri);
                 if (info != null)
                 {
                     using (info.Stream)
-                        _defaultIcon = new Icon(info.Stream);
+                    using (var bmp = new Bitmap(info.Stream))
+                    using (var bmp64 = new Bitmap(64, 64))
+                    using (var g = Graphics.FromImage(bmp64))
+                    {
+                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                        g.DrawImage(bmp, 0, 0, 64, 64);
+                        var hIcon = bmp64.GetHicon();
+                        try
+                        {
+                            using var tempIcon = Icon.FromHandle(hIcon);
+                            using var ms = new MemoryStream();
+                            tempIcon.Save(ms);
+                            ms.Seek(0, SeekOrigin.Begin);
+                            _defaultIcon = new Icon(ms);
+                        }
+                        finally { DestroyIcon(hIcon); }
+                    }
                     return _defaultIcon;
                 }
             }
@@ -108,20 +124,17 @@ public static class IconHelper
             if (_balloonIconHandle != IntPtr.Zero) return _balloonIconHandle;
             try
             {
-                var uri = new Uri("pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico", UriKind.Absolute);
+                var uri = new Uri("pack://application:,,,/Resources/Icons/vs-icon-32.png", UriKind.Absolute);
                 var info = System.Windows.Application.GetResourceStream(uri);
                 if (info != null)
                 {
                     using (info.Stream)
-                    using (var icon = new Icon(info.Stream, new System.Drawing.Size(32, 32)))
-                    using (var src = icon.ToBitmap())
+                    using (var bmp = new Bitmap(info.Stream))
                     using (var bmp32 = new Bitmap(32, 32))
                     using (var g = Graphics.FromImage(bmp32))
                     {
-                        // ToBitmap() returns whatever frame the ICO contains (may be 256×256).
-                        // DrawImage forces an exact 32×32 output that H.NotifyIcon requires.
                         g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        g.DrawImage(src, 0, 0, 32, 32);
+                        g.DrawImage(bmp, 0, 0, 32, 32);
                         _balloonIconHandle = bmp32.GetHicon();
                     }
                     return _balloonIconHandle;
@@ -147,9 +160,8 @@ public static class IconHelper
             if (_appIconImageSource != null) return _appIconImageSource;
             try
             {
-                var uri = new Uri("pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico", UriKind.Absolute);
-                var decoder = BitmapDecoder.Create(uri, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
-                var frame = decoder.Frames.OrderByDescending(f => f.PixelWidth).First();
+                var uri = new Uri("pack://application:,,,/Resources/Icons/vs-icon-256.png", UriKind.Absolute);
+                var frame = BitmapFrame.Create(uri, BitmapCreateOptions.None, BitmapCacheOption.OnLoad);
                 frame.Freeze();
                 _appIconImageSource = frame;
                 return _appIconImageSource;
