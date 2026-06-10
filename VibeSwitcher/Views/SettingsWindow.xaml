@@ -812,9 +812,9 @@
                                                             </Style>
                                                         </Border.Style>
                                                         <Grid>
-                                                            <controls:NavLogoIcon Width="86" Height="86" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                                <controls:NavLogoIcon.Style>
-                                                                    <Style TargetType="controls:NavLogoIcon">
+                                                            <controls:AboutLogoIcon Width="80" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <controls:AboutLogoIcon.Style>
+                                                                    <Style TargetType="controls:AboutLogoIcon">
                                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                             <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
@@ -822,8 +822,8 @@
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
-                                                                </controls:NavLogoIcon.Style>
-                                                            </controls:NavLogoIcon>
+                                                                </controls:AboutLogoIcon.Style>
+                                                            </controls:AboutLogoIcon>
                                                             <Image Source="{Binding IconPreview}" Width="46" Height="46" Stretch="Uniform"
                                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
                                                                 <Image.Style>
@@ -1898,9 +1898,9 @@
                                         Background="#1C1C2A" BorderBrush="#282838" BorderThickness="1"
                                         Margin="0,0,14,0">
                                     <Grid>
-                                        <controls:NavLogoIcon Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <controls:NavLogoIcon.Style>
-                                                <Style TargetType="controls:NavLogoIcon">
+                                        <controls:AboutLogoIcon Width="46" Height="46" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <controls:AboutLogoIcon.Style>
+                                                <Style TargetType="controls:AboutLogoIcon">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
@@ -1908,8 +1908,8 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </controls:NavLogoIcon.Style>
-                                        </controls:NavLogoIcon>
+                                            </controls:AboutLogoIcon.Style>
+                                        </controls:AboutLogoIcon>
                                         <Image Source="{Binding IconPreview}" Width="36" Height="36" Stretch="Uniform"
                                                HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <Image.Style>
