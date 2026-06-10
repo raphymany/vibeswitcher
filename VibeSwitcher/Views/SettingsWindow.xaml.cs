@@ -179,17 +179,31 @@ public partial class SettingsWindow : Window
     {
         if ((sender as FrameworkElement)?.Tag is ProfileCardViewModel vm)
         {
+            ProfileDetailCard.MinHeight = 0;
             vm.NotifyDetailModalOpened();
             ProfileDetailContent.DataContext = vm;
             ProfileDetailOverlay.Visibility  = Visibility.Visible;
+            // Lock MinHeight after layout so typing/chip-hide can't shrink the dialog.
+            Dispatcher.InvokeAsync(() =>
+            {
+                ProfileDetailCard.UpdateLayout();
+                if (ProfileDetailCard.ActualHeight > 0)
+                    ProfileDetailCard.MinHeight = ProfileDetailCard.ActualHeight;
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
         }
     }
 
+    private void CloseProfileDetailOverlay()
+    {
+        ProfileDetailCard.MinHeight = 0;
+        ProfileDetailOverlay.Visibility = Visibility.Collapsed;
+    }
+
     private void OverlayClose_Click(object sender, RoutedEventArgs e)
-        => ProfileDetailOverlay.Visibility = Visibility.Collapsed;
+        => CloseProfileDetailOverlay();
 
     private void OverlayBackdrop_MouseDown(object sender, MouseButtonEventArgs e)
-        => ProfileDetailOverlay.Visibility = Visibility.Collapsed;
+        => CloseProfileDetailOverlay();
 
     // ── Bounds tracking ─────────────────────────────────────────────
 

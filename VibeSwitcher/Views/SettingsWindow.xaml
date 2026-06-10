@@ -1565,10 +1565,10 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="52" Height="52" CornerRadius="13"
+                            <Border Grid.Column="0" Width="128" Height="128" CornerRadius="32"
                                     Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
-                                    Margin="0,0,14,0">
-                                <controls:NavLogoIcon Width="48" Height="48"/>
+                                    Margin="0,0,16,0">
+                                <controls:NavLogoIcon Width="120" Height="120"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock FontSize="20" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}">
@@ -1765,7 +1765,8 @@
                         MouseLeftButtonDown="OverlayBackdrop_MouseDown"/>
 
                 <!-- Modal card -->
-                <Border MaxWidth="500" MinWidth="400"
+                <Border x:Name="ProfileDetailCard"
+                        MaxWidth="500" MinWidth="400"
                         HorizontalAlignment="Center" VerticalAlignment="Center"
                         Margin="20"
                         Background="{DynamicResource VSModalBg}"
