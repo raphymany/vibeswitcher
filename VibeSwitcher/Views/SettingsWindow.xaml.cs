@@ -182,6 +182,7 @@ public partial class SettingsWindow : Window
         if ((sender as FrameworkElement)?.Tag is ProfileCardViewModel vm)
         {
             ProfileDetailContent.DataContext = vm;
+            vm.NotifyDetailModalOpened();
             ProfileDetailOverlay.Visibility  = Visibility.Visible;
         }
     }

@@ -81,6 +81,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 _model.Name = value;
                 _onChanged(this);
                 OnPropertyChanged(nameof(ShowNameSuggestions));
+                OnPropertyChanged(nameof(SuggestionsVisibility));
             }
         }
     }
@@ -90,6 +91,28 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _name.Length > 8 &&
         _name.StartsWith("Profile ", StringComparison.Ordinal) &&
         int.TryParse(_name.AsSpan(8), out _);
+
+    // Called by the view each time the detail modal opens so we know whether
+    // suggestions were visible at open time — used to preserve row height while
+    // the user types (Hidden, not Collapsed), without leaving a gap for profiles
+    // that already have a real name (Collapsed from the start).
+    private bool _suggestionsWereShownAtOpen;
+    public void NotifyDetailModalOpened()
+    {
+        _suggestionsWereShownAtOpen = ShowNameSuggestions;
+        OnPropertyChanged(nameof(SuggestionsVisibility));
+    }
+
+    public System.Windows.Visibility SuggestionsVisibility
+    {
+        get
+        {
+            if (ShowNameSuggestions) return System.Windows.Visibility.Visible;
+            return _suggestionsWereShownAtOpen
+                ? System.Windows.Visibility.Hidden    // preserve height while user types
+                : System.Windows.Visibility.Collapsed; // profile already had a real name
+        }
+    }
 
     public System.Windows.Visibility PlaybackVisible =>
         _model.Mode is ProfileMode.Playback or ProfileMode.Both

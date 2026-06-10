@@ -1886,19 +1886,8 @@
                             <StackPanel Margin="22,14,22,14">
 
                                 <!-- Name suggestions -->
-                                <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,10">
-                                    <WrapPanel.Style>
-                                        <Style TargetType="WrapPanel">
-                                            <!-- Hidden (not Collapsed) so the row keeps its height when suggestions disappear,
-                                                 preventing the dialog from shrinking as the user types a name. -->
-                                            <Setter Property="Visibility" Value="Hidden"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ShowNameSuggestions}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </WrapPanel.Style>
+                                <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,10"
+                                           Visibility="{Binding SuggestionsVisibility}">
                                     <Button Content="Gaming"    Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Gaming"/>
                                     <Button Content="Work"      Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Work"/>
                                     <Button Content="Music"     Style="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Music"/>
