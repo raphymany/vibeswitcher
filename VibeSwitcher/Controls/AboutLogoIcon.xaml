@@ -64,7 +64,7 @@
 
   </UserControl.Resources>
 
-  <Viewbox Width="84" Height="84" Stretch="Uniform">
+  <Viewbox Stretch="Uniform">
     <Grid Width="80" Height="80">
 
       <Border Background="#13131E" CornerRadius="20">

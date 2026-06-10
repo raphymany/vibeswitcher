@@ -175,6 +175,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         private set => SetField(ref _hotkeyDisplay, value);
     }
 
+    public bool HasCustomIcon => !string.IsNullOrEmpty(_iconPath);
+
     public string? IconPath
     {
         get => _iconPath;
@@ -184,6 +186,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             {
                 _model.IconPath = value;
                 UpdateIconPreview();
+                OnPropertyChanged(nameof(HasCustomIcon));
                 _onChanged(this);
             }
         }

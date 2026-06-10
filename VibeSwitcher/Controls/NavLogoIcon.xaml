@@ -92,7 +92,7 @@
 
   </UserControl.Resources>
 
-  <Viewbox Width="28" Height="28" Stretch="Uniform">
+  <Viewbox Stretch="Uniform">
     <Grid Width="80" Height="80">
 
       <!-- Dark rounded background -->

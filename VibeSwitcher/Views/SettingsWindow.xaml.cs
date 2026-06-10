@@ -149,9 +149,17 @@ public partial class SettingsWindow : Window
     }
 
     private void NavProfiles_Click(object sender, RoutedEventArgs e) => ShowPanel(ProfilesPanel);
+    private void NavLogo_Click(object sender, RoutedEventArgs e)    => ShowPanel(ProfilesPanel);
     private void NavSettings_Click(object sender, RoutedEventArgs e) { _viewModel.SettingsCardExpanded = true; ShowPanel(SettingsBodyScrollViewer); }
     private void NavAbout_Click(object sender, RoutedEventArgs e)    => ShowPanel(AboutPanel);
     private void NavFaq_Click(object sender, RoutedEventArgs e)      => ShowPanel(FaqPanel);
+
+    private void LinkChip_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as System.Windows.Controls.Button)?.Tag is not string url) return;
+        try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+        catch (Exception ex) { _logger.Warning("LinkChip_Click", ex.Message); }
+    }
 
     // ── Title bar controls ───────────────────────────────────────────
 

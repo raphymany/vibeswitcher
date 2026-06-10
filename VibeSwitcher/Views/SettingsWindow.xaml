@@ -392,6 +392,66 @@
             <Setter Property="Margin"     Value="12,0,0,0"/>
         </Style>
 
+        <!-- ── Nav logo clickable button ────────────────────────── -->
+        <Style x:Key="NavLogoBtn" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}"
+                                CornerRadius="7" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#0DF5820A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── About / external link chip ──────────────────────── -->
+        <Style x:Key="LinkChipStyle" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="#12121E"/>
+            <Setter Property="BorderBrush" Value="#2A2A42"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#8888AA"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="14,7"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="20"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="#12F5820A"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#55F5820A"/>
+                                <Setter Property="Foreground" Value="#F5820A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
     <!-- ── Outer 4-row layout ─────────────────────────────────────── -->
@@ -454,11 +514,15 @@
                     <ColumnDefinition Width="Auto"/>  <!-- right buttons -->
                 </Grid.ColumnDefinitions>
 
-                <!-- Logo: animated icon + VibeSwitcher in orange -->
+                <!-- Logo: animated icon + VibeSwitcher — click to go home -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <controls:NavLogoIcon Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                    <TextBlock FontSize="15" FontWeight="Bold" VerticalAlignment="Center"
-                               Foreground="{DynamicResource Accent}">VibeSwitcher</TextBlock>
+                    <Button Style="{StaticResource NavLogoBtn}" Click="NavLogo_Click" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <controls:NavLogoIcon Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock FontSize="15" FontWeight="Bold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Accent}">VibeSwitcher</TextBlock>
+                        </StackPanel>
+                    </Button>
                     <Border Width="1" Height="22" Background="#1E1E30" Margin="12,0,12,0" VerticalAlignment="Center"/>
                 </StackPanel>
 
@@ -747,7 +811,33 @@
                                                                 </Style.Triggers>
                                                             </Style>
                                                         </Border.Style>
-                                                        <Image Source="{Binding IconPreview}" Width="46" Height="46" Stretch="Uniform"/>
+                                                        <Grid>
+                                                            <controls:NavLogoIcon Width="86" Height="86" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <controls:NavLogoIcon.Style>
+                                                                    <Style TargetType="controls:NavLogoIcon">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </controls:NavLogoIcon.Style>
+                                                            </controls:NavLogoIcon>
+                                                            <Image Source="{Binding IconPreview}" Width="46" Height="46" Stretch="Uniform"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Image.Style>
+                                                                    <Style TargetType="Image">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Image.Style>
+                                                            </Image>
+                                                        </Grid>
                                                     </Border>
 
                                                     <!-- Name -->
@@ -1181,8 +1271,9 @@
             <ScrollViewer x:Name="SettingsBodyScrollViewer"
                           Visibility="Collapsed"
                           VerticalAlignment="Stretch"
+                          HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="22,18,22,18">
+                <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
 
                     <!-- Panel header -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
@@ -1552,8 +1643,9 @@
             <!-- ── PANEL C: About ─────────────────────────────────── -->
             <ScrollViewer x:Name="AboutPanel"
                           Visibility="Collapsed"
+                          HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="22,18,22,18">
+                <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
                         <Button Style="{StaticResource BackButton}" Content="&#x2190;" FontSize="14" Click="NavProfiles_Click"/>
                         <TextBlock Text="About" Style="{StaticResource PanelTitle}"/>
@@ -1566,11 +1658,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="128" Height="128" CornerRadius="32"
-                                    Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
-                                    Margin="0,0,16,0">
-                                <controls:AboutLogoIcon Width="120" Height="120"/>
-                            </Border>
+                            <controls:AboutLogoIcon Grid.Column="0" Width="84" Height="84" Margin="0,0,20,0"/>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock FontSize="20" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}">
                                     <Run Text="Vibe"/><Run Text="Switcher" Foreground="{DynamicResource Accent}"/>
@@ -1588,28 +1676,41 @@
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
                             <TextBlock Text="LINKS" FontSize="10" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,10"/>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center">
-                                    <Hyperlink NavigateUri="https://github.com/raphymany/vibeswitcher"
-                                               RequestNavigate="Hyperlink_RequestNavigate">GitHub</Hyperlink>
-                                </TextBlock>
-                                <TextBlock Text=" — " Foreground="{DynamicResource DisabledText}" FontSize="12"/>
-                                <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center">
-                                    <Hyperlink NavigateUri="https://github.com/raphymany/vibeswitcher/blob/main/CHANGELOG.md"
-                                               RequestNavigate="Hyperlink_RequestNavigate">Changelog</Hyperlink>
-                                </TextBlock>
-                                <TextBlock Text=" — " Foreground="{DynamicResource DisabledText}" FontSize="12"/>
-                                <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center">
-                                    <Hyperlink NavigateUri="https://github.com/raphymany/vibeswitcher/blob/main/LICENSE"
-                                               RequestNavigate="Hyperlink_RequestNavigate">License (MIT)</Hyperlink>
-                                </TextBlock>
-                                <TextBlock Text=" — " Foreground="{DynamicResource DisabledText}" FontSize="12"/>
-                                <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" VerticalAlignment="Center">
-                                    <Hyperlink NavigateUri="https://github.com/raphymany/vibeswitcher/issues/new/choose"
-                                               RequestNavigate="Hyperlink_RequestNavigate">Report a bug</Hyperlink>
-                                </TextBlock>
-                            </StackPanel>
+                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,12"/>
+                            <WrapPanel>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="GitHub" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher/blob/main/CHANGELOG.md"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Changelog" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher/blob/main/LICENSE"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="License (MIT)" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher/issues/new/choose"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Report a bug" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </WrapPanel>
                         </StackPanel>
                     </Border>
 
@@ -1681,8 +1782,9 @@
             <!-- ── PANEL D: FAQ ───────────────────────────────────── -->
             <ScrollViewer x:Name="FaqPanel"
                           Visibility="Collapsed"
+                          HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="22,18,22,18">
+                <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
                         <Button Style="{StaticResource BackButton}" Content="←" FontSize="14" Click="NavProfiles_Click"/>
                         <TextBlock Text="Help &amp; FAQ" Style="{StaticResource PanelTitle}"/>
@@ -1795,7 +1897,33 @@
                                 <Border Grid.Column="0" Width="54" Height="54" CornerRadius="13"
                                         Background="#1C1C2A" BorderBrush="#282838" BorderThickness="1"
                                         Margin="0,0,14,0">
-                                    <Image Source="{Binding IconPreview}" Width="36" Height="36" Stretch="Uniform"/>
+                                    <Grid>
+                                        <controls:NavLogoIcon Width="44" Height="44" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <controls:NavLogoIcon.Style>
+                                                <Style TargetType="controls:NavLogoIcon">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </controls:NavLogoIcon.Style>
+                                        </controls:NavLogoIcon>
+                                        <Image Source="{Binding IconPreview}" Width="36" Height="36" Stretch="Uniform"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                    </Grid>
                                 </Border>
 
                                 <!-- Name + mode badge -->
