@@ -11,12 +11,13 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Resources\Icons\VibeSwitcherIcon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icons\vs-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <Resource Include="Resources\Icons\app.ico" />
     <Resource Include="Resources\Icons\VibeSwitcherIcon.ico" />
+    <Resource Include="Resources\Icons\vs-icon.ico" />
     <Resource Include="Resources\Icons\vs-icon-16.png" />
     <Resource Include="Resources\Icons\vs-icon-32.png" />
     <Resource Include="Resources\Icons\vs-icon-64.png" />
