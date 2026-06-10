@@ -1,0 +1,169 @@
+<UserControl x:Class="VibeSwitcher.Controls.NavLogoIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="28" Height="28">
+
+  <UserControl.Resources>
+
+    <Storyboard x:Key="VBreathStoryboard" RepeatBehavior="Forever">
+      <DoubleAnimationUsingKeyFrames
+          Storyboard.TargetName="VTranslate"
+          Storyboard.TargetProperty="Y"
+          Duration="0:0:1.8">
+        <EasingDoubleKeyFrame Value="0" KeyTime="0:0:0">
+          <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+        </EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="-5" KeyTime="0:0:0.54">
+          <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+        </EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="2.5" KeyTime="0:0:1.26">
+          <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+        </EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="0" KeyTime="0:0:1.8">
+          <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction>
+        </EasingDoubleKeyFrame>
+      </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <!-- Bar 1 — outer-left, 0.85s, BeginTime -0.22s -->
+    <Storyboard x:Key="Bar1Storyboard" RepeatBehavior="Forever">
+      <DoubleAnimationUsingKeyFrames
+          Storyboard.TargetName="Bar1Scale"
+          Storyboard.TargetProperty="ScaleY"
+          Duration="0:0:0.85" BeginTime="-0:0:0.22">
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0">    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="2.2"  KeyTime="0:0:0.34"> <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="0.55" KeyTime="0:0:0.612"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0.85"> <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+      </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <!-- Bar 2 — inner-left, 0.68s, BeginTime -0.14s -->
+    <Storyboard x:Key="Bar2Storyboard" RepeatBehavior="Forever">
+      <DoubleAnimationUsingKeyFrames
+          Storyboard.TargetName="Bar2Scale"
+          Storyboard.TargetProperty="ScaleY"
+          Duration="0:0:0.68" BeginTime="-0:0:0.14">
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0">    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1.9"  KeyTime="0:0:0.238"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="0.55" KeyTime="0:0:0.462"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0.68"> <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+      </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <!-- Bar 3 — center, 0.60s, no delay (fastest) -->
+    <Storyboard x:Key="Bar3Storyboard" RepeatBehavior="Forever">
+      <DoubleAnimationUsingKeyFrames
+          Storyboard.TargetName="Bar3Scale"
+          Storyboard.TargetProperty="ScaleY"
+          Duration="0:0:0.60">
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0">   <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1.75" KeyTime="0:0:0.18"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="0.65" KeyTime="0:0:0.39"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0.60"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+      </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <!-- Bar 4 — inner-right, 0.74s, BeginTime -0.30s -->
+    <Storyboard x:Key="Bar4Storyboard" RepeatBehavior="Forever">
+      <DoubleAnimationUsingKeyFrames
+          Storyboard.TargetName="Bar4Scale"
+          Storyboard.TargetProperty="ScaleY"
+          Duration="0:0:0.74" BeginTime="-0:0:0.30">
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0">    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1.85" KeyTime="0:0:0.281"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="0.6"  KeyTime="0:0:0.533"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0.74"> <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+      </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+
+    <!-- Bar 5 — outer-right, 0.78s, BeginTime -0.40s -->
+    <Storyboard x:Key="Bar5Storyboard" RepeatBehavior="Forever">
+      <DoubleAnimationUsingKeyFrames
+          Storyboard.TargetName="Bar5Scale"
+          Storyboard.TargetProperty="ScaleY"
+          Duration="0:0:0.78" BeginTime="-0:0:0.40">
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0">    <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="2.0"  KeyTime="0:0:0.351"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="0.55" KeyTime="0:0:0.562"><EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+        <EasingDoubleKeyFrame Value="1"    KeyTime="0:0:0.78"> <EasingDoubleKeyFrame.EasingFunction><SineEase EasingMode="EaseInOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame>
+      </DoubleAnimationUsingKeyFrames>
+    </Storyboard>
+
+  </UserControl.Resources>
+
+  <Viewbox Width="28" Height="28" Stretch="Uniform">
+    <Grid Width="80" Height="80">
+
+      <!-- Dark rounded background -->
+      <Border Background="#13131E" CornerRadius="20">
+        <Border BorderBrush="#38F5820A" BorderThickness="1.5" CornerRadius="19"/>
+      </Border>
+
+      <!-- Orange radial glow (bottom-center) -->
+      <Border CornerRadius="20">
+        <Border.Background>
+          <RadialGradientBrush Center="0.5,0.75" RadiusX="0.55" RadiusY="0.55">
+            <GradientStop Color="#0DF5820A" Offset="0"/>
+            <GradientStop Color="#00F5820A" Offset="1"/>
+          </RadialGradientBrush>
+        </Border.Background>
+      </Border>
+
+      <!-- V chevron — TranslateTransform.Y animated by VBreathStoryboard -->
+      <Canvas Width="80" Height="80">
+        <Path x:Name="VChevron"
+              Data="M 19,22 L 40,54 L 61,22"
+              Stroke="#F5820A" StrokeThickness="4"
+              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+              Fill="Transparent"
+              Canvas.Left="0" Canvas.Top="0">
+          <Path.RenderTransform>
+            <TranslateTransform x:Name="VTranslate" Y="0"/>
+          </Path.RenderTransform>
+        </Path>
+      </Canvas>
+
+      <!-- Bars clip container — ClipToBounds prevents bars from overlapping the chevron -->
+      <Border Margin="14,62,12,0" Width="54" Height="18"
+              ClipToBounds="True" Background="Transparent"
+              HorizontalAlignment="Left" VerticalAlignment="Top">
+        <Canvas Width="54" Height="18">
+
+          <Rectangle x:Name="Bar1" Canvas.Left="8" Canvas.Top="9"
+                     Width="4.5" Height="5" RadiusX="2.25" RadiusY="2.25"
+                     Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="0.5,1.0">
+            <Rectangle.RenderTransform><ScaleTransform x:Name="Bar1Scale" ScaleY="1"/></Rectangle.RenderTransform>
+          </Rectangle>
+
+          <Rectangle x:Name="Bar2" Canvas.Left="15.5" Canvas.Top="7"
+                     Width="4.5" Height="7" RadiusX="2.25" RadiusY="2.25"
+                     Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="0.5,1.0">
+            <Rectangle.RenderTransform><ScaleTransform x:Name="Bar2Scale" ScaleY="1"/></Rectangle.RenderTransform>
+          </Rectangle>
+
+          <Rectangle x:Name="Bar3" Canvas.Left="23.75" Canvas.Top="6"
+                     Width="4.5" Height="8" RadiusX="2.25" RadiusY="2.25"
+                     Fill="#F5820A" RenderTransformOrigin="0.5,1.0">
+            <Rectangle.RenderTransform><ScaleTransform x:Name="Bar3Scale" ScaleY="1"/></Rectangle.RenderTransform>
+          </Rectangle>
+
+          <Rectangle x:Name="Bar4" Canvas.Left="32" Canvas.Top="7"
+                     Width="4.5" Height="7" RadiusX="2.25" RadiusY="2.25"
+                     Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="0.5,1.0">
+            <Rectangle.RenderTransform><ScaleTransform x:Name="Bar4Scale" ScaleY="1"/></Rectangle.RenderTransform>
+          </Rectangle>
+
+          <Rectangle x:Name="Bar5" Canvas.Left="39.5" Canvas.Top="9"
+                     Width="4.5" Height="5" RadiusX="2.25" RadiusY="2.25"
+                     Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="0.5,1.0">
+            <Rectangle.RenderTransform><ScaleTransform x:Name="Bar5Scale" ScaleY="1"/></Rectangle.RenderTransform>
+          </Rectangle>
+
+        </Canvas>
+      </Border>
+
+    </Grid>
+  </Viewbox>
+
+</UserControl>

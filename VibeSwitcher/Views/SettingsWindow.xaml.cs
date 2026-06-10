@@ -92,8 +92,6 @@ public partial class SettingsWindow : Window
 
         DataContext = _viewModel;
         RestoreWindowBounds();
-        try { AboutPanelIcon.Source = IconHelper.GetAppIconImageSource(); } catch { }
-        Loaded += (_, _) => StartNavLogoAnimation();
         try
         {
             var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -181,8 +179,8 @@ public partial class SettingsWindow : Window
     {
         if ((sender as FrameworkElement)?.Tag is ProfileCardViewModel vm)
         {
-            ProfileDetailContent.DataContext = vm;
             vm.NotifyDetailModalOpened();
+            ProfileDetailContent.DataContext = vm;
             ProfileDetailOverlay.Visibility  = Visibility.Visible;
         }
     }
@@ -497,47 +495,6 @@ public partial class SettingsWindow : Window
                 $"Could not open '{e.Uri.AbsoluteUri}': {ex.Message}");
         }
         e.Handled = true;
-    }
-
-    private void StartNavLogoAnimation()
-    {
-        var sb = new Storyboard { RepeatBehavior = RepeatBehavior.Forever };
-
-        // V chevron breathe — translateY(0 → -5px → 2.5px → 0), 1.1s loop
-        var vAnim = new DoubleAnimationUsingKeyFrames { Duration = TimeSpan.FromSeconds(1.1) };
-        var vEase = new SineEase { EasingMode = EasingMode.EaseInOut };
-        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(0,    KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.00))) { EasingFunction = vEase });
-        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(-5,   KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.33))) { EasingFunction = vEase });
-        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(2.5,  KeyTime.FromTimeSpan(TimeSpan.FromSeconds(0.77))) { EasingFunction = vEase });
-        vAnim.KeyFrames.Add(new EasingDoubleKeyFrame(0,    KeyTime.FromTimeSpan(TimeSpan.FromSeconds(1.10))) { EasingFunction = vEase });
-        Storyboard.SetTarget(vAnim, NavVChevronTranslate);
-        Storyboard.SetTargetProperty(vAnim, new PropertyPath(TranslateTransform.YProperty));
-        sb.Children.Add(vAnim);
-
-        // Equalizer bars — durations and keyframes match reference CSS exactly
-        // navEq1: 0.85s  peaks at 40%→2.2, dips at 72%→0.55
-        AddNavBarAnim(sb, NLBar1Scale, 0.85, new[] { (0.0, 1.0), (0.40, 2.20), (0.72, 0.55), (1.0, 1.0) });
-        // navEq2: 0.68s  peaks at 35%→1.9, dips at 68%→0.55
-        AddNavBarAnim(sb, NLBar2Scale, 0.68, new[] { (0.0, 1.0), (0.35, 1.90), (0.68, 0.55), (1.0, 1.0) });
-        // navEq3: 0.60s  peaks at 30%→1.75, dips at 65%→0.65
-        AddNavBarAnim(sb, NLBar3Scale, 0.60, new[] { (0.0, 1.0), (0.30, 1.75), (0.65, 0.65), (1.0, 1.0) });
-        // navEq4: 0.74s  peaks at 38%→1.85, dips at 72%→0.60
-        AddNavBarAnim(sb, NLBar4Scale, 0.74, new[] { (0.0, 1.0), (0.38, 1.85), (0.72, 0.60), (1.0, 1.0) });
-        // navEq5: 0.78s  peaks at 45%→2.0, dips at 72%→0.55
-        AddNavBarAnim(sb, NLBar5Scale, 0.78, new[] { (0.0, 1.0), (0.45, 2.00), (0.72, 0.55), (1.0, 1.0) });
-
-        sb.Begin(this, true);
-    }
-
-    private static void AddNavBarAnim(Storyboard sb, ScaleTransform target, double dur, (double pct, double scale)[] frames)
-    {
-        var anim = new DoubleAnimationUsingKeyFrames { Duration = TimeSpan.FromSeconds(dur) };
-        var ease = new SineEase { EasingMode = EasingMode.EaseInOut };
-        foreach (var (pct, scale) in frames)
-            anim.KeyFrames.Add(new EasingDoubleKeyFrame(scale, KeyTime.FromTimeSpan(TimeSpan.FromSeconds(pct * dur))) { EasingFunction = ease });
-        Storyboard.SetTarget(anim, target);
-        Storyboard.SetTargetProperty(anim, new PropertyPath(ScaleTransform.ScaleYProperty));
-        sb.Children.Add(anim);
     }
 
     private void Card_DragEnter(object sender, DragEventArgs e)

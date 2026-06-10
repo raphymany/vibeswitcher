@@ -3,7 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:VibeSwitcher.ViewModels"
         xmlns:views="clr-namespace:VibeSwitcher.Views"
+        xmlns:controls="clr-namespace:VibeSwitcher.Controls"
         Title="VibeSwitcher"
+        Icon="pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico"
+        UseLayoutRounding="True"
         Width="920" Height="720"
         MinWidth="700" MinHeight="500"
         WindowStartupLocation="CenterScreen"
@@ -413,10 +416,14 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Left: title (draggable via WindowChrome caption area) -->
-                <TextBlock Grid.Column="0" Text="VibeSwitcher"
-                           FontSize="11.5" FontWeight="SemiBold"
-                           Foreground="{DynamicResource Accent}"
-                           VerticalAlignment="Center" Margin="14,0,0,0"/>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <Image Source="pack://application:,,,/Resources/Icons/VibeSwitcherIcon.ico"
+                           Width="16" Height="16" Stretch="Uniform" Margin="0,0,6,0"/>
+                    <TextBlock Text="VibeSwitcher"
+                               FontSize="11.5" FontWeight="SemiBold"
+                               Foreground="{DynamicResource Accent}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
 
                 <!-- Right: min / max / close -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -448,45 +455,7 @@
 
                 <!-- Logo: animated icon + VibeSwitcher in orange -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <!-- NavLogoIcon: V chevron + equalizer bars, looping animation via NavLogoStoryboard -->
-                    <!-- Nav logo: 36×36 canvas, coordinates scaled from 80-unit SVG reference -->
-                    <Canvas Width="36" Height="36" Margin="0,0,8,0" VerticalAlignment="Center">
-                        <!-- Rounded dark background -->
-                        <Rectangle Width="36" Height="36" RadiusX="9" RadiusY="9" Fill="#13131E"/>
-                        <Rectangle Width="36" Height="36" RadiusX="9" RadiusY="9" Fill="Transparent"
-                                   Stroke="#38F5820A" StrokeThickness="1.5"/>
-                        <!-- V chevron — breathes up/down via NavVChevronTranslate -->
-                        <Path x:Name="NavVChevron"
-                              Data="M 8.6,9.9 L 18,24.3 L 27.4,9.9"
-                              Stroke="#F5820A" StrokeThickness="1.8"
-                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                              Fill="Transparent">
-                            <Path.RenderTransform>
-                                <TranslateTransform x:Name="NavVChevronTranslate" Y="0"/>
-                            </Path.RenderTransform>
-                        </Path>
-                        <!-- Equalizer bars — 5 bars at reference proportions, each animates ScaleY from bottom -->
-                        <Rectangle x:Name="NLBar1" Canvas.Left="10"   Canvas.Top="32"   Width="2" Height="2.2" RadiusX="1" RadiusY="1"
-                                   Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="0.5,1">
-                            <Rectangle.RenderTransform><ScaleTransform x:Name="NLBar1Scale" ScaleY="1"/></Rectangle.RenderTransform>
-                        </Rectangle>
-                        <Rectangle x:Name="NLBar2" Canvas.Left="13.3" Canvas.Top="31"   Width="2" Height="3.2" RadiusX="1" RadiusY="1"
-                                   Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="0.5,1">
-                            <Rectangle.RenderTransform><ScaleTransform x:Name="NLBar2Scale" ScaleY="1"/></Rectangle.RenderTransform>
-                        </Rectangle>
-                        <Rectangle x:Name="NLBar3" Canvas.Left="17"   Canvas.Top="30.6" Width="2" Height="3.6" RadiusX="1" RadiusY="1"
-                                   Fill="#F5820A" Opacity="1"    RenderTransformOrigin="0.5,1">
-                            <Rectangle.RenderTransform><ScaleTransform x:Name="NLBar3Scale" ScaleY="1"/></Rectangle.RenderTransform>
-                        </Rectangle>
-                        <Rectangle x:Name="NLBar4" Canvas.Left="20.7" Canvas.Top="31"   Width="2" Height="3.2" RadiusX="1" RadiusY="1"
-                                   Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="0.5,1">
-                            <Rectangle.RenderTransform><ScaleTransform x:Name="NLBar4Scale" ScaleY="1"/></Rectangle.RenderTransform>
-                        </Rectangle>
-                        <Rectangle x:Name="NLBar5" Canvas.Left="24"   Canvas.Top="32"   Width="2" Height="2.2" RadiusX="1" RadiusY="1"
-                                   Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="0.5,1">
-                            <Rectangle.RenderTransform><ScaleTransform x:Name="NLBar5Scale" ScaleY="1"/></Rectangle.RenderTransform>
-                        </Rectangle>
-                    </Canvas>
+                    <controls:NavLogoIcon Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <TextBlock FontSize="15" FontWeight="Bold" VerticalAlignment="Center"
                                Foreground="{DynamicResource Accent}">VibeSwitcher</TextBlock>
                     <Border Width="1" Height="22" Background="#1E1E30" Margin="12,0,12,0" VerticalAlignment="Center"/>
@@ -1597,9 +1566,9 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0" Width="52" Height="52" CornerRadius="13"
-                                    Background="#1C1C2A" BorderBrush="#282838" BorderThickness="1"
+                                    Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
                                     Margin="0,0,14,0">
-                                <Image x:Name="AboutPanelIcon" Width="34" Height="34" Stretch="Uniform"/>
+                                <controls:NavLogoIcon Width="48" Height="48"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock FontSize="20" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}">
@@ -1802,10 +1771,6 @@
                         Background="{DynamicResource VSModalBg}"
                         CornerRadius="18"
                         BorderBrush="#29F5820A" BorderThickness="1">
-                    <Border.Effect>
-                        <DropShadowEffect Color="#000000" Opacity="0.78" BlurRadius="80" ShadowDepth="0"/>
-                    </Border.Effect>
-
                     <Grid x:Name="ProfileDetailContent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>  <!-- header -->

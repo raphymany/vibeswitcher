@@ -11,7 +11,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Resources\Icons\app.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icons\VibeSwitcherIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
