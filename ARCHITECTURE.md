@@ -39,7 +39,7 @@ Supporting subsystems that cut across layers:
 |---|---|---|
 | `TrayService` | `Tray/` | Tray icon lifecycle, context menu, balloon notifications |
 | `ProfileSwitchOrchestrator` | root | Serialises all profile switch operations |
-| `AppWindowManager` | root | Opens and focuses Settings / About windows |
+| `AppWindowManager` | root | Opens and focuses the Settings window (and navigates to its About / FAQ panels) |
 | `MuteService` | `Services/` | Global mute/unmute by scope (mic, speakers, both); manages mute state and plays feedback sounds |
 | `SchedulerService` | `Services/` | Per-profile time-of-day schedules with optional advance reminder notifications |
 | `ThemeService` | `Services/` | Detects Windows light/dark mode and hot-swaps the app's resource dictionary |

@@ -544,33 +544,34 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | F13 | Portable mode — if a file named `portable.txt` exists next to the exe, config is stored in the same folder instead of `%APPDATA%`; no CLI needed, just drop the file there once and the app auto-detects it on every launch; useful for USB/portable installs |
 | ~~F14~~ | ~~System tray scroll wheel for volume control~~ | Removed |
 | ~~F15~~ | ~~Diagnostic report copy-to-clipboard in About window~~ | ✅ Done — fix/polish-and-compat |
-| ~~F16~~ | ~~Light / dark / high-contrast support — replace every hardcoded hex colour with the appropriate `SystemColors` brush so the app automatically follows the Windows OS theme (light, dark, or high-contrast accessibility mode) with no in-app toggle needed; covers all windows, dialogs, profile cards, tray menu, and icon chip backgrounds~~ | ✅ Done — PR #70 |
+| ~~F16~~ | ~~Light / dark support — themed resource dictionaries so the app follows the Windows OS theme automatically, with an in-app Auto / Light / Dark override in General Settings; covers all windows, dialogs, profile cards, tray menu, and icon chip backgrounds~~ | ✅ Done — PR #70 |
 | ~~F17~~ | ~~Built-in profile icons — emoji gallery picker with Black/White color toggle; renders 64×64 PNG-embedded ICO files; Browse button stays alongside gallery picker~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — green border flash when a field change is saved; inline validation message for invalid input~~ | ✅ Done — PR #68 |
 | ~~F19~~ | ~~In-app help — "?" button in Settings opens a getting-started walkthrough dialog~~ | ✅ Done — PR #68 |
 | ~~F20~~ | ~~Pre-made profile names — name suggestion chips appear while the name is still the auto-assigned "Profile N"; picking a chip sets the name and silently applies the matching gallery icon~~ | ✅ Done — PR #66 |
 | ~~F21~~ | ~~Left-click tray cycles profiles — left-clicking the tray icon switches to the next profile in sort order, wrapping from last back to first; right-click still opens the context menu as normal~~ | ✅ Done — PR #57 |
 | F22 | Expand-to-fit button in Settings — small toggle button (↗↙ diagonal arrows) in the top-right corner of the Settings window; click expands the window height to show all profile cards and the Add New Profile button without a scrollbar, capped at screen height; click again collapses back to the default compact size |
-| ~~F23~~ | ~~Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix), device selections, hotkey, and icon path into a new profile appended to the list~~ | ✅ Done — PR #59 |
+| ~~F23~~ | ~~Profile clone button — a duplicate icon next to each profile card's delete button; clones the name (with " (copy)" suffix) and device selections into a new profile appended to the list; the hotkey and icon path are not copied (avoids conflicts and file-sharing issues)~~ | ✅ Done — PR #59 |
 | ~~F24~~ | ~~Global hotkey to open Settings — user-configurable key combo set in Settings (like any other hotkey), with an option to disable it entirely; focuses the Settings window from anywhere~~ | ✅ Done — PR #57 |
 | ~~F25~~ | ~~Per-profile silent switch — a checkbox in each profile card ("Silent — no notification"); when enabled, switching to that profile skips the balloon tip entirely~~ | ✅ Done — PR #59 |
 | ~~F26~~ | ~~Device connectivity indicator — green/red dot next to each device in Settings dropdowns~~ | ✅ Done — PR #61 |
 | ~~F27~~ | ~~Profile color tag~~ | Dropped — profiles already have icons; color adds no value |
 | ~~F30~~ | ~~Tray icon switch flash — briefly pulses the tray icon when a profile switch completes; provides visual confirmation of the switch, especially useful when balloon notifications are disabled via F25~~ | ✅ Done — PR #57 |
-| F31 | Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); stored as a `{deviceId → alias}` dictionary in config |
-| F32 | Profile notes — optional short description field on each profile card (e.g. "For work meetings — webcam mic disabled"); stored per profile, shown below the profile name |
-| F33 | Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray right-click menu above unpinned ones for quick access when the list grows long |
-| F34 | Profile validation warnings — inline warning flag on cards when a hotkey is duplicated across profiles, a selected device is missing or disabled, or an icon path is invalid; surfaces silent failures before they cause confusion |
+| ~~F31~~ | ~~Audio endpoint aliases — user-defined friendly name per device shown in Settings dropdowns instead of the raw Windows device name (e.g. "GoXLR", "Desk Speakers"); stored as a `{deviceId → alias}` dictionary in config~~ | ✅ Done — PR #80 |
+| ~~F32~~ | ~~Profile notes — optional short description field on each profile card (e.g. "For work meetings — webcam mic disabled"); stored per profile, shown below the profile name~~ | ✅ Done — PR #76 |
+| ~~F33~~ | ~~Favorite / pinned profiles — star flag per profile; pinned profiles appear at the top of the tray right-click menu above unpinned ones for quick access when the list grows long~~ | ✅ Done — PR #76 |
+| ~~F34~~ | ~~Profile validation warnings — inline warning flag on cards when a hotkey is duplicated across profiles, a selected device is missing or disabled, or an icon path is invalid; surfaces silent failures before they cause confusion~~ | ✅ Done — PR #76 |
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | ~~F36~~ | ~~Optional switch sound — global default sound that plays on every profile switch, with optional per-profile override; choose from pre-made built-in tones or a custom .wav file; adjustable volume (0–100%) at both the global and per-profile level; per-profile silent toggle to disable entirely; pairs with F25 (silent switch) and F30 (icon flash)~~ | ✅ Done — PR #84 |
-| F37 | Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording devices only (mic mute), playback devices only (deafen), or both; distinct activate and deactivate sounds (pre-made tones or custom .wav); tray icon flashes red while active; pressing again unmutes and restores previous levels |
+| ~~F37~~ | ~~Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording devices only (mic mute), playback devices only (deafen), or both; distinct activate and deactivate sounds (pre-made tones or custom .wav); tray icon flashes red while active; pressing again unmutes and restores previous levels~~ | ✅ Done — PR #86 |
 | F38 | Temporary / transient profile switch — optional app-wide feature with a configurable keybind; switches to a profile temporarily and auto-reverts to the previous profile when a timer expires or a linked app closes; useful for quick calls without forgetting to switch back |
-| F39 | Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable |
+| ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable~~ | ✅ Done — PR #90 |
 | F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups where undocking a laptop should switch to built-in speakers automatically |
 | ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | F44 | Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand; part of planned UI/UX redesign phase | Deferred |
+| ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
 
 ---
 
@@ -580,12 +581,14 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 |----------|-------|-------|-----------|
 | Critical | 9 | 7 | 2 (C2, C3) |
 | High | 10 | 10 | 0 |
-| Medium | 18 | 18 | 0 |
-| Low | 23 | 23 | 0 |
+| Medium | 19 | 17 | 0 |
+| Low | 23 | 22 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 39 | 13 | 26 |
-| **Total** | **112** | **81** | **31** |
+| Feature Additions | 43 | 31 | 7 |
+| **Total** | **117** | **100** | **9** |
+
+*Totals count every tracked item. The 8-item difference between Total and Fixed + Remaining is reclassified work: M1 → F16, M11 → F2, and L17 → F16 (moved to Feature Additions); F4, F12, F14 (removed); and F10, F27 (dropped).*
 
 ---
 
@@ -702,7 +705,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 8: `fix/polish-and-compat`~~ ✅ Merged
+### ~~Branch 7: `fix/polish-and-compat`~~ ✅ Merged
 **Theme:** Small isolated fixes, diagnostics, and docs — all low-risk and self-contained.
 
 | Item | Description | Status |
@@ -718,7 +721,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 9: `fix/reliability`~~ ✅ Merged
+### ~~Branch 8: `fix/reliability`~~ ✅ Merged
 **Theme:** Correctness fixes — addresses real failure paths.
 
 | Item | Description | Status |
@@ -730,7 +733,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 10: `fix/settings-ux-3`~~ ✅ Merged (PR #26)
+### ~~Branch 9: `fix/settings-ux-3`~~ ✅ Merged (PR #26)
 **Theme:** Settings visual polish and UX improvements.
 
 | Item | Description | Status |
@@ -748,7 +751,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 11: `fix/code-quality`~~ ✅ Merged — PR #27
+### ~~Branch 10: `fix/code-quality`~~ ✅ Merged — PR #27
 **Theme:** Small correctness fixes — none touch any visible feature.
 
 | Item | Description | Status |
@@ -762,7 +765,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 12: `fix/ux-polish`~~ ✅ Merged — PR #28
+### ~~Branch 11: `fix/ux-polish`~~ ✅ Merged — PR #28
 **Theme:** Switching feedback and keyboard navigation improvements.
 
 | Item | Description | Status |
@@ -773,7 +776,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 13: `refactor/system-text-json`~~ ✅ Merged — PR #29
+### ~~Branch 12: `refactor/system-text-json`~~ ✅ Merged — PR #29
 **Theme:** Remove the Newtonsoft.Json NuGet dependency; replace with the built-in System.Text.Json.
 
 | Item | Description | Status |
@@ -782,7 +785,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 14: `feat/audio-reliability`~~ ✅ Merged — PR #30
+### ~~Branch 13: `feat/audio-reliability`~~ ✅ Merged — PR #30
 **Theme:** Live device refresh on plug/unplug and Windows Audio service failure detection.
 
 | Item | Description | Status |
@@ -792,7 +795,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 15: `fix/keyboard-nav-focus`~~ ✅ Merged — PR #31
+### ~~Branch 14: `fix/keyboard-nav-focus`~~ ✅ Merged — PR #31
 **Theme:** Keyboard navigation visibility and hotkey dialog Tab capture.
 
 | Item | Description | Status |
@@ -803,7 +806,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 ---
 
-### ~~Branch 16: `test/unit-tests`~~ ✅ Merged — PR #33
+### ~~Branch 15: `test/unit-tests`~~ ✅ Merged — PR #33
 **Theme:** Create the test project and write pure-logic unit tests — zero risk to the running app.
 
 | Item | Tests | Status |
@@ -823,28 +826,28 @@ Production enablers (no behavior change): ConfigService baseDir injection, AppLo
 
 ---
 
-### ~~Branch 17: `refactor/interfaces`~~ ✅ Merged — PR #35
+### ~~Branch 16: `refactor/interfaces`~~ ✅ Merged — PR #35
 **Theme:** Extract interfaces for every service — pure additive, no behavior change. Enables safe mocking in Branches 18–19.
 
-5 interfaces extracted (`IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, `IDialogService`) + `DialogService` concrete class. All ViewModels, TrayService, and App.xaml.cs updated to use interface types. M6, TD2, TD4, 3.8 resolved as part of this branch. 11 new tests (80 total): `StartupServiceTests` (7.4, 4 tests) and `HotkeyServiceTests` (7.6, 7 tests). Fake stubs (`FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService`, `FakeStartupService`) added to unblock Branch 18.
+5 interfaces extracted (`IAudioService`, `IConfigService`, `IStartupService`, `IHotkeyService`, `IDialogService`) + `DialogService` concrete class. All ViewModels, TrayService, and App.xaml.cs updated to use interface types. M6, TD2, TD4, 3.8 resolved as part of this branch. 11 new tests (80 total): `StartupServiceTests` (7.4, 4 tests) and `HotkeyServiceTests` (7.6, 7 tests). Fake stubs (`FakeAudioService`, `FakeConfigService`, `FakeDialogService`, `FakeHotkeyService`, `FakeStartupService`) added to unblock Branch 17.
 
 ---
 
-### ~~Branch 18: `refactor/viewmodel-dialogs`~~ ✅ Merged — PR #36
+### ~~Branch 17: `refactor/viewmodel-dialogs`~~ ✅ Merged — PR #36
 **Theme:** Add `SettingsViewModel` and `ProfileCardViewModel` unit tests using fake services — resolves 7.5.
 
 18 new tests (80 → 98 total). `SettingsViewModelTests`: AddProfile confirm/cancel, DeleteProfile confirm/cancel, StartWithWindows enable/disable, profile change triggers hotkey re-registration — each mutation test asserts `_profilesChangedCount` fires exactly once. `ProfileCardViewModelTests`: CaptureHotkey cancel/clear/conflict/success/replace-existing, BrowseIcon cancel/copy-success/copy-failure/same-path-skip, DeleteProfile confirm/cancel. Also null-guards `Application.Current?.Dispatcher` in `LoadDevicesAsync` for headless test environments.
 
 ---
 
-### ~~Branch 19: `refactor/god-class`~~ ✅ Done — PR #37
+### ~~Branch 18: `refactor/god-class`~~ ✅ Done — PR #37
 **Theme:** Split `App.xaml.cs` — resolves TD3/R2.
 
 `ProfileSwitchOrchestrator` extracted: owns `SwitchToProfile()`, `OnPowerModeChanged()`, and the full async switch flow. `AppWindowManager` extracted: owns `OpenSettingsWindow()` and `OpenAboutWindow()`. `App.xaml.cs` reduced from 248 to ~120 lines as a thin bootstrapper. Bug fix: `OnExit` null-guards `_orchestrator` for the second-instance early-exit path. `TrayService` and `SettingsWindow` untouched. 98 tests, 0 failures.
 
 ---
 
-### ~~Branch 20: `ci/cd-pipeline`~~ ✅ Done — PR #38
+### ~~Branch 19: `ci/cd-pipeline`~~ ✅ Done — PR #38
 **Theme:** GitHub Actions build + test pipeline.
 
 `.github/workflows/ci.yml` added: triggers on every push and pull request to `main`; runs `dotnet build -c Release` then `dotnet test` on `windows-latest`. `.github/workflows/release.yml` added: triggers on `v*` tag push; runs `dotnet publish --self-contained -r win-x64 -p:PublishSingleFile=true`, zips the output, and uploads it as a GitHub Release artifact via `softprops/action-gh-release@v2` (with `permissions: contents: write`). `Microsoft.CodeAnalysis.NetAnalyzers` NuGet package removed — the .NET SDK on the runner already bundles a newer version, and adding it explicitly produced a version-conflict warning. 98 tests, 0 failures, 0 build warnings.
@@ -856,7 +859,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 21: `fix/switch-reliability`~~ ✅ Merged — PR #40
+### ~~Branch 20: `fix/switch-reliability`~~ ✅ Merged — PR #40
 **Theme:** Remove duplicate switch logic and add a concurrent-switch guard.
 
 | Item | Description | Status |
@@ -866,7 +869,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 22: `fix/settings-async`~~ ✅ Merged — PR #42
+### ~~Branch 21: `fix/settings-async`~~ ✅ Merged — PR #42
 **Theme:** Fix the two async/event correctness issues in the Settings window.
 
 | Item | Description | Status |
@@ -876,7 +879,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 23: `fix/null-safety`~~ ✅ Merged — PR #44
+### ~~Branch 22: `fix/null-safety`~~ ✅ Merged — PR #44
 **Theme:** Three small robustness fixes found in deep-dive review.
 
 | Item | Description | Status |
@@ -887,7 +890,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 24: `ci/sha256-checksums`~~ ✅ Merged — PR #46
+### ~~Branch 23: `ci/sha256-checksums`~~ ✅ Merged — PR #46
 **Theme:** Publish SHA256 checksums alongside each GitHub Release zip.
 
 | Item | Description | Status |
@@ -896,7 +899,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 25: `test/additional-coverage`~~ ✅ Merged — PR #48
+### ~~Branch 24: `test/additional-coverage`~~ ✅ Merged — PR #48
 **Theme:** Additional unit tests identified in the deep-dive review.
 
 | Item | Description | Status |
@@ -909,7 +912,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 26: `feat/app-icon-refresh`~~ ✅ Merged — PR #50
+### ~~Branch 25: `feat/app-icon-refresh`~~ ✅ Merged — PR #50
 **Theme:** Replace the single-frame 16px app icon with a multi-frame ICO and use the 256px frame wherever the icon appears in the UI.
 
 | Item | Description | Status |
@@ -923,7 +926,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 27: `feat/toast-notifications`~~ ✅ Merged — PR #53
+### ~~Branch 26: `feat/toast-notifications`~~ ✅ Merged — PR #53
 **Theme:** Show the VibeSwitcher app icon in balloon notification body; clear the error log at session start.
 
 | Item | Description | Status |
@@ -934,7 +937,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 28: `feat/tray-interactions`~~ ✅ Merged — PR #57
+### ~~Branch 27: `feat/tray-interactions`~~ ✅ Merged — PR #57
 **Theme:** Tray icon and global hotkey UX — left-click cycle, hotkey tooltip, Settings hotkey, icon flash, and follow-up hotkey UX polish.
 
 | Item | Description | Status |
@@ -951,7 +954,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 29: `feat/profile-management`~~ ✅ Merged — PR #59
+### ~~Branch 28: `feat/profile-management`~~ ✅ Merged — PR #59
 **Theme:** Per-card controls in the Settings profile list — reorder, clone, and silent switch.
 
 | Item | Description | Status |
@@ -963,7 +966,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 30: `feat/device-enhancements`~~ ✅ Merged — PR #61
+### ~~Branch 29: `feat/device-enhancements`~~ ✅ Merged — PR #61
 **Theme:** Audio device interaction features — test sound, mic level test, and device connectivity indicator.
 
 | Item | Description | Status |
@@ -975,7 +978,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 44: `feat/settings-ux`~~ ✅ Merged — PR #64
+### ~~Branch 30: `feat/settings-ux`~~ ✅ Merged — PR #64
 **Theme:** Settings window UX polish — device visibility controls, collapsible settings card, tray menu clarity, and visual consistency.
 
 | Item | Description | Status |
@@ -1024,7 +1027,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 45: `feat/appearance-modes`~~ ✅ Done — PR #70
+### ~~Branch 33: `feat/appearance-modes`~~ ✅ Done — PR #70
 **Theme:** Light / dark mode theming, tray polish, and window quality-of-life fixes.
 
 | Item | Description | Status |
@@ -1042,7 +1045,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 46: `fix/appearance-qa`~~ ✅ Done — PR #72
+### ~~Branch 34: `fix/appearance-qa`~~ ✅ Done — PR #72
 **Theme:** QA follow-ups and UI polish from the appearance-modes branch.
 
 | Item | Description | Status |
@@ -1059,7 +1062,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 33: `feat/profile-scheduler`~~ ✅ Done — PR #74
+### ~~Branch 35: `feat/profile-scheduler`~~ ✅ Done — PR #74
 **Theme:** Time-based automatic profile switching with optional pre-switch reminder.
 
 | Item | Description | Status |
@@ -1076,7 +1079,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 35: `feat/profile-card-extras`~~ ✅ Done — PR #76
+### ~~Branch 36: `feat/profile-card-extras`~~ ✅ Done — PR #76
 **Theme:** Small per-profile additions to the Settings card that don't touch audio logic.
 
 | Item | Description | Status |
@@ -1089,7 +1092,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 48: `perf/switch-optimizations`~~ ✅ Done — PR #78
+### ~~Branch 37: `perf/switch-optimizations`~~ ✅ Done — PR #78
 **Theme:** Micro-optimizations to reduce UI-thread pressure and disk I/O in the profile switch hot path and idle background.
 
 | Item | Description | Status |
@@ -1103,7 +1106,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 36: `feat/device-aliases`~~ ✅ Done — PR #80
+### ~~Branch 38: `feat/device-aliases`~~ ✅ Done — PR #80
 **Theme:** Per-device friendly name display throughout the app, plus several UI and quality-of-life improvements.
 
 | Item | Description | Status |
@@ -1121,7 +1124,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 37: `feat/settings-search`~~ ✅ Done — PR #82
+### ~~Branch 39: `feat/settings-search`~~ ✅ Done — PR #82
 **Theme:** Profile search and filtering in the Settings window.
 
 | Item | Description | Status |
@@ -1138,12 +1141,12 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 38: `feat/switch-sound`~~ ✅ Done — PR #84
+### ~~Branch 40: `feat/switch-sound`~~ ✅ Done — PR #84
 **Theme:** Audio feedback on profile switch.
 
 | Item | Description | Status |
 |------|-------------|--------|
-| F36 | SwitchSoundDialog wizard — 8 built-in tone chips (Click, Chime, Blip, Bell, Alert, Soft, Ping, Custom), custom WAV file picker, volume slider, Test Sound button, Show notification banner toggle; saving always enables (no redundant enable toggle) | ✅ Done |
+| F36 | SwitchSoundDialog wizard — 7 built-in tone chips (Click, Chime, Blip, Bell, Alert, Soft, Ping) plus a custom WAV file picker, volume slider, Test Sound button, Show notification banner toggle; saving always enables (no redundant enable toggle) | ✅ Done |
 | F36 | Add/Edit/Remove Sound pattern on profile cards — summary row shows tone, volume, and "+ Banner" badge; matches the Add/Edit/Remove Schedule pattern | ✅ Done |
 | F36 | Bell icon (🔔/🔕) in profile card action row — auto-hides when a switch sound is configured; reappears as "No Notification Banner + Sound" for sound-free profiles | ✅ Done |
 | F36 | Notification separation — switch-sound profiles play custom audio only; `SoundShowBanner` drives a separate silent tray banner; non-sound profiles use the bell toggle and Silent flag | ✅ Done |
@@ -1154,7 +1157,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 39: `feat/panic-hotkey`~~ ✅ Done — PR #86
+### ~~Branch 41: `feat/panic-hotkey`~~ ✅ Done — PR #86
 **Theme:** Instant global mute with configurable scope and audio feedback.
 
 | Item | Description | Status |
@@ -1169,7 +1172,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 49: `fix/codebase-audit-49`~~ ✅ Done — PR #88
+### ~~Branch 42: `fix/codebase-audit-49`~~ ✅ Done — PR #88
 **Theme:** Systematic full-codebase audit — dead code, bugs, security, and UI violations.
 
 | Item | Description | Status |
@@ -1193,7 +1196,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 41: `feat/device-triggers`~~ ✅ Done — PR #90
+### ~~Branch 43: `feat/device-triggers`~~ ✅ Done — PR #90
 **Theme:** Automatic profile activation when a specific audio device connects or disconnects, with fast HID-based wireless headset detection.
 
 | Item | Description | Status |
@@ -1213,7 +1216,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 50: `feat/headset-expansion`~~ ✅ Done — PR #92
+### ~~Branch 44: `feat/headset-expansion`~~ ✅ Done — PR #92
 **Theme:** Expand wireless headset HID support to Corsair, SteelSeries, and HyperX; add remaining Logitech PIDs.
 
 | Item | Description | Status |
@@ -1232,7 +1235,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 51: `feat/auto-switch-ux`~~ ✅ Done — PR #94
+### ~~Branch 45: `feat/auto-switch-ux`~~ ✅ Done — PR #94
 **Theme:** Auto-switch UX improvements — supported headsets dialog, playback-only restriction, and conflict detection.
 
 | Item | Description | Status |
@@ -1248,7 +1251,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 43: `feat/app-switching`~~ ✅ Done — PR #96
+### ~~Branch 46: `feat/app-switching`~~ ✅ Done — PR #96
 **Theme:** Automatic profile switching based on running application, plus shortcuts UX redesign.
 
 | Item | Description | Status |
@@ -1317,7 +1320,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 52: `refactor/injectable-services`~~ ✅ Done — PR #102
+### ~~Branch 49: `refactor/injectable-services`~~ ✅ Done — PR #102
 **Theme:** Convert static `AppLogger` and `SessionErrorTracker` to instance classes with constructor injection throughout the codebase, enabling proper test isolation and open-source maintainability.
 
 | # | Item | Status |
@@ -1333,7 +1336,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 53: `feat/ui-redesign` ✅ Done — PR #105, #106
+### Branch 50: `feat/ui-redesign` ✅ Done — PR #105, #106
 **Theme:** Full visual redesign of the app, delivered in two phases on this branch. Phase 1 rebuilt `SettingsWindow` from a plain vertical list into a G HUB-inspired dark card grid (title bar, tab navigation, compact profile cards with always-visible action strips, animated filter bar, profile detail overlay, and About / FAQ / Settings panels). Phase 2 completed app-wide light/dark theming, introduced a shared geometric icon system, refined the tray menu and dialogs, added keyboard navigation, and removed old-design code. All audio/switching/scheduling/business logic is unchanged — only view-layer code plus a few small view-model/service additions (search & FAQ support, dialog outcomes, the mute badge, icon composition). Verified by four parallel read-only audit agents — clean build, 222 tests pass.
 
 | # | Item | Status |
