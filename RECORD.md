@@ -1391,4 +1391,8 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | App | Fixed-name mutex `Local\VibeSwitcher_App` in `SingleInstanceHelper` so setup/uninstall can detect a running instance (single-instancing itself unchanged) | ✅ Done |
 | UI | "Uninstall" Settings category (hidden for portable copies) with a danger-styled card; new `UninstallDialog` — confirmation plus an "also delete my profiles and settings" toggle that defaults to keep | ✅ Done |
 | UI | Uninstall flow: launches `unins000.exe /SILENT` (with `/DELETEDATA=1` only when opted in) via a short delayed start so the app can exit first, then shuts down | ✅ Done |
+| UI | Install & Updates section expanded: data folder path + live folder sizes (refreshed on every window show), Explorer shortcuts for both locations; uninstall button disabled with a hint on portable copies | ✅ Done |
+| Tray | Icon registers with the shell only after the splash completes; early balloons queued and flushed; hotkeys active from launch; Mini Mode menu item is now a toggle ("Exit Mini Mode" + expand icon while mini is active) | ✅ Done |
+| Fix | First-right-click menu flash: menu primed invisibly at dispatcher idle (one-time creation cost absorbed out of sight) + foreground re-asserted on open; startup window-open waits for an open tray menu to close | ✅ Done |
+| Fix | Toast attribution icon colors: default tray icon loaded from the embedded `.ico` (no more lossy runtime PNG conversion); 16–32px ico frames regenerated with brand orange restored | ✅ Done |
 | Docs | README Installation rewritten (installer primary, portable zip kept); CHANGELOG, RECORD, BACKLOG updated | ✅ Done |
