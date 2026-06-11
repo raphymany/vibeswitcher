@@ -136,7 +136,12 @@ public partial class SettingsWindow : Window
             UninstallBtn.IsEnabled = false;
             PortableUninstallNote.Visibility = Visibility.Visible;
         }
+        var dataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher");
         InstallLocationText.Text = AppContext.BaseDirectory;
+        DataLocationText.Text    = dataFolder;
+        InstallSizeText.Text     = FormatFolderSize(AppContext.BaseDirectory);
+        DataSizeText.Text        = FormatFolderSize(dataFolder);
         try
         {
             var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -367,6 +372,25 @@ public partial class SettingsWindow : Window
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e) =>
         OpenFolderInExplorer(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher"));
+
+    private static string FormatFolderSize(string path)
+    {
+        try
+        {
+            if (!Directory.Exists(path)) return "—";
+            long bytes = new DirectoryInfo(path)
+                .EnumerateFiles("*", SearchOption.AllDirectories)
+                .Sum(f => f.Length);
+            return bytes switch
+            {
+                >= 1024L * 1024 * 1024 => $"{bytes / (1024.0 * 1024 * 1024):0.##} GB",
+                >= 1024L * 1024        => $"{bytes / (1024.0 * 1024):0.#} MB",
+                >= 1024                => $"{bytes / 1024.0:0.#} KB",
+                _                      => $"{bytes} B",
+            };
+        }
+        catch { return "—"; }
+    }
 
     private void OpenFolderInExplorer(string path)
     {
