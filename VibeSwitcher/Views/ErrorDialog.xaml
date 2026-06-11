@@ -28,9 +28,10 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                 <Border Width="36" Height="36" CornerRadius="18"
                         Background="{DynamicResource ErrorIconBg}" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <TextBlock Text="✕" FontSize="16" FontWeight="Bold"
-                               Foreground="{DynamicResource ErrorText}"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Path Data="{StaticResource IcoClose}" Width="16" Height="16" Stretch="Uniform"
+                          Fill="Transparent" Stroke="{DynamicResource ErrorText}" StrokeThickness="1.9"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock x:Name="TitleText" FontSize="15" FontWeight="SemiBold"

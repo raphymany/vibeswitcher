@@ -15,8 +15,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Icons\app.ico" />
-    <Resource Include="Resources\Icons\VibeSwitcherIcon.ico" />
     <Resource Include="Resources\Icons\vs-icon.ico" />
     <Resource Include="Resources\Icons\vs-icon-16.png" />
     <Resource Include="Resources\Icons\vs-icon-32.png" />

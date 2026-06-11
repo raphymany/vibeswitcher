@@ -5,7 +5,7 @@
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         xmlns:controls="clr-namespace:VibeSwitcher.Controls"
         Title="VibeSwitcher"
-        Icon="pack://application:,,,/Resources/Icons/vs-icon-64.png"
+        Icon="pack://application:,,,/Resources/Icons/vs-icon.ico"
         UseLayoutRounding="True"
         Width="920" Height="720"
         MinWidth="700" MinHeight="500"
@@ -17,43 +17,61 @@
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="30" GlassFrameThickness="0"
-                      ResizeBorderThickness="4" UseAeroCaptionButtons="False"/>
+                      ResizeBorderThickness="8" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <!-- ── Filter chip icons (16-unit geometry) ─────────────── -->
+        <Geometry x:Key="IcoPlayback">M2,6.5 H4.5 L8,3.5 V12.5 L4.5,9.5 H2 Z M11,6 Q12.8,8 11,10</Geometry>
+        <Geometry x:Key="IcoRecording">M8,2.5 A1.8,1.8 0 0 1 9.8,4.3 V7 A1.8,1.8 0 0 1 6.2,7 V4.3 A1.8,1.8 0 0 1 8,2.5 Z M5,7.2 A3,3 0 0 0 11,7.2 M8,10.2 V12.5 M6,12.5 H10</Geometry>
+        <Geometry x:Key="IcoBoth">M3.5,9 V7.5 A4.5,4.5 0 0 1 12.5,7.5 V9 M3,9.2 H5 V12.5 H3 Z M11,9.2 H13 V12.5 H11 Z</Geometry>
+        <Geometry x:Key="IcoPin">M8,1.8 L9.9,5.7 L14.2,6.3 L11.1,9.3 L11.9,13.6 L8,11.5 L4.1,13.6 L4.9,9.3 L1.8,6.3 L6.1,5.7 Z</Geometry>
+        <Geometry x:Key="IcoActive">M14,8 A6,6 0 1 1 2,8 A6,6 0 1 1 14,8 M5,8 L7,10 L11,5.5</Geometry>
+        <Geometry x:Key="IcoSilent">M8,2.5 A4.5,4.5 0 0 0 3.5,7 V10 L2.5,11.5 H13.5 L12.5,10 V7 A4.5,4.5 0 0 0 8,2.5 Z M3,3 L13,13</Geometry>
+        <Geometry x:Key="IcoHotkey">M2,4.5 H14 V11.5 H2 Z M4.5,7 H4.6 M7,7 H7.1 M9.5,7 H9.6 M12,7 H12.1 M5,9.5 H11</Geometry>
+        <Geometry x:Key="IcoNotes">M4,2.5 H12 V13.5 H4 Z M6,5.5 H10 M6,8 H10 M6,10.5 H8.5</Geometry>
+        <Geometry x:Key="IcoImage">M2.5,3.5 H13.5 V12.5 H2.5 Z M2.5,10.5 L6,7.5 L8.5,9.5 L11,7 L13.5,9.5 M5,6 A0.9,0.9 0 1 1 4.99,6 Z</Geometry>
+        <Geometry x:Key="IcoSchedule">M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7</Geometry>
+        <Geometry x:Key="IcoReminder">M8,2.5 A4.5,4.5 0 0 0 3.5,7 V10 L2.5,11.5 H13.5 L12.5,10 V7 A4.5,4.5 0 0 0 8,2.5 Z M6.5,12 A1.5,1.5 0 0 0 9.5,12</Geometry>
+        <Geometry x:Key="IcoSound">M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7</Geometry>
+        <Geometry x:Key="IcoWarning">M8,2.5 L14.5,13.5 H1.5 Z M8,6.5 V9.5 M8,11.2 V11.4</Geometry>
+
         <!-- ── Filter chip ──────────────────────────────────────── -->
         <Style x:Key="FilterChip" TargetType="ToggleButton">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Cursor"     Value="Hand"/>
-            <Setter Property="Height"     Value="28"/>
-            <Setter Property="Padding"    Value="10,0"/>
+            <Setter Property="Height"     Value="30"/>
+            <Setter Property="Padding"    Value="11,0"/>
+            <Setter Property="Margin"     Value="0,0,7,7"/>
             <Setter Property="FontSize"   Value="11.5"/>
-            <Setter Property="Foreground" Value="#38384E"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
-                        <Border x:Name="Bg" CornerRadius="20" BorderThickness="1"
-                                BorderBrush="#1E1E30" Background="Transparent">
+                        <Border x:Name="Bg" CornerRadius="15" BorderThickness="1"
+                                BorderBrush="{DynamicResource VSBorder}"
+                                Background="{DynamicResource VSSurface}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                               Margin="{TemplateBinding Padding}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="Bg" Property="Background"   Value="#12F5820A"/>
-                                <Setter TargetName="Bg" Property="BorderBrush"  Value="#40F5820A"/>
-                                <Setter Property="Foreground" Value="#F5820A"/>
+                                <Setter TargetName="Bg" Property="Background"   Value="#1FF5820A"/>
+                                <Setter TargetName="Bg" Property="BorderBrush"  Value="#55F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
                             </Trigger>
                             <MultiTrigger>
                                 <MultiTrigger.Conditions>
                                     <Condition Property="IsChecked" Value="False"/>
                                     <Condition Property="IsMouseOver" Value="True"/>
                                 </MultiTrigger.Conditions>
-                                <Setter TargetName="Bg" Property="Background"  Value="#16162A"/>
-                                <Setter TargetName="Bg" Property="BorderBrush" Value="#303048"/>
-                                <Setter Property="Foreground" Value="#7878A0"/>
+                                <Setter TargetName="Bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
                             </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -61,12 +79,27 @@
             </Setter>
         </Style>
 
+        <!-- Filter chip icon (stroke follows chip Foreground) -->
+        <Style x:Key="FilterChipIcon" TargetType="Path">
+            <Setter Property="Width"  Value="13"/>
+            <Setter Property="Height" Value="13"/>
+            <Setter Property="Stretch" Value="Uniform"/>
+            <Setter Property="Fill" Value="Transparent"/>
+            <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+            <Setter Property="StrokeThickness" Value="1.3"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+        </Style>
+
         <!-- ── Clear-all link ───────────────────────────────────── -->
         <Style x:Key="ClearFilterButton" TargetType="Button">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Cursor"     Value="Hand"/>
             <Setter Property="FontSize"   Value="11.5"/>
-            <Setter Property="Foreground" Value="#E05555"/>
+            <Setter Property="Foreground" Value="{DynamicResource ErrorText}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -88,21 +121,6 @@
             <Setter Property="Padding"         Value="16,14"/>
         </Style>
 
-        <Style x:Key="InnerCardBorder" TargetType="Border">
-            <Setter Property="Background"      Value="{DynamicResource InnerCardBg}"/>
-            <Setter Property="BorderBrush"     Value="{DynamicResource InnerCardBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius"    Value="8"/>
-            <Setter Property="Padding"         Value="14,10"/>
-            <Setter Property="Margin"          Value="0,0,0,8"/>
-        </Style>
-
-        <Style x:Key="LabelText" TargetType="TextBlock">
-            <Setter Property="FontSize"          Value="12"/>
-            <Setter Property="Foreground"        Value="{DynamicResource SecondaryText}"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin"            Value="0,0,10,0"/>
-        </Style>
 
         <!-- ── Day pill ─────────────────────────────────────────── -->
         <Style x:Key="DayPillStyle" TargetType="ToggleButton">
@@ -114,7 +132,7 @@
             <Setter Property="Cursor"          Value="Hand"/>
             <Setter Property="Padding"         Value="8,3"/>
             <Setter Property="Height"          Value="26"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -178,7 +196,7 @@
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Width"      Value="44"/>
             <Setter Property="Height"     Value="30"/>
-            <Setter Property="Foreground" Value="#555570"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
             <Setter Property="FontSize"   Value="12"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -192,7 +210,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#0DFFFFFF"/>
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource VSGlassFill}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -231,7 +249,7 @@
             <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Cursor"     Value="Hand"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -253,49 +271,27 @@
             </Setter>
         </Style>
 
-        <Style x:Key="NavIconBtnActive" TargetType="Button" BasedOn="{StaticResource NavIconBtn}">
-            <Setter Property="Background" Value="#12F5820A"/>
-            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border x:Name="bg"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="#40F5820A" BorderThickness="1"
-                                CornerRadius="8">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#1FF5820A"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- ── Card action button (36×36, matches reference spec) ─── -->
+        <!-- ── Card action button (44×44) ─── -->
         <Style x:Key="CardActionBtn" TargetType="Button">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Width"      Value="36"/>
-            <Setter Property="Height"     Value="36"/>
-            <Setter Property="Foreground" Value="#8888AA"/>
+            <Setter Property="Width"      Value="44"/>
+            <Setter Property="Height"     Value="44"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
             <Setter Property="Cursor"     Value="Hand"/>
-            <Setter Property="Focusable"  Value="False"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Focusable"  Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bg" CornerRadius="8"
-                                Background="#0AFFFFFF" BorderBrush="#12FFFFFF" BorderThickness="1">
+                                Background="{DynamicResource VSGlassFill}" BorderBrush="{DynamicResource VSGlassBorder}" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background"  Value="#222236"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="#484860"/>
-                                <Setter Property="Foreground" Value="#C8C8E8"/>
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -305,29 +301,29 @@
 
         <Style x:Key="CardActionToggle" TargetType="ToggleButton">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Width"      Value="36"/>
-            <Setter Property="Height"     Value="36"/>
-            <Setter Property="Foreground" Value="#8888AA"/>
+            <Setter Property="Width"      Value="44"/>
+            <Setter Property="Height"     Value="44"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
             <Setter Property="Cursor"     Value="Hand"/>
-            <Setter Property="Focusable"  Value="False"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Focusable"  Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
                         <Border x:Name="bg" CornerRadius="8"
-                                Background="#0AFFFFFF" BorderBrush="#12FFFFFF" BorderThickness="1">
+                                Background="{DynamicResource VSGlassFill}" BorderBrush="{DynamicResource VSGlassBorder}" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="bg" Property="Background"  Value="#1FF5820A"/>
                                 <Setter TargetName="bg" Property="BorderBrush" Value="#40F5820A"/>
-                                <Setter Property="Foreground" Value="#F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background"  Value="#222236"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="#484860"/>
-                                <Setter Property="Foreground" Value="#C8C8E8"/>
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -363,7 +359,7 @@
             <Setter Property="Height"  Value="32"/>
             <Setter Property="Cursor"  Value="Hand"/>
             <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -399,7 +395,7 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="4,2"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -420,15 +416,15 @@
         <!-- ── About / external link chip ──────────────────────── -->
         <Style x:Key="LinkChipStyle" TargetType="Button">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="Background" Value="#12121E"/>
-            <Setter Property="BorderBrush" Value="#2A2A42"/>
+            <Setter Property="Background" Value="{DynamicResource VSInsetBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#8888AA"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="14,7"/>
             <Setter Property="Margin" Value="0,0,8,8"/>
             <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -444,7 +440,46 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bg" Property="Background" Value="#12F5820A"/>
                                 <Setter TargetName="bg" Property="BorderBrush" Value="#55F5820A"/>
-                                <Setter Property="Foreground" Value="#F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── Settings sidebar nav styles ───────────────────────── -->
+        <Style x:Key="SettingsNavLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize"         Value="9"/>
+            <Setter Property="FontWeight"       Value="Bold"/>
+            <Setter Property="Foreground"       Value="{DynamicResource SectionLabelText}"/>
+            <Setter Property="Margin"           Value="10,8,10,5"/>
+        </Style>
+
+        <Style x:Key="SettingsNavItemStyle" TargetType="Button">
+            <Setter Property="Background"                 Value="Transparent"/>
+            <Setter Property="Foreground"                 Value="{DynamicResource VSLabel}"/>
+            <Setter Property="BorderThickness"            Value="0"/>
+            <Setter Property="Padding"                    Value="10,8"/>
+            <Setter Property="FontSize"                   Value="12.5"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Width"                      Value="152"/>
+            <Setter Property="Cursor"                     Value="Hand"/>
+            <Setter Property="FocusVisualStyle"           Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource VSSurface}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -468,7 +503,7 @@
              ══════════════════════════════════════════════════════════ -->
         <Border Grid.Row="0"
                 Background="{DynamicResource VSTitleBarBg}"
-                BorderBrush="#16162A" BorderThickness="0,0,0,1">
+                BorderBrush="{DynamicResource VSSurface}" BorderThickness="0,0,0,1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -523,16 +558,21 @@
                                        Foreground="{DynamicResource Accent}">VibeSwitcher</TextBlock>
                         </StackPanel>
                     </Button>
-                    <Border Width="1" Height="22" Background="#1E1E30" Margin="12,0,12,0" VerticalAlignment="Center"/>
+                    <Border Width="1" Height="22" Background="{DynamicResource InputBorder}" Margin="12,0,12,0" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <!-- Search + Filters (profile view) -->
-                <StackPanel x:Name="SearchFiltersPanel" Grid.Column="1"
-                            Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                <Grid x:Name="SearchFiltersPanel" Grid.Column="1"
+                      VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="280"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
                     <!-- Search box with placeholder -->
-                    <Grid Margin="0,0,8,0">
+                    <Grid Grid.Column="0" Margin="0,0,8,0">
                         <TextBox x:Name="NavSearchBox"
-                                 Width="220" Height="32"
+                                 MinWidth="110" Height="32"
+                                 HorizontalAlignment="Stretch"
                                  Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                  FontSize="13" VerticalContentAlignment="Center"
                                  Padding="10,0"/>
@@ -550,18 +590,26 @@
                                         <DataTrigger Binding="{Binding SearchText}" Value="{x:Null}">
                                             <Setter Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsFocused, ElementName=NavSearchBox}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
                     </Grid>
                     <!-- Filters toggle button -->
-                    <Button x:Name="FiltersToggleBtn"
+                    <Button x:Name="FiltersToggleBtn" Grid.Column="1"
                             Height="32" Padding="10,0" Cursor="Hand"
                             Style="{StaticResource ActionButton}"
                             Click="FiltersBtn_Click">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="⊞" FontSize="12" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <Viewbox Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center">
+                                <Canvas Width="16" Height="16">
+                                    <Path Data="M2.5,3.5 H13.5 L9,8.5 V12.5 L7,11 V8.5 Z"
+                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                                </Canvas>
+                            </Viewbox>
                             <TextBlock Text="Filters" FontSize="12" VerticalAlignment="Center"/>
                             <Border x:Name="FilterCountBadge"
                                     Width="18" Height="18" CornerRadius="9"
@@ -580,33 +628,52 @@
                                 <TextBlock Text="{Binding ActiveFilterCount}"
                                            FontSize="10" FontWeight="Bold"
                                            HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           Foreground="#0D0D12"/>
+                                           Foreground="{DynamicResource AppBg}"/>
                             </Border>
                         </StackPanel>
                     </Button>
-                </StackPanel>
+                </Grid>
 
                 <!-- Right: nav icon buttons + add profile + logs -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="NavFaqBtn"
-                            Style="{StaticResource NavIconBtn}"
-                            Content="?" Margin="0,0,4,0"
-                            ToolTip="Help &amp; FAQ"
-                            Click="NavFaq_Click"/>
                     <Button x:Name="NavAboutBtn"
                             Style="{StaticResource NavIconBtn}"
-                            Content="ℹ" Margin="0,0,4,0"
+                            Margin="0,0,4,0"
                             ToolTip="About VibeSwitcher"
-                            Click="NavAbout_Click"/>
+                            Click="NavAbout_Click">
+                        <Path Data="{StaticResource IcoInfo}" Width="17" Height="17" Stretch="Uniform"
+                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.5" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Button>
+                    <Button x:Name="NavFaqBtn"
+                            Style="{StaticResource NavIconBtn}"
+                            Margin="0,0,4,0"
+                            ToolTip="Help &amp; FAQ"
+                            Click="NavFaq_Click">
+                        <Path Data="{StaticResource IcoHelp}" Width="17" Height="17" Stretch="Uniform"
+                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.5" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Button>
                     <Button x:Name="NavSettingsBtn"
                             Style="{StaticResource NavIconBtn}"
-                            Content="⚙" Margin="0,0,12,0"
+                            Margin="0,0,12,0"
                             ToolTip="Settings"
-                            Click="NavSettings_Click"/>
-                    <Border Width="1" Height="22" Background="#1E1E30" Margin="0,0,12,0" VerticalAlignment="Center"/>
-                    <Button Content="+ New Profile"
-                            Style="{StaticResource PrimaryButton}"
-                            Command="{Binding AddProfileCommand}"/>
+                            Click="NavSettings_Click">
+                        <Path Data="{StaticResource IcoSettings}" Width="17" Height="17" Stretch="Uniform"
+                              Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.5" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                    </Button>
+                    <Border Width="1" Height="22" Background="{DynamicResource InputBorder}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Command="{Binding AddProfileCommand}"
+                            Padding="10,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="+" FontSize="16" FontWeight="Light"
+                                       Margin="0,-3,5,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="New Profile" FontSize="11.5" FontWeight="SemiBold"
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
                     <Button x:Name="LogsButton"
                             Visibility="Collapsed" Margin="8,0,0,0"
                             Style="{StaticResource ActionButton}"
@@ -622,23 +689,90 @@
              ══════════════════════════════════════════════════════════ -->
         <Border x:Name="FilterBarBorder" Grid.Row="2"
                 MaxHeight="0" ClipToBounds="True"
+                IsEnabled="False"
                 Background="{DynamicResource AppBg}"
-                BorderBrush="#181826" BorderThickness="0,0,0,1">
+                BorderBrush="{DynamicResource VSSurface}" BorderThickness="0,0,0,1">
             <StackPanel Margin="18,9,18,9">
                 <views:CenteredWrapPanel>
-                    <ToggleButton Content="Playback only"  IsChecked="{Binding ModePlayback}"  Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Recording only" IsChecked="{Binding ModeRecording}" Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Both devices"   IsChecked="{Binding ModeBoth}"      Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="★ Pinned"       IsChecked="{Binding PinnedFilter}"  Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="✓ Active"       IsChecked="{Binding ActiveFilter}"  Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Silent"          IsChecked="{Binding SilentFilter}"  Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Has hotkey"      IsChecked="{Binding HotkeyFilter}"  Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Has notes"       IsChecked="{Binding NotesFilter}"   Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Has icon"        IsChecked="{Binding IconFilter}"    Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Scheduled"       IsChecked="{Binding ScheduledFilter}" Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Has reminder"    IsChecked="{Binding ReminderFilter}" Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Has sound"       IsChecked="{Binding SoundFilter}"   Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
-                    <ToggleButton Content="Has warning"     IsChecked="{Binding WarningFilter}" Style="{StaticResource FilterChip}" Margin="0,0,6,0"/>
+                    <ToggleButton IsChecked="{Binding ModePlayback}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoPlayback}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Playback only" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ModeRecording}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoRecording}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Recording only" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ModeBoth}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoBoth}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Both devices" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding PinnedFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoPin}" Style="{StaticResource FilterChipIcon}"
+                                  Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Stroke="{x:Null}"/>
+                            <TextBlock Text="Pinned" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ActiveFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoActive}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Active" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding SilentFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoSilent}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Silent" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding HotkeyFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoHotkey}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Has hotkey" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding NotesFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoNotes}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Has notes" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding IconFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoImage}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Has icon" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ScheduledFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoSchedule}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Scheduled" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ReminderFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoReminder}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Has reminder" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding SoundFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoSound}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Has sound" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding WarningFilter}" Style="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Data="{StaticResource IcoWarning}" Style="{StaticResource FilterChipIcon}"/>
+                            <TextBlock Text="Has warning" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </ToggleButton>
                     <Button Content="✕ Clear"
                             Command="{Binding ClearFiltersCommand}"
                             Margin="4,0,0,0">
@@ -690,16 +824,17 @@
 
             <!-- ── PANEL A: Profiles ─────────────────────────────── -->
             <ScrollViewer x:Name="ProfilesPanel"
+                          Focusable="True"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="18,18,18,18">
 
                     <!-- Grid header -->
                     <Grid Margin="0,0,0,13">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="PROFILES" FontSize="11" FontWeight="SemiBold" Foreground="#38384E" VerticalAlignment="Center"/>
-                            <Border Background="#1C1C2A" CornerRadius="10" Margin="8,0,0,0"
+                            <TextBlock Text="PROFILES" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" VerticalAlignment="Center"/>
+                            <Border Background="{DynamicResource VSSurface}" CornerRadius="10" Margin="8,0,0,0"
                                     Padding="7,2" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Profiles.Count}" FontSize="11" Foreground="#7878A0"/>
+                                <TextBlock Text="{Binding Profiles.Count}" FontSize="11" Foreground="{DynamicResource SecondaryText}"/>
                             </Border>
                         </StackPanel>
                         <Button Content="Sound Settings"
@@ -720,7 +855,8 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:ProfileCardViewModel}">
 
-                                <Grid Width="275" Margin="0,0,14,14"
+                                <Grid Width="310" Margin="0,0,14,14"
+                                      VerticalAlignment="Top"
                                       Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}">
 
                                     <Border x:Name="CardBg"
@@ -733,23 +869,23 @@
                                             Drop="Card_Drop">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="Background"   Value="#16161E"/>
-                                                <Setter Property="BorderBrush"  Value="#222234"/>
+                                                <Setter Property="Background"   Value="{DynamicResource CardBg}"/>
+                                                <Setter Property="BorderBrush"  Value="{DynamicResource CardBorderBrush}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsActive}" Value="True">
                                                         <Setter Property="BorderBrush" Value="#4DF5820A"/>
                                                         <Setter Property="Background">
                                                             <Setter.Value>
                                                                 <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                                                    <GradientStop Color="#1C1610" Offset="0"/>
-                                                                    <GradientStop Color="#16161E" Offset="0.4"/>
+                                                                    <GradientStop Color="{DynamicResource VSActiveGradTop}" Offset="0"/>
+                                                                    <GradientStop Color="{DynamicResource VSActiveGradBot}" Offset="0.4"/>
                                                                 </LinearGradientBrush>
                                                             </Setter.Value>
                                                         </Setter>
                                                     </DataTrigger>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="BorderBrush" Value="#363650"/>
-                                                        <Setter Property="Background"  Value="#1E1E28"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource InnerCardBorderBrush}"/>
+                                                        <Setter Property="Background"  Value="{DynamicResource InnerCardBg}"/>
                                                     </Trigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -769,7 +905,7 @@
                                                 <Border.Background>
                                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                                         <GradientStop Color="Transparent" Offset="0"/>
-                                                        <GradientStop Color="#F5820A"     Offset="0.5"/>
+                                                        <GradientStop Color="{DynamicResource AccentColor}"     Offset="0.5"/>
                                                         <GradientStop Color="Transparent" Offset="1"/>
                                                     </LinearGradientBrush>
                                                 </Border.Background>
@@ -779,7 +915,9 @@
                                             <Button Grid.Row="0"
                                                     OverridesDefaultStyle="True"
                                                     Background="Transparent" BorderThickness="0"
-                                                    Focusable="False"
+                                                    Focusable="True"
+                                                    FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                                                    ToolTip="Open profile settings"
                                                     Tag="{Binding}"
                                                     Click="ProfileCard_Click">
                                                 <Button.Template>
@@ -796,15 +934,15 @@
                                                             HorizontalAlignment="Center">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
-                                                                <Setter Property="Background"   Value="#1C1C2A"/>
-                                                                <Setter Property="BorderBrush"  Value="#282838"/>
+                                                                <Setter Property="Background"   Value="{DynamicResource VSSurface}"/>
+                                                                <Setter Property="BorderBrush"  Value="{DynamicResource VSBorder}"/>
                                                                 <Setter Property="BorderThickness" Value="1"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsActive}" Value="True">
                                                                         <Setter Property="BorderBrush" Value="#47F5820A"/>
                                                                         <Setter Property="Effect">
                                                                             <Setter.Value>
-                                                                                <DropShadowEffect Color="#F5820A" Opacity="0.1" BlurRadius="18" ShadowDepth="0"/>
+                                                                                <DropShadowEffect Color="{DynamicResource AccentColor}" Opacity="0.1" BlurRadius="18" ShadowDepth="0"/>
                                                                             </Setter.Value>
                                                                         </Setter>
                                                                     </DataTrigger>
@@ -824,7 +962,7 @@
                                                                     </Style>
                                                                 </controls:AboutLogoIcon.Style>
                                                             </controls:AboutLogoIcon>
-                                                            <Image Source="{Binding IconPreview}" Width="46" Height="46" Stretch="Uniform"
+                                                            <Image Source="{Binding IconPreview}" Width="72" Height="72" Stretch="Uniform"
                                                                    HorizontalAlignment="Center" VerticalAlignment="Center">
                                                                 <Image.Style>
                                                                     <Style TargetType="Image">
@@ -843,14 +981,14 @@
                                                     <!-- Name -->
                                                     <TextBlock Text="{Binding Name}"
                                                                FontSize="13.5" FontWeight="SemiBold"
-                                                               Foreground="#E4E4EF"
+                                                               Foreground="{DynamicResource PrimaryText}"
                                                                HorizontalAlignment="Center"
                                                                MaxWidth="220"
                                                                TextTrimming="CharacterEllipsis"
-                                                               Margin="0,12,0,7"/>
+                                                               Margin="0,10,0,0"/>
 
                                                     <!-- Mode badge -->
-                                                    <Border Margin="0,8,0,0" CornerRadius="10" Padding="8,2.5"
+                                                    <Border Margin="0,6,0,0" CornerRadius="10" Padding="8,2.5"
                                                             HorizontalAlignment="Center">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
@@ -881,21 +1019,21 @@
                                                                    FontSize="9.5" FontWeight="SemiBold">
                                                             <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
-                                                                    <Setter Property="Foreground" Value="#F5820A"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
                                                                     <Style.Triggers>
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding PlaybackVisible}" Value="Visible"/>
                                                                                 <Condition Binding="{Binding RecordingVisible}" Value="Collapsed"/>
                                                                             </MultiDataTrigger.Conditions>
-                                                                            <Setter Property="Foreground" Value="#4AA8FF"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource VSBlue}"/>
                                                                         </MultiDataTrigger>
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding PlaybackVisible}" Value="Collapsed"/>
                                                                                 <Condition Binding="{Binding RecordingVisible}" Value="Visible"/>
                                                                             </MultiDataTrigger.Conditions>
-                                                                            <Setter Property="Foreground" Value="#30D278"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource VSMint}"/>
                                                                         </MultiDataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -904,50 +1042,148 @@
                                                     </Border>
 
                                                     <!-- Separator (badge → devices) -->
-                                                    <Border Height="1" Background="#0EFFFFFF" Margin="0,10,0,10" Width="220"/>
+                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
 
                                                     <!-- Device rows -->
-                                                    <StackPanel>
+                                                    <StackPanel Margin="0,10,0,0">
                                                         <TextBlock Text="{Binding SelectedPlaybackDevice.FriendlyName}"
-                                                                   FontSize="11" Foreground="#A0A0C0"
+                                                                   FontSize="11" Foreground="{DynamicResource VSLabel}"
                                                                    HorizontalAlignment="Center"
                                                                    MaxWidth="220" TextTrimming="CharacterEllipsis"
-                                                                   Margin="0,0,0,5"
+                                                                   Margin="0,0,0,4"
                                                                    Visibility="{Binding PlaybackVisible}"/>
                                                         <TextBlock Text="{Binding SelectedRecordingDevice.FriendlyName}"
-                                                                   FontSize="11" Foreground="#A0A0C0"
+                                                                   FontSize="11" Foreground="{DynamicResource VSLabel}"
                                                                    HorizontalAlignment="Center"
                                                                    MaxWidth="220" TextTrimming="CharacterEllipsis"
                                                                    Visibility="{Binding RecordingVisible}"/>
                                                     </StackPanel>
 
-                                                    <!-- Separator (devices → hotkey) -->
-                                                    <Border Height="1" Background="#0EFFFFFF" Margin="0,10,0,10" Width="220"/>
+                                                    <!-- Chips section: separator + chips, only shown when chips exist -->
+                                                    <StackPanel Visibility="{Binding HasVisibilityChips, Converter={StaticResource BoolToVis}}">
+                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
 
-                                                    <!-- Hotkey chip -->
-                                                    <Border CornerRadius="4" Background="#131320"
-                                                            BorderBrush="#222234" BorderThickness="1"
+                                                    <!-- Schedule chip — clickable, edits existing schedule -->
+                                                    <Button Command="{Binding EditFirstScheduleCommand}"
+                                                            Click="ChipButton_Click"
+                                                            Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                                                            HorizontalAlignment="Center" Margin="0,10,0,0"
+                                                            ToolTip="Click to edit schedule"
+                                                            Visibility="{Binding HasSchedules, Converter={StaticResource BoolToVis}}">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="Button">
+                                                                            <Border x:Name="bd"
+                                                                                    Background="{DynamicResource VSScheduleBg}"
+                                                                                    BorderBrush="{DynamicResource VSScheduleBorder}"
+                                                                                    BorderThickness="1"
+                                                                                    CornerRadius="4"
+                                                                                    Padding="8,3">
+                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            </Border>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource VSScheduleHoverBg}"/>
+                                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource VSScheduleHoverBorder}"/>
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </Button.Style>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7"
+                                                                          Fill="Transparent" Stroke="{DynamicResource VSBlue}"
+                                                                          StrokeThickness="1.4" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                            <TextBlock Text="{Binding ScheduleSummaryText}"
+                                                                       FontFamily="Consolas" FontSize="10"
+                                                                       Foreground="{DynamicResource VSBlue}" VerticalAlignment="Center"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </Button>
+
+                                                    <!-- Sound chip — clickable, opens sound configuration -->
+                                                    <Button Command="{Binding ConfigureSoundCommand}"
+                                                            Click="ChipButton_Click"
+                                                            Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                                                            HorizontalAlignment="Center" Margin="0,10,0,0"
+                                                            ToolTip="Click to configure switch sound"
+                                                            Visibility="{Binding SoundOverride, Converter={StaticResource BoolToVis}}">
+                                                        <Button.Style>
+                                                            <Style TargetType="Button">
+                                                                <Setter Property="Template">
+                                                                    <Setter.Value>
+                                                                        <ControlTemplate TargetType="Button">
+                                                                            <Border x:Name="bd"
+                                                                                    Background="{DynamicResource VSSoundBg}"
+                                                                                    BorderBrush="{DynamicResource VSSoundBorder}"
+                                                                                    BorderThickness="1"
+                                                                                    CornerRadius="4"
+                                                                                    Padding="8,3">
+                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                            </Border>
+                                                                            <ControlTemplate.Triggers>
+                                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource VSSoundHoverBg}"/>
+                                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource VSSoundHoverBorder}"/>
+                                                                                </Trigger>
+                                                                            </ControlTemplate.Triggers>
+                                                                        </ControlTemplate>
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </Style>
+                                                        </Button.Style>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7"
+                                                                          Fill="Transparent" Stroke="{DynamicResource VSGreen}"
+                                                                          StrokeThickness="1.7" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                            <TextBlock Text="{Binding SoundSummary}"
+                                                                       FontFamily="Consolas" FontSize="10"
+                                                                       Foreground="{DynamicResource VSGreen}" VerticalAlignment="Center"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </Button>
+                                                    </StackPanel>
+
+                                                    <!-- Hotkey section: separator + chip, only shown when a hotkey is set -->
+                                                    <StackPanel Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
+                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
+                                                    <Border CornerRadius="4" Background="{DynamicResource HotkeyBg}"
+                                                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                             Padding="8,3"
                                                             HorizontalAlignment="Center"
-                                                            Margin="0,6,0,0"
-                                                            Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
+                                                            Margin="0,10,0,0">
                                                         <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="&#x2328;" FontSize="9" Foreground="#484868"
-                                                                       VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                            <TextBlock Text="&#x2328;" FontSize="9" Foreground="{DynamicResource VSLabel}"
+                                                                       VerticalAlignment="Center" Margin="0,-4,5,0"/>
                                                             <TextBlock Text="{Binding HotkeyDisplay}"
                                                                        FontFamily="Consolas" FontSize="11"
-                                                                       Foreground="#6060A0" VerticalAlignment="Center"/>
+                                                                       Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Border>
+                                                    </StackPanel>
                                                 </StackPanel>
                                             </Button>
 
                                             <!-- Always-visible action strip -->
-                                            <Border Grid.Row="1" BorderBrush="#0BFFFFFF" BorderThickness="0,1,0,0"
-                                                    Padding="10,7,10,9" Background="#47000000">
+                                            <Border Grid.Row="1" BorderBrush="{DynamicResource VSHairline}" BorderThickness="0,1,0,0"
+                                                    Padding="10,7,10,9" Background="{DynamicResource VSStripOverlay}">
                                                 <StackPanel>
                                                     <!-- Row 1: 5 buttons, space-between -->
-                                                    <Grid Margin="0,0,0,6">
+                                                    <Grid Margin="0,0,0,14">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
@@ -969,7 +1205,7 @@
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </ToggleButton.Style>
-                                                            <Viewbox Width="14" Height="14">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
                                                                     <Path Data="M8,2 A5,5 0 0 0 3,7 V10 L2,12 H14 L13,10 V7 A5,5 0 0 0 8,2 Z"
                                                                           Fill="Transparent"
@@ -993,14 +1229,14 @@
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding HasAppTriggers}" Value="True">
-                                                                            <Setter Property="Foreground" Value="#F5820A"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </Button.Style>
-                                                            <Viewbox Width="15" Height="15">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Path Data="M9.2,1.5 L3.5,9 H8.7 L6.8,14.5 L13.5,7 H8.3 Z"
+                                                                    <Path Data="M10,1.5 L3.5,9.5 H7.5 L6,14.5 L13.5,6.5 H9.5 Z"
                                                                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
                                                                 </Canvas>
                                                             </Viewbox>
@@ -1019,7 +1255,7 @@
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </ToggleButton.Style>
-                                                            <Viewbox Width="14" Height="14">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
                                                                     <Path Data="M6,1.5 L6,5 M10,1.5 L10,5 M3.5,5 H12.5 V7.5 A4.5,4.5 0 0 1 8,12 A4.5,4.5 0 0 1 3.5,7.5 Z M8,12 L8,14.5 M6,14.5 L10,14.5"
                                                                           Fill="Transparent"
@@ -1033,7 +1269,7 @@
                                                                       IsChecked="{Binding IsPinned}"
                                                                       Style="{StaticResource CardActionToggle}"
                                                                       ToolTip="Pin to top of list">
-                                                            <Viewbox Width="14" Height="14">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
                                                                     <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
                                                                           Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
@@ -1048,18 +1284,18 @@
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                            <Setter Property="Foreground" Value="#2DCA72"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource VSGreen}"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </Button.Style>
-                                                            <Viewbox Width="14" Height="14">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Ellipse Canvas.Left="2.5" Canvas.Top="2.5" Width="11" Height="11"
+                                                                    <Ellipse Canvas.Left="1" Canvas.Top="1" Width="14" Height="14"
                                                                              Fill="Transparent"
                                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
                                                                              StrokeThickness="1.7"/>
-                                                                    <Path Data="M5.5,8 L7.5,10.2 L11,6"
+                                                                    <Path Data="M4.5,8 L7,10.5 L11.5,5.5"
                                                                           Fill="Transparent"
                                                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
                                                                           StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
@@ -1070,117 +1306,76 @@
                                                     <!-- Row 2: 4 buttons, centered with 10px gap -->
                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                         <!-- 6. Clone — two overlapping rectangles -->
-                                                        <Button Style="{StaticResource CardActionBtn}" Margin="5,0"
+                                                        <Button Style="{StaticResource CardActionBtn}" Margin="10,0"
                                                                 Command="{Binding CloneCommand}" ToolTip="Clone this profile">
-                                                            <Viewbox Width="14" Height="14">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Rectangle Canvas.Left="5.5" Canvas.Top="5.5" Width="8" Height="8" RadiusX="1.5" RadiusY="1.5"
+                                                                    <Rectangle Canvas.Left="2" Canvas.Top="5.5" Width="8.5" Height="8.5" RadiusX="2" RadiusY="2"
                                                                                Fill="Transparent"
                                                                                Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                               StrokeThickness="1.7"/>
-                                                                    <Path Data="M3.5,10.5 V3.5 A1,1 0 0 1 4.5,2.5 H11.5"
-                                                                          Fill="Transparent"
-                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                          StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                                               StrokeThickness="1.6"/>
+                                                                    <Rectangle Canvas.Left="5.5" Canvas.Top="2" Width="8.5" Height="8.5" RadiusX="2" RadiusY="2"
+                                                                               Fill="Transparent"
+                                                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                               StrokeThickness="1.6"/>
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
                                                         <!-- 7. Schedule — clock with hands -->
-                                                        <Button Margin="5,0"
+                                                        <Button Margin="10,0"
                                                                 Command="{Binding AddScheduleCommand}" ToolTip="Schedule this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding HasSchedules}" Value="True">
-                                                                            <Setter Property="Foreground" Value="#4AA8FF"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource VSBlue}"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </Button.Style>
-                                                            <Viewbox Width="14" Height="14">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Ellipse Canvas.Left="2.5" Canvas.Top="2.5" Width="11" Height="11"
-                                                                             Fill="Transparent"
-                                                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                             StrokeThickness="1.7"/>
-                                                                    <Path Data="M8,5 L8,8.5 L10.5,10.2"
+                                                                    <Path Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7"
+                                                                          Fill="Transparent"
+                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                          StrokeThickness="1.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                        <!-- 8. Sound — sine wave -->
+                                                        <Button Margin="10,0"
+                                                                Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                            <Setter Property="Foreground" Value="{DynamicResource VSGreen}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7"
                                                                           Fill="Transparent"
                                                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
                                                                           StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 8. Sound — sine wave + remove badge when active -->
-                                                        <Grid Margin="5,0">
-                                                            <Button Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound">
-                                                                <Button.Style>
-                                                                    <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                                <Setter Property="Foreground" Value="#2DCA72"/>
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </Button.Style>
-                                                                <Viewbox Width="14" Height="14">
-                                                                    <Canvas Width="16" Height="16">
-                                                                        <Path Data="M1,8 Q2.5,3.5 4,8 Q5.5,12.5 7,8 Q8.5,3.5 10,8 Q11.5,12.5 13,8 Q14,5.5 15,8"
-                                                                              Fill="Transparent"
-                                                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                              StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                                                    </Canvas>
-                                                                </Viewbox>
-                                                            </Button>
-                                                            <!-- × remove badge: only visible when a sound is configured -->
-                                                            <Button Command="{Binding RemoveSwitchSoundCommand}"
-                                                                    Width="14" Height="14"
-                                                                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                                                                    Margin="0,-5,-5,0"
-                                                                    Padding="0"
-                                                                    ToolTip="Remove switch sound"
-                                                                    Background="#CC2B2B" Foreground="White"
-                                                                    BorderThickness="0">
-                                                                <Button.Style>
-                                                                    <Style TargetType="Button">
-                                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                                        <Setter Property="Template">
-                                                                            <Setter.Value>
-                                                                                <ControlTemplate TargetType="Button">
-                                                                                    <Border x:Name="bg" Background="#CC2B2B" CornerRadius="7">
-                                                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                                    </Border>
-                                                                                    <ControlTemplate.Triggers>
-                                                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                                                            <Setter TargetName="bg" Property="Background" Value="#E06060"/>
-                                                                                        </Trigger>
-                                                                                    </ControlTemplate.Triggers>
-                                                                                </ControlTemplate>
-                                                                            </Setter.Value>
-                                                                        </Setter>
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </Button.Style>
-                                                                <TextBlock Text="×" FontSize="10" FontWeight="Bold" Foreground="White"
-                                                                           Margin="0,-1,0,0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                            </Button>
-                                                        </Grid>
                                                         <!-- 9. Delete — trash can -->
-                                                        <Button Margin="5,0"
+                                                        <Button Margin="10,0"
                                                                 Command="{Binding DeleteCommand}" ToolTip="Delete this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <Trigger Property="IsMouseOver" Value="True">
-                                                                            <Setter Property="Foreground" Value="#E06060"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource ErrorText}"/>
                                                                         </Trigger>
                                                                     </Style.Triggers>
                                                                 </Style>
                                                             </Button.Style>
-                                                            <Viewbox Width="14" Height="14">
+                                                            <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
                                                                     <Path Data="M2,4 H14 M5.5,4 V2.5 H10.5 V4 M3.5,4 L4.3,13.5 H11.7 L12.5,4"
                                                                           Fill="Transparent"
@@ -1268,381 +1463,686 @@
             </ScrollViewer>
 
             <!-- ── PANEL B: Settings ──────────────────────────────── -->
-            <ScrollViewer x:Name="SettingsBodyScrollViewer"
-                          Visibility="Collapsed"
-                          VerticalAlignment="Stretch"
-                          HorizontalScrollBarVisibility="Disabled"
-                          VerticalScrollBarVisibility="Auto">
-                <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
+            <Grid x:Name="SettingsBodyScrollViewer" Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="168"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                    <!-- Panel header -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-                        <Button Style="{StaticResource BackButton}"
-                                Content="←" FontSize="14"
-                                Click="NavProfiles_Click"/>
-                        <TextBlock Text="Settings" Style="{StaticResource PanelTitle}"/>
+                <!-- LEFT SIDEBAR -->
+                <Border Grid.Column="0" Background="{DynamicResource AppBg}" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,1,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Margin="8,12,8,0">
+                            <TextBlock Text="GENERAL" Style="{StaticResource SettingsNavLabelStyle}"/>
+
+                            <!-- Startup -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="startup">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsStartupSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M 8,1.5 c 0,0 4,2.5 4,7.5 a 4,4 0 0 1 -8,0 c 0,-5 4,-7.5 4,-7.5 Z M 8,14 L 8,12 M 5.5,13 L 5.5,11.2 M 10.5,13 L 10.5,11.2"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Startup" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Appearance -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="appear">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsAppearSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Ellipse Canvas.Left="5" Canvas.Top="5" Width="6" Height="6"
+                                                     Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                     StrokeThickness="1.6" Fill="Transparent"/>
+                                            <Path Data="M 8,1.5 L 8,2.5 M 8,13.5 L 8,14.5 M 1.5,8 L 2.5,8 M 13.5,8 L 14.5,8 M 3.3,3.3 L 4,4 M 12,12 L 12.7,12.7 M 12,3.3 L 11.3,4 M 4,12 L 3.3,12.7"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Appearance" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Notifications -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="notif">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsNotifSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M 8,2 a 5,5 0 0 0 -5,5 v 3 l -1,2 h 12 l -1,-2 V 7 a 5,5 0 0 0 -5,-5 Z M 6.5,13.5 a 1.5,1.5 0 0 0 3,0"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Notifications" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Devices -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="devices">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsDevicesSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M 5,6 H 3 a 1,1 0 0 0 -1,1 v 2 a 1,1 0 0 0 1,1 h 2 l 3.5,2.5 V 3.5 Z M 10.5,6 a 2.5,2.5 0 0 1 0,4"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Devices" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Tray -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="tray">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsTraySelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M 4.5,1.5 H 11.5 A 3,3 0 0 1 14.5,4.5 V 11.5 A 3,3 0 0 1 11.5,14.5 H 4.5 A 3,3 0 0 1 1.5,11.5 V 4.5 A 3,3 0 0 1 4.5,1.5 Z M 1.5,10.5 H 14.5"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Fill="Transparent"/>
+                                            <Ellipse Canvas.Left="4.2" Canvas.Top="11.7" Width="1.6" Height="1.6"
+                                                     Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Tray" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Shortcuts -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="shortcuts">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsShortcutsSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M 3,3.5 H 13 A 2,2 0 0 1 15,5.5 V 11.5 A 2,2 0 0 1 13,13.5 H 3 A 2,2 0 0 1 1,11.5 V 5.5 A 2,2 0 0 1 3,3.5 Z M 4,11 L 12,11"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Fill="Transparent"/>
+                                            <Path Data="M 4,8 L 4.01,8 M 7.5,8 L 7.51,8 M 11,8 L 11.01,8"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Shortcuts" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <!-- Logs -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="logs">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsLogsSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="M 2,3 H 14 M 2,7 H 10 M 2,11 H 12"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Logs" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Back button at bottom of sidebar -->
+                        <Button Grid.Row="1" Style="{StaticResource SettingsNavItemStyle}"
+                                Margin="8,4,8,14" Click="NavProfiles_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="13" Height="13">
+                                    <Canvas Width="14" Height="14">
+                                        <Path Data="M 9,2 L 4,7 L 9,12"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                              StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                              StrokeLineJoin="Round" Fill="Transparent"/>
+                                    </Canvas>
+                                </Viewbox>
+                                <TextBlock Text="Back" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- RIGHT CONTENT -->
+                <ScrollViewer Grid.Column="1" Focusable="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="22,20,22,20">
+
+                        <!-- ── Startup ──────────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsStartupSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Startup" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Text="Start with Windows" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding StartWithWindows}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Text="Start minimized to tray" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding StartMinimized}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Text="Close to tray" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CloseToTray}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Appearance ───────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsAppearSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Appearance" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel>
+                                    <!-- Theme picker row -->
+                                    <Grid Margin="14,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Theme" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <StackPanel.Resources>
+                                                <Style TargetType="RadioButton">
+                                                    <Setter Property="GroupName" Value="ThemeGroup2"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                    <Setter Property="FontSize" Value="11.5"/>
+                                                    <Setter Property="Padding" Value="10,4"/>
+                                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                                    <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}"/>
+                                                    <Setter Property="BorderThickness" Value="1"/>
+                                                    <Setter Property="Margin" Value="0,0,4,0"/>
+                                                    <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="RadioButton">
+                                                                <Border x:Name="Bg"
+                                                                        Background="{TemplateBinding Background}"
+                                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        CornerRadius="6">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                                      Margin="{TemplateBinding Padding}"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                                                        <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsChecked" Value="True">
+                                                            <Setter Property="Background"  Value="#1DF5820A"/>
+                                                            <Setter Property="BorderBrush" Value="#38F5820A"/>
+                                                            <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </StackPanel.Resources>
+                                            <RadioButton Content="Follow Windows" Tag="Auto" Checked="ThemeRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Theme}" Value="Follow Windows">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                            <RadioButton Content="Light" Tag="Light" Checked="ThemeRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Theme}" Value="Light">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                            <RadioButton Content="Dark" Tag="Dark" Margin="0" Checked="ThemeRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Theme}" Value="Dark">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Text="Use 24-hour clock" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding Use24HourClock}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Notifications ────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsNotifSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Notifications" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <Grid Margin="14,10">
+                                    <TextBlock Text="Show device switch alerts" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                    <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowNotifications}"
+                                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Devices ───────────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDevicesSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Devices" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Text="Use legacy sound panel" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding UseLegacySoundPanel}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Text="Show disabled devices in dropdowns" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowDisabledDevices}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Text="Show disconnected devices in dropdowns" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowDisconnectedDevices}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <StackPanel Margin="14,10">
+                                        <Button Content="Open Sound Settings" Style="{StaticResource ActionButton}"
+                                                HorizontalAlignment="Left" Click="OpenSoundSettings_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Device Aliases -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="DEVICE ALIASES" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="Give your audio devices custom display names to make profiles easier to read."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <Button Content="Manage Aliases…" Style="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="ManageAliasesButton_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Backup & Restore -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="BACKUP &amp; RESTORE" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="Save your profiles to a file, or restore from a previous backup."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="Export Config" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Click="ExportButton_Click"/>
+                                        <Button Content="Import Config" Style="{StaticResource ActionButton}" Click="ImportButton_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Tray ──────────────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTraySelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Tray" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <Grid Margin="14,10">
+                                    <TextBlock Text="Left-click tray icon cycles profiles" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                    <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding LeftClickCyclesProfiles}"
+                                              HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Shortcuts ─────────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsShortcutsSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Shortcuts" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel>
+                                    <!-- Open / Close VibeSwitcher -->
+                                    <Grid Margin="14,9">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Open / Close VibeSwitcher" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding SettingsHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
+                                                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Margin="6,0,0,0" Click="SettingsHotkeyButton_Click"/>
+                                        <Button Grid.Column="3" Content="✕" Margin="4,0,0,0" Click="SettingsHotkeyClear_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SettingsHotkeyIsSet}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Mute Microphone -->
+                                    <Grid Margin="14,9">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Mute Microphone" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding MuteMicHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding MuteMicHotkeyDisplay}" Value="None">
+                                                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Mic" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="3" Content="✕" Tag="Mic" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding MuteMicHotkeyIsSet}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Mute Speakers -->
+                                    <Grid Margin="14,9">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Mute Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding MuteSpeakersHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding MuteSpeakersHotkeyDisplay}" Value="None">
+                                                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Speakers" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="3" Content="✕" Tag="Speakers" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding MuteSpeakersHotkeyIsSet}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Mute All -->
+                                    <Grid Margin="14,9">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Mute Mic + Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding MuteBothHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding MuteBothHotkeyDisplay}" Value="None">
+                                                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Both" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="3" Content="✕" Tag="Both" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding MuteBothHotkeyIsSet}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Logs ─────────────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLogsSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Logs" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="SESSION LOG" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="View a log of audio device switches and events from this session."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <Button Content="View session log" Style="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="LogsButton_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
                     </StackPanel>
+                </ScrollViewer>
 
-                    <!-- Appearance -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="APPEARANCE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,10"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="90"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="Theme" Style="{StaticResource LabelText}"/>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Height="30">
-                                    <StackPanel.Resources>
-                                        <Style TargetType="RadioButton">
-                                            <Setter Property="GroupName" Value="ThemeGroup"/>
-                                            <Setter Property="Cursor" Value="Hand"/>
-                                            <Setter Property="FontSize" Value="12"/>
-                                            <Setter Property="Padding" Value="14,0"/>
-                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}"/>
-                                            <Setter Property="Background" Value="Transparent"/>
-                                            <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}"/>
-                                            <Setter Property="BorderThickness" Value="1"/>
-                                            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="RadioButton">
-                                                        <Border x:Name="Bg"
-                                                                Background="{TemplateBinding Background}"
-                                                                BorderBrush="{TemplateBinding BorderBrush}"
-                                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                                CornerRadius="6">
-                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                              Margin="{TemplateBinding Padding}"/>
-                                                        </Border>
-                                                        <ControlTemplate.Triggers>
-                                                            <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                                            </Trigger>
-                                                        </ControlTemplate.Triggers>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                            <Style.Triggers>
-                                                <Trigger Property="IsChecked" Value="True">
-                                                    <Setter Property="Background"  Value="{DynamicResource Accent}"/>
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                                    <Setter Property="Foreground"  Value="White"/>
-                                                    <Setter Property="FontWeight"  Value="SemiBold"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Resources>
-                                    <RadioButton Content="Follow Windows" Tag="Auto" Margin="0,0,8,0" Checked="ThemeRadio_Checked">
-                                        <RadioButton.Style>
-                                            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Theme}" Value="Auto">
-                                                        <Setter Property="IsChecked" Value="True"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </RadioButton.Style>
-                                    </RadioButton>
-                                    <RadioButton Content="Light" Tag="Light" Margin="0,0,8,0" Checked="ThemeRadio_Checked">
-                                        <RadioButton.Style>
-                                            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Theme}" Value="Light">
-                                                        <Setter Property="IsChecked" Value="True"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </RadioButton.Style>
-                                    </RadioButton>
-                                    <RadioButton Content="Dark" Tag="Dark" Checked="ThemeRadio_Checked">
-                                        <RadioButton.Style>
-                                            <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Theme}" Value="Dark">
-                                                        <Setter Property="IsChecked" Value="True"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </RadioButton.Style>
-                                    </RadioButton>
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
+            </Grid><!--end settings panel-->
 
-                    <!-- Startup -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="STARTUP" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,10"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding StartWithWindows}" Margin="0,3">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Start with Windows" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8" Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic" Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip><ToolTip><TextBlock Text="When your PC boots up, VibeSwitcher will start automatically." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip></Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding StartMinimized}" Margin="0,3">
-                                <TextBlock Text="Start minimized to tray" VerticalAlignment="Center"/>
-                            </CheckBox>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CloseToTray}" Margin="0,3">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Close to tray" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8" Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic" Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip><ToolTip><TextBlock Text="Clicking Close hides this window instead of exiting. Right-click the tray icon to reopen." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip></Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
-                        </StackPanel>
-                    </Border>
 
-                    <!-- Notifications -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="NOTIFICATIONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,10"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowNotifications}" Margin="0,3">
-                                <TextBlock Text="Show device switch alerts" VerticalAlignment="Center"/>
-                            </CheckBox>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Schedules -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="SCHEDULES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,10"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding Use24HourClock}" Margin="0,3">
-                                <TextBlock Text="Use 24-hour clock" VerticalAlignment="Center"/>
-                            </CheckBox>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Tray -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="TRAY" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,10"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding LeftClickCyclesProfiles}" Margin="0,3">
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="Left-click tray icon to cycle profiles" VerticalAlignment="Center"/>
-                                    <Border Width="16" Height="16" Background="{DynamicResource InfoBadgeBg}" CornerRadius="8" Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Help">
-                                        <TextBlock Text="i" FontSize="9" FontWeight="Bold" FontStyle="Italic" Foreground="{DynamicResource InfoBadgeText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Border.ToolTip><ToolTip><TextBlock Text="Left-clicking the tray icon cycles profiles. When disabled, left-click opens VibeSwitcher instead." TextWrapping="Wrap" MaxWidth="220" Foreground="{DynamicResource PrimaryText}"/></ToolTip></Border.ToolTip>
-                                    </Border>
-                                </StackPanel>
-                            </CheckBox>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Devices -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="DEVICES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,10"/>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding UseLegacySoundPanel}" Margin="0,3">
-                                <TextBlock Text="Use legacy sound panel" VerticalAlignment="Center"/>
-                            </CheckBox>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowDisabledDevices}" Margin="0,3">
-                                <TextBlock Text="Show disabled devices in dropdowns" VerticalAlignment="Center"/>
-                            </CheckBox>
-                            <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowDisconnectedDevices}" Margin="0,3">
-                                <TextBlock Text="Show disconnected devices in dropdowns" VerticalAlignment="Center"/>
-                            </CheckBox>
-                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                <Button Content="Open Sound Settings"
-                                        Style="{StaticResource ActionButton}"
-                                        Click="OpenSoundSettings_Click"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Shortcuts -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="SHORTCUTS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,12"/>
-                            <TextBlock Text="Open / Close VibeSwitcher" FontSize="12" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,6"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,0" MinWidth="74" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding SettingsHotkeyDisplay}" FontFamily="Consolas" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
-                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Border>
-                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Margin="0,0,6,0" Click="SettingsHotkeyButton_Click"/>
-                                <Button Content="✕" Click="SettingsHotkeyClear_Click">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SettingsHotkeyIsSet}" Value="False">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </StackPanel>
-                            <Separator Margin="0,0,0,12" Background="{DynamicResource SeparatorBrush}" Height="1" BorderThickness="0"/>
-                            <TextBlock Text="Mute Microphone" FontSize="12" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,6"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,0" MinWidth="74" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding MuteMicHotkeyDisplay}" FontFamily="Consolas" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding MuteMicHotkeyDisplay}" Value="None">
-                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Border>
-                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Mic" Margin="0,0,6,0" Click="MuteHotkeyButton_Click"/>
-                                <Button Tag="Mic" Content="✕" Click="MuteHotkeyClear_Click">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MuteMicHotkeyIsSet}" Value="False">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </StackPanel>
-                            <TextBlock Text="Mute Speakers" FontSize="12" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,6"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
-                                <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,0" MinWidth="74" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding MuteSpeakersHotkeyDisplay}" FontFamily="Consolas" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding MuteSpeakersHotkeyDisplay}" Value="None">
-                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Border>
-                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Speakers" Margin="0,0,6,0" Click="MuteHotkeyButton_Click"/>
-                                <Button Tag="Speakers" Content="✕" Click="MuteHotkeyClear_Click">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MuteSpeakersHotkeyIsSet}" Value="False">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </StackPanel>
-                            <TextBlock Text="Mute Mic + Speakers" FontSize="12" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,6"/>
-                            <StackPanel Orientation="Horizontal">
-                                <Border Background="{DynamicResource HotkeyBg}" BorderBrush="{DynamicResource HotkeyBorder}" BorderThickness="1" CornerRadius="5" Padding="10,5" Margin="0,0,8,0" MinWidth="74" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding MuteBothHotkeyDisplay}" FontFamily="Consolas" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding MuteBothHotkeyDisplay}" Value="None">
-                                                        <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Border>
-                                <Button Style="{StaticResource ActionButton}" Content="Set hotkey" Tag="Both" Margin="0,0,6,0" Click="MuteHotkeyButton_Click"/>
-                                <Button Tag="Both" Content="✕" Click="MuteHotkeyClear_Click">
-                                    <Button.Style>
-                                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding MuteBothHotkeyIsSet}" Value="False">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Device Aliases -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock Text="DEVICE ALIASES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"/>
-                                <TextBlock Text="Give your audio devices custom friendly names."
-                                           FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            <Button Grid.Column="1" Content="Manage…"
-                                    Style="{StaticResource ActionButton}"
-                                    VerticalAlignment="Center"
-                                    Click="ManageAliasesButton_Click"/>
-                        </Grid>
-                    </Border>
-
-                    <!-- Backup & Restore -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="BACKUP &amp; RESTORE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}"
-                                       Margin="0,0,0,6"/>
-                            <TextBlock Text="Save your profiles to a file, or restore from a previous backup."
-                                       FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                       TextWrapping="Wrap" Margin="0,0,0,10"/>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Content="Export Config" Style="{StaticResource ActionButton}" Margin="0,0,8,0" Click="ExportButton_Click"/>
-                                <Button Content="Import Config" Style="{StaticResource ActionButton}" Click="ImportButton_Click"/>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Session Log -->
-                    <Border Style="{StaticResource CardBorder}">
-                        <StackPanel>
-                            <TextBlock Text="DIAGNOSTICS" FontSize="10" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,6"/>
-                            <TextBlock Text="View errors and warnings logged during this session."
-                                       FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                       TextWrapping="Wrap" Margin="0,0,0,10"/>
-                            <Button Content="View session log" Style="{StaticResource ActionButton}"
-                                    HorizontalAlignment="Left" Click="LogsButton_Click"/>
-                        </StackPanel>
-                    </Border>
-
-                </StackPanel>
-            </ScrollViewer>
 
             <!-- ── PANEL C: About ─────────────────────────────────── -->
             <ScrollViewer x:Name="AboutPanel"
                           Visibility="Collapsed"
+                          Focusable="True"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
@@ -1782,6 +2282,7 @@
             <!-- ── PANEL D: FAQ ───────────────────────────────────── -->
             <ScrollViewer x:Name="FaqPanel"
                           Visibility="Collapsed"
+                          Focusable="True"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
@@ -1804,6 +2305,20 @@
                             <TextBlock Text="SETTING UP PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Click "+ New Profile" to create a profile. Choose a mode (Playback, Recording, or Both), pick your devices, then give it a name. You can assign a global hotkey to activate it from anywhere.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="CUSTOM PROFILE ICONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,6">
+                                Open a profile, click its icon, and choose "Browse from disk" to use your own <Run FontFamily="Consolas">.ico</Run> file. To make one from any picture:
+                            </TextBlock>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" LineHeight="21">
+                                1.&#160; Save the picture you want to use.<LineBreak/>
+                                2.&#160; (Optional) Remove its background with <Hyperlink NavigateUri="https://www.pixelcut.ai/background-remover/png" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{DynamicResource Accent}">Pixelcut Background Remover</Hyperlink>.<LineBreak/>
+                                3.&#160; Convert the image to <Run FontFamily="Consolas">.ico</Run> with <Hyperlink NavigateUri="https://image.online-convert.com/convert-to-ico" RequestNavigate="Hyperlink_RequestNavigate" Foreground="{DynamicResource Accent}">Online&#8209;Convert</Hyperlink>. If your file is a PNG, JPEG, or other format, just pick the matching conversion (e.g. PNG&#160;&#8594;&#160;ICO).
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -1864,7 +2379,7 @@
                   Panel.ZIndex="10">
 
                 <!-- Backdrop -->
-                <Border Background="#D405050A"
+                <Border Background="{DynamicResource VSScrim}"
                         MouseLeftButtonDown="OverlayBackdrop_MouseDown"/>
 
                 <!-- Modal card -->
@@ -1884,7 +2399,7 @@
 
                         <!-- ── Modal Header ── -->
                         <Border Grid.Row="0"
-                                BorderBrush="#1E1E2C" BorderThickness="0,0,0,1"
+                                BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1"
                                 Padding="22,18,22,14">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -1895,12 +2410,12 @@
 
                                 <!-- Icon preview -->
                                 <Border Grid.Column="0" Width="54" Height="54" CornerRadius="13"
-                                        Background="#1C1C2A" BorderBrush="#282838" BorderThickness="1"
+                                        Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1"
                                         Margin="0,0,14,0">
                                     <Grid>
-                                        <controls:AboutLogoIcon Width="46" Height="46" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <controls:AboutLogoIcon.Style>
-                                                <Style TargetType="controls:AboutLogoIcon">
+                                        <controls:NavLogoIcon Width="46" Height="46" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <controls:NavLogoIcon.Style>
+                                                <Style TargetType="controls:NavLogoIcon">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
@@ -1908,9 +2423,9 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </controls:AboutLogoIcon.Style>
-                                        </controls:AboutLogoIcon>
-                                        <Image Source="{Binding IconPreview}" Width="36" Height="36" Stretch="Uniform"
+                                            </controls:NavLogoIcon.Style>
+                                        </controls:NavLogoIcon>
+                                        <Image Source="{Binding IconPreview}" Width="52" Height="52" Stretch="Uniform"
                                                HorizontalAlignment="Center" VerticalAlignment="Center">
                                             <Image.Style>
                                                 <Style TargetType="Image">
@@ -1934,6 +2449,7 @@
                                              Foreground="{DynamicResource PrimaryText}"
                                              Background="Transparent"
                                              BorderThickness="0"
+                                             Padding="0"
                                              Margin="0,0,0,6"/>
                                     <Border CornerRadius="10" Padding="8,2.5"
                                             HorizontalAlignment="Left">
@@ -2116,21 +2632,7 @@
                                     <TextBox Text="{Binding IconPath, Mode=OneWay, FallbackValue='(default)'}"
                                              IsReadOnly="True" IsTabStop="False" Width="160" Margin="0,0,8,0"/>
                                     <Button Content="Pick Icon" Style="{StaticResource ActionButton}"
-                                            Command="{Binding PickIconCommand}" Margin="0,0,6,0"/>
-                                    <Border Background="Transparent"
-                                            BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
-                                            CornerRadius="4" Padding="3" VerticalAlignment="Center">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IconPreview}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
-                                        <Image Source="{Binding IconPreview}" Width="18" Height="18"/>
-                                    </Border>
+                                            Command="{Binding PickIconCommand}"/>
                                 </StackPanel>
 
                                 <!-- Validation warning -->
@@ -2156,98 +2658,12 @@
                                     </StackPanel>
                                 </Border>
 
-                                <!-- Schedules section -->
-                                <Border Margin="0,4,0,0">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding HasSchedules}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <StackPanel>
-                                        <TextBlock Text="SCHEDULES" FontSize="10" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                                        <ItemsControl ItemsSource="{Binding Schedules}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="{x:Type vm:ScheduleEntryViewModel}">
-                                                    <Border Background="{DynamicResource InnerCardBg}"
-                                                            BorderBrush="{DynamicResource InnerCardBorderBrush}"
-                                                            BorderThickness="1" CornerRadius="6"
-                                                            Padding="10,8" Margin="0,0,0,6">
-                                                        <StackPanel>
-                                                            <DockPanel>
-                                                                <CheckBox IsChecked="{Binding Enabled}" Style="{StaticResource ToggleSwitchStyle}"
-                                                                          DockPanel.Dock="Left" VerticalAlignment="Center"/>
-                                                                <Button DockPanel.Dock="Right" Content="Remove" Style="{StaticResource DangerButton}"
-                                                                        Command="{Binding DeleteCommand}" FontSize="10" Padding="10,2" Height="26" VerticalAlignment="Center"/>
-                                                                <Button DockPanel.Dock="Right" Content="Edit" Style="{StaticResource ActionButton}"
-                                                                        Command="{Binding EditCommand}" FontSize="10" Padding="12,2" Height="26"
-                                                                        Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                                <TextBlock Text="{Binding Summary}" FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="8,0,0,0"/>
-                                                            </DockPanel>
-                                                            <TextBlock Text="{Binding ConflictMessage}" FontSize="11" Foreground="#CC6600"
-                                                                       TextWrapping="Wrap" Margin="42,4,0,0">
-                                                                <TextBlock.Style>
-                                                                    <Style TargetType="TextBlock">
-                                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding HasConflict}" Value="True">
-                                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </TextBlock.Style>
-                                                            </TextBlock>
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Switch sound section -->
-                                <Border Margin="0,8,0,0">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <StackPanel>
-                                        <TextBlock Text="SWITCH SOUND" FontSize="10" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
-                                        <Border Background="{DynamicResource InnerCardBg}"
-                                                BorderBrush="{DynamicResource InnerCardBorderBrush}"
-                                                BorderThickness="1" CornerRadius="6" Padding="10,8">
-                                            <DockPanel>
-                                                <Button DockPanel.Dock="Right" Content="Remove" Style="{StaticResource DangerButton}"
-                                                        Command="{Binding RemoveSwitchSoundCommand}" FontSize="10" Padding="10,2" Height="26" VerticalAlignment="Center"/>
-                                                <Button DockPanel.Dock="Right" Content="Edit" Style="{StaticResource ActionButton}"
-                                                        Command="{Binding ConfigureSoundCommand}" FontSize="10" Padding="12,2" Height="26"
-                                                        Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="{Binding SoundSummary}" FontSize="11" Foreground="{DynamicResource SecondaryText}"
-                                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                            </DockPanel>
-                                        </Border>
-                                    </StackPanel>
-                                </Border>
-
                             </StackPanel>
                         </ScrollViewer>
 
                         <!-- ── Modal Footer ── -->
                         <Border Grid.Row="2"
-                                BorderBrush="#1E1E2C" BorderThickness="0,1,0,0"
+                                BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,1,0,0"
                                 Padding="22,14,22,18">
                             <Grid>
                                 <!-- Quick action buttons (left) -->

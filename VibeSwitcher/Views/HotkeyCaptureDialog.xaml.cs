@@ -23,7 +23,6 @@ public partial class HotkeyCaptureDialog : Window
     {
         Focusable = true;
         Focus();
-        try { HotkeyAppIcon.Source = IconHelper.GetAppIconImageSource(); } catch { }
     }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)

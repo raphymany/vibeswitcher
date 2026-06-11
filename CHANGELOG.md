@@ -7,6 +7,26 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **App-wide light mode for the redesigned UI** — every hardcoded color in `SettingsWindow` and all dialogs mapped to theme tokens; `DarkTheme.xaml`/`LightTheme.xaml` now have full key parity so the entire app (not just dialogs) adapts to light/dark; closes the deferred F45 *(PR #106)*
+- **Shared geometric icon set** — new `Controls/Icons.xaml`; all emoji in dialog header badges, the tray menu, and the nav bar replaced with theme-aware geometric `Path` icons (incl. a double-music-note switch-sound icon and an alarm-clock schedule icon) *(PR #106)*
+- **Keyboard focus rings and navigation** — accent focus ring shown on keyboard navigation; profile cards, card action buttons, and scroll panels are now focusable; the collapsed filter bar drops out of the tab order *(PR #106)*
+- **Help & FAQ tray menu item** — added alongside About; both open the redesigned in-window panels *(PR #106)*
+
+### Changed
+- **Tray menu** — reordered to About → Help & FAQ → Settings → Open Sound Settings; About and Help & FAQ now open the in-window panels instead of the removed standalone windows; menu/profile icons render with high-quality scaling *(PR #106)*
+- **Mute indicator** — the blinking color-swap tray icon replaced with a static colored corner badge composited onto the active profile/app icon *(PR #106)*
+- **Profile switch** — removed the brief flash to the default icon; the profile icon now appears immediately *(PR #106)*
+- **Dialog consistency** — all dialogs use the accent icon-badge header and a unified 12px content-card radius *(PR #106)*
+- **Brand accent token** — opaque `#F5820A` literals in the main window mapped to the `Accent`/`AccentColor` tokens *(PR #106)*
+
+### Fixed
+- **Corrupt embedded app icon** — `vs-icon.ico` (used by the taskbar, Task Manager, and notification title) was malformed with 1-byte entries; regenerated as a valid multi-resolution icon *(PR #106)*
+- **Splash screen stole focus** — the startup splash no longer forces itself topmost or grabs focus, so it can't interrupt a fullscreen app/game *(PR #106)*
+- **Nav search box** — no longer grows unbounded when the window is widened, and the Filters button no longer overlaps it when narrowed *(PR #106)*
+- **Profile card layout** — even spacing around separators; chips show/hide correctly with no orphaned separators; schedule chip edits/removes the existing schedule *(PR #106)*
+- **Removed old-design dead code** — deleted the standalone AboutWindow, HelpDialog, and CustomReminderDialog, the legacy `app.ico`/`VibeSwitcherIcon.ico`, and unused commands, styles, and theme keys *(PR #106)*
+
+### Added
 - **G HUB-inspired dark card grid UI** — `SettingsWindow` rebuilt from scratch: custom title bar with `WindowChrome`, tab navigation (Profiles / Settings / About / FAQ), compact 192px profile cards in a `CenteredWrapPanel`, animated filter bar (expand/collapse), and profile detail overlay *(PR #105)*
 - **Always-visible profile card action strip** — two rows of icon buttons (silent toggle, app triggers, auto-switch, pin, activate / clone, schedule, switch sound, delete) are permanently visible on every card without requiring hover *(PR #105)*
 - **Profile card separators** — visual dividers between the mode badge, device rows, and hotkey chip sections on each card *(PR #105)*

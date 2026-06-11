@@ -1336,6 +1336,8 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 ### Branch 52: `feat/ui-redesign` ✅ Done — PR #105
 **Theme:** Full visual redesign of `SettingsWindow` from a plain vertical list to a G HUB-inspired dark card grid — new title bar, tab navigation, compact profile cards with always-visible action strips, filter bar with animated expand, profile detail overlay, About panel, FAQ panel, and Settings panel, all rebuilt in XAML while all services, ViewModels, and business logic remain unchanged.
 
+**Follow-up polish phase — PR #106:** completed app-wide light/dark theming (every hardcoded color in the main window and dialogs mapped to theme tokens; `DarkTheme.xaml`/`LightTheme.xaml` at full key parity — this closes the deferred F45); introduced a shared geometric icon set (`Controls/Icons.xaml`) replacing all emoji across dialog header badges, the tray menu, and the nav bar; reordered the tray menu and routed About/Help & FAQ to the in-window panels; replaced the blinking mute icon with a static corner badge and removed the profile-switch icon flash; regenerated the corrupt multi-resolution `vs-icon.ico` (taskbar / Task Manager / notification); made the splash non-focus-stealing; unified dialog header badges and card radii; added keyboard focus rings and fixed tab-order; and removed old-design dead code (AboutWindow, HelpDialog, CustomReminderDialog, and unused commands/styles/theme keys) — verified by four parallel audit agents with a clean build and full test pass.
+
 | # | Item | Status |
 |---|------|--------|
 | UI | `SettingsWindow.xaml` fully rebuilt: 4-row outer Grid — title bar (30px), tab nav (54px), animated filter bar (0↔115px), main panel area (*) | ✅ Done |

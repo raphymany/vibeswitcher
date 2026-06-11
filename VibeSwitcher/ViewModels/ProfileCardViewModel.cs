@@ -80,6 +80,15 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             {
                 _model.Name = value;
                 _onChanged(this);
+
+                // When the user types their own custom name (non-empty, not the default
+                // "Profile N" format), collapse the chip row and release the MinHeight lock.
+                if (!string.IsNullOrEmpty(value) && !ShowNameSuggestions && _suggestionsWereShownAtOpen)
+                {
+                    _suggestionsWereShownAtOpen = false;
+                    OnSuggestionSelected?.Invoke();
+                }
+
                 OnPropertyChanged(nameof(ShowNameSuggestions));
                 OnPropertyChanged(nameof(SuggestionsVisibility));
             }
@@ -177,7 +186,11 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public string HotkeyDisplay
     {
         get => _hotkeyDisplay;
-        private set => SetField(ref _hotkeyDisplay, value);
+        private set
+        {
+            if (SetField(ref _hotkeyDisplay, value))
+                OnPropertyChanged(nameof(IsHotkeySet));
+        }
     }
 
     public bool HasCustomIcon => !string.IsNullOrEmpty(_iconPath);
@@ -334,8 +347,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 _model.SoundTone   ??= "Click";
                 _model.SoundVolume ??= 50;
             }
-            OnPropertyChanged(nameof(SoundOverride));
-            OnPropertyChanged(nameof(SoundSummary));
+            RaiseChipBindings();
             _onChanged(this);
         }
     }
@@ -424,7 +436,16 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public ObservableCollection<ScheduleEntryViewModel> Schedules { get; }
 
-    public bool HasSchedules => Schedules.Count > 0;
+    public bool HasSchedules       => Schedules.Count > 0;
+    public bool HasSingleSchedule  => Schedules.Count == 1;
+    public bool HasVisibilityChips => HasSchedules || SoundOverride;
+
+    public string ScheduleSummaryText => Schedules.Count switch
+    {
+        0 => "",
+        1 => Schedules[0].Summary,
+        _ => $"{Schedules.Count} schedules"
+    };
 
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
 
@@ -440,13 +461,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
     public ICommand AddScheduleCommand { get; }
+    public ICommand EditFirstScheduleCommand { get; }
     public ICommand ConfigureSoundCommand { get; }
-    public ICommand AddSwitchSoundCommand { get; }
-    public ICommand RemoveSwitchSoundCommand { get; }
     public ICommand OpenAppTriggersCommand { get; }
-    public ICommand ToggleSilentCommand { get; }
-    public ICommand TogglePinnedCommand { get; }
-    public ICommand ToggleTriggerOnConnectCommand { get; }
 
     public ProfileCardViewModel(
         DeviceProfile model,
@@ -515,37 +532,22 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
         AddScheduleCommand = new RelayCommand(AddSchedule);
+        EditFirstScheduleCommand = new RelayCommand(() => EditSchedule(Schedules[0]), () => HasSchedules);
         ConfigureSoundCommand = new RelayCommand(ConfigureSound);
-        AddSwitchSoundCommand = new RelayCommand(AddSwitchSound);
-        RemoveSwitchSoundCommand = new RelayCommand(RemoveSwitchSound);
         OpenAppTriggersCommand = new RelayCommand(OpenAppTriggerWizard);
-        ToggleSilentCommand = new RelayCommand(() => Silent = !Silent);
-        TogglePinnedCommand = new RelayCommand(() => IsPinned = !IsPinned);
-        ToggleTriggerOnConnectCommand = new RelayCommand(() => TriggerOnConnect = !TriggerOnConnect);
     }
 
-    private void AddSwitchSound()
+    // Single source of truth for every schedule/sound chip binding. Called from all mutation
+    // paths so the card's chips, separators and summaries can never drift out of sync — this
+    // is what prevents orphaned separators and chips that fail to appear/disappear.
+    private void RaiseChipBindings()
     {
-        var result = _dialogService.ShowSoundWizard(true, "Click", null, 50, showBanner: false);
-        if (result == null) return;
-        _model.SoundOverride    = result.Enabled;
-        _model.SoundTone        = result.Tone;
-        _model.SoundCustomPath  = result.CustomPath;
-        _model.SoundVolume      = result.Volume;
-        _model.SoundShowBanner  = result.ShowBanner;
         OnPropertyChanged(nameof(SoundOverride));
         OnPropertyChanged(nameof(SoundSummary));
-        _onChanged(this);
-    }
-
-    private void RemoveSwitchSound()
-    {
-        if (!_dialogService.ShowConfirmSoundRemove()) return;
-        _model.SoundOverride   = false;
-        _model.SoundShowBanner = false;
-        OnPropertyChanged(nameof(SoundOverride));
-        OnPropertyChanged(nameof(SoundSummary));
-        _onChanged(this);
+        OnPropertyChanged(nameof(HasSchedules));
+        OnPropertyChanged(nameof(HasSingleSchedule));
+        OnPropertyChanged(nameof(HasVisibilityChips));
+        OnPropertyChanged(nameof(ScheduleSummaryText));
     }
 
     private void ConfigureSound()
@@ -555,15 +557,15 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             _model.SoundTone,
             _model.SoundCustomPath,
             _model.SoundVolume ?? 50,
-            _model.SoundOverride ? _model.SoundShowBanner : true); // default banner ON for new sounds
+            _model.SoundOverride ? _model.SoundShowBanner : true, // default banner ON for new sounds
+            isEditing: _model.SoundOverride); // show Remove button only when a sound already exists
         if (result == null) return;
         _model.SoundOverride    = result.Enabled;
         _model.SoundTone        = result.Tone;
         _model.SoundCustomPath  = result.CustomPath;
         _model.SoundVolume      = result.Volume;
         _model.SoundShowBanner  = result.ShowBanner;
-        OnPropertyChanged(nameof(SoundOverride));
-        OnPropertyChanged(nameof(SoundSummary));
+        RaiseChipBindings();
         _onChanged(this);
     }
 
@@ -827,7 +829,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         bool retry;
         do
         {
-            var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
+            var outcome = _dialogService.ShowScheduleWizard(source, _use12Hour());
+            var result = outcome.Entry;
             if (result == null) return;
             var conflicts = _conflictChecker(result).ToList();
             if (conflicts.Count > 0)
@@ -841,7 +844,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 retry = false;
                 _model.Schedules.Add(result);
                 Schedules.Add(CreateScheduleEntry(result));
-                OnPropertyChanged(nameof(HasSchedules));
+                RaiseChipBindings();
                 _onChanged(this);
             }
         } while (retry);
@@ -853,7 +856,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         bool retry;
         do
         {
-            var result = _dialogService.ShowScheduleWizard(source, _use12Hour());
+            var outcome = _dialogService.ShowScheduleWizard(source, _use12Hour(), isEditing: true);
+            if (outcome.Removed)
+            {
+                RemoveScheduleEntry(vm);
+                return;
+            }
+            var result = outcome.Entry;
             if (result == null) return;
             var conflicts = _conflictChecker(result).ToList();
             if (conflicts.Count > 0)
@@ -872,9 +881,20 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
                 entry.ReminderMinutes = result.ReminderMinutes;
                 entry.Silent = result.Silent;
                 vm.RefreshFromEntry();
+                RaiseChipBindings();
                 _onChanged(this);
             }
         } while (retry);
+    }
+
+    // Removes a schedule entry from both the model and the view collection, then refreshes
+    // all dependent chip/visibility bindings. Caller is responsible for any confirmation.
+    private void RemoveScheduleEntry(ScheduleEntryViewModel vm)
+    {
+        _model.Schedules.Remove(vm.Entry);
+        Schedules.Remove(vm);
+        RaiseChipBindings();
+        _onChanged(this);
     }
 
     private ScheduleEntryViewModel CreateScheduleEntry(ScheduleEntry entry)
@@ -883,16 +903,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             entry,
             use12Hour: _use12Hour,
             onChanged: () => _onChanged(this),
-            onDelete: vm =>
-            {
-                if (!_dialogService.ShowConfirmScheduleDelete(vm.Summary))
-                    return;
-                _model.Schedules.Remove(vm.Entry);
-                Schedules.Remove(vm);
-                OnPropertyChanged(nameof(HasSchedules));
-                _onChanged(this);
-            },
-            onEdit: EditSchedule,
             checkConflicts: _conflictChecker,
             showConflictAlert: msg => _dialogService.ShowAlert("Schedule Conflict", msg));
     }

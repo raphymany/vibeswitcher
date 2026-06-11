@@ -18,7 +18,7 @@ public partial class SwitchSoundDialog : Window
 
     public SoundOverrideResult? Result { get; private set; }
 
-    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume, IAppLogger logger, bool showBanner = false)
+    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume, IAppLogger logger, bool showBanner = false, bool isEditing = false)
     {
         InitializeComponent();
 
@@ -36,6 +36,9 @@ public partial class SwitchSoundDialog : Window
         VolumeLabel.Text          = $"{volume}%";
 
         BannerToggle.IsChecked = !showBanner; // toggle means "suppress banner", so checked = no banner
+
+        if (isEditing)
+            RemoveBtn.Visibility = Visibility.Visible;
     }
 
     private void ToneChip_Click(object sender, RoutedEventArgs e)
@@ -103,6 +106,13 @@ public partial class SwitchSoundDialog : Window
     private void Save_Click(object sender, RoutedEventArgs e)
     {
         Result = new SoundOverrideResult(true, _tone, _customPath, _volume, _showBanner);
+        DialogResult = true;
+    }
+
+    private void Remove_Click(object sender, RoutedEventArgs e)
+    {
+        // Returning Enabled=false signals the caller to clear the per-profile sound override.
+        Result = new SoundOverrideResult(false, _tone, _customPath, _volume, _showBanner);
         DialogResult = true;
     }
 

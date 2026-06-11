@@ -7,10 +7,26 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- Active theme is injected at runtime by ThemeService -->
+                <ResourceDictionary Source="Controls/Icons.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
         <!-- Fallback so StaticResource AccentColor resolves at parse time before any theme is loaded -->
         <Color x:Key="AccentColor">#FF8000</Color>
+
+        <!-- Keyboard focus ring — shown only during keyboard navigation (WPF only applies
+             FocusVisualStyle on keyboard focus, not mouse clicks). Subtle accent outline. -->
+        <Style x:Key="AccentFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="-2" StrokeThickness="2"
+                                   Stroke="{DynamicResource Accent}"
+                                   RadiusX="7" RadiusY="7"
+                                   SnapsToDevicePixels="True"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
         <!-- All windows default to Segoe UI -->
         <Style TargetType="Window">
@@ -203,6 +219,9 @@
                                 <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
                                 <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                                 <Setter TargetName="arrow" Property="Stroke"   Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>

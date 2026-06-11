@@ -9,7 +9,10 @@
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        Topmost="True">
+        ShowActivated="False"
+        Focusable="False"
+        IsHitTestVisible="False"
+        Topmost="False">
 
     <Window.Resources>
 
@@ -300,7 +303,7 @@
                                HorizontalAlignment="Center"
                                Margin="0,0,0,6"/>
 
-                    <TextBlock Text="Manage your device profiles and hotkeys"
+                    <TextBlock Text="Switch between your audios seamlessly"
                                FontFamily="Segoe UI"
                                FontSize="12"
                                Foreground="#38384E"

@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-10 — Branch 52 (`feat/ui-redesign`) merged — PR #105.
+**Last updated:** 2026-06-11 — Branch 52 (`feat/ui-redesign`) polish phase — PR #106 (app-wide light mode, shared geometric icon set, tray + dialog consistency, keyboard nav, old-design cleanup).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -132,7 +132,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
 | F44 | Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand; part of planned UI/UX redesign phase | Superseded by feat/ui-redesign (PR #105) |
-| F45 | Light theme support for redesigned UI — profile cards, action strips, overlays, and icon frames use hardcoded dark hex values from the G HUB-inspired redesign; needs theme-aware resource keys for each | Deferred |
+| ~~F45~~ | ~~Light theme support for redesigned UI — profile cards, action strips, overlays, and icon frames use hardcoded dark hex values from the G HUB-inspired redesign; needs theme-aware resource keys for each~~ | ✅ Done — PR #106 |
 
 ---
 

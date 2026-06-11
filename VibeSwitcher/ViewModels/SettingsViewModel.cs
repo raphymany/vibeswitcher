@@ -28,6 +28,7 @@ public class SettingsViewModel : ViewModelBase
     private bool _showDisabledDevices;
     private bool _showDisconnectedDevices;
     private bool _leftClickCyclesProfiles;
+    private string _selectedCategory = "startup";
 
     // Device lists loaded once async and shared across all profile cards.
     private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
@@ -369,6 +370,33 @@ public class SettingsViewModel : ViewModelBase
     }
 
     public ICommand ClearFiltersCommand { get; }
+    public ICommand SelectCategoryCommand { get; }
+
+    public string SelectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            if (SetField(ref _selectedCategory, value))
+            {
+                OnPropertyChanged(nameof(IsStartupSelected));
+                OnPropertyChanged(nameof(IsAppearSelected));
+                OnPropertyChanged(nameof(IsNotifSelected));
+                OnPropertyChanged(nameof(IsDevicesSelected));
+                OnPropertyChanged(nameof(IsTraySelected));
+                OnPropertyChanged(nameof(IsShortcutsSelected));
+                OnPropertyChanged(nameof(IsLogsSelected));
+            }
+        }
+    }
+
+    public bool IsStartupSelected   => _selectedCategory == "startup";
+    public bool IsAppearSelected    => _selectedCategory == "appear";
+    public bool IsNotifSelected     => _selectedCategory == "notif";
+    public bool IsDevicesSelected   => _selectedCategory == "devices";
+    public bool IsTraySelected      => _selectedCategory == "tray";
+    public bool IsShortcutsSelected => _selectedCategory == "shortcuts";
+    public bool IsLogsSelected      => _selectedCategory == "logs";
 
     private bool _clearing;
     private void ClearFilters()
@@ -660,6 +688,7 @@ public class SettingsViewModel : ViewModelBase
             chip.PropertyChanged += (_, _) => { if (!_clearing) ApplyFilter(); };
 
         ClearFiltersCommand = new RelayCommand(ClearFilters);
+        SelectCategoryCommand = new RelayCommand(cat => SelectedCategory = (string)cat!);
 
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(

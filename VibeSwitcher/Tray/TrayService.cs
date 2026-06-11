@@ -24,8 +24,11 @@ public class TrayService : IDisposable
     // Caches raw icon bytes per profile so UpdateIcon avoids disk reads on repeat switches.
     // Bytes (not Icon objects) are cached because H.NotifyIcon disposes the Icon it holds on each change.
     private readonly Dictionary<Guid, byte[]> _trayIconBytesCache = new();
-    private CancellationTokenSource? _flashCts;
-    private CancellationTokenSource? _muteFlashCts;
+    // Mute indicator state — a static colored badge is composited onto the active icon
+    // (no flashing). _muted gates the overlay that UpdateIcon applies.
+    private bool _muted;
+    private System.Drawing.Color _muteColor;
+    private string? _muteTooltip;
 
     private readonly IAppLogger _logger;
     private readonly ISessionErrorTracker _errorTracker;
@@ -96,8 +99,15 @@ public class TrayService : IDisposable
             icon.Save(ms);
             _trayIconBytesCache[activeProfile.Id] = ms.ToArray();
         }
+        if (_muted)
+        {
+            var badged = ComposeMutedIcon(icon, _muteColor);
+            icon.Dispose();
+            icon = badged;
+        }
+
         _taskbarIcon.Icon = icon;
-        _taskbarIcon.ToolTipText = BuildTooltip(activeProfile);
+        _taskbarIcon.ToolTipText = _muted ? (_muteTooltip ?? "VibeSwitcher") : BuildTooltip(activeProfile);
     }
 
     private string BuildTooltip(DeviceProfile? activeProfile)
@@ -137,116 +147,61 @@ public class TrayService : IDisposable
         SwitchRequested?.Invoke(profiles[nextIndex]);
     }
 
-    public void FlashSwitch(DeviceProfile restoredProfile)
-    {
-        var old = _flashCts;
-        var cts = new CancellationTokenSource();
-        _flashCts = cts;
-        old?.Cancel();
-        old?.Dispose();
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await Task.Delay(80, cts.Token);
-                var dispatcher = System.Windows.Application.Current?.Dispatcher;
-                if (dispatcher == null || cts.IsCancellationRequested) return;
-
-                await dispatcher.InvokeAsync(() =>
-                {
-                    if (cts.IsCancellationRequested) return;
-                    _taskbarIcon.Icon = IconHelper.LoadIcon(null, _configService.IconsDir);
-                });
-
-                await Task.Delay(320, cts.Token);
-                if (cts.IsCancellationRequested) return;
-
-                await dispatcher.InvokeAsync(() =>
-                {
-                    if (cts.IsCancellationRequested) return;
-                    UpdateIcon(restoredProfile);
-                });
-            }
-            catch (OperationCanceledException) { }
-        });
-    }
-
-    // Call whenever mute state changes. Starts/updates/stops the flash based on current state.
-    // mic-only = red, speakers-only = blue, both = purple, neither = stop.
+    // Call whenever mute state changes. Shows a static colored badge on the tray icon
+    // (mic-only = red, speakers-only = blue, both = purple) or removes it when nothing is muted.
+    // No flashing — the badge is composited onto the current profile/app icon in UpdateIcon.
     public void UpdateMuteFlash(bool micMuted, bool speakersMuted)
     {
         if (!micMuted && !speakersMuted)
         {
-            StopMuteFlash();
+            _muted = false;
+            _muteTooltip = null;
+            RefreshActiveIcon();
             return;
         }
 
-        System.Drawing.Color color = (micMuted, speakersMuted) switch
+        _muteColor = (micMuted, speakersMuted) switch
         {
-            (true, true)  => System.Drawing.Color.FromArgb(140, 60, 220),  // purple — both
-            (true, false) => System.Drawing.Color.FromArgb(220, 50, 50),   // red    — mic only
-            _             => System.Drawing.Color.FromArgb(40,  110, 220), // blue   — speakers only
+            (true, true)  => System.Drawing.Color.FromArgb(150, 70, 230),  // purple — both
+            (true, false) => System.Drawing.Color.FromArgb(225, 55, 55),   // red    — mic only
+            _             => System.Drawing.Color.FromArgb(45, 120, 230),  // blue   — speakers only
         };
-
-        string tooltip = (micMuted, speakersMuted) switch
+        _muteTooltip = (micMuted, speakersMuted) switch
         {
             (true, true)  => "VibeSwitcher — Mic + Speakers muted",
             (true, false) => "VibeSwitcher — Mic muted",
             _             => "VibeSwitcher — Speakers muted",
         };
-        _taskbarIcon.ToolTipText = tooltip;
-
-        _muteFlashCts?.Cancel();
-        _muteFlashCts?.Dispose();
-        var cts = new CancellationTokenSource();
-        _muteFlashCts = cts;
-
-        _ = Task.Run(async () =>
-        {
-            bool showColor = true;
-            try
-            {
-                while (!cts.IsCancellationRequested)
-                {
-                    await Task.Delay(500, cts.Token);
-                    if (cts.IsCancellationRequested) break;
-                    var dispatcher = System.Windows.Application.Current?.Dispatcher;
-                    if (dispatcher == null) break;
-                    bool capturedShowColor = showColor;
-                    System.Drawing.Color capturedColor = color;
-                    await dispatcher.InvokeAsync(() =>
-                    {
-                        if (cts.IsCancellationRequested) return;
-                        _taskbarIcon.Icon = capturedShowColor
-                            ? MakeColorIcon(capturedColor)
-                            : IconHelper.LoadIcon(null, _configService.IconsDir);
-                    });
-                    showColor = !showColor;
-                }
-            }
-            catch (OperationCanceledException) { }
-        });
+        _muted = true;
+        RefreshActiveIcon();
     }
 
-    private void StopMuteFlash()
+    private void RefreshActiveIcon()
     {
-        _muteFlashCts?.Cancel();
-        _muteFlashCts?.Dispose();
-        _muteFlashCts = null;
         var active = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         UpdateIcon(active);
     }
 
-    private static Icon MakeColorIcon(System.Drawing.Color color)
+    // Composites a small colored mute badge (white-ringed dot) onto the bottom-right
+    // corner of the active icon. Keeps the brand/profile icon visible — no full-icon swap.
+    private static Icon ComposeMutedIcon(Icon baseIcon, System.Drawing.Color badge)
     {
         using var bmp = new System.Drawing.Bitmap(32, 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-        using var g = System.Drawing.Graphics.FromImage(bmp);
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        g.Clear(System.Drawing.Color.Transparent);
-        using var brush = new System.Drawing.SolidBrush(color);
-        g.FillEllipse(brush, 2, 2, 28, 28);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+            using (var baseBmp = baseIcon.ToBitmap())
+                g.DrawImage(baseBmp, new System.Drawing.Rectangle(0, 0, 32, 32));
+
+            const float d = 15f;
+            float x = 32f - d, y = 32f - d;
+            using (var ring = new System.Drawing.SolidBrush(System.Drawing.Color.White))
+                g.FillEllipse(ring, x - 1.5f, y - 1.5f, d + 3f, d + 3f);
+            using (var fill = new System.Drawing.SolidBrush(badge))
+                g.FillEllipse(fill, x, y, d, d);
+        }
 
         // GetHicon returns an HICON we own — Icon.FromHandle does NOT take ownership,
         // so we copy to a stream for an independent Icon then destroy the raw handle.
@@ -328,11 +283,16 @@ public class TrayService : IDisposable
             _contextMenu.Items.Add(BuildSeparator());
         }
 
-        var settingsItem = new MenuItem { Header = BuildActionHeader("⚙", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
-        settingsItem.Click += (_, _) => OpenSettingsExpanded();
-        _contextMenu.Items.Add(settingsItem);
+        var aboutItem = new MenuItem { Header = BuildActionHeader("IcoInfo", "About"), Padding = new Thickness(12, 8, 16, 8) };
+        aboutItem.Click += (_, _) => OpenAbout();
 
-        var soundSettingsItem = new MenuItem { Header = BuildActionHeader("🔊", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
+        var faqItem = new MenuItem { Header = BuildActionHeader("IcoHelp", "Help & FAQ"), Padding = new Thickness(12, 8, 16, 8) };
+        faqItem.Click += (_, _) => OpenFaq();
+
+        var settingsItem = new MenuItem { Header = BuildActionHeader("IcoSettings", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
+        settingsItem.Click += (_, _) => OpenSettingsExpanded();
+
+        var soundSettingsItem = new MenuItem { Header = BuildActionHeader("IcoSpeaker", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
         {
             var useLegacy = _configService.Current.UseLegacySoundPanel;
@@ -353,15 +313,15 @@ public class TrayService : IDisposable
                     $"Could not open Windows Sound settings: {ex.Message}");
             }
         };
-        _contextMenu.Items.Add(soundSettingsItem);
 
-        var aboutItem = new MenuItem { Header = BuildActionHeader("ℹ", "About"), Padding = new Thickness(12, 8, 16, 8) };
-        aboutItem.Click += (_, _) => OpenAbout();
         _contextMenu.Items.Add(aboutItem);
+        _contextMenu.Items.Add(faqItem);
+        _contextMenu.Items.Add(settingsItem);
+        _contextMenu.Items.Add(soundSettingsItem);
 
         _contextMenu.Items.Add(BuildSeparator());
 
-        var exitItem = new MenuItem { Header = BuildActionHeader("✕", "Exit"), Padding = new Thickness(12, 8, 16, 8) };
+        var exitItem = new MenuItem { Header = BuildActionHeader("IcoClose", "Exit"), Padding = new Thickness(12, 8, 16, 8) };
         exitItem.Click += (_, _) => Application.Current.Shutdown();
         _contextMenu.Items.Add(exitItem);
 
@@ -426,7 +386,13 @@ public class TrayService : IDisposable
     private static void OpenAbout()
     {
         if (Application.Current is App app)
-            app.OpenAboutWindow();
+            app.OpenAboutPanel();
+    }
+
+    private static void OpenFaq()
+    {
+        if (Application.Current is App app)
+            app.OpenFaqPanel();
     }
 
     private static MenuItem BuildSeparator()
@@ -468,7 +434,7 @@ public class TrayService : IDisposable
                 ico.Dispose();
                 _iconCache[profile.Id] = src;
             }
-            iconElement = new System.Windows.Controls.Image
+            var profileIcon = new System.Windows.Controls.Image
             {
                 Source = src,
                 Width = 20,
@@ -477,6 +443,8 @@ public class TrayService : IDisposable
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
             };
+            RenderOptions.SetBitmapScalingMode(profileIcon, BitmapScalingMode.HighQuality);
+            iconElement = profileIcon;
         }
         catch
         {
@@ -516,7 +484,7 @@ public class TrayService : IDisposable
     private static UIElement BuildAppHeader(ImageSource appIconSource)
     {
         var sp = new StackPanel { Orientation = Orientation.Horizontal };
-        sp.Children.Add(new System.Windows.Controls.Image
+        var appIcon = new System.Windows.Controls.Image
         {
             Source = appIconSource,
             Width = 20,
@@ -524,7 +492,9 @@ public class TrayService : IDisposable
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
-        });
+        };
+        RenderOptions.SetBitmapScalingMode(appIcon, BitmapScalingMode.HighQuality);
+        sp.Children.Add(appIcon);
         var label = new TextBlock
         {
             Text = "VibeSwitcher",
@@ -538,31 +508,35 @@ public class TrayService : IDisposable
     }
 
     // Single-line action item: [icon]  Label
-    private static UIElement BuildActionHeader(string icon, string label)
+    private static UIElement BuildActionHeader(string geometryKey, string label)
     {
         var sp = new StackPanel { Orientation = Orientation.Horizontal };
-        var iconBlock = new TextBlock
+        var iconHost = new Grid { Width = 20, Margin = new Thickness(0, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+        var path = new System.Windows.Shapes.Path
         {
-            Text = icon,
-            Width = 22,
-            FontSize = 13,
-            TextAlignment = TextAlignment.Center,
+            Data = (System.Windows.Media.Geometry)Application.Current.FindResource(geometryKey),
+            Width = 15,
+            Height = 15,
+            Stretch = System.Windows.Media.Stretch.Uniform,
+            Fill = System.Windows.Media.Brushes.Transparent,
+            StrokeThickness = 1.4,
+            StrokeLineJoin = System.Windows.Media.PenLineJoin.Round,
+            StrokeStartLineCap = System.Windows.Media.PenLineCap.Round,
+            StrokeEndLineCap = System.Windows.Media.PenLineCap.Round,
+            HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        iconBlock.SetResourceReference(TextBlock.ForegroundProperty, "SecondaryText");
+        path.SetResourceReference(System.Windows.Shapes.Shape.StrokeProperty, "SecondaryText");
+        iconHost.Children.Add(path);
         var labelBlock = new TextBlock { Text = label, FontSize = 13, VerticalAlignment = VerticalAlignment.Center };
         labelBlock.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryText");
-        sp.Children.Add(iconBlock);
+        sp.Children.Add(iconHost);
         sp.Children.Add(labelBlock);
         return sp;
     }
 
     public void Dispose()
     {
-        _flashCts?.Cancel();
-        _flashCts?.Dispose();
-        _muteFlashCts?.Cancel();
-        _muteFlashCts?.Dispose();
         _taskbarIcon.Dispose();
     }
 }

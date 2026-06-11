@@ -29,9 +29,7 @@ public partial class SettingsWindow : Window
     private System.Windows.Threading.DispatcherTimer? _boundsTimer;
     private bool _filterBarOpen = false;
 
-    // Drag-and-drop state for profile card reordering
-    private Point _dragStart;
-    private ProfileCardViewModel? _dragSource;
+    // Drop-target highlight brush for profile card drag-and-drop
     private static readonly Brush _dropTargetBorder = MakeFrozenBrush(0xFF, 0x80, 0x00);
     private static SolidColorBrush MakeFrozenBrush(byte r, byte g, byte b)
     {
@@ -130,17 +128,15 @@ public partial class SettingsWindow : Window
         ShowPanel(SettingsBodyScrollViewer);
     }
 
+    public void OpenAboutPanel() => ShowPanel(AboutPanel);
+    public void OpenFaqPanel()   => ShowPanel(FaqPanel);
+
     // ── Panel navigation ────────────────────────────────────────────
 
     private void ShowPanel(UIElement panel)
     {
         ProfileDetailOverlay.Visibility    = Visibility.Collapsed;
-        if (_filterBarOpen)
-        {
-            _filterBarOpen = false;
-            FilterBarBorder.BeginAnimation(MaxHeightProperty,
-                new DoubleAnimation { To = 0, Duration = TimeSpan.FromMilliseconds(200) });
-        }
+        CloseFilterBar();
         ProfilesPanel.Visibility          = Visibility.Collapsed;
         SettingsBodyScrollViewer.Visibility = Visibility.Collapsed;
         AboutPanel.Visibility             = Visibility.Collapsed;
@@ -172,14 +168,51 @@ public partial class SettingsWindow : Window
 
     private void FiltersBtn_Click(object sender, RoutedEventArgs e)
     {
-        _filterBarOpen = !_filterBarOpen;
+        if (_filterBarOpen) { CloseFilterBar(); return; }
+
+        _filterBarOpen = true;
+        FilterBarBorder.IsEnabled = true;   // re-enter tab order while open
+
+        // Measure the actual content height so the bar never clips, regardless of how many
+        // rows the chips wrap into or whether the day-chips row is showing.
+        var content = FilterBarBorder.Child as FrameworkElement;
+        content?.Measure(new Size(FilterBarBorder.ActualWidth, double.PositiveInfinity));
+        double target = content?.DesiredSize.Height ?? 130;
+
         var anim = new DoubleAnimation
         {
-            To = _filterBarOpen ? 115 : 0,
+            To = target,
             Duration = TimeSpan.FromMilliseconds(300),
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
         };
+        // Once open, release the cap so dynamic content (e.g. day chips when "Scheduled"
+        // is toggled) can grow the bar without being clipped.
+        anim.Completed += (_, _) =>
+        {
+            if (!_filterBarOpen) return;
+            FilterBarBorder.BeginAnimation(MaxHeightProperty, null);
+            FilterBarBorder.MaxHeight = double.PositiveInfinity;
+        };
         FilterBarBorder.BeginAnimation(MaxHeightProperty, anim);
+    }
+
+    private void CloseFilterBar()
+    {
+        if (!_filterBarOpen) return;
+        _filterBarOpen = false;
+        FilterBarBorder.IsEnabled = false;  // drop chips out of the tab order while collapsed
+
+        // Pin the current rendered height first (the cap may have been released to infinity),
+        // so the collapse animates smoothly from the real height down to 0.
+        double from = FilterBarBorder.ActualHeight;
+        FilterBarBorder.MaxHeight = from;
+        FilterBarBorder.BeginAnimation(MaxHeightProperty, new DoubleAnimation
+        {
+            From = from,
+            To = 0,
+            Duration = TimeSpan.FromMilliseconds(220),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+        });
     }
 
     // ── Profile detail overlay ───────────────────────────────────────
@@ -213,6 +246,9 @@ public partial class SettingsWindow : Window
 
     private void OverlayClose_Click(object sender, RoutedEventArgs e)
         => CloseProfileDetailOverlay();
+
+    private void ChipButton_Click(object sender, RoutedEventArgs e)
+        => e.Handled = true;
 
     private void OverlayBackdrop_MouseDown(object sender, MouseButtonEventArgs e)
         => CloseProfileDetailOverlay();

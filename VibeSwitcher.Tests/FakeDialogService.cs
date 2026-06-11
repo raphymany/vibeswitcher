@@ -33,20 +33,20 @@ internal sealed class FakeDialogService : IDialogService
     public List<string> MicTestCalledWith { get; } = new();
     public void ShowMicTest(string deviceId, string deviceName) => MicTestCalledWith.Add(deviceId);
 
-    public bool ConfirmScheduleDeleteResult { get; set; } = true;
-    public bool ShowConfirmScheduleDelete(string scheduleSummary) => ConfirmScheduleDeleteResult;
-
-    public bool ConfirmSoundRemoveResult { get; set; } = true;
-    public bool ShowConfirmSoundRemove() => ConfirmSoundRemoveResult;
-
     public bool ScheduleConflictResult { get; set; } = false;
     public bool ShowScheduleConflict(string conflictDescription) => ScheduleConflictResult;
 
     public ScheduleEntry? ScheduleWizardResult { get; set; } = null;
-    public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour) => ScheduleWizardResult;
+    public bool ScheduleWizardRemoved { get; set; } = false;
+    public ScheduleWizardOutcome ShowScheduleWizard(ScheduleEntry source, bool use12Hour, bool isEditing = false) =>
+        ScheduleWizardRemoved
+            ? ScheduleWizardOutcome.RemovedOutcome
+            : ScheduleWizardResult != null
+                ? ScheduleWizardOutcome.Saved(ScheduleWizardResult)
+                : ScheduleWizardOutcome.Cancelled;
 
     public SoundOverrideResult? SoundWizardResult { get; set; } = null;
-    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false) => SoundWizardResult;
+    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false, bool isEditing = false) => SoundWizardResult;
 
     public bool ConfirmResult { get; set; } = false;
     public bool ShowConfirm(string title, string message, string actionLabel) => ConfirmResult;

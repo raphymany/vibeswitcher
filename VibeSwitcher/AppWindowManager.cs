@@ -72,12 +72,18 @@ public class AppWindowManager
         window?.RefreshActiveStates();
     }
 
-    public void OpenAboutWindow()
+    public void OpenAbout() => OpenSettingsWindowToPanel(w => w.OpenAboutPanel());
+    public void OpenFaq()   => OpenSettingsWindowToPanel(w => w.OpenFaqPanel());
+
+    // Opens (or focuses) the main window and navigates it to a specific panel.
+    private void OpenSettingsWindowToPanel(Action<SettingsWindow> navigate)
     {
-        var owner = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
-        var profileCount = _configService.Current.Profiles.Count;
-        var about = new AboutWindow(profileCount, _logger, _errorTracker);
-        if (owner != null) about.Owner = owner;
-        about.ShowDialog();
+        var window = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault()
+            ?? new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService,
+                _logger, _errorTracker, _applyTheme, _switchProfile, _onReschedule, _onAppTriggersChanged);
+        window.Show();
+        window.WindowState = WindowState.Normal;
+        window.Activate();
+        navigate(window);
     }
 }

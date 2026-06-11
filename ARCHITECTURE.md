@@ -9,7 +9,7 @@ VibeSwitcher is a Windows system tray application built with WPF and .NET 8. It 
 ```
 ┌─────────────────────────────────────────────┐
 │                  Views (XAML)               │
-│  SettingsWindow · HelpDialog · AlertDialog  │
+│  SettingsWindow · AboutPanel · AlertDialog  │
 │  HotkeyCaptureDialog · ConfirmDialog · ...  │
 └────────────────────┬────────────────────────┘
                      │ binds to
@@ -107,8 +107,7 @@ ProfileSwitchOrchestrator.SwitchToProfile(profile)
   ├─ SwitchSoundService.PlayAsync(profile)         ← optional audio cue
   ├─ ConfigService: ActiveProfileId = profile.Id → SaveImmediate()
   ├─ TrayService.SetActiveProfile(profile.Id)       ← fast path, no rebuild
-  ├─ TrayService.UpdateIcon(profile)
-  ├─ TrayService.FlashSwitch(profile)              ← brief icon pulse
+  ├─ TrayService.UpdateIcon(profile)               ← re-applies the mute badge if muted
   └─ if ShowNotifications → TrayService.ShowBalloon(…)
 ```
 

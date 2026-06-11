@@ -294,7 +294,8 @@ public partial class App : Application
 
     public void OpenSettingsWindowExpanded() => _windowManager?.OpenSettingsWindow(expandSettings: true);
 
-    public void OpenAboutWindow() => _windowManager?.OpenAboutWindow();
+    public void OpenAboutPanel() => _windowManager?.OpenAbout();
+    public void OpenFaqPanel() => _windowManager?.OpenFaq();
 
     protected override void OnExit(ExitEventArgs e)
     {
