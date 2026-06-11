@@ -11,11 +11,15 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Resources\Icons\app.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icons\vs-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\Icons\app.ico" />
+    <Resource Include="Resources\Icons\vs-icon.ico" />
+    <Resource Include="Resources\Icons\vs-icon-16.png" />
+    <Resource Include="Resources\Icons\vs-icon-32.png" />
+    <Resource Include="Resources\Icons\vs-icon-64.png" />
+    <Resource Include="Resources\Icons\vs-icon-256.png" />
     <Resource Include="Themes\LightTheme.xaml" />
     <Resource Include="Themes\DarkTheme.xaml" />
   </ItemGroup>

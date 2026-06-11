@@ -67,11 +67,13 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                 <Border Width="36" Height="36" CornerRadius="18"
                         Background="{DynamicResource Accent}" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <TextBlock Text="⏰" FontSize="17" LineHeight="17"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Path Data="{StaticResource IcoAlarm}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Add Schedule"
+                    <TextBlock x:Name="HeaderTitle" Text="Add Schedule"
                                FontSize="15" FontWeight="SemiBold"
                                Foreground="{DynamicResource PrimaryText}"/>
                     <TextBlock Text="Switch to this profile automatically at a set time"
@@ -145,7 +147,7 @@
                 <TextBlock x:Name="NoDaysHint"
                            Text="No days selected — this schedule won't activate"
                            FontSize="11" HorizontalAlignment="Center"
-                           Foreground="#CC6600" Margin="0,12,0,0"
+                           Foreground="{DynamicResource WarningText}" Margin="0,12,0,0"
                            Visibility="Collapsed"/>
             </StackPanel>
 
@@ -190,7 +192,7 @@
             <StackPanel x:Name="Step3Panel" Visibility="Collapsed" MinHeight="80">
                 <Border Background="{DynamicResource InnerCardBg}"
                         BorderBrush="{DynamicResource InnerCardBorderBrush}"
-                        BorderThickness="1" CornerRadius="10"
+                        BorderThickness="1" CornerRadius="12"
                         Padding="20,16">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -218,6 +220,11 @@
                         Style="{StaticResource ActionButton}"
                         Padding="16,0"
                         Click="Cancel_Click"/>
+                <Button x:Name="RemoveBtn" Content="Remove" DockPanel.Dock="Left"
+                        Style="{StaticResource DangerButton}"
+                        Padding="16,0" Margin="8,0,0,0"
+                        Visibility="Collapsed"
+                        Click="Remove_Click"/>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="BackBtn" Content="← Back"
                             Style="{StaticResource ActionButton}"

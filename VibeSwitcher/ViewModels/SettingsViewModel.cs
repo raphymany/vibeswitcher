@@ -28,6 +28,7 @@ public class SettingsViewModel : ViewModelBase
     private bool _showDisabledDevices;
     private bool _showDisconnectedDevices;
     private bool _leftClickCyclesProfiles;
+    private string _selectedCategory = "startup";
 
     // Device lists loaded once async and shared across all profile cards.
     private volatile IReadOnlyList<AudioDeviceInfo> _playbackDevices = [];
@@ -37,6 +38,8 @@ public class SettingsViewModel : ViewModelBase
 
     public ObservableCollection<ProfileCardViewModel> Profiles { get; }
     public ObservableCollection<DeviceAliasItem> DeviceAliases { get; } = new();
+
+    public event Action? ProfileDeletedOrCloned;
 
     public bool HasNoProfiles => Profiles.Count == 0;
     // True when at least one audio device is known — used to show/hide the empty-state label.
@@ -334,7 +337,66 @@ public class SettingsViewModel : ViewModelBase
         _warningFilter || _scheduledFilter || _reminderFilter ||
         _soundFilter   || DayChips.Any(d => d.IsSelected);
 
+    public int ActiveFilterCount
+    {
+        get
+        {
+            int count = 0;
+            if (_modeFilter != "Any mode") count++;
+            if (_pinnedFilter)    count++;
+            if (_activeFilter)    count++;
+            if (_silentFilter)    count++;
+            if (_hotkeyFilter)    count++;
+            if (_notesFilter)     count++;
+            if (_iconFilter)      count++;
+            if (_warningFilter)   count++;
+            if (_scheduledFilter) count++;
+            if (_reminderFilter)  count++;
+            if (_soundFilter)     count++;
+            count += DayChips.Count(d => d.IsSelected);
+            return count;
+        }
+    }
+
+    private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetField(ref _searchText, value))
+                ApplyFilter();
+        }
+    }
+
     public ICommand ClearFiltersCommand { get; }
+    public ICommand SelectCategoryCommand { get; }
+
+    public string SelectedCategory
+    {
+        get => _selectedCategory;
+        set
+        {
+            if (SetField(ref _selectedCategory, value))
+            {
+                OnPropertyChanged(nameof(IsStartupSelected));
+                OnPropertyChanged(nameof(IsAppearSelected));
+                OnPropertyChanged(nameof(IsNotifSelected));
+                OnPropertyChanged(nameof(IsDevicesSelected));
+                OnPropertyChanged(nameof(IsTraySelected));
+                OnPropertyChanged(nameof(IsShortcutsSelected));
+                OnPropertyChanged(nameof(IsLogsSelected));
+            }
+        }
+    }
+
+    public bool IsStartupSelected   => _selectedCategory == "startup";
+    public bool IsAppearSelected    => _selectedCategory == "appear";
+    public bool IsNotifSelected     => _selectedCategory == "notif";
+    public bool IsDevicesSelected   => _selectedCategory == "devices";
+    public bool IsTraySelected      => _selectedCategory == "tray";
+    public bool IsShortcutsSelected => _selectedCategory == "shortcuts";
+    public bool IsLogsSelected      => _selectedCategory == "logs";
 
     private bool _clearing;
     private void ClearFilters()
@@ -394,10 +456,18 @@ public class SettingsViewModel : ViewModelBase
             SoundOnly     = _soundFilter,
             ActiveDays    = DayChips.Where(d => d.IsSelected).Select(d => d.Day).ToHashSet(),
         };
+        var search = _searchText?.Trim() ?? string.Empty;
         foreach (var card in Profiles)
-            card.IsVisible = card.MatchesFilter(filter);
-        HasNoFilterResults = IsAnyFilterActive && Profiles.All(p => !p.IsVisible);
+        {
+            var matchesFilter = card.MatchesFilter(filter);
+            var matchesSearch = string.IsNullOrEmpty(search) ||
+                                card.Name.Contains(search, StringComparison.OrdinalIgnoreCase);
+            card.IsVisible = matchesFilter && matchesSearch;
+        }
+        var anyActive = IsAnyFilterActive || !string.IsNullOrEmpty(search);
+        HasNoFilterResults = anyActive && Profiles.All(p => !p.IsVisible);
         OnPropertyChanged(nameof(IsAnyFilterActive));
+        OnPropertyChanged(nameof(ActiveFilterCount));
     }
 
     public HotkeyDefinition SettingsHotkey
@@ -618,6 +688,7 @@ public class SettingsViewModel : ViewModelBase
             chip.PropertyChanged += (_, _) => { if (!_clearing) ApplyFilter(); };
 
         ClearFiltersCommand = new RelayCommand(ClearFilters);
+        SelectCategoryCommand = new RelayCommand(cat => SelectedCategory = (string)cat!);
 
         // Batch-initialize from the ordered profile list — no per-item CollectionChanged during load.
         Profiles = new ObservableCollection<ProfileCardViewModel>(
@@ -887,6 +958,7 @@ public class SettingsViewModel : ViewModelBase
         newCard.LoadDevices(GetDevicesForDisplay(_playbackDevices), GetDevicesForDisplay(_recordingDevices));
         Profiles.Add(newCard);
         _onProfilesChanged();
+        ProfileDeletedOrCloned?.Invoke();
     }
 
     internal void MoveProfile(ProfileCardViewModel from, ProfileCardViewModel to)
@@ -935,6 +1007,7 @@ public class SettingsViewModel : ViewModelBase
         DeleteOrphanedIcon(iconPath, _configService.IconsDir, _logger, _errorTracker);
         ReregisterHotkeys();
         _onProfilesChanged();
+        ProfileDeletedOrCloned?.Invoke();
     }
 
     internal static void DeleteOrphanedIcon(string? iconPath, string iconsDir, IAppLogger logger, ISessionErrorTracker errorTracker, string? exceptPath = null)

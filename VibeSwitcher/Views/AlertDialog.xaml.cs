@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace VibeSwitcher.Views;
 
@@ -17,12 +18,14 @@ public partial class AlertDialog : Window
         if (kind == AlertKind.Warning)
         {
             IconBorder.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xF8, 0xE0));
-            IconText.Text = "⚠";
+            IconPath.Data = (Geometry)FindResource("IcoWarning");
+            IconPath.Stroke = new SolidColorBrush(Color.FromRgb(0x7A, 0x58, 0x00)); // dark amber
         }
         else
         {
             IconBorder.Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xF4, 0xFF));
-            IconText.Text = "ℹ";
+            IconPath.Data = (Geometry)FindResource("IcoInfo");
+            IconPath.Stroke = new SolidColorBrush(Color.FromRgb(0x15, 0x65, 0xC0)); // info blue
         }
     }
 

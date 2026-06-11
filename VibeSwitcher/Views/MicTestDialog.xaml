@@ -25,9 +25,21 @@
 
         <StackPanel Grid.Row="1" Margin="24,14,24,24">
 
-            <TextBlock x:Name="DeviceNameText"
-                       FontSize="12" Foreground="{DynamicResource SecondaryText}"
-                       TextWrapping="Wrap" Margin="0,0,0,14"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource IcoMic}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Microphone Test" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock x:Name="DeviceNameText" FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               TextWrapping="Wrap" MaxWidth="280" Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
 
             <TextBlock x:Name="SpeakPrompt"
                        Text="Speak into your microphone"

@@ -88,12 +88,22 @@
         <views:TitleBar Grid.Row="0"/>
 
         <StackPanel Grid.Row="1" Margin="20,14,20,20">
-            <TextBlock Text="What kind of profile?"
-                       FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}"
-                       Margin="0,0,0,4"/>
-            <TextBlock Text="Choose what this profile will control when activated."
-                       FontSize="12" Foreground="{DynamicResource SecondaryText}"
-                       Margin="0,0,0,16"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource IcoPlus}" Width="16" Height="16" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.8"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="What kind of profile?"
+                               FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}"/>
+                    <TextBlock Text="Choose what this profile will control when activated."
+                               FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               TextWrapping="Wrap" MaxWidth="270" Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
 
             <Button Style="{StaticResource TypeButton}" Click="Playback_Click">
                 <Grid>
@@ -104,8 +114,10 @@
                     <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17"
                             Background="{DynamicResource Accent}" VerticalAlignment="Center"
                             Margin="0,0,12,0">
-                        <TextBlock Text="🔊" FontSize="17" LineHeight="17"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Path Data="{StaticResource IcoSpeaker}" Width="16" Height="16" Stretch="Uniform"
+                              Fill="Transparent" Stroke="White" StrokeThickness="1.5"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="Playback Only" FontWeight="SemiBold" FontSize="13"
@@ -125,8 +137,10 @@
                     <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17"
                             Background="{DynamicResource Accent}" VerticalAlignment="Center"
                             Margin="0,0,12,0">
-                        <TextBlock Text="🎤" FontSize="17" LineHeight="17"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Path Data="{StaticResource IcoMic}" Width="16" Height="16" Stretch="Uniform"
+                              Fill="Transparent" Stroke="White" StrokeThickness="1.5"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="Recording Only" FontWeight="SemiBold" FontSize="13"
@@ -146,8 +160,10 @@
                     <Border Grid.Column="0" Width="34" Height="34" CornerRadius="17"
                             Background="{DynamicResource Accent}" VerticalAlignment="Center"
                             Margin="0,0,12,0">
-                        <TextBlock Text="🔗" FontSize="17" LineHeight="17"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Path Data="{StaticResource IcoHeadphones}" Width="16" Height="16" Stretch="Uniform"
+                              Fill="Transparent" Stroke="White" StrokeThickness="1.5"
+                              StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <StackPanel Grid.Column="1">
                         <TextBlock Text="Both Devices" FontWeight="SemiBold" FontSize="13"

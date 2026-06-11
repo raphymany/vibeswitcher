@@ -44,16 +44,25 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,12">
-            <TextBlock Text="Session Errors"
-                       FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}"/>
-            <TextBlock Text="Errors that occurred since the app started. Previous sessions are not shown."
-                       FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource WarningBg}"
+                    Margin="0,0,12,0" VerticalAlignment="Center">
+                <Path Data="{StaticResource IcoWarning}" Width="18" Height="18" Stretch="Uniform"
+                      Fill="Transparent" Stroke="{DynamicResource WarningText}" StrokeThickness="1.5"
+                      StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Session Errors"
+                           FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}"/>
+                <TextBlock Text="Errors that occurred since the app started. Previous sessions are not shown."
+                           FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" TextWrapping="Wrap" MaxWidth="420"/>
+            </StackPanel>
         </StackPanel>
 
         <!-- Error list -->
         <Border Grid.Row="1" Background="{DynamicResource SessionListBg}" BorderBrush="{DynamicResource SessionListBorder}"
-                BorderThickness="1" CornerRadius="8">
+                BorderThickness="1" CornerRadius="12">
             <ListView x:Name="ErrorList" BorderThickness="0" Background="Transparent"
                       ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListView.ItemContainerStyle>

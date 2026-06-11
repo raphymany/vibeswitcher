@@ -6,27 +6,18 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
-### Changed
-- **Injectable `IAppLogger` and `ISessionErrorTracker`** — `AppLogger` and `SessionErrorTracker` are now instance classes implementing `IAppLogger` and `ISessionErrorTracker` interfaces; all services, ViewModels, and dialogs receive them via constructor injection; enables proper test isolation and is the correct pattern for an open-source codebase *(PR #102)*
-- **`FakeAppLogger` and `FakeSessionErrorTracker` test doubles** — new in-memory implementations of both interfaces used throughout the test suite; all tests are now fully isolated with no shared static state *(PR #102)*
-- **`SessionErrorTracker.ErrorAdded` event thread safety** — replaced manual add/remove event accessors with a compiler-generated event backed by `Interlocked.CompareExchange` for safe concurrent subscribe/unsubscribe *(PR #102)*
-- **`AppLog` / `AppErrors` service locators** — retained for `RelayCommand` and `IconHelper` (the two callers that cannot receive injection); both backing fields marked `volatile` to prevent read/write reordering across threads *(PR #102)*
-- **`AudioService` split into focused helpers** — internal implementation extracted into `AudioDeviceEnumerator`, `AudioProfileApplier`, `AudioTestTonePlayer`, and `AudioMicMonitor`; `AudioService` is now a thin ~110-line coordinator; `IAudioService` interface and all callers are unchanged *(architecture cleanup)*
-- **`ProfileCardViewModel` retry loops** — three `while(true)` loops for hotkey-capture and schedule conflict resolution replaced with named-flag `while` and `do-while` patterns; all behavior is identical *(architecture cleanup)*
-- **`AppTriggerDialog` shows loading state** — a "Loading installed apps…" label is visible while background app discovery runs and collapses when the list is ready; closing the dialog before loading finishes cancels the pending UI update *(architecture cleanup)*
-- **Playback test tone** — frequency lowered from 440 Hz (A4) to 261 Hz (C4/middle C) and a linear fade-in/out envelope added; the tone is noticeably warmer and less startling *(pre-release audit)*
-- **"Don't show notification banner" toggle** — the sound wizard's banner toggle is now labelled "Don't show notification banner" (inverted from "Show notification banner"); the toggle starts unchecked by default so the banner is on unless the user explicitly suppresses it *(pre-release audit)*
-- **Appearance theme picker layout** — theme RadioButtons changed from a `UniformGrid` (equal-width, no gaps) to a `StackPanel` with `Padding="14,0"` per button and 8 px spacing between buttons; buttons now auto-size to their text and match the height of `ActionButton` *(pre-release audit)*
-- **Light mode border colors** — all border, separator, and input-border resources darkened (~20–30 hex steps) so card edges, input fields, and dividers are clearly visible against white/light-gray backgrounds *(pre-release audit)*
-- **Profile card icon foregrounds** — all nine icon buttons changed from `{DynamicResource DisabledText}` (light gray) to `{DynamicResource PrimaryText}` (black in light mode, white in dark mode); active-state indicator colors (green, gold) are unchanged *(pre-release audit)*
-- **Filter chip default text** — chip foreground changed from `SecondaryText` to `PrimaryText`; the active/checked state continues to show white text on orange *(pre-release audit)*
-- **All dialog badge backgrounds standardised** — `ConfirmDeleteDialog`, `HelpDialog` "?" badge, and the clone confirmation dialog now use `{DynamicResource Accent}` (orange) with a black icon, matching all other popup dialogs *(pre-release audit)*
-- **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume *(PR #40)*
-- **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
-- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` owns the full async switch flow; `AppWindowManager` owns window management; `App.xaml.cs` reduced from 248 to ~120 lines *(PR #37)*
-- **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
-
 ### Added
+- **App-wide light mode for the redesigned UI** — every hardcoded color in `SettingsWindow` and all dialogs mapped to theme tokens; `DarkTheme.xaml`/`LightTheme.xaml` now have full key parity so the entire app (not just dialogs) adapts to light/dark; closes the deferred F45 *(PR #106)*
+- **Shared geometric icon set** — new `Controls/Icons.xaml`; all emoji in dialog header badges, the tray menu, and the nav bar replaced with theme-aware geometric `Path` icons (incl. a double-music-note switch-sound icon and an alarm-clock schedule icon) *(PR #106)*
+- **Keyboard focus rings and navigation** — accent focus ring shown on keyboard navigation; profile cards, card action buttons, and scroll panels are now focusable; the collapsed filter bar drops out of the tab order *(PR #106)*
+- **Help & FAQ tray menu item** — added alongside About; both open the redesigned in-window panels *(PR #106)*
+- **G HUB-inspired dark card grid UI** — `SettingsWindow` rebuilt from scratch: custom title bar with `WindowChrome`, tab navigation (Profiles / Settings / About / FAQ), compact 192px profile cards in a `CenteredWrapPanel`, animated filter bar (expand/collapse), and profile detail overlay *(PR #105)*
+- **Always-visible profile card action strip** — two rows of icon buttons (silent toggle, app triggers, auto-switch, pin, activate / clone, schedule, switch sound, delete) are permanently visible on every card without requiring hover *(PR #105)*
+- **Profile card separators** — visual dividers between the mode badge, device rows, and hotkey chip sections on each card *(PR #105)*
+- **Filter bar with search placeholder** — collapsible filter bar with a real-time search box, placeholder text overlay, and category/day-of-week chip filters; animates open and closed with `CubicEase` *(PR #105)*
+- **About panel** — rebuilt inside the main window: app icon, version read from assembly, description, GitHub / Changelog / License / Report a bug links, Built With section (WPF/.NET 8, NAudio, CoreAudio, HID API), Raphael Mansour credit, copyright *(PR #105)*
+- **"View session log" button in Settings panel** — Diagnostics section at the bottom of the Settings panel opens the session log window directly *(PR #105)*
+- **Panel navigation auto-cleanup** — switching tabs dismisses the profile detail overlay and collapses the filter bar automatically *(PR #105)*
 - **Settings tray menu item** — "Settings" appears in the tray right-click context menu as a direct shortcut to open the Settings window *(pre-release audit)*
 - **Close button on Supported Headsets dialog** — a Close button lets users dismiss the dialog without enabling auto-switch or being redirected to the browser *(pre-release audit)*
 - **`DeleteButton` global style** — new solid-red / white-text button style in `App.xaml` for destructive actions like Delete Profile; semantically distinct from the existing `DangerButton` style *(pre-release audit)*
@@ -55,7 +46,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Color-coded tray flash while muted** — tray icon alternates between a colored dot and the active profile icon: red for mic, blue for speakers, purple for both *(PR #86)*
 - **Mute sounds** — descending blips on mic mute, ascending on unmute, frequency sweep + blips when both unmuted; no sound when muting speakers since output is silenced immediately *(PR #86)*
 - **Color-coded "i" badges** — each mute row has a colored badge (red/blue/purple) placed outside the checkbox so its tooltip is always interactive *(PR #86)*
-- **Per-profile switch sounds (F36)** — each profile can optionally play a sound when activated; choose from 8 built-in tones (Click, Chime, Blip, Bell, Alert, Soft, Ping, Custom WAV) with a volume slider; a Test Sound button previews the selection in the wizard *(PR #84)*
+- **Per-profile switch sounds (F36)** — each profile can optionally play a sound when activated; choose from 7 built-in tones (Click, Chime, Blip, Bell, Alert, Soft, Ping) or a custom WAV file, with a volume slider; a Test Sound button previews the selection in the wizard *(PR #84)*
 - **Switch sound notification banner option** — the wizard includes a "Show notification banner" toggle; when enabled, a silent tray banner appears alongside the custom sound; the Windows notification ding is never played when a switch sound is active *(PR #84)*
 - **Bell icon per-profile toggle** — a 🔔/🔕 button in the profile card action row suppresses both the tray banner and Windows ding for sound-free profiles ("No Notification Banner + Sound"); auto-hides when a switch sound is configured *(PR #84)*
 - **Section auto-collapse** — the Schedules section header hides until at least one schedule exists; the Switch Sound section hides until a sound is configured *(PR #84)*
@@ -126,7 +117,37 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Switching tooltip** — tray tooltip shows "Switching to {profile}..." while a switch is in progress; restores to the correct profile name on both success and failure *(PR #28)*
 - **Keyboard navigation in Settings** — arrow keys move focus between profile cards; read-only fields are excluded from the Tab order *(PR #28)*
 
+### Changed
+- **Tray menu** — reordered to About → Help & FAQ → Settings → Open Sound Settings; About and Help & FAQ now open the in-window panels instead of the removed standalone windows; menu/profile icons render with high-quality scaling *(PR #106)*
+- **Mute indicator** — the blinking color-swap tray icon replaced with a static colored corner badge composited onto the active profile/app icon *(PR #106)*
+- **Profile switch** — removed the brief flash to the default icon; the profile icon now appears immediately *(PR #106)*
+- **Dialog consistency** — all dialogs use the accent icon-badge header and a unified 12px content-card radius *(PR #106)*
+- **Brand accent token** — opaque `#F5820A` literals in the main window mapped to the `Accent`/`AccentColor` tokens *(PR #106)*
+- **Injectable `IAppLogger` and `ISessionErrorTracker`** — `AppLogger` and `SessionErrorTracker` are now instance classes implementing `IAppLogger` and `ISessionErrorTracker` interfaces; all services, ViewModels, and dialogs receive them via constructor injection; enables proper test isolation and is the correct pattern for an open-source codebase *(PR #102)*
+- **`FakeAppLogger` and `FakeSessionErrorTracker` test doubles** — new in-memory implementations of both interfaces used throughout the test suite; all tests are now fully isolated with no shared static state *(PR #102)*
+- **`SessionErrorTracker.ErrorAdded` event thread safety** — replaced manual add/remove event accessors with a compiler-generated event backed by `Interlocked.CompareExchange` for safe concurrent subscribe/unsubscribe *(PR #102)*
+- **`AppLog` / `AppErrors` service locators** — retained for `RelayCommand` and `IconHelper` (the two callers that cannot receive injection); both backing fields marked `volatile` to prevent read/write reordering across threads *(PR #102)*
+- **`AudioService` split into focused helpers** — internal implementation extracted into `AudioDeviceEnumerator`, `AudioProfileApplier`, `AudioTestTonePlayer`, and `AudioMicMonitor`; `AudioService` is now a thin ~110-line coordinator; `IAudioService` interface and all callers are unchanged *(architecture cleanup)*
+- **`ProfileCardViewModel` retry loops** — three `while(true)` loops for hotkey-capture and schedule conflict resolution replaced with named-flag `while` and `do-while` patterns; all behavior is identical *(architecture cleanup)*
+- **`AppTriggerDialog` shows loading state** — a "Loading installed apps…" label is visible while background app discovery runs and collapses when the list is ready; closing the dialog before loading finishes cancels the pending UI update *(architecture cleanup)*
+- **Playback test tone** — frequency lowered from 440 Hz (A4) to 261 Hz (C4/middle C) and a linear fade-in/out envelope added; the tone is noticeably warmer and less startling *(pre-release audit)*
+- **"Don't show notification banner" toggle** — the sound wizard's banner toggle is now labelled "Don't show notification banner" (inverted from "Show notification banner"); the toggle starts unchecked by default so the banner is on unless the user explicitly suppresses it *(pre-release audit)*
+- **Appearance theme picker layout** — theme RadioButtons changed from a `UniformGrid` (equal-width, no gaps) to a `StackPanel` with `Padding="14,0"` per button and 8 px spacing between buttons; buttons now auto-size to their text and match the height of `ActionButton` *(pre-release audit)*
+- **Light mode border colors** — all border, separator, and input-border resources darkened (~20–30 hex steps) so card edges, input fields, and dividers are clearly visible against white/light-gray backgrounds *(pre-release audit)*
+- **Profile card icon foregrounds** — all nine icon buttons changed from `{DynamicResource DisabledText}` (light gray) to `{DynamicResource PrimaryText}` (black in light mode, white in dark mode); active-state indicator colors (green, gold) are unchanged *(pre-release audit)*
+- **Filter chip default text** — chip foreground changed from `SecondaryText` to `PrimaryText`; the active/checked state continues to show white text on orange *(pre-release audit)*
+- **All dialog badge backgrounds standardised** — `ConfirmDeleteDialog`, `HelpDialog` "?" badge, and the clone confirmation dialog now use `{DynamicResource Accent}` (orange) with a black icon, matching all other popup dialogs *(pre-release audit)*
+- **Single profile-switch path** — `TrayService.SwitchToProfileAsync` removed; tray-menu clicks now delegate to `ProfileSwitchOrchestrator.SwitchToProfile`, the same path used by hotkeys and sleep/resume *(PR #40)*
+- **Startup active-profile restore** now goes through the orchestrator instead of calling `AudioService.ApplyProfileAsync` directly, ensuring consistent error handling and tooltip state on launch *(PR #40)*
+- **`App.xaml.cs` split into focused classes** — `ProfileSwitchOrchestrator` owns the full async switch flow; `AppWindowManager` owns window management; `App.xaml.cs` reduced from 248 to ~120 lines *(PR #37)*
+- **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
+
 ### Fixed
+- **Corrupt embedded app icon** — `vs-icon.ico` (used by the taskbar, Task Manager, and notification title) was malformed with 1-byte entries; regenerated as a valid multi-resolution icon *(PR #106)*
+- **Splash screen stole focus** — the startup splash no longer forces itself topmost or grabs focus, so it can't interrupt a fullscreen app/game *(PR #106)*
+- **Nav search box** — no longer grows unbounded when the window is widened, and the Filters button no longer overlaps it when narrowed *(PR #106)*
+- **Profile card layout** — even spacing around separators; chips show/hide correctly with no orphaned separators; schedule chip edits/removes the existing schedule *(PR #106)*
+- **Removed old-design dead code** — deleted the standalone AboutWindow, HelpDialog, and CustomReminderDialog, the legacy `app.ico`/`VibeSwitcherIcon.ico`, and unused commands, styles, and theme keys *(PR #106)*
 - **HidHeadsetService reconnects after read error** — read failures or device-open failures now trigger an automatic 2-second-backoff retry loop instead of permanently terminating the monitor task *(pre-release audit)*
 - **Window bounds saved off UI thread** — `SaveWindowBounds()` in `SettingsWindow` now dispatches disk writes to a background thread via `Task.Run`; no longer blocks the UI thread *(pre-release audit)*
 - **HID report logging no longer floods disk** — `LogDebugReport` uses the new `AppLogger.Debug` method (Console.Error only) instead of `AppLogger.Info`; HID polling events no longer accumulate in `error.log` *(pre-release audit)*
@@ -210,7 +231,6 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Scheduler timer reduced** — `SchedulerService` background tick interval changed from 1 second to 10 seconds; minute-level precision is sufficient and eliminates over 3,000 unnecessary UI-thread wakeups per hour *(PR #78)*
 - **`AppLogger` write path optimized** — removed `Directory.CreateDirectory` syscall from every log write; the directory is guaranteed to exist after session start *(PR #78)*
 - **Validation refresh narrowed** — `OnProfileChanged` now refreshes only the card that changed instead of all cards *(PR #78)*
-
 ---
 
 ## [1.1.0] - 2026-05-17

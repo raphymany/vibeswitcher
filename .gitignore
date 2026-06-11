@@ -36,6 +36,8 @@ watch-vibeswitcher.ps1
 # Internal dev notes
 AUDIT.md
 
+# Design handoff / reference assets (never part of the build)
+ClaudeDesign/
+
 # Local publish output and build artifacts
 publish/
-VibeSwitcher/Resources/Icons/VibeSwitcherIcon.ico

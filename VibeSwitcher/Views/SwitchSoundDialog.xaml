@@ -80,8 +80,10 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                 <Border Width="36" Height="36" CornerRadius="18"
                         Background="{DynamicResource Accent}" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <TextBlock Text="🎵" FontSize="17" LineHeight="17"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Path Data="{StaticResource IcoNote}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Switch Sound"
@@ -148,7 +150,7 @@
             <!-- Show notification banner toggle -->
             <Border Background="{DynamicResource InnerCardBg}"
                     BorderBrush="{DynamicResource InnerCardBorderBrush}"
-                    BorderThickness="1" CornerRadius="8"
+                    BorderThickness="1" CornerRadius="12"
                     Padding="16,12" Margin="0,20,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -176,6 +178,11 @@
                         Style="{StaticResource ActionButton}"
                         Padding="16,0"
                         Click="Cancel_Click"/>
+                <Button x:Name="RemoveBtn" Content="Remove" DockPanel.Dock="Left"
+                        Style="{StaticResource DangerButton}"
+                        Padding="16,0" Margin="8,0,0,0"
+                        Visibility="Collapsed"
+                        Click="Remove_Click"/>
                 <Button Content="Save" DockPanel.Dock="Right"
                         Style="{StaticResource PrimaryButton}"
                         Padding="20,0"

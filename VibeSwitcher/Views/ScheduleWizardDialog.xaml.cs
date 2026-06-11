@@ -32,13 +32,16 @@ public partial class ScheduleWizardDialog : Window
 
     public ScheduleEntry? Result { get; private set; }
 
+    // Set when the user clicks "Remove" while editing an existing schedule.
+    public bool RemoveRequested { get; private set; }
+
     private int _hour;
     private int _minute;
     private readonly List<DayOfWeek> _days;
     private int _reminderMinutes;
     private bool _silent;
 
-    public ScheduleWizardDialog(ScheduleEntry source, bool use12Hour)
+    public ScheduleWizardDialog(ScheduleEntry source, bool use12Hour, bool isEditing = false)
     {
         InitializeComponent();
         _use12Hour = use12Hour;
@@ -50,6 +53,12 @@ public partial class ScheduleWizardDialog : Window
         _days = new List<DayOfWeek>(source.Days);
         _reminderMinutes = source.ReminderMinutes;
         _silent = source.Silent;
+
+        if (isEditing)
+        {
+            HeaderTitle.Text = "Edit Schedule";
+            RemoveBtn.Visibility = Visibility.Visible;
+        }
 
         InitTimeStep();
         InitReminderStep();
@@ -244,6 +253,12 @@ public partial class ScheduleWizardDialog : Window
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+
+    private void Remove_Click(object sender, RoutedEventArgs e)
+    {
+        RemoveRequested = true;
+        DialogResult = true;
+    }
 
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {

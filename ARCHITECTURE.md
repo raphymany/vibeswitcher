@@ -9,7 +9,7 @@ VibeSwitcher is a Windows system tray application built with WPF and .NET 8. It 
 ```
 ┌─────────────────────────────────────────────┐
 │                  Views (XAML)               │
-│  SettingsWindow · HelpDialog · AlertDialog  │
+│  SettingsWindow · AboutPanel · AlertDialog  │
 │  HotkeyCaptureDialog · ConfirmDialog · ...  │
 └────────────────────┬────────────────────────┘
                      │ binds to
@@ -39,7 +39,7 @@ Supporting subsystems that cut across layers:
 |---|---|---|
 | `TrayService` | `Tray/` | Tray icon lifecycle, context menu, balloon notifications |
 | `ProfileSwitchOrchestrator` | root | Serialises all profile switch operations |
-| `AppWindowManager` | root | Opens and focuses Settings / About windows |
+| `AppWindowManager` | root | Opens and focuses the Settings window (and navigates to its About / FAQ panels) |
 | `MuteService` | `Services/` | Global mute/unmute by scope (mic, speakers, both); manages mute state and plays feedback sounds |
 | `SchedulerService` | `Services/` | Per-profile time-of-day schedules with optional advance reminder notifications |
 | `ThemeService` | `Services/` | Detects Windows light/dark mode and hot-swaps the app's resource dictionary |
@@ -107,8 +107,7 @@ ProfileSwitchOrchestrator.SwitchToProfile(profile)
   ├─ SwitchSoundService.PlayAsync(profile)         ← optional audio cue
   ├─ ConfigService: ActiveProfileId = profile.Id → SaveImmediate()
   ├─ TrayService.SetActiveProfile(profile.Id)       ← fast path, no rebuild
-  ├─ TrayService.UpdateIcon(profile)
-  ├─ TrayService.FlashSwitch(profile)              ← brief icon pulse
+  ├─ TrayService.UpdateIcon(profile)               ← re-applies the mute badge if muted
   └─ if ShowNotifications → TrayService.ShowBalloon(…)
 ```
 

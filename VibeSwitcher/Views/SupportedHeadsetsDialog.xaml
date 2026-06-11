@@ -30,8 +30,10 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                 <Border Width="36" Height="36" CornerRadius="18"
                         Background="{DynamicResource Accent}" Margin="0,0,12,0" VerticalAlignment="Center">
-                    <TextBlock Text="🔌" FontSize="17" LineHeight="17"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Path Data="{StaticResource IcoPlug}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5"
+                          StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="Enable Auto-Switch"

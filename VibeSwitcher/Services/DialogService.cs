@@ -98,41 +98,19 @@ public class DialogService : IDialogService
         { Owner = OwnerWindow }.ShowDialog() == true;
     }
 
-    public bool ShowConfirmScheduleDelete(string scheduleSummary)
+    public ScheduleWizardOutcome ShowScheduleWizard(ScheduleEntry source, bool use12Hour, bool isEditing = false)
     {
-        var dialog = new ConfirmDialog(
-            "Remove Schedule?",
-            $"Remove the schedule \"{scheduleSummary}\"?",
-            "Remove",
-            subtitle: "This action cannot be undone.",
-            icon: "🗑",
-            iconBgResource: "Accent")
-        { Owner = OwnerWindow };
-        return dialog.ShowDialog() == true;
+        var dialog = new ScheduleWizardDialog(source, use12Hour, isEditing) { Owner = OwnerWindow };
+        if (dialog.ShowDialog() != true) return ScheduleWizardOutcome.Cancelled;
+        if (dialog.RemoveRequested) return ScheduleWizardOutcome.RemovedOutcome;
+        return dialog.Result != null
+            ? ScheduleWizardOutcome.Saved(dialog.Result)
+            : ScheduleWizardOutcome.Cancelled;
     }
 
-    public bool ShowConfirmSoundRemove()
+    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false, bool isEditing = false)
     {
-        var dialog = new ConfirmDialog(
-            "Remove Switch Sound?",
-            "Remove the switch sound from this profile?",
-            "Remove",
-            subtitle: "This action cannot be undone.",
-            icon: "🗑",
-            iconBgResource: "Accent")
-        { Owner = OwnerWindow };
-        return dialog.ShowDialog() == true;
-    }
-
-    public ScheduleEntry? ShowScheduleWizard(ScheduleEntry source, bool use12Hour)
-    {
-        var dialog = new ScheduleWizardDialog(source, use12Hour) { Owner = OwnerWindow };
-        return dialog.ShowDialog() == true ? dialog.Result : null;
-    }
-
-    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false)
-    {
-        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, _logger, showBanner) { Owner = OwnerWindow };
+        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, _logger, showBanner, isEditing) { Owner = OwnerWindow };
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 

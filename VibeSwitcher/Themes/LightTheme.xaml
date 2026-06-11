@@ -8,12 +8,52 @@
     <SolidColorBrush x:Key="InnerCardBorderBrush" Color="#C8C8C8"/>
     <SolidColorBrush x:Key="CardBorderBrush"    Color="#C0C0C0"/>
 
+    <!-- Title bar / nav bar (new shell layout) -->
+    <SolidColorBrush x:Key="VSTitleBarBg"       Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="VSNavBg"            Color="#F9F9F9"/>
+    <SolidColorBrush x:Key="VSNavBorder"        Color="#DDDDDD"/>
+    <SolidColorBrush x:Key="VSModalBg"          Color="#FFFFFF"/>
+
+    <!-- ── Redesign content surfaces / text / borders ───────────── -->
+    <SolidColorBrush x:Key="VSLabel"            Color="#555555"/>
+    <SolidColorBrush x:Key="VSSurface"          Color="#ECECEC"/>
+    <SolidColorBrush x:Key="VSSurfaceHover"     Color="#E0E0E0"/>
+    <SolidColorBrush x:Key="VSInsetBg"          Color="#F0F0F1"/>
+    <SolidColorBrush x:Key="VSBorder"           Color="#D2D2D2"/>
+    <SolidColorBrush x:Key="VSBorderStrong"     Color="#B0B0B0"/>
+    <SolidColorBrush x:Key="VSStripOverlay"     Color="#06000000"/>
+
+    <!-- Glass action buttons (translucent black fill on light) -->
+    <SolidColorBrush x:Key="VSGlassFill"        Color="#05000000"/>
+    <SolidColorBrush x:Key="VSGlassBorder"      Color="#14000000"/>
+    <SolidColorBrush x:Key="VSHairline"         Color="#12000000"/>
+
+    <!-- Status colors (match dark theme keys) -->
+    <SolidColorBrush x:Key="VSBlue"             Color="#1565C0"/>
+    <SolidColorBrush x:Key="VSGreen"            Color="#2E7D32"/>
+    <SolidColorBrush x:Key="VSMint"             Color="#2E7D32"/>
+
+    <!-- Schedule chip (blue) -->
+    <SolidColorBrush x:Key="VSScheduleBg"          Color="#E8F1FE"/>
+    <SolidColorBrush x:Key="VSScheduleBorder"      Color="#B6D4F5"/>
+    <SolidColorBrush x:Key="VSScheduleHoverBg"     Color="#D8E8FC"/>
+    <SolidColorBrush x:Key="VSScheduleHoverBorder" Color="#92BEEA"/>
+
+    <!-- Sound chip (green) -->
+    <SolidColorBrush x:Key="VSSoundBg"             Color="#E7F7EE"/>
+    <SolidColorBrush x:Key="VSSoundBorder"         Color="#ABDBC0"/>
+    <SolidColorBrush x:Key="VSSoundHoverBg"        Color="#D6EFDF"/>
+    <SolidColorBrush x:Key="VSSoundHoverBorder"    Color="#8CCAA5"/>
+
+    <!-- Modal scrim + active-card gradient stops -->
+    <SolidColorBrush x:Key="VSScrim"               Color="#4D000000"/>
+    <Color           x:Key="VSActiveGradTop"              >#FFF1E0</Color>
+    <Color           x:Key="VSActiveGradBot"              >#FFFFFF</Color>
+
     <!-- Text -->
     <SolidColorBrush x:Key="PrimaryText"        Color="#1A1A1A"/>
     <SolidColorBrush x:Key="SecondaryText"      Color="#555555"/>
     <SolidColorBrush x:Key="TertiaryText"       Color="#777777"/>
-    <SolidColorBrush x:Key="MutedText"          Color="#888888"/>
-    <SolidColorBrush x:Key="SubtleText"         Color="#999999"/>
     <SolidColorBrush x:Key="DisabledText"       Color="#AAAAAA"/>
     <SolidColorBrush x:Key="ReadOnlyText"       Color="#666666"/>
     <SolidColorBrush x:Key="SectionLabelText"   Color="#444444"/>
@@ -68,8 +108,6 @@
     <SolidColorBrush x:Key="SuccessBadgeText"   Color="#2E7D32"/>
 
     <!-- Primary (blue) badge -->
-    <SolidColorBrush x:Key="PrimaryBadgeBg"     Color="#E3F2FD"/>
-    <SolidColorBrush x:Key="PrimaryBadgeText"   Color="#1565C0"/>
 
     <!-- Warning (amber) badge -->
     <SolidColorBrush x:Key="WarningBadgeBg"     Color="#FFF8E1"/>
@@ -84,7 +122,6 @@
     <Color           x:Key="ToggleOffColor"            >#CCCCCC</Color>
 
     <!-- Icon preview background -->
-    <SolidColorBrush x:Key="IconPreviewBg"      Color="#4A4A4A"/>
 
     <!-- Tray context menu -->
     <SolidColorBrush x:Key="MenuBg"             Color="#FFFFFF"/>
@@ -96,17 +133,11 @@
     <SolidColorBrush x:Key="TooltipBg"          Color="#FFFFFF"/>
     <SolidColorBrush x:Key="TooltipBorder"      Color="#BBBBBB"/>
 
-    <!-- HelpDialog footer -->
-    <SolidColorBrush x:Key="FooterBg"           Color="#EBEBEB"/>
-    <SolidColorBrush x:Key="FooterBorder"       Color="#BBBBBB"/>
 
     <!-- Hotkey display box -->
     <SolidColorBrush x:Key="HotkeyBg"           Color="#F5F5F5"/>
-    <SolidColorBrush x:Key="HotkeyBorder"       Color="#AAAAAA"/>
 
     <!-- About window section cards -->
-    <SolidColorBrush x:Key="AboutSectionBg"     Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="AboutSectionBorder" Color="#C8C8C8"/>
 
     <!-- Session log -->
     <SolidColorBrush x:Key="SessionListBg"      Color="#FFFFFF"/>

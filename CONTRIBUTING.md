@@ -69,4 +69,4 @@ Open an issue at [github.com/raphymany/vibeswitcher/issues](https://github.com/r
 Include:
 - Windows version and audio device names
 - Steps to reproduce
-- The diagnostic info from **About → Copy Diagnostic Info** (no sensitive data is included)
+- Relevant entries from `%APPDATA%\VibeSwitcher\error.log`, or open **Settings → Diagnostics → View session log** (no sensitive data is included)

@@ -178,9 +178,14 @@ public partial class App : Application
             profile => _orchestrator.SwitchToProfile(profile),
             _logger);
 
-        // 10. Open settings on first run, or if the user has turned off start-minimized
-        if (_configService.IsFirstRun || !_configService.Current.StartMinimized)
-            OpenSettingsWindow();
+        // 10. Show splash screen, then open settings if not start-minimized
+        var splash = new Views.SplashWindow();
+        splash.AnimationComplete += (_, _) =>
+        {
+            if (_configService!.IsFirstRun || !_configService.Current.StartMinimized)
+                OpenSettingsWindow();
+        };
+        splash.Show();
     }
 
     private void RegisterSettingsHotkey()
@@ -289,7 +294,8 @@ public partial class App : Application
 
     public void OpenSettingsWindowExpanded() => _windowManager?.OpenSettingsWindow(expandSettings: true);
 
-    public void OpenAboutWindow() => _windowManager?.OpenAboutWindow();
+    public void OpenAboutPanel() => _windowManager?.OpenAbout();
+    public void OpenFaqPanel() => _windowManager?.OpenFaq();
 
     protected override void OnExit(ExitEventArgs e)
     {

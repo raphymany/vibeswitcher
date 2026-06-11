@@ -1,4 +1,3 @@
-using System.Windows.Input;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 
@@ -9,8 +8,6 @@ public class ScheduleEntryViewModel : ViewModelBase
     private readonly ScheduleEntry _entry;
     private readonly Func<bool> _use12Hour;
     private readonly Action _onChanged;
-    private readonly Action<ScheduleEntryViewModel> _onDelete;
-    private readonly Action<ScheduleEntryViewModel> _onEdit;
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _checkConflicts;
     private readonly Action<string> _showConflictAlert;
 
@@ -79,28 +76,18 @@ public class ScheduleEntryViewModel : ViewModelBase
         }
     }
 
-    public ICommand EditCommand { get; }
-    public ICommand DeleteCommand { get; }
-
     public ScheduleEntryViewModel(
         ScheduleEntry entry,
         Func<bool> use12Hour,
         Action onChanged,
-        Action<ScheduleEntryViewModel> onDelete,
-        Action<ScheduleEntryViewModel> onEdit,
         Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> checkConflicts,
         Action<string> showConflictAlert)
     {
         _entry = entry;
         _use12Hour = use12Hour;
         _onChanged = onChanged;
-        _onDelete = onDelete;
-        _onEdit = onEdit;
         _checkConflicts = checkConflicts;
         _showConflictAlert = showConflictAlert;
-
-        EditCommand = new RelayCommand(() => _onEdit(this));
-        DeleteCommand = new RelayCommand(() => _onDelete(this));
 
         UpdateConflictState();
     }
