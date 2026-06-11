@@ -136,12 +136,7 @@ public partial class SettingsWindow : Window
             UninstallBtn.IsEnabled = false;
             PortableUninstallNote.Visibility = Visibility.Visible;
         }
-        var dataFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher");
-        InstallLocationText.Text = AppContext.BaseDirectory;
-        DataLocationText.Text    = dataFolder;
-        InstallSizeText.Text     = FormatFolderSize(AppContext.BaseDirectory);
-        DataSizeText.Text        = FormatFolderSize(dataFolder);
+        RefreshStorageInfo();
         try
         {
             var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
@@ -158,6 +153,7 @@ public partial class SettingsWindow : Window
                 _errorTracker.ErrorAdded += _errorAddedHandler;
                 UpdateLogsButton();
                 _viewModel.RefreshActiveStates();
+                RefreshStorageInfo();
             }
             else
             {
@@ -372,6 +368,17 @@ public partial class SettingsWindow : Window
     private void OpenDataFolder_Click(object sender, RoutedEventArgs e) =>
         OpenFolderInExplorer(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher"));
+
+    // Recomputed on every window show (the window is hidden, not destroyed, on close).
+    private void RefreshStorageInfo()
+    {
+        var dataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher");
+        InstallLocationText.Text = AppContext.BaseDirectory;
+        DataLocationText.Text    = dataFolder;
+        InstallSizeText.Text     = FormatFolderSize(AppContext.BaseDirectory);
+        DataSizeText.Text        = FormatFolderSize(dataFolder);
+    }
 
     private static string FormatFolderSize(string path)
     {
