@@ -2426,11 +2426,11 @@
                                 <StackPanel Margin="14,12">
                                     <TextBlock Text="THIS INSTALLATION" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
                                                Margin="0,0,0,6"/>
-                                    <Grid Margin="0,0,0,4">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                         <TextBlock Text="Version" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
                                         <TextBlock x:Name="InstallVersionText" FontSize="12.5" Foreground="{DynamicResource SecondaryText}"
-                                                   HorizontalAlignment="Right"/>
-                                    </Grid>
+                                                   Margin="8,0,0,0"/>
+                                    </StackPanel>
                                     <TextBlock Text="Location" FontSize="12.5" Foreground="{DynamicResource VSLabel}" Margin="0,4,0,2"/>
                                     <TextBlock x:Name="InstallLocationText" FontSize="11" FontFamily="Consolas"
                                                Foreground="{DynamicResource SecondaryText}" TextTrimming="CharacterEllipsis"
