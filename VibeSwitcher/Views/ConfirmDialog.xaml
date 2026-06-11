@@ -34,7 +34,8 @@
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock x:Name="TitleText" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}"/>
-                    <TextBlock x:Name="SubtitleText" FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0"/>
+                    <TextBlock x:Name="SubtitleText" FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0"
+                               TextWrapping="Wrap" MaxWidth="280" HorizontalAlignment="Left"/>
                 </StackPanel>
             </StackPanel>
 

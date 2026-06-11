@@ -7,6 +7,13 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- **Mini Mode — compact profile switcher (F44)** — shrink VibeSwitcher into a small switcher that sits in a corner of the screen: click a profile to activate it; enter via a new title-bar shrink button, the tray menu's "Mini Mode" item, a Settings button, or a configurable global toggle hotkey; the full window restores exactly where it was, and mini mode, position, and pin state persist across restarts *(PR #108)*
+- **Mini Mode setup wizard** — choose between two layouts (full-width rows with names, or a dense icon-button grid) and pick exactly which profiles appear; checking every profile auto-enables "Show all profiles" *(PR #108)*
+- **Mini Mode pin, translucency, and mute badge** — optional always-on-top pin in the mini title bar, optional smooth fade to 65% opacity when inactive (hover restores instantly), and a colored mute dot mirroring the tray badge so panic-mute state is visible over fullscreen apps *(PR #108)*
+- **Mini Mode first-run intro** — the first entry shows a welcome dialog offering to customize first; with no profiles yet, a dialog asks the user to create one and come back *(PR #108)*
+- **Mini Window settings section** — new Settings category holding the customize wizard, toggle shortcut, always-on-top, and translucency options *(PR #108)*
+- **Clickable FAQ actions** — FAQ answers now link directly to the things they describe: "+ New Profile" opens the new-profile dialog, filter/search opens the filter bar, and Settings references jump to the right section *(PR #108)*
+- **Four new FAQ cards** — Mini Mode, panic/mute hotkeys, app launch triggers, and switch sounds & silent profiles *(PR #108)*
 - **App-wide light mode for the redesigned UI** — every hardcoded color in `SettingsWindow` and all dialogs mapped to theme tokens; `DarkTheme.xaml`/`LightTheme.xaml` now have full key parity so the entire app (not just dialogs) adapts to light/dark; closes the deferred F45 *(PR #106)*
 - **Shared geometric icon set** — new `Controls/Icons.xaml`; all emoji in dialog header badges, the tray menu, and the nav bar replaced with theme-aware geometric `Path` icons (incl. a double-music-note switch-sound icon and an alarm-clock schedule icon) *(PR #106)*
 - **Keyboard focus rings and navigation** — accent focus ring shown on keyboard navigation; profile cards, card action buttons, and scroll panels are now focusable; the collapsed filter bar drops out of the tab order *(PR #106)*
@@ -143,6 +150,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ### Fixed
+- **Dialog subtitle clipping** — long subtitles in confirmation dialogs now wrap instead of being cut off at the window edge *(PR #108)*
 - **Corrupt embedded app icon** — `vs-icon.ico` (used by the taskbar, Task Manager, and notification title) was malformed with 1-byte entries; regenerated as a valid multi-resolution icon *(PR #106)*
 - **Splash screen stole focus** — the startup splash no longer forces itself topmost or grabs focus, so it can't interrupt a fullscreen app/game *(PR #106)*
 - **Nav search box** — no longer grows unbounded when the window is widened, and the Filters button no longer overlaps it when narrowed *(PR #106)*

@@ -31,6 +31,9 @@ internal sealed class FakeHotkeyService : IHotkeyService
     public HotkeyConflictException? RegisterSettingsHotkey(HotkeyDefinition hotkey) => null;
     public void UnregisterSettingsHotkey() { }
     public bool IsSettingsHotkey(ushort atomId) => false;
+    public HotkeyConflictException? RegisterCompactHotkey(HotkeyDefinition hotkey) => null;
+    public void UnregisterCompactHotkey() { }
+    public bool IsCompactHotkey(ushort atomId) => false;
     public HotkeyConflictException? RegisterMuteHotkey(MuteScope scope, HotkeyDefinition hotkey) => null;
     public void UnregisterMuteHotkey(MuteScope scope) { }
     public bool IsMuteHotkey(ushort atomId, out MuteScope scope) { scope = MuteScope.Mic; return false; }

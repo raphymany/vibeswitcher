@@ -28,5 +28,7 @@
     <Geometry x:Key="IcoInfo">M14,8 A6,6 0 1 1 2,8 A6,6 0 1 1 14,8 M8,4.7 V4.8 M8,7.2 V11.2</Geometry>
     <Geometry x:Key="IcoHelp">M14,8 A6,6 0 1 1 2,8 A6,6 0 1 1 14,8 M6,6.2 A2,2 0 1 1 8.3,8.4 C8,8.7 8,9 8,9.6 M8,11.3 V11.4</Geometry>
     <Geometry x:Key="IcoSettings">M3.9,8 A4.1,4.1 0 1 0 12.1,8 A4.1,4.1 0 1 0 3.9,8 M6.4,8 A1.6,1.6 0 1 0 9.6,8 A1.6,1.6 0 1 0 6.4,8 M8,3.9 V2.1 M8,12.1 V13.9 M3.9,8 H2.1 M12.1,8 H13.9 M10.9,5.1 L12.2,3.8 M5.1,10.9 L3.8,12.2 M10.9,10.9 L12.2,12.2 M5.1,5.1 L3.8,3.8</Geometry>
+    <Geometry x:Key="IcoCompact">M13.8,2.2 L9.6,6.4 M9.6,3.4 V6.4 H12.6 M2.2,13.8 L6.4,9.6 M6.4,12.6 V9.6 H3.4</Geometry>
+    <Geometry x:Key="IcoExpand">M9.6,6.4 L13.8,2.2 M13.8,5.2 V2.2 H10.8 M6.4,9.6 L2.2,13.8 M2.2,10.8 V13.8 H5.2</Geometry>
 
 </ResourceDictionary>

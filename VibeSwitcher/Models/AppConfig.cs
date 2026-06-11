@@ -39,4 +39,19 @@ public class AppConfig
     public HotkeyDefinition? MuteBothHotkey { get; set; }
     public bool MuteBothHotkeyEnabled { get; set; } = false;
 
+    // Mini (compact) mode
+    public bool CompactMode { get; set; } = false;
+    public HotkeyDefinition? CompactHotkey { get; set; }
+    public bool CompactHotkeyEnabled { get; set; } = true;
+    public bool CompactAlwaysOnTop { get; set; } = false;
+    public bool CompactTranslucent { get; set; } = false;
+    public double? CompactWindowLeft { get; set; } = null;
+    public double? CompactWindowTop  { get; set; } = null;
+
+    // "Rows" = full-width rows, "Grid" = icon button grid
+    public string CompactLayout { get; set; } = "Rows";
+    // Profiles shown in mini mode; empty = show all
+    public List<Guid> CompactProfileIds { get; set; } = new();
+    // First-time intro dialog has been shown
+    public bool CompactIntroShown { get; set; } = false;
 }

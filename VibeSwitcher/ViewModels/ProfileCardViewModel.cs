@@ -449,6 +449,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool IsActive => _configService.Current.ActiveProfileId == _model.Id;
 
+    // Exposed for the mini-mode list's pinned-first sort and profile selection.
+    public int SortOrder => _model.SortOrder;
+    public Guid Id => _model.Id;
+
+    // The mini list live-sorts on SortOrder, which the model mutates silently during drag reorder.
+    internal void NotifySortOrderChanged() => OnPropertyChanged(nameof(SortOrder));
+
     public bool IsHotkeySet => !string.IsNullOrWhiteSpace(_hotkeyDisplay) &&
                                _hotkeyDisplay != "—" && _hotkeyDisplay != "None";
 
@@ -670,12 +677,14 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         if (!applied)
         {
-            // Restore all hotkeys (profiles + Settings + mute) that were unregistered above.
+            // Restore all hotkeys (profiles + Settings + Mini Mode + mute) that were unregistered above.
             _hotkeyService.RegisterAll(_configService.Current.Profiles);
             var settingsHk = _configService.Current.SettingsHotkey;
             if (settingsHk is { IsEmpty: false })
                 _hotkeyService.RegisterSettingsHotkey(settingsHk);
             var cfg = _configService.Current;
+            if (cfg.CompactHotkeyEnabled && cfg.CompactHotkey is { IsEmpty: false })
+                _hotkeyService.RegisterCompactHotkey(cfg.CompactHotkey);
             if (cfg.MuteMicHotkeyEnabled && cfg.MuteMicHotkey is { IsEmpty: false })
                 _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Mic, cfg.MuteMicHotkey);
             if (cfg.MuteSpeakersHotkeyEnabled && cfg.MuteSpeakersHotkey is { IsEmpty: false })
@@ -697,6 +706,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         if (settingsHk is { IsEmpty: false } && hotkey.Matches(settingsHk))
             return "the Settings shortcut";
         var cfg = _configService.Current;
+        if (cfg.CompactHotkey is { IsEmpty: false } && hotkey.Matches(cfg.CompactHotkey))
+            return "the Mini Mode shortcut";
         if (cfg.MuteMicHotkey is { IsEmpty: false } && hotkey.Matches(cfg.MuteMicHotkey))
             return "Mute Microphone";
         if (cfg.MuteSpeakersHotkey is { IsEmpty: false } && hotkey.Matches(cfg.MuteSpeakersHotkey))

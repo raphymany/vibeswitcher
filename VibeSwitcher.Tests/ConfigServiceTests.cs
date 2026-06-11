@@ -69,6 +69,60 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void Save_ThenLoad_RoundTrip_Preserves_CompactModeSettings()
+    {
+        var svc = MakeSvc();
+        svc.Load();
+        svc.Current.CompactMode = true;
+        svc.Current.CompactHotkey = new HotkeyDefinition { VirtualKeyCode = 77, UseCtrl = true, UseShift = true };
+        svc.Current.CompactHotkeyEnabled = true;
+        svc.Current.CompactAlwaysOnTop = true;
+        svc.Current.CompactTranslucent = true;
+        svc.Current.CompactWindowLeft = 120.5;
+        svc.Current.CompactWindowTop = 240.5;
+        var keepId = Guid.NewGuid();
+        svc.Current.CompactLayout = "Grid";
+        svc.Current.CompactProfileIds = new List<Guid> { keepId };
+        svc.Current.CompactIntroShown = true;
+        svc.SaveImmediate();
+
+        var svc2 = MakeSvc();
+        svc2.Load();
+        Assert.True(svc2.Current.CompactMode);
+        Assert.NotNull(svc2.Current.CompactHotkey);
+        Assert.Equal(77, svc2.Current.CompactHotkey!.VirtualKeyCode);
+        Assert.True(svc2.Current.CompactHotkey.UseCtrl);
+        Assert.True(svc2.Current.CompactHotkey.UseShift);
+        Assert.True(svc2.Current.CompactAlwaysOnTop);
+        Assert.True(svc2.Current.CompactTranslucent);
+        Assert.Equal(120.5, svc2.Current.CompactWindowLeft);
+        Assert.Equal(240.5, svc2.Current.CompactWindowTop);
+        Assert.Equal("Grid", svc2.Current.CompactLayout);
+        Assert.Equal(new List<Guid> { keepId }, svc2.Current.CompactProfileIds);
+        Assert.True(svc2.Current.CompactIntroShown);
+    }
+
+    [Fact]
+    public void Load_OldConfigWithoutCompactFields_UsesDefaults()
+    {
+        // A config written before the mini-mode feature must load with safe defaults.
+        File.WriteAllText(Path.Combine(_dir, "config.json"), """{ "ConfigVersion": 1, "Profiles": [], "CloseToTray": false }""");
+
+        var svc = MakeSvc();
+        svc.Load();
+        Assert.False(svc.Current.CompactMode);
+        Assert.Null(svc.Current.CompactHotkey);
+        Assert.True(svc.Current.CompactHotkeyEnabled);
+        Assert.False(svc.Current.CompactAlwaysOnTop);
+        Assert.False(svc.Current.CompactTranslucent);
+        Assert.Null(svc.Current.CompactWindowLeft);
+        Assert.Null(svc.Current.CompactWindowTop);
+        Assert.Equal("Rows", svc.Current.CompactLayout);
+        Assert.Empty(svc.Current.CompactProfileIds);
+        Assert.False(svc.Current.CompactIntroShown);
+    }
+
+    [Fact]
     public void Load_CorruptPrimary_FallsBackToBackup()
     {
         var svc = MakeSvc();
