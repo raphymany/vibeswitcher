@@ -47,19 +47,6 @@ public class TrayService : IDisposable
             ToolTipText = "VibeSwitcher",
         };
 
-        // Required when creating TaskbarIcon programmatically (not via XAML)
-        // to trigger Shell_NotifyIcon registration with the system tray.
-        try
-        {
-            _taskbarIcon.ForceCreate(false);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("TrayService", ex);
-            _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
-                $"The system tray icon failed to register: {ex.Message}");
-        }
-
         _taskbarIcon.TrayLeftMouseUp += (_, _) =>
         {
             if (_configService.Current.LeftClickCyclesProfiles) CycleNextProfile();
@@ -99,6 +86,33 @@ public class TrayService : IDisposable
             menu.HorizontalOffset = hOffset;
             menu.VerticalOffset = vOffset;
         }));
+    }
+
+    // The icon is registered with the shell only once the app is ready (the splash
+    // animation has completed), so users can't interact with a half-started app.
+    private bool _iconShown;
+    private readonly List<(string Title, string Message, bool Sound)> _pendingBalloons = new();
+
+    public void ShowIcon()
+    {
+        if (_iconShown) return;
+        _iconShown = true;
+        try
+        {
+            // Required when creating TaskbarIcon programmatically (not via XAML)
+            // to trigger Shell_NotifyIcon registration with the system tray.
+            _taskbarIcon.ForceCreate(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("TrayService.ShowIcon", ex);
+            _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
+                $"The system tray icon failed to register: {ex.Message}");
+        }
+
+        foreach (var (title, message, sound) in _pendingBalloons)
+            ShowBalloon(title, message, sound);
+        _pendingBalloons.Clear();
     }
 
     public void ClearIconCache()
@@ -393,6 +407,13 @@ public class TrayService : IDisposable
 
     public void ShowBalloon(string title, string message, bool sound = true)
     {
+        // Balloons raised before the icon exists (e.g. startup hotkey conflicts)
+        // are queued and flushed when the icon appears.
+        if (!_iconShown)
+        {
+            _pendingBalloons.Add((title, message, sound));
+            return;
+        }
         _taskbarIcon.ShowNotification(
             title,
             message,
@@ -404,6 +425,7 @@ public class TrayService : IDisposable
 
     public void RecreateIcon()
     {
+        if (!_iconShown) return; // Explorer restarted before the icon was ever shown
         try
         {
             _taskbarIcon.ForceCreate(false);

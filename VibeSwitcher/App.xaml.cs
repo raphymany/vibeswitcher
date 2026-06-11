@@ -186,10 +186,13 @@ public partial class App : Application
         var splash = new Views.SplashWindow();
         splash.AnimationComplete += (_, _) =>
         {
+            // The tray icon appears only now — once the app is fully ready — so a
+            // click can never land on a half-started app.
+            _trayService!.ShowIcon();
             if (!_configService!.IsFirstRun && _configService.Current.StartMinimized) return;
             // If the user is in the tray menu when the startup-open fires, opening
             // (and activating) the window would dismiss their menu — wait it out.
-            _trayService!.RunWhenContextMenuClosed(OpenSettingsWindow);
+            _trayService.RunWhenContextMenuClosed(OpenSettingsWindow);
         };
         splash.Show();
     }
