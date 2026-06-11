@@ -72,6 +72,35 @@ public class TrayService : IDisposable
         _taskbarIcon.TrayContextMenuOpen += (_, _) => RefreshMiniMenuItem();
     }
 
+    // A WPF ContextMenu pays a one-time creation cost on its first-ever open, which
+    // makes the tray's focus handoff miss — the menu flashes and instantly closes.
+    // Priming it once invisibly off-screen at idle (well before any click, so the
+    // warm-up popup is fully torn down again) absorbs that cost out of sight.
+    // It must NOT run during the open itself: the real open would then reuse the
+    // still-alive warm-up popup at its clamped off-screen position.
+    private void PrimeContextMenuAtIdle()
+    {
+        var menu = _contextMenu;
+        menu.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() =>
+        {
+            if (menu != _contextMenu || menu.IsOpen) return; // rebuilt or already in use
+            var placement = menu.Placement;
+            var hOffset   = menu.HorizontalOffset;
+            var vOffset   = menu.VerticalOffset;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint;
+            menu.HorizontalOffset = -32000;
+            menu.VerticalOffset = -32000;
+            menu.Opacity = 0;
+            menu.IsOpen = true;
+            menu.UpdateLayout();
+            menu.IsOpen = false;
+            menu.Opacity = 1;
+            menu.Placement = placement;
+            menu.HorizontalOffset = hOffset;
+            menu.VerticalOffset = vOffset;
+        }));
+    }
+
     public void ClearIconCache()
     {
         _trayIconBytesCache.Clear();
@@ -231,6 +260,16 @@ public class TrayService : IDisposable
     public void RebuildMenu()
     {
         _contextMenu = new ContextMenu();
+        // On the menu's first-ever open its popup window doesn't exist yet when the
+        // tray library hands it focus, so the handoff misses, Windows activates the
+        // app window instead, and the menu instantly dismisses. Re-assert foreground
+        // onto the menu once it has actually opened (its window exists by then).
+        _contextMenu.Opened += (_, _) =>
+        {
+            if (System.Windows.Interop.HwndSource.FromVisual(_contextMenu)
+                is System.Windows.Interop.HwndSource src)
+                NativeMethods.WinApi.SetForegroundWindow(src.Handle);
+        };
         _taskbarIcon.ContextMenu = _contextMenu;
 
         try
@@ -338,6 +377,8 @@ public class TrayService : IDisposable
         var active = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         _taskbarIcon.ToolTipText = BuildTooltip(active);
+
+        PrimeContextMenuAtIdle();
     }
 
     // Fast path: only flip IsChecked on profile items — no menu rebuild needed on a simple switch.
