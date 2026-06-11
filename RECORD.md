@@ -1336,8 +1336,6 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 ### Branch 52: `feat/ui-redesign` ✅ Done — PR #105
 **Theme:** Full visual redesign of `SettingsWindow` from a plain vertical list to a G HUB-inspired dark card grid — new title bar, tab navigation, compact profile cards with always-visible action strips, filter bar with animated expand, profile detail overlay, About panel, FAQ panel, and Settings panel, all rebuilt in XAML while all services, ViewModels, and business logic remain unchanged.
 
-**Follow-up polish phase — PR #106:** completed app-wide light/dark theming (every hardcoded color in the main window and dialogs mapped to theme tokens; `DarkTheme.xaml`/`LightTheme.xaml` at full key parity — this closes the deferred F45); introduced a shared geometric icon set (`Controls/Icons.xaml`) replacing all emoji across dialog header badges, the tray menu, and the nav bar; reordered the tray menu and routed About/Help & FAQ to the in-window panels; replaced the blinking mute icon with a static corner badge and removed the profile-switch icon flash; regenerated the corrupt multi-resolution `vs-icon.ico` (taskbar / Task Manager / notification); made the splash non-focus-stealing; unified dialog header badges and card radii; added keyboard focus rings and fixed tab-order; and removed old-design dead code (AboutWindow, HelpDialog, CustomReminderDialog, and unused commands/styles/theme keys) — verified by four parallel audit agents with a clean build and full test pass.
-
 | # | Item | Status |
 |---|------|--------|
 | UI | `SettingsWindow.xaml` fully rebuilt: 4-row outer Grid — title bar (30px), tab nav (54px), animated filter bar (0↔115px), main panel area (*) | ✅ Done |
@@ -1351,3 +1349,19 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | UI | `DarkTheme.xaml`: all new resource keys (VSTitleBarBg, VSNavBg, VSNavBorder, VSModalBg, SaveFlashBg, InnerCardBg, InnerCardBorderBrush, ChipBg/Border/Text/HoverBg, HotkeyBg/Border, SectionLabelText, DisabledText, TertiaryText, SuccessDot, ErrorDot, WarningBg/Border/Text, HoverBg, TooltipBg/Border) | ✅ Done |
 | UI | `LightTheme.xaml`: VSTitleBarBg, VSNavBg, VSNavBorder, VSModalBg added for theme parity | ✅ Done |
 | UI | `SettingsWindow.xaml.cs`: `ShowPanel()` added; `FiltersBtn_Click` with `DoubleAnimation`; `ProfileCard_Click`, `OverlayClose_Click`, `OverlayBackdrop_MouseDown`; `Window_KeyDown` Esc priority; `AboutPanelIcon` + `AboutVersionText` set on load | ✅ Done |
+
+### Branch 52 (cont.): `feat/ui-redesign` — polish & light-mode phase ✅ Done — PR #106
+**Theme:** Follow-up phase on the same branch that finished light/dark theming, replaced all emoji with a shared geometric icon set, and refined the tray menu, dialogs, and keyboard navigation, while removing old-design code. All audio/switching/scheduling/business logic is unchanged; only a few view-models, the tray service, and the dialog service were touched for view-layer concerns (icon composition, dialog outcomes, the mute badge). Verified by four parallel read-only audit agents — clean build, 222 tests pass.
+
+| # | Item | Status |
+|---|------|--------|
+| Theme | App-wide light/dark: every hardcoded color in `SettingsWindow` + all dialogs mapped to theme tokens; `DarkTheme.xaml`/`LightTheme.xaml` at full key parity (99 keys each) — closes deferred **F45** | ✅ Done |
+| Icons | New shared `Controls/Icons.xaml` geometric icon set; all emoji replaced across dialog header badges, the tray menu, and the nav bar (double-note switch sound, alarm-clock schedule, gear settings) | ✅ Done |
+| Tray | Menu reordered (About, Help & FAQ, Settings, Open Sound Settings); About/Help & FAQ route to the in-window panels; high-quality icon scaling + spacing | ✅ Done |
+| Tray | Static colored mute badge composited onto the active icon (replaces the 500ms blinking color-swap loop); removed the profile-switch icon flash (`FlashSwitch` deleted) | ✅ Done |
+| Icon | Regenerated the corrupt multi-resolution `vs-icon.ico` (was 4×1-byte entries) used by the taskbar / Task Manager / notification title | ✅ Done |
+| Splash | `ShowActivated="False"` + non-topmost so the startup splash no longer steals focus from a fullscreen app | ✅ Done |
+| Dialogs | Unified accent icon-badge headers + 12px content-card radius across all dialogs | ✅ Done |
+| A11y | Accent keyboard focus rings (`AccentFocusVisual`); profile cards, card action buttons, and scroll panels focusable; collapsed filter bar leaves the tab order | ✅ Done |
+| Cleanup | Removed old-design dead code: `AboutWindow`, `HelpDialog`, `CustomReminderDialog`, legacy `app.ico`/`VibeSwitcherIcon.ico`, and unused commands/styles/theme keys; `ClaudeDesign/` git-ignored | ✅ Done |
+| Docs | CHANGELOG ([Unreleased] consolidated), RECORD (this section), BACKLOG (F45 ✅), ARCHITECTURE updated | ✅ Done |
