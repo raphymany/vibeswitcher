@@ -186,8 +186,10 @@ public partial class App : Application
         var splash = new Views.SplashWindow();
         splash.AnimationComplete += (_, _) =>
         {
-            if (_configService!.IsFirstRun || !_configService.Current.StartMinimized)
-                OpenSettingsWindow();
+            if (!_configService!.IsFirstRun && _configService.Current.StartMinimized) return;
+            // If the user is in the tray menu when the startup-open fires, opening
+            // (and activating) the window would dismiss their menu — wait it out.
+            _trayService!.RunWhenContextMenuClosed(OpenSettingsWindow);
         };
         splash.Show();
     }

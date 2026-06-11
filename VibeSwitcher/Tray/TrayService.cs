@@ -423,6 +423,24 @@ public class TrayService : IDisposable
             : BuildActionHeader("IcoCompact", "Mini Mode");
     }
 
+    // Runs the action immediately, or — if the tray menu is currently open — defers it
+    // until the menu closes, so window activation can't dismiss the user's menu.
+    public void RunWhenContextMenuClosed(Action action)
+    {
+        var menu = _contextMenu;
+        if (!menu.IsOpen)
+        {
+            action();
+            return;
+        }
+        void Handler(object sender, RoutedEventArgs e)
+        {
+            menu.Closed -= Handler;
+            action();
+        }
+        menu.Closed += Handler;
+    }
+
     private static MenuItem BuildSeparator()
     {
         var line = new Border { Height = 1, Margin = new Thickness(8, 4, 8, 4) };
