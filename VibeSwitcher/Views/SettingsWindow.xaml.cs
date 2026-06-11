@@ -103,6 +103,31 @@ public partial class SettingsWindow : Window
         SizeChanged     += OnBoundsChanged;
         LocationChanged += OnBoundsChanged;
 
+        // Mini-mode lists share the card view-models but use tray ordering:
+        // pinned profiles first, then the user's sort order.
+        _miniRowsView = MakeMiniView();
+        _miniGridView = MakeMiniView();
+        MiniList.ItemsSource = _miniRowsView;
+        MiniGrid.ItemsSource = _miniGridView;
+        RefreshMiniList();
+
+        Activated   += (_, _) => FadeOpacityTo(1.0);
+        Deactivated += (_, _) =>
+        {
+            if (IsCompact && _configService.Current.CompactTranslucent && !IsMouseOver)
+                FadeOpacityTo(0.65);
+        };
+        // Hovering the faded mini window brings it back to solid before any click.
+        MouseEnter += (_, _) => { if (IsCompact) FadeOpacityTo(1.0); };
+        MouseLeave += (_, _) =>
+        {
+            if (IsCompact && !IsActive && _configService.Current.CompactTranslucent)
+                FadeOpacityTo(0.65);
+        };
+
+        if (_configService.Current.CompactMode)
+            EnterCompact();
+
         _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
 
         IsVisibleChanged += (_, e) =>
@@ -124,12 +149,13 @@ public partial class SettingsWindow : Window
 
     public void ExpandSettings()
     {
+        if (IsCompact) ExitCompact();
         _viewModel.SettingsCardExpanded = true;
         ShowPanel(SettingsBodyScrollViewer);
     }
 
-    public void OpenAboutPanel() => ShowPanel(AboutPanel);
-    public void OpenFaqPanel()   => ShowPanel(FaqPanel);
+    public void OpenAboutPanel() { if (IsCompact) ExitCompact(); ShowPanel(AboutPanel); }
+    public void OpenFaqPanel()   { if (IsCompact) ExitCompact(); ShowPanel(FaqPanel); }
 
     // ── Panel navigation ────────────────────────────────────────────
 
@@ -141,6 +167,7 @@ public partial class SettingsWindow : Window
         SettingsBodyScrollViewer.Visibility = Visibility.Collapsed;
         AboutPanel.Visibility             = Visibility.Collapsed;
         FaqPanel.Visibility               = Visibility.Collapsed;
+        MiniPanel.Visibility              = Visibility.Collapsed;
         panel.Visibility                  = Visibility.Visible;
     }
 
@@ -276,6 +303,14 @@ public partial class SettingsWindow : Window
             if (_viewModel.SettingsCardExpanded)
                 ShowPanel(SettingsBodyScrollViewer);
         }
+        else if (e.PropertyName == nameof(SettingsViewModel.CompactAlwaysOnTop))
+        {
+            if (IsCompact) Topmost = _viewModel.CompactAlwaysOnTop;
+        }
+        else if (e.PropertyName == nameof(SettingsViewModel.CompactTranslucent))
+        {
+            if (!_viewModel.CompactTranslucent) FadeOpacityTo(1.0);
+        }
     }
 
     private void UpdateLogsButton()
@@ -324,11 +359,271 @@ public partial class SettingsWindow : Window
     {
         if (WindowState != WindowState.Normal) return;
         var cfg = _configService.Current;
-        cfg.WindowWidth  = Width;
-        cfg.WindowHeight = Height;
-        cfg.WindowLeft   = Left;
-        cfg.WindowTop    = Top;
+        if (IsCompact)
+        {
+            // Never let mini geometry overwrite the full-window slots.
+            cfg.CompactWindowLeft = Left;
+            cfg.CompactWindowTop  = Top;
+        }
+        else
+        {
+            cfg.WindowWidth  = Width;
+            cfg.WindowHeight = Height;
+            cfg.WindowLeft   = Left;
+            cfg.WindowTop    = Top;
+        }
         _ = Task.Run(_configService.SaveImmediate);
+    }
+
+    // ── Mini (compact) mode ─────────────────────────────────────────
+
+    public bool IsCompact { get; private set; }
+    private double _fullWidth, _fullHeight, _fullMinWidth, _fullMinHeight;
+    private const double CompactWidth = 300;
+
+    public void ToggleCompact()
+    {
+        if (IsCompact) ExitCompact();
+        else EnterCompact();
+    }
+
+    public void EnterCompact()
+    {
+        if (IsCompact) return;
+
+        // First-time guidance and empty-state guard. Skipped during the startup
+        // restore (window not loaded yet) — CompactMode=true implies prior use.
+        if (IsLoaded)
+        {
+            if (_viewModel.Profiles.Count == 0)
+            {
+                new AlertDialog("Mini Mode needs a profile",
+                    "Mini Mode shrinks VibeSwitcher into a compact profile switcher. " +
+                    "Create at least one profile first, then come back to set it up.")
+                { Owner = this }.ShowDialog();
+                return;
+            }
+
+            var cfg0 = _configService.Current;
+            if (!cfg0.CompactIntroShown)
+            {
+                cfg0.CompactIntroShown = true;
+                _ = Task.Run(_configService.SaveImmediate);
+
+                bool customize = new ConfirmDialog(
+                    "Welcome to Mini Mode",
+                    "Mini Mode shrinks VibeSwitcher into a small, always-handy profile switcher. " +
+                    "You can choose which profiles appear and pick between a row list or an icon grid — " +
+                    "or skip this and start with the defaults.",
+                    "Customize First",
+                    subtitle: "You can change all of this later in Settings → Mini Window.",
+                    iconGeometry: "IcoCompact",
+                    iconBgResource: "Accent")
+                { Owner = this }.ShowDialog() == true;
+                if (customize)
+                    CompactCustomize_Click(this, new RoutedEventArgs());
+            }
+
+            // The dialogs above pump messages — the global hotkey may have already
+            // toggled mini mode while one of them was open.
+            if (IsCompact) return;
+        }
+
+        // Flush the full-window bounds before any geometry changes so nothing mini leaks into them.
+        _boundsTimer?.Stop();
+        if (WindowState == WindowState.Maximized) WindowState = WindowState.Normal;
+        if (IsLoaded) SaveWindowBounds();
+
+        _fullWidth     = Width;
+        _fullHeight    = Height;
+        _fullMinWidth  = MinWidth;
+        _fullMinHeight = MinHeight;
+
+        IsCompact = true;
+
+        RefreshMiniList();
+        ShowPanel(MiniPanel);
+        NavBar.Visibility         = Visibility.Collapsed;
+        NavRowDef.Height          = new GridLength(0);   // collapse the fixed 54px nav row, not just its content
+        FullTitleGroup.Visibility = Visibility.Collapsed;
+        MiniTitleGroup.Visibility = Visibility.Visible;
+        TitleShrinkBtn.Visibility = Visibility.Collapsed;
+        TitleMaxBtn.Visibility    = Visibility.Collapsed;
+        TitlePinBtn.Visibility    = Visibility.Visible;
+        TitleExpandBtn.Visibility = Visibility.Visible;
+
+        ResizeMode = ResizeMode.NoResize;
+        MaxHeight  = SystemParameters.WorkArea.Height * 0.85;
+        MinHeight  = 0;
+        MinWidth   = CompactWidth;
+        MaxWidth   = CompactWidth;
+        Width      = CompactWidth;
+        SizeToContent = SizeToContent.Height;
+
+        var cfg = _configService.Current;
+        if (cfg.CompactWindowLeft.HasValue && cfg.CompactWindowTop.HasValue)
+        {
+            var vsl = SystemParameters.VirtualScreenLeft;
+            var vst = SystemParameters.VirtualScreenTop;
+            var vsw = SystemParameters.VirtualScreenWidth;
+            var vsh = SystemParameters.VirtualScreenHeight;
+            WindowStartupLocation = WindowStartupLocation.Manual; // keep the pre-show restore from being recentered
+            Left = Math.Clamp(cfg.CompactWindowLeft.Value, vsl, Math.Max(vsl, vsl + vsw - CompactWidth));
+            Top  = Math.Clamp(cfg.CompactWindowTop.Value,  vst, Math.Max(vst, vst + vsh - 200));
+        }
+
+        Topmost = cfg.CompactAlwaysOnTop;
+        UpdateMiniMuteBadge(_trayService.MuteState.Mic, _trayService.MuteState.Speakers);
+
+        if (!cfg.CompactMode)
+        {
+            cfg.CompactMode = true;
+            _ = Task.Run(_configService.SaveImmediate);
+        }
+    }
+
+    public void ExitCompact()
+    {
+        if (!IsCompact) return;
+
+        var cfg = _configService.Current;
+        cfg.CompactWindowLeft = Left;
+        cfg.CompactWindowTop  = Top;
+
+        IsCompact = false;
+
+        SizeToContent = SizeToContent.Manual;
+        MaxWidth   = double.PositiveInfinity;
+        MaxHeight  = double.PositiveInfinity;
+        MinWidth   = _fullMinWidth;
+        MinHeight  = _fullMinHeight;
+        Width      = _fullWidth;
+        Height     = _fullHeight;
+        ResizeMode = ResizeMode.CanResizeWithGrip;
+        Topmost    = false;
+        BeginAnimation(OpacityProperty, null); // release any fade hold before the direct set
+        Opacity    = 1.0;
+
+        NavBar.Visibility         = Visibility.Visible;
+        NavRowDef.Height          = new GridLength(54);
+        FullTitleGroup.Visibility = Visibility.Visible;
+        MiniTitleGroup.Visibility = Visibility.Collapsed;
+        TitleShrinkBtn.Visibility = Visibility.Visible;
+        TitleMaxBtn.Visibility    = Visibility.Visible;
+        TitlePinBtn.Visibility    = Visibility.Collapsed;
+        TitleExpandBtn.Visibility = Visibility.Collapsed;
+
+        ShowPanel(ProfilesPanel);
+
+        // Put the full window back where it last lived (clamped to the visible screen).
+        if (cfg.WindowLeft.HasValue && cfg.WindowTop.HasValue)
+        {
+            var vsl = SystemParameters.VirtualScreenLeft;
+            var vst = SystemParameters.VirtualScreenTop;
+            var vsw = SystemParameters.VirtualScreenWidth;
+            var vsh = SystemParameters.VirtualScreenHeight;
+            Left = Math.Clamp(cfg.WindowLeft.Value, vsl, Math.Max(vsl, vsl + vsw - Width));
+            Top  = Math.Clamp(cfg.WindowTop.Value,  vst, Math.Max(vst, vst + vsh - Height));
+        }
+
+        if (cfg.CompactMode)
+        {
+            cfg.CompactMode = false;
+            _ = Task.Run(_configService.SaveImmediate);
+        }
+    }
+
+    private void TitleShrink_Click(object sender, RoutedEventArgs e) => EnterCompact();
+    private void TitleExpand_Click(object sender, RoutedEventArgs e) => ExitCompact();
+    private void TitlePin_Click(object sender, RoutedEventArgs e) =>
+        _viewModel.CompactAlwaysOnTop = !_viewModel.CompactAlwaysOnTop;
+
+    private void FadeOpacityTo(double target)
+    {
+        var anim = new DoubleAnimation(target, TimeSpan.FromMilliseconds(180))
+        {
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+        };
+        BeginAnimation(OpacityProperty, anim);
+    }
+
+    // Mirrors the tray mute badge inside the mini title bar (the tray is hidden under fullscreen apps).
+    public void UpdateMiniMuteBadge(bool micMuted, bool speakersMuted)
+    {
+        if (!micMuted && !speakersMuted)
+        {
+            MiniMuteDot.Visibility = Visibility.Collapsed;
+            return;
+        }
+        var (color, tip) = (micMuted, speakersMuted) switch
+        {
+            (true, true)  => (Color.FromRgb(150, 70, 230), "Mic + Speakers muted"),
+            (true, false) => (Color.FromRgb(225, 55, 55),  "Mic muted"),
+            _             => (Color.FromRgb(45, 120, 230), "Speakers muted"),
+        };
+        MiniMuteDot.Fill = new SolidColorBrush(color);
+        MiniMuteDot.ToolTip = tip;
+        MiniMuteDot.Visibility = Visibility.Visible;
+    }
+
+    private System.Windows.Data.ListCollectionView _miniRowsView = null!;
+    private System.Windows.Data.ListCollectionView _miniGridView = null!;
+
+    private System.Windows.Data.ListCollectionView MakeMiniView()
+    {
+        var view = new System.Windows.Data.ListCollectionView(_viewModel.Profiles)
+        {
+            IsLiveSorting = true,
+        };
+        view.SortDescriptions.Add(new SortDescription(nameof(ProfileCardViewModel.IsPinned), ListSortDirection.Descending));
+        view.SortDescriptions.Add(new SortDescription(nameof(ProfileCardViewModel.SortOrder), ListSortDirection.Ascending));
+        view.LiveSortingProperties.Add(nameof(ProfileCardViewModel.IsPinned));
+        view.LiveSortingProperties.Add(nameof(ProfileCardViewModel.SortOrder));
+        return view;
+    }
+
+    // Applies the user's mini-mode profile selection and layout choice.
+    private void RefreshMiniList()
+    {
+        var cfg = _configService.Current;
+
+        Predicate<object>? filter = null;
+        var ids = cfg.CompactProfileIds;
+        // A selection only applies while at least one selected profile still exists;
+        // otherwise (or with no selection) every profile is shown.
+        if (ids.Count > 0 && _viewModel.Profiles.Any(p => ids.Contains(p.Id)))
+            filter = o => o is ProfileCardViewModel card && ids.Contains(card.Id);
+        _miniRowsView.Filter = filter;
+        _miniGridView.Filter = filter;
+
+        bool grid = cfg.CompactLayout == "Grid";
+        MiniList.Visibility = grid ? Visibility.Collapsed : Visibility.Visible;
+        MiniGrid.Visibility = grid ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void CompactCustomize_Click(object sender, RoutedEventArgs e)
+    {
+        var cfg = _configService.Current;
+        var selected = cfg.CompactProfileIds.ToHashSet();
+
+        var choices = _viewModel.Profiles
+            .OrderByDescending(p => p.IsPinned).ThenBy(p => p.SortOrder)
+            .Select(p => new MiniModeSetupDialog.ProfileChoice
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Icon = p.IconPreview,
+                IsSelected = selected.Contains(p.Id),
+            })
+            .ToList();
+
+        var dialog = new MiniModeSetupDialog(cfg.CompactLayout, choices) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        cfg.CompactLayout = dialog.SelectedLayout;
+        cfg.CompactProfileIds = dialog.SelectedProfileIds;
+        _ = Task.Run(_configService.SaveImmediate);
+        RefreshMiniList();
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -451,6 +746,42 @@ public partial class SettingsWindow : Window
         _viewModel.SettingsHotkey = new HotkeyDefinition();
     }
 
+    private void CompactHotkeyButton_Click(object sender, RoutedEventArgs e)
+    {
+        _hotkeyService.UnregisterAll();
+
+        var dialogSeed = _viewModel.CompactHotkey;
+        while (true)
+        {
+            var dialog = new HotkeyCaptureDialog(dialogSeed, "Press any key combination to assign a shortcut for toggling Mini Mode") { Owner = this };
+            if (dialog.ShowDialog() != true || dialog.CapturedHotkey == null) break;
+
+            var captured = dialog.CapturedHotkey;
+            if (!captured.IsEmpty)
+            {
+                var conflict = FindHotkeyConflict(captured, excludeScope: null, excludeCompactHotkey: true);
+                if (conflict != null)
+                {
+                    bool retry = new ConflictRetryDialog("Hotkey Already in Use",
+                        $"'{captured.ToDisplayString()}' is already assigned to {conflict}.")
+                    { Owner = this }.ShowDialog() == true;
+                    if (retry) { dialogSeed = captured; continue; }
+                    break;
+                }
+            }
+
+            _viewModel.CompactHotkey = captured;
+            break;
+        }
+
+        _viewModel.ReregisterHotkeys();
+    }
+
+    private void CompactHotkeyClear_Click(object sender, RoutedEventArgs e)
+    {
+        _viewModel.CompactHotkey = new HotkeyDefinition();
+    }
+
     private void MuteHotkeyClear_Click(object sender, RoutedEventArgs e)
     {
         var tag = (sender as FrameworkElement)?.Tag as string;
@@ -515,7 +846,7 @@ public partial class SettingsWindow : Window
         _viewModel.ReregisterHotkeys();
     }
 
-    private string? FindHotkeyConflict(HotkeyDefinition captured, VibeSwitcher.Models.MuteScope? excludeScope, bool excludeSettingsHotkey = false)
+    private string? FindHotkeyConflict(HotkeyDefinition captured, VibeSwitcher.Models.MuteScope? excludeScope, bool excludeSettingsHotkey = false, bool excludeCompactHotkey = false)
     {
         var profileOwner = _configService.Current.Profiles
             .FirstOrDefault(p => !p.Hotkey.IsEmpty && captured.Matches(p.Hotkey))?.Name;
@@ -526,6 +857,13 @@ public partial class SettingsWindow : Window
             var settingsHk = _configService.Current.SettingsHotkey;
             if (settingsHk != null && !settingsHk.IsEmpty && captured.Matches(settingsHk))
                 return "\"Open / Close VibeSwitcher\"";
+        }
+
+        if (!excludeCompactHotkey)
+        {
+            var compactHk = _configService.Current.CompactHotkey;
+            if (compactHk != null && !compactHk.IsEmpty && captured.Matches(compactHk))
+                return "\"Toggle Mini Mode\"";
         }
 
         var muteChecks = new[]
@@ -542,6 +880,45 @@ public partial class SettingsWindow : Window
         }
 
         return null;
+    }
+
+    // FAQ inline actions: jump straight to the place the answer talks about.
+    private void FaqAction_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (sender as System.Windows.Documents.Hyperlink)?.Tag as string;
+        switch (tag)
+        {
+            case "newProfile":
+                ShowPanel(ProfilesPanel);
+                _viewModel.AddProfileCommand.Execute(null);
+                break;
+            case "profiles":
+                ShowPanel(ProfilesPanel);
+                break;
+            case "filters":
+                ShowPanel(ProfilesPanel);
+                if (!_filterBarOpen) FiltersBtn_Click(this, new RoutedEventArgs());
+                break;
+            case "shortcuts":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "shortcuts";
+                break;
+            case "notifications":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "notif";
+                break;
+            case "backup":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "devices";
+                break;
+            case "miniSettings":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "compact";
+                break;
+            case "miniTry":
+                EnterCompact();
+                break;
+        }
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

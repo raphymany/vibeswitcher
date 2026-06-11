@@ -570,7 +570,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
-| F44 | Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand; part of planned UI/UX redesign phase | Deferred |
+| ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
 
 ---
@@ -585,8 +585,8 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 22 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 43 | 31 | 7 |
-| **Total** | **117** | **100** | **9** |
+| Feature Additions | 43 | 32 | 6 |
+| **Total** | **117** | **101** | **8** |
 
 *Totals count every tracked item. The 8-item difference between Total and Fixed + Remaining is reclassified work: M1 → F16, M11 → F2, and L17 → F16 (moved to Feature Additions); F4, F12, F14 (removed); and F10, F27 (dropped).*
 
@@ -602,7 +602,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 **All remaining work is tracked in BACKLOG.md — Planned Branches (Branches 28–43, in execution order).**
 
-**Explicitly deferred (no branch):** C2/8.1 (installer — saving for last), C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — needs installer first), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (distribution and discovery — post-v1.0), 10.8 (website), Mica/Acrylic + F44/compact mode (UI/UX redesign phase).
+**Explicitly deferred (no branch):** C2/8.1 (installer — saving for last), C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — needs installer first), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (distribution and discovery — post-v1.0), 10.8 (website), Mica/Acrylic (UI/UX redesign phase).
 
 *(M16, M17 resolved PR #40; M18, M19 resolved PR #42; L21, L22, L23 resolved PR #44; L20/8.9 resolved PR #46; 7.16 resolved PR #48)*
 
@@ -1362,3 +1362,20 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | A11y | Accent keyboard focus rings (`AccentFocusVisual`); profile cards, card action buttons, and scroll panels focusable; collapsed filter bar leaves the tab order | ✅ Done |
 | Cleanup | Removed old-design dead code: `AboutWindow`, `HelpDialog`, `CustomReminderDialog`, legacy `app.ico`/`VibeSwitcherIcon.ico`, and unused commands/styles/theme keys; `ClaudeDesign/` git-ignored | ✅ Done |
 | Docs | CHANGELOG ([Unreleased] consolidated), RECORD (this section), BACKLOG (F45 ✅), ARCHITECTURE updated | ✅ Done |
+
+### Branch 51: `feat/compact-mode` ✅ Done — PR #108
+**Theme:** Mini Mode (F44) — the Settings window can shrink into a small always-handy profile switcher. Entered via a title-bar shrink button, a tray menu item, a Settings button, or a configurable global hotkey; the full window restores exactly as it was. All switching logic unchanged — mini rows/buttons invoke the existing per-card ActivateCommand. Verified by two QA agent rounds (all High/Medium findings fixed) — clean build, 224 tests pass.
+
+| # | Item | Status |
+|---|------|--------|
+| Core | EnterCompact/ExitCompact: nav row collapses to 0, panels swap to MiniPanel, window locks to 300px wide with auto height (capped at 85% of work area, then scrolls); full geometry and mini position stored in separate config slots that never cross-contaminate | ✅ Done |
+| UI | Rows layout — full-width clickable rows (icon, name, active dot + accent tint, hotkey tooltip); Grid layout — 58px icon buttons in a wrap grid, name on hover; both ordered pinned-first then sort order with live re-sorting | ✅ Done |
+| Wizard | `MiniModeSetupDialog` — layout choice (Rows / Icon grid) + profile checklist; "Show all profiles" starts off and auto-enables when every profile is checked; empty selection = show all | ✅ Done |
+| Hotkey | New global toggle hotkey (config + registration + WM_HOTKEY dispatch + conflict detection in every capture path, incl. the profile-card path); restored correctly after hotkey-capture cancellation | ✅ Done |
+| Tray | "Mini Mode" menu item (after Settings) opens straight into mini; About/FAQ/Settings tray actions exit mini first | ✅ Done |
+| Title bar | Mini header: small animated logo, keybind chip, colored mute dot mirroring the tray badge, pin (always-on-top) toggle, expand button; shrink button shown in full mode | ✅ Done |
+| Polish | Optional translucency when inactive (180ms eased fade to 65%, hover restores); first-run intro dialog with "Customize First"; no-profiles guard dialog; splash-safe startup restore into mini | ✅ Done |
+| Settings | New "Mini Window" category: Customize wizard, toggle shortcut (Set/Clear), Always on top, Translucent when inactive | ✅ Done |
+| FAQ | Clickable in-app actions across FAQ answers (new profile, filter bar, settings sections, try mini) + 4 new cards: Mini Mode, panic/mute hotkeys, app launch triggers, switch sounds & silent profiles | ✅ Done |
+| Fix | Confirmation-dialog subtitles wrap instead of clipping; re-entrancy guard prevents the mini hotkey from corrupting saved full-window bounds while the intro dialog is open | ✅ Done |
+| Tests | 2 new ConfigService tests (mini-mode round-trip + legacy-config defaults); suite at 224 | ✅ Done |

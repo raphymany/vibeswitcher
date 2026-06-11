@@ -103,7 +103,10 @@ public partial class App : Application
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher, _logger, _errorTracker);
         _muteService = new MuteService(_logger);
         _muteService.MuteStateChanged += () =>
+        {
             _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
+            _windowManager?.NotifyMuteChanged(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
+        };
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService,
             _logger, _errorTracker, _themeService.Apply,
             switchProfile: profile => _orchestrator.SwitchToProfile(profile),
@@ -118,6 +121,7 @@ public partial class App : Application
         // 6. Register hotkeys
         RegisterHotkeys();
         RegisterSettingsHotkey();
+        RegisterCompactHotkey();
         RegisterMuteHotkeys();
 
         // 7. Restore last active profile via the orchestrator so the single switch path is always used.
@@ -203,6 +207,21 @@ public partial class App : Application
         }
     }
 
+    private void RegisterCompactHotkey()
+    {
+        if (!_configService!.Current.CompactHotkeyEnabled) return;
+        var hotkey = _configService.Current.CompactHotkey;
+        if (hotkey == null || hotkey.IsEmpty) return;
+        var conflict = _hotkeyService!.RegisterCompactHotkey(hotkey);
+        if (conflict != null)
+        {
+            _errorTracker!.Record(ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                $"Could not register Mini Mode hotkey '{conflict.Hotkey.ToDisplayString()}' — another app is using it.");
+            _trayService!.ShowBalloon("Hotkey Conflict",
+                $"Mini Mode hotkey '{conflict.Hotkey.ToDisplayString()}' is in use by another app.");
+        }
+    }
+
     private void RegisterMuteHotkeys()
     {
         var cfg = _configService!.Current;
@@ -267,6 +286,11 @@ public partial class App : Application
                 OpenSettingsWindow();
                 handled = true;
             }
+            else if (_hotkeyService.IsCompactHotkey(atomId))
+            {
+                ToggleMiniMode();
+                handled = true;
+            }
             else if (_hotkeyService.IsMuteHotkey(atomId, out var muteScope))
             {
                 _muteService!.Toggle(muteScope);
@@ -296,6 +320,8 @@ public partial class App : Application
 
     public void OpenAboutPanel() => _windowManager?.OpenAbout();
     public void OpenFaqPanel() => _windowManager?.OpenFaq();
+    public void OpenMiniMode() => _windowManager?.OpenMiniMode();
+    public void ToggleMiniMode() => _windowManager?.ToggleCompactMode();
 
     protected override void OnExit(ExitEventArgs e)
     {

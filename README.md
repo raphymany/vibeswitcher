@@ -27,6 +27,7 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 - **App launch triggers** — link one or more executables to a profile; VibeSwitcher switches automatically when any of those apps launches and stays on the linked profile until you switch manually
 - **Drag-and-drop reorder** — rearrange profile cards by dragging them
 - **Import / export** — back up your full configuration to a `.json` file and restore it on any machine
+- **Mini Mode** — shrink the window into a small profile switcher that sits in a corner of your screen; choose a row list or icon grid, pick which profiles appear, pin it always-on-top, let it fade when inactive, and toggle it with its own global hotkey
 - **Light / dark / system theme** — follows the Windows OS theme automatically, or lock it to light or dark
 - **Persistent config** — profiles and settings survive reboots; atomic writes with automatic backup
 

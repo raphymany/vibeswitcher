@@ -192,6 +192,78 @@
         </Style>
 
         <!-- ── Title bar button (min/max/close) ─────────────────── -->
+        <!-- Mini-mode grid layout: square icon button, name on hover -->
+        <Style x:Key="MiniGridBtn" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="{DynamicResource VSSurface}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Width" Value="58"/>
+            <Setter Property="Height" Value="58"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5"
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource VSSurfaceHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                    <Setter Property="Background" Value="#14F5820A"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Mini-mode profile row: the whole row is the activate button -->
+        <Style x:Key="MiniRowBtn" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Background" Value="{DynamicResource VSSurface}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bg" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource VSSurfaceHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                    <Setter Property="Background" Value="#14F5820A"/>
+                    <Setter Property="BorderBrush" Value="#66F5820A"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="TitleBarBtn" TargetType="Button">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Width"      Value="44"/>
@@ -493,7 +565,7 @@
     <Grid Background="{DynamicResource AppBg}">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>   <!-- TitleBar -->
-            <RowDefinition Height="54"/>   <!-- TopNav -->
+            <RowDefinition x:Name="NavRowDef" Height="54"/>   <!-- TopNav (0 in mini mode) -->
             <RowDefinition Height="Auto"/> <!-- FilterBar -->
             <RowDefinition Height="*"/>    <!-- Content -->
         </Grid.RowDefinitions>
@@ -511,7 +583,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Left: title (draggable via WindowChrome caption area) -->
-                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                <StackPanel x:Name="FullTitleGroup" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
                     <Image Source="pack://application:,,,/Resources/Icons/vs-icon-32.png"
                            Width="16" Height="16" Stretch="Uniform" Margin="0,0,6,0"
                            RenderOptions.BitmapScalingMode="HighQuality"/>
@@ -521,12 +593,70 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Right: min / max / close -->
+                <!-- Left (mini mode): animated logo + title + mini-mode keybind -->
+                <StackPanel x:Name="MiniTitleGroup" Grid.Column="0" Orientation="Horizontal"
+                            VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
+                    <controls:NavLogoIcon Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="VibeSwitcher"
+                               FontSize="11.5" FontWeight="SemiBold"
+                               Foreground="{DynamicResource Accent}"
+                               VerticalAlignment="Center"/>
+                    <Border Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
+                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0"
+                            VerticalAlignment="Center" ToolTip="Mini Mode shortcut">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="None">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding CompactHotkeyDisplay}" FontFamily="Courier New"
+                                   FontSize="9.5" Foreground="{DynamicResource VSLabel}"/>
+                    </Border>
+                    <Ellipse x:Name="MiniMuteDot" Width="9" Height="9" Margin="8,0,0,0"
+                             VerticalAlignment="Center" Visibility="Collapsed"/>
+                </StackPanel>
+
+                <!-- Right: shrink-to-mini / pin / expand / min / max / close -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="TitleShrinkBtn" Style="{StaticResource TitleBarBtn}"
+                            Click="TitleShrink_Click" ToolTip="Switch to Mini Mode">
+                        <Path Data="{StaticResource IcoCompact}" Stretch="Uniform" Width="11" Height="11"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              StrokeLineJoin="Round" Fill="Transparent"/>
+                    </Button>
+                    <Button x:Name="TitlePinBtn" Click="TitlePin_Click" Visibility="Collapsed"
+                            ToolTip="Keep mini window on top">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource TitleBarBtn}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CompactAlwaysOnTop}" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Path Data="M5.5,2 H10.5 M6.5,2 V6 L4,8.5 H12 L9.5,6 V2 M8,8.5 V13.5"
+                              Stretch="Uniform" Width="11" Height="11"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              StrokeLineJoin="Round" Fill="Transparent"/>
+                    </Button>
+                    <Button x:Name="TitleExpandBtn" Style="{StaticResource TitleBarBtn}"
+                            Click="TitleExpand_Click" Visibility="Collapsed" ToolTip="Back to full window">
+                        <Path Data="{StaticResource IcoExpand}" Stretch="Uniform" Width="11" Height="11"
+                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                              StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                              StrokeLineJoin="Round" Fill="Transparent"/>
+                    </Button>
                     <Button Style="{StaticResource TitleBarBtn}"
                             Content="─" FontSize="11"
                             Click="TitleMinimize_Click"/>
-                    <Button Style="{StaticResource TitleBarBtn}"
+                    <Button x:Name="TitleMaxBtn" Style="{StaticResource TitleBarBtn}"
                             Content="□"
                             Click="TitleMaximize_Click"/>
                     <Button Style="{StaticResource TitleBarCloseBtn}"
@@ -539,7 +669,7 @@
         <!-- ══════════════════════════════════════════════════════════
              ROW 1 — Top Navigation Bar
              ══════════════════════════════════════════════════════════ -->
-        <Border Grid.Row="1"
+        <Border x:Name="NavBar" Grid.Row="1"
                 Background="{DynamicResource VSNavBg}"
                 BorderBrush="{DynamicResource VSNavBorder}" BorderThickness="0,0,0,1">
             <Grid Margin="18,0">
@@ -1639,6 +1769,31 @@
                                 </StackPanel>
                             </Button>
 
+                            <!-- Mini Window -->
+                            <Button Command="{Binding SelectCategoryCommand}" CommandParameter="compact">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsCompactSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="{StaticResource IcoCompact}"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Mini Window" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
                             <!-- Logs -->
                             <Button Command="{Binding SelectCategoryCommand}" CommandParameter="logs">
                                 <Button.Style>
@@ -2107,6 +2262,101 @@
                             </Border>
                         </StackPanel>
 
+                        <!-- ── Mini Window ──────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCompactSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Mini Window" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,6"/>
+                            <TextBlock Text="Mini Mode shrinks VibeSwitcher into a small profile switcher you can keep in a corner of your screen. Enter it with the title bar button, the tray menu, or the shortcut below."
+                                       FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel>
+                                    <!-- Profiles & layout wizard -->
+                                    <Grid Margin="14,10">
+                                        <StackPanel>
+                                            <TextBlock Text="Profiles &amp; layout" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Pick which profiles appear in Mini Mode and switch between the row list and a compact icon grid."
+                                                       FontSize="10.5" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,3,110,0"/>
+                                        </StackPanel>
+                                        <Button Content="Customize…" Style="{StaticResource ActionButton}"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center" Click="CompactCustomize_Click"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Toggle Mini Mode shortcut -->
+                                    <Grid Margin="14,9">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Toggle Mini Mode" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding CompactHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="None">
+                                                                <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Margin="6,0,0,0" Click="CompactHotkeyButton_Click"/>
+                                        <Button Grid.Column="3" Content="✕" Margin="4,0,0,0" Click="CompactHotkeyClear_Click">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding CompactHotkeyIsSet}" Value="False">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Always on top -->
+                                    <Grid Margin="14,10">
+                                        <StackPanel>
+                                            <TextBlock Text="Always on top" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Keeps the mini window above games and other apps. Also toggled by the pin in the mini title bar."
+                                                       FontSize="10.5" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,3,46,0"/>
+                                        </StackPanel>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CompactAlwaysOnTop}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Translucent when inactive -->
+                                    <Grid Margin="14,10">
+                                        <StackPanel>
+                                            <TextBlock Text="Translucent when inactive" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="The mini window fades slightly when another app has focus, so it stays out of the way."
+                                                       FontSize="10.5" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,3,46,0"/>
+                                        </StackPanel>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CompactTranslucent}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Try it -->
+                                    <StackPanel Margin="14,12">
+                                        <Button Content="Switch to Mini Mode now" Style="{StaticResource ActionButton}"
+                                                HorizontalAlignment="Left" Click="TitleShrink_Click"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
                         <!-- ── Logs ─────────────────────────── -->
                         <StackPanel>
                             <StackPanel.Style>
@@ -2137,7 +2387,92 @@
 
             </Grid><!--end settings panel-->
 
+            <!-- ── PANEL M: Mini Mode profile list ────────────────── -->
+            <ScrollViewer x:Name="MiniPanel"
+                          Visibility="Collapsed"
+                          VerticalScrollBarVisibility="Auto"
+                          Focusable="True"
+                          Padding="10,8,10,4">
+                <Grid>
+                <ItemsControl x:Name="MiniList">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource MiniRowBtn}"
+                                    Command="{Binding ActivateCommand}"
+                                    ToolTip="{Binding HotkeyDisplay}"
+                                    ToolTipService.IsEnabled="{Binding IsHotkeySet}"
+                                    ToolTipService.ShowOnDisabled="True">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0" Width="24" Height="24" Margin="0,0,10,0">
+                                        <Image Source="{Binding IconPreview}" Stretch="Uniform"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
+                                        <controls:AboutLogoIcon Width="22" Height="22">
+                                            <controls:AboutLogoIcon.Style>
+                                                <Style TargetType="controls:AboutLogoIcon">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </controls:AboutLogoIcon.Style>
+                                        </controls:AboutLogoIcon>
+                                    </Grid>
+                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <Ellipse Grid.Column="2" Width="8" Height="8" Fill="{DynamicResource Accent}"
+                                             VerticalAlignment="Center" Margin="8,0,2,0"
+                                             Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
+                <!-- Grid layout: icon buttons, name on hover -->
+                <ItemsControl x:Name="MiniGrid" Visibility="Collapsed" HorizontalAlignment="Center">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel HorizontalAlignment="Center"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource MiniGridBtn}"
+                                    Command="{Binding ActivateCommand}"
+                                    ToolTip="{Binding Name}"
+                                    ToolTipService.ShowOnDisabled="True">
+                                <Grid Width="30" Height="30">
+                                    <Image Source="{Binding IconPreview}" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
+                                    <controls:AboutLogoIcon Width="26" Height="26">
+                                        <controls:AboutLogoIcon.Style>
+                                            <Style TargetType="controls:AboutLogoIcon">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </controls:AboutLogoIcon.Style>
+                                    </controls:AboutLogoIcon>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                </Grid>
+            </ScrollViewer>
 
             <!-- ── PANEL C: About ─────────────────────────────────── -->
             <ScrollViewer x:Name="AboutPanel"
@@ -2304,7 +2639,7 @@
                         <StackPanel>
                             <TextBlock Text="SETTING UP PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Click "+ New Profile" to create a profile. Choose a mode (Playback, Recording, or Both), pick your devices, then give it a name. You can assign a global hotkey to activate it from anywhere.
+                                Click <Hyperlink Tag="newProfile" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">+ New Profile</Hyperlink> to create a profile. Choose a mode (Playback, Recording, or Both), pick your devices, then give it a name. You can assign a global hotkey to activate it from anywhere.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -2313,7 +2648,7 @@
                         <StackPanel>
                             <TextBlock Text="CUSTOM PROFILE ICONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,6">
-                                Open a profile, click its icon, and choose "Browse from disk" to use your own <Run FontFamily="Consolas">.ico</Run> file. To make one from any picture:
+                                Open <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile</Hyperlink>, click its icon, and choose "Browse from disk" to use your own <Run FontFamily="Consolas">.ico</Run> file. To make one from any picture:
                             </TextBlock>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" LineHeight="21">
                                 1.&#160; Save the picture you want to use.<LineBreak/>
@@ -2327,7 +2662,7 @@
                         <StackPanel>
                             <TextBlock Text="FILTERING PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Use the search box and filter chips to narrow down your profile list. Filters stack (AND logic). Clear all filters with the ✕ Clear button.
+                                Use the <Hyperlink Tag="filters" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">search box and filter chips</Hyperlink> to narrow down your profile list. Filters stack (AND logic). Clear all filters with the ✕ Clear button.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -2336,7 +2671,7 @@
                         <StackPanel>
                             <TextBlock Text="USING HOTKEYS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Click a card to open profile details, then click "Set Hotkey". Press your desired key combination. Hotkeys work globally — even when VibeSwitcher is minimized to the tray.
+                                Click <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to open profile details, then click "Set Hotkey". Press your desired key combination. Hotkeys work globally — even when VibeSwitcher is minimized to the tray. App-wide shortcuts (open/close the window, mute) live in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -2345,7 +2680,7 @@
                         <StackPanel>
                             <TextBlock Text="SCHEDULED SWITCHING" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Click the schedule button (&#x231A;) on a card to add a schedule. Choose a time and days of the week. Multiple schedules per profile are supported. The blue dot on a card means at least one schedule is active.
+                                Click the schedule button (&#x231A;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to add a schedule. Choose a time and days of the week. Multiple schedules per profile are supported. The blue dot on a card means at least one schedule is active.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -2354,7 +2689,43 @@
                         <StackPanel>
                             <TextBlock Text="AUTO-SWITCH ON CONNECT" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Click the auto-switch button (&#x26A1;) on a card to enable auto-switch. VibeSwitcher will activate this profile whenever its playback device connects. Best for wireless headsets and USB audio interfaces.
+                                Click the auto-switch button (&#x26A1;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to enable auto-switch. VibeSwitcher will activate this profile whenever its playback device connects. Best for wireless headsets and USB audio interfaces.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="MINI MODE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                Shrink VibeSwitcher into a small profile switcher that sits in a corner of your screen — perfect over games. Enter it with the shrink button in the title bar, the tray menu, or a hotkey; the expand button brings the full window back. In <Hyperlink Tag="miniSettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Mini Window</Hyperlink> you can pick the layout (rows or icon grid), choose which profiles appear, set the toggle shortcut, keep it always on top, and make it fade when inactive. Or just <Hyperlink Tag="miniTry" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">try Mini Mode now</Hyperlink>.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="PANIC / MUTE HOTKEYS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                Set global hotkeys to instantly mute your microphone, speakers, or both — from inside any app. While muted, the tray icon (and the mini window) shows a colored badge: red for mic, blue for speakers, purple for both. Press the hotkey again to unmute. Set them up in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="APP LAUNCH TRIGGERS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                Link one or more programs to a profile with the trigger button (&#x25B6;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">its card</Hyperlink> — VibeSwitcher switches to that profile automatically within seconds of any linked app launching, and stays there until you switch yourself.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="SWITCH SOUNDS &amp; SILENT PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                Each profile can play a tone when it activates — choose from 7 built-in tones or your own WAV via the sound button on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">its card</Hyperlink>. Prefer quiet? The silent toggle on a card skips the Windows notification banner for that profile, and app-wide notification options live in <Hyperlink Tag="notifications" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Notifications</Hyperlink>.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -2363,7 +2734,7 @@
                         <StackPanel>
                             <TextBlock Text="BACKUP &amp; RESTORE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Go to Settings → Backup &amp; Restore to export your config to a JSON file. Import that file on a new machine to restore all your profiles. Config is stored at %APPDATA%\VibeSwitcher\config.json.
+                                Go to <Hyperlink Tag="backup" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Backup &amp; Restore</Hyperlink> to export your config to a JSON file. Import that file on a new machine to restore all your profiles. Config is stored at %APPDATA%\VibeSwitcher\config.json.
                             </TextBlock>
                         </StackPanel>
                     </Border>

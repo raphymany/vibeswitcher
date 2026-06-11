@@ -150,8 +150,11 @@ public class TrayService : IDisposable
     // Call whenever mute state changes. Shows a static colored badge on the tray icon
     // (mic-only = red, speakers-only = blue, both = purple) or removes it when nothing is muted.
     // No flashing — the badge is composited onto the current profile/app icon in UpdateIcon.
+    public (bool Mic, bool Speakers) MuteState { get; private set; }
+
     public void UpdateMuteFlash(bool micMuted, bool speakersMuted)
     {
+        MuteState = (micMuted, speakersMuted);
         if (!micMuted && !speakersMuted)
         {
             _muted = false;
@@ -292,6 +295,9 @@ public class TrayService : IDisposable
         var settingsItem = new MenuItem { Header = BuildActionHeader("IcoSettings", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
         settingsItem.Click += (_, _) => OpenSettingsExpanded();
 
+        var miniItem = new MenuItem { Header = BuildActionHeader("IcoCompact", "Mini Mode"), Padding = new Thickness(12, 8, 16, 8) };
+        miniItem.Click += (_, _) => OpenMiniMode();
+
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("IcoSpeaker", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
         {
@@ -317,6 +323,7 @@ public class TrayService : IDisposable
         _contextMenu.Items.Add(aboutItem);
         _contextMenu.Items.Add(faqItem);
         _contextMenu.Items.Add(settingsItem);
+        _contextMenu.Items.Add(miniItem);
         _contextMenu.Items.Add(soundSettingsItem);
 
         _contextMenu.Items.Add(BuildSeparator());
@@ -393,6 +400,12 @@ public class TrayService : IDisposable
     {
         if (Application.Current is App app)
             app.OpenFaqPanel();
+    }
+
+    private static void OpenMiniMode()
+    {
+        if (Application.Current is App app)
+            app.OpenMiniMode();
     }
 
     private static MenuItem BuildSeparator()

@@ -30,6 +30,8 @@ public class HotkeyService : IHotkeyService
     private readonly IntPtr _hwnd;
     private ushort _settingsAtom;
     private HotkeyDefinition? _settingsHotkeyDef;
+    private ushort _compactAtom;
+    private HotkeyDefinition? _compactHotkeyDef;
     private readonly Dictionary<MuteScope, (ushort Atom, HotkeyDefinition Hotkey)> _muteAtoms = new();
     private readonly IAppLogger _logger;
     private readonly ISessionErrorTracker _errorTracker;
@@ -100,6 +102,7 @@ public class HotkeyService : IHotkeyService
     public void UnregisterAll()
     {
         UnregisterSettingsHotkey();
+        UnregisterCompactHotkey();
         foreach (var scope in _muteAtoms.Keys.ToList())
             UnregisterMuteHotkey(scope);
         foreach (var (atom, _) in _atomToProfile)
@@ -201,6 +204,45 @@ public class HotkeyService : IHotkeyService
 
     public bool IsSettingsHotkey(ushort atomId) => _settingsAtom != 0 && atomId == _settingsAtom;
 
+    public HotkeyConflictException? RegisterCompactHotkey(HotkeyDefinition hotkey)
+    {
+        UnregisterCompactHotkey();
+        if (hotkey.IsEmpty || !hotkey.IsValid) return null;
+
+        ushort atom = WinApi.GlobalAddAtom("VibeSwitcher_Compact");
+        if (atom == 0)
+        {
+            _logger.Warning("HotkeyService.RegisterCompactHotkey", "GlobalAddAtom returned 0 — atom table may be full.");
+            return null;
+        }
+
+        bool ok = WinApi.RegisterHotKey(_hwnd, atom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode);
+        if (!ok)
+        {
+            int err = Marshal.GetLastWin32Error();
+            WinApi.GlobalDeleteAtom(atom);
+            if (err == WinApi.ERROR_HOTKEY_ALREADY_REGISTERED)
+                return new HotkeyConflictException(hotkey);
+            _logger.Warning("HotkeyService.RegisterCompactHotkey", $"RegisterHotKey failed (error {err})");
+            return null;
+        }
+
+        _compactAtom = atom;
+        _compactHotkeyDef = hotkey;
+        return null;
+    }
+
+    public void UnregisterCompactHotkey()
+    {
+        if (_compactAtom == 0) return;
+        WinApi.UnregisterHotKey(_hwnd, _compactAtom);
+        WinApi.GlobalDeleteAtom(_compactAtom);
+        _compactAtom = 0;
+        _compactHotkeyDef = null;
+    }
+
+    public bool IsCompactHotkey(ushort atomId) => _compactAtom != 0 && atomId == _compactAtom;
+
     /// <summary>
     /// Returns true if the hotkey is in use by another application (not this one).
     /// Temporarily unregisters all own hotkeys to avoid false positives.
@@ -213,9 +255,11 @@ public class HotkeyService : IHotkeyService
 
         if (hotkey.IsEmpty || !hotkey.IsValid) return false;
 
-        // Unregister all our hotkeys (including settings + mute) temporarily so we don't detect our own registrations
+        // Unregister all our hotkeys (including settings + compact + mute) temporarily so we don't detect our own registrations
         bool hadSettingsAtom = _settingsAtom != 0;
         if (hadSettingsAtom) WinApi.UnregisterHotKey(_hwnd, _settingsAtom);
+        bool hadCompactAtom = _compactAtom != 0;
+        if (hadCompactAtom) WinApi.UnregisterHotKey(_hwnd, _compactAtom);
         foreach (var (_, (muteAtom, _)) in _muteAtoms)
             WinApi.UnregisterHotKey(_hwnd, muteAtom);
         foreach (var (atom, _) in _atomToProfile)
@@ -255,6 +299,18 @@ public class HotkeyService : IHotkeyService
                 WinApi.GlobalDeleteAtom(_settingsAtom);
                 _settingsAtom = 0;
                 _settingsHotkeyDef = null;
+            }
+        }
+
+        // Re-register the compact (mini mode) hotkey
+        if (hadCompactAtom && _compactHotkeyDef != null)
+        {
+            bool reOk = WinApi.RegisterHotKey(_hwnd, _compactAtom, _compactHotkeyDef.GetModifierFlags(), _compactHotkeyDef.VirtualKeyCode);
+            if (!reOk)
+            {
+                WinApi.GlobalDeleteAtom(_compactAtom);
+                _compactAtom = 0;
+                _compactHotkeyDef = null;
             }
         }
 

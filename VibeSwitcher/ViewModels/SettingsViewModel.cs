@@ -385,6 +385,7 @@ public class SettingsViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsDevicesSelected));
                 OnPropertyChanged(nameof(IsTraySelected));
                 OnPropertyChanged(nameof(IsShortcutsSelected));
+                OnPropertyChanged(nameof(IsCompactSelected));
                 OnPropertyChanged(nameof(IsLogsSelected));
             }
         }
@@ -396,6 +397,7 @@ public class SettingsViewModel : ViewModelBase
     public bool IsDevicesSelected   => _selectedCategory == "devices";
     public bool IsTraySelected      => _selectedCategory == "tray";
     public bool IsShortcutsSelected => _selectedCategory == "shortcuts";
+    public bool IsCompactSelected   => _selectedCategory == "compact";
     public bool IsLogsSelected      => _selectedCategory == "logs";
 
     private bool _clearing;
@@ -523,6 +525,62 @@ public class SettingsViewModel : ViewModelBase
                 _hotkeyService.UnregisterSettingsHotkey();
             }
             OnPropertyChanged(nameof(SettingsHotkeyEnabled));
+        }
+    }
+
+    // ── Mini (compact) mode ─────────────────────────────────────────────────────
+
+    public HotkeyDefinition CompactHotkey
+    {
+        get => _configService.Current.CompactHotkey ?? new HotkeyDefinition();
+        set
+        {
+            _configService.Current.CompactHotkey = value;
+            // Auto-enable when a hotkey is assigned; auto-disable when cleared.
+            _configService.Current.CompactHotkeyEnabled = !value.IsEmpty;
+            SaveAsync();
+            _hotkeyService.UnregisterCompactHotkey();
+            if (!value.IsEmpty)
+            {
+                var conflict = _hotkeyService.RegisterCompactHotkey(value);
+                if (conflict != null)
+                    _onHotkeyConflict(conflict);
+            }
+            OnPropertyChanged(nameof(CompactHotkey));
+            OnPropertyChanged(nameof(CompactHotkeyDisplay));
+            OnPropertyChanged(nameof(CompactHotkeyIsSet));
+        }
+    }
+
+    public string CompactHotkeyDisplay =>
+        _configService.Current.CompactHotkey is { IsEmpty: false } hk
+            ? hk.ToDisplayString()
+            : "None";
+
+    public bool CompactHotkeyIsSet =>
+        _configService.Current.CompactHotkey is { IsEmpty: false };
+
+    public bool CompactAlwaysOnTop
+    {
+        get => _configService.Current.CompactAlwaysOnTop;
+        set
+        {
+            if (_configService.Current.CompactAlwaysOnTop == value) return;
+            _configService.Current.CompactAlwaysOnTop = value;
+            SaveAsync();
+            OnPropertyChanged(nameof(CompactAlwaysOnTop));
+        }
+    }
+
+    public bool CompactTranslucent
+    {
+        get => _configService.Current.CompactTranslucent;
+        set
+        {
+            if (_configService.Current.CompactTranslucent == value) return;
+            _configService.Current.CompactTranslucent = value;
+            SaveAsync();
+            OnPropertyChanged(nameof(CompactTranslucent));
         }
     }
 
@@ -969,6 +1027,8 @@ public class SettingsViewModel : ViewModelBase
         Profiles.Move(oldIndex, newIndex);
         for (int i = 0; i < Profiles.Count; i++)
             Profiles[i].Model.SortOrder = i;
+        foreach (var card in Profiles)
+            card.NotifySortOrderChanged();
         SaveAsync();
         _onProfilesChanged();
     }
@@ -1130,6 +1190,15 @@ public class SettingsViewModel : ViewModelBase
         if (settingsHotkey is { IsEmpty: false } && _configService.Current.SettingsHotkeyEnabled)
         {
             var conflict = _hotkeyService.RegisterSettingsHotkey(settingsHotkey);
+            if (conflict != null)
+                _onHotkeyConflict(conflict);
+        }
+
+        // Restore the mini-mode hotkey for the same reason.
+        var compactHotkey = _configService.Current.CompactHotkey;
+        if (compactHotkey is { IsEmpty: false } && _configService.Current.CompactHotkeyEnabled)
+        {
+            var conflict = _hotkeyService.RegisterCompactHotkey(compactHotkey);
             if (conflict != null)
                 _onHotkeyConflict(conflict);
         }

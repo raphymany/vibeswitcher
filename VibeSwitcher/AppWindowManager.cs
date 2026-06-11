@@ -72,8 +72,52 @@ public class AppWindowManager
         window?.RefreshActiveStates();
     }
 
+    public void NotifyMuteChanged(bool micMuted, bool speakersMuted)
+    {
+        var window = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
+        window?.UpdateMiniMuteBadge(micMuted, speakersMuted);
+    }
+
     public void OpenAbout() => OpenSettingsWindowToPanel(w => w.OpenAboutPanel());
     public void OpenFaq()   => OpenSettingsWindowToPanel(w => w.OpenFaqPanel());
+
+    // Hotkey path: flips an open window between full and mini; opens straight into mini when hidden.
+    public void ToggleCompactMode()
+    {
+        var window = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
+        if (window != null && window.IsVisible)
+        {
+            window.WindowState = WindowState.Normal;
+            window.Activate();
+            window.ToggleCompact();
+            return;
+        }
+        OpenInCompact(window);
+    }
+
+    // Tray path: always lands on a visible mini window, never exits mini if already there.
+    public void OpenMiniMode()
+    {
+        var window = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
+        if (window != null && window.IsVisible)
+        {
+            window.WindowState = WindowState.Normal;
+            window.Activate();
+            if (!window.IsCompact) window.EnterCompact();
+            return;
+        }
+        OpenInCompact(window);
+    }
+
+    private void OpenInCompact(SettingsWindow? window)
+    {
+        window ??= new SettingsWindow(_configService, _audioService, _hotkeyService, _trayService,
+            _logger, _errorTracker, _applyTheme, _switchProfile, _onReschedule, _onAppTriggersChanged);
+        window.Show();
+        window.WindowState = WindowState.Normal;
+        window.Activate();
+        if (!window.IsCompact) window.EnterCompact();
+    }
 
     // Opens (or focuses) the main window and navigates it to a specific panel.
     private void OpenSettingsWindowToPanel(Action<SettingsWindow> navigate)
