@@ -1317,7 +1317,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### ~~Branch 51: `refactor/injectable-services`~~ ✅ Done — PR #102
+### ~~Branch 52: `refactor/injectable-services`~~ ✅ Done — PR #102
 **Theme:** Convert static `AppLogger` and `SessionErrorTracker` to instance classes with constructor injection throughout the codebase, enabling proper test isolation and open-source maintainability.
 
 | # | Item | Status |
@@ -1333,8 +1333,8 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 
 ---
 
-### Branch 52: `feat/ui-redesign` ✅ Done — PR #105
-**Theme:** Full visual redesign of `SettingsWindow` from a plain vertical list to a G HUB-inspired dark card grid — new title bar, tab navigation, compact profile cards with always-visible action strips, filter bar with animated expand, profile detail overlay, About panel, FAQ panel, and Settings panel, all rebuilt in XAML while all services, ViewModels, and business logic remain unchanged.
+### Branch 53: `feat/ui-redesign` ✅ Done — PR #105, #106
+**Theme:** Full visual redesign of the app, delivered in two phases on this branch. Phase 1 rebuilt `SettingsWindow` from a plain vertical list into a G HUB-inspired dark card grid (title bar, tab navigation, compact profile cards with always-visible action strips, animated filter bar, profile detail overlay, and About / FAQ / Settings panels). Phase 2 completed app-wide light/dark theming, introduced a shared geometric icon system, refined the tray menu and dialogs, added keyboard navigation, and removed old-design code. All audio/switching/scheduling/business logic is unchanged — only view-layer code plus a few small view-model/service additions (search & FAQ support, dialog outcomes, the mute badge, icon composition). Verified by four parallel read-only audit agents — clean build, 222 tests pass.
 
 | # | Item | Status |
 |---|------|--------|
@@ -1349,12 +1349,6 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | UI | `DarkTheme.xaml`: all new resource keys (VSTitleBarBg, VSNavBg, VSNavBorder, VSModalBg, SaveFlashBg, InnerCardBg, InnerCardBorderBrush, ChipBg/Border/Text/HoverBg, HotkeyBg/Border, SectionLabelText, DisabledText, TertiaryText, SuccessDot, ErrorDot, WarningBg/Border/Text, HoverBg, TooltipBg/Border) | ✅ Done |
 | UI | `LightTheme.xaml`: VSTitleBarBg, VSNavBg, VSNavBorder, VSModalBg added for theme parity | ✅ Done |
 | UI | `SettingsWindow.xaml.cs`: `ShowPanel()` added; `FiltersBtn_Click` with `DoubleAnimation`; `ProfileCard_Click`, `OverlayClose_Click`, `OverlayBackdrop_MouseDown`; `Window_KeyDown` Esc priority; `AboutPanelIcon` + `AboutVersionText` set on load | ✅ Done |
-
-### Branch 52 (cont.): `feat/ui-redesign` — polish & light-mode phase ✅ Done — PR #106
-**Theme:** Follow-up phase on the same branch that finished light/dark theming, replaced all emoji with a shared geometric icon set, and refined the tray menu, dialogs, and keyboard navigation, while removing old-design code. All audio/switching/scheduling/business logic is unchanged; only a few view-models, the tray service, and the dialog service were touched for view-layer concerns (icon composition, dialog outcomes, the mute badge). Verified by four parallel read-only audit agents — clean build, 222 tests pass.
-
-| # | Item | Status |
-|---|------|--------|
 | Theme | App-wide light/dark: every hardcoded color in `SettingsWindow` + all dialogs mapped to theme tokens; `DarkTheme.xaml`/`LightTheme.xaml` at full key parity (99 keys each) — closes deferred **F45** | ✅ Done |
 | Icons | New shared `Controls/Icons.xaml` geometric icon set; all emoji replaced across dialog header badges, the tray menu, and the nav bar (double-note switch sound, alarm-clock schedule, gear settings) | ✅ Done |
 | Tray | Menu reordered (About, Help & FAQ, Settings, Open Sound Settings); About/Help & FAQ route to the in-window panels; high-quality icon scaling + spacing | ✅ Done |

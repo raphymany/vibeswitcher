@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-11 — Branch 52 (`feat/ui-redesign`) polish phase — PR #106 (app-wide light mode, shared geometric icon set, tray + dialog consistency, keyboard nav, old-design cleanup).
+**Last updated:** 2026-06-11 — Branch 53 (`feat/ui-redesign`) — PR #105, #106 (full redesign + app-wide light mode, shared geometric icon set, tray + dialog consistency, keyboard nav, old-design cleanup).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
