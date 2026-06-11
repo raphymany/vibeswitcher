@@ -82,28 +82,16 @@ public static class IconHelper
             if (_defaultIcon != null) return _defaultIcon;
             try
             {
-                var uri = new Uri("pack://application:,,,/Resources/Icons/vs-icon-64.png", UriKind.Absolute);
+                // Load the embedded multi-resolution .ico directly. Converting a PNG at
+                // runtime (GetHicon → Icon.FromHandle → Save) degrades color depth, which
+                // showed up as wrong colors in the toast attribution icon Windows
+                // snapshots from the tray icon.
+                var uri = new Uri("pack://application:,,,/Resources/Icons/vs-icon.ico", UriKind.Absolute);
                 var info = System.Windows.Application.GetResourceStream(uri);
                 if (info != null)
                 {
                     using (info.Stream)
-                    using (var bmp = new Bitmap(info.Stream))
-                    using (var bmp64 = new Bitmap(64, 64))
-                    using (var g = Graphics.FromImage(bmp64))
-                    {
-                        g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                        g.DrawImage(bmp, 0, 0, 64, 64);
-                        var hIcon = bmp64.GetHicon();
-                        try
-                        {
-                            using var tempIcon = Icon.FromHandle(hIcon);
-                            using var ms = new MemoryStream();
-                            tempIcon.Save(ms);
-                            ms.Seek(0, SeekOrigin.Begin);
-                            _defaultIcon = new Icon(ms);
-                        }
-                        finally { DestroyIcon(hIcon); }
-                    }
+                        _defaultIcon = new Icon(info.Stream);
                     return _defaultIcon;
                 }
             }

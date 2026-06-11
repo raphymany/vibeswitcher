@@ -95,18 +95,10 @@ public class AppWindowManager
         OpenInCompact(window);
     }
 
-    // Tray path: always lands on a visible mini window, never exits mini if already there.
-    public void OpenMiniMode()
+    public bool IsMiniModeActive()
     {
         var window = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
-        if (window != null && window.IsVisible)
-        {
-            window.WindowState = WindowState.Normal;
-            window.Activate();
-            if (!window.IsCompact) window.EnterCompact();
-            return;
-        }
-        OpenInCompact(window);
+        return window is { IsVisible: true, IsCompact: true };
     }
 
     private void OpenInCompact(SettingsWindow? window)

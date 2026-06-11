@@ -320,8 +320,8 @@ public partial class App : Application
 
     public void OpenAboutPanel() => _windowManager?.OpenAbout();
     public void OpenFaqPanel() => _windowManager?.OpenFaq();
-    public void OpenMiniMode() => _windowManager?.OpenMiniMode();
     public void ToggleMiniMode() => _windowManager?.ToggleCompactMode();
+    public bool IsMiniModeActive => _windowManager?.IsMiniModeActive() ?? false;
 
     protected override void OnExit(ExitEventArgs e)
     {

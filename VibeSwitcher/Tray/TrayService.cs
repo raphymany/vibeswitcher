@@ -68,6 +68,7 @@ public class TrayService : IDisposable
 
         UpdateIcon(null);
         RebuildMenu();
+        _contextMenu.Opened += (_, _) => RefreshMiniMenuItem();
     }
 
     public void ClearIconCache()
@@ -295,8 +296,8 @@ public class TrayService : IDisposable
         var settingsItem = new MenuItem { Header = BuildActionHeader("IcoSettings", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
         settingsItem.Click += (_, _) => OpenSettingsExpanded();
 
-        var miniItem = new MenuItem { Header = BuildActionHeader("IcoCompact", "Mini Mode"), Padding = new Thickness(12, 8, 16, 8) };
-        miniItem.Click += (_, _) => OpenMiniMode();
+        _miniItem = new MenuItem { Header = BuildActionHeader("IcoCompact", "Mini Mode"), Padding = new Thickness(12, 8, 16, 8) };
+        _miniItem.Click += (_, _) => ToggleMiniMode();
 
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("IcoSpeaker", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
@@ -323,7 +324,7 @@ public class TrayService : IDisposable
         _contextMenu.Items.Add(aboutItem);
         _contextMenu.Items.Add(faqItem);
         _contextMenu.Items.Add(settingsItem);
-        _contextMenu.Items.Add(miniItem);
+        _contextMenu.Items.Add(_miniItem);
         _contextMenu.Items.Add(soundSettingsItem);
 
         _contextMenu.Items.Add(BuildSeparator());
@@ -402,10 +403,23 @@ public class TrayService : IDisposable
             app.OpenFaqPanel();
     }
 
-    private static void OpenMiniMode()
+    private static void ToggleMiniMode()
     {
         if (Application.Current is App app)
-            app.OpenMiniMode();
+            app.ToggleMiniMode();
+    }
+
+    // The mini item flips between entering and leaving mini mode depending on the
+    // window's current state, refreshed each time the menu opens.
+    private MenuItem? _miniItem;
+
+    private void RefreshMiniMenuItem()
+    {
+        if (_miniItem == null) return;
+        bool active = Application.Current is App app && app.IsMiniModeActive;
+        _miniItem.Header = active
+            ? BuildActionHeader("IcoExpand", "Exit Mini Mode")
+            : BuildActionHeader("IcoCompact", "Mini Mode");
     }
 
     private static MenuItem BuildSeparator()
