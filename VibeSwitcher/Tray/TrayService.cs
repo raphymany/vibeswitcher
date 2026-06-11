@@ -68,7 +68,8 @@ public class TrayService : IDisposable
 
         UpdateIcon(null);
         RebuildMenu();
-        _contextMenu.Opened += (_, _) => RefreshMiniMenuItem();
+        // Subscribed on the icon, not the menu — RebuildMenu replaces the menu object.
+        _taskbarIcon.TrayContextMenuOpen += (_, _) => RefreshMiniMenuItem();
     }
 
     public void ClearIconCache()
