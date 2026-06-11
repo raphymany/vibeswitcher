@@ -9,6 +9,7 @@ public interface IConfigService
     string IconsDir { get; }
     void Load();
     void SaveImmediate();
+    void SaveDeferred();
     void ExportTo(string destinationPath);
     bool TryImport(string sourcePath, out string? error);
 }

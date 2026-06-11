@@ -65,7 +65,7 @@ Supporting subsystems that cut across layers:
 | `Services/HotkeyService.cs` | Registers global hotkeys via `HwndSource`; maps atom IDs back to profiles and feature hotkeys |
 | `Services/MuteService.cs` | Tracks per-scope mute state; toggles Windows audio endpoints and plays feedback sounds |
 | `Services/SchedulerService.cs` | Fires switch events on time-of-week schedules; emits reminder events N minutes before switch time |
-| `Services/SwitchSoundService.cs` | Resolves and plays profile-switch audio cues using `NAudio` |
+| `Services/SwitchSoundService.cs` | Resolves and plays profile-switch audio cues using `System.Media.SoundPlayer` |
 | `Services/ThemeService.cs` | Polls the Windows registry for `AppsUseLightTheme`; swaps `LightTheme.xaml` / `DarkTheme.xaml` |
 | `Services/DeviceTriggerService.cs` | Maps audio device IDs to profiles; triggers switch on `AudioService.DevicesChanged` |
 | `Services/HidHeadsetService.cs` | Opens HID streams to wireless dongle devices; parses vendor-specific packets for headset power state |

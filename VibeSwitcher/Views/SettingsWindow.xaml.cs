@@ -206,6 +206,14 @@ public partial class SettingsWindow : Window
     private void TitleMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     private void TitleMaximize_Click(object sender, RoutedEventArgs e)
         => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+        // Reflect maximized state in the title-bar glyph (□ ↔ restore ❐). Not shown in mini mode.
+        if (!IsCompact)
+            TitleMaxBtn.Content = WindowState == WindowState.Maximized ? "❐" : "□";
+    }
     private void TitleClose_Click(object sender, RoutedEventArgs e) => Close();
 
     // ── Filter bar toggle ────────────────────────────────────────────
@@ -474,7 +482,7 @@ public partial class SettingsWindow : Window
             cfg.WindowLeft   = Left;
             cfg.WindowTop    = Top;
         }
-        _ = Task.Run(_configService.SaveImmediate);
+        _configService.SaveDeferred();
     }
 
     // ── Mini (compact) mode ─────────────────────────────────────────
@@ -510,7 +518,7 @@ public partial class SettingsWindow : Window
             if (!cfg0.CompactIntroShown)
             {
                 cfg0.CompactIntroShown = true;
-                _ = Task.Run(_configService.SaveImmediate);
+                _configService.SaveDeferred();
 
                 bool customize = new ConfirmDialog(
                     "Welcome to Mini Mode",
@@ -580,7 +588,7 @@ public partial class SettingsWindow : Window
         if (!cfg.CompactMode)
         {
             cfg.CompactMode = true;
-            _ = Task.Run(_configService.SaveImmediate);
+            _configService.SaveDeferred();
         }
     }
 
@@ -631,7 +639,7 @@ public partial class SettingsWindow : Window
         if (cfg.CompactMode)
         {
             cfg.CompactMode = false;
-            _ = Task.Run(_configService.SaveImmediate);
+            _configService.SaveDeferred();
         }
     }
 
@@ -724,7 +732,7 @@ public partial class SettingsWindow : Window
 
         cfg.CompactLayout = dialog.SelectedLayout;
         cfg.CompactProfileIds = dialog.SelectedProfileIds;
-        _ = Task.Run(_configService.SaveImmediate);
+        _configService.SaveDeferred();
         RefreshMiniList();
     }
 
@@ -742,6 +750,17 @@ public partial class SettingsWindow : Window
         {
             Application.Current.Shutdown();
         }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        // Only reached on a real close (Hide cancels OnClosing first), e.g. app exit — tear down
+        // the view-model's device subscription, file watcher, and cards.
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        _viewModel.ProfileDeletedOrCloned -= CloseProfileDetailOverlay;
+        _errorTracker.ErrorAdded -= _errorAddedHandler;
+        _viewModel.Dispose();
+        base.OnClosed(e);
     }
 
     private void ManageAliasesButton_Click(object sender, RoutedEventArgs e)

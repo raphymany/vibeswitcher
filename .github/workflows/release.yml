@@ -42,7 +42,8 @@ jobs:
           }
 
       - name: Zip artifact
-        run: Compress-Archive -Path publish -DestinationPath VibeSwitcher-${{ github.ref_name }}-win-x64.zip
+        # publish\* (not publish) so the archive root holds VibeSwitcher.exe directly, not a publish\ folder.
+        run: Compress-Archive -Path publish\* -DestinationPath VibeSwitcher-${{ github.ref_name }}-win-x64.zip
 
       - name: Build installer
         shell: pwsh

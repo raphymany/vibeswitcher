@@ -9,9 +9,10 @@ namespace VibeSwitcher.Helpers;
 
 public static class IconHelper
 {
-    private static Icon? _defaultIcon;
-    private static IntPtr _balloonIconHandle;
-    private static ImageSource? _appIconImageSource;
+    // volatile so the double-checked-locking reads below see a fully-constructed value.
+    private static volatile Icon? _defaultIcon;
+    private static volatile IntPtr _balloonIconHandle;
+    private static volatile ImageSource? _appIconImageSource;
     private static readonly object _syncRoot = new();
 
     static IconHelper()
@@ -34,9 +35,12 @@ public static class IconHelper
                 var canonical = Path.GetFullPath(iconPath);
 
                 // Reject paths outside the managed icons directory — prevents path traversal.
+                // Canonicalize the directory too (not just the icon path) so the prefix check is
+                // robust regardless of how the caller phrased iconsDir.
                 // Check for separator after the prefix so "Icons_sibling" dirs can't slip through.
-                var iconsPrefix = iconsDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                                          + Path.DirectorySeparatorChar;
+                var iconsPrefix = Path.GetFullPath(iconsDir)
+                                      .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                                  + Path.DirectorySeparatorChar;
                 if (!canonical.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase))
                 {
                     AppLog.Warning("IconHelper.LoadIcon", $"Rejected icon path outside icons directory: '{canonical}'");

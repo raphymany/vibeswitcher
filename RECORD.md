@@ -1396,3 +1396,20 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Fix | First-right-click menu flash: menu primed invisibly at dispatcher idle (one-time creation cost absorbed out of sight) + foreground re-asserted on open; startup window-open waits for an open tray menu to close | ✅ Done |
 | Fix | Toast attribution icon colors: default tray icon loaded from the embedded `.ico` (no more lossy runtime PNG conversion); 16–32px ico frames regenerated with brand orange restored | ✅ Done |
 | Docs | README Installation rewritten (installer primary, portable zip kept); CHANGELOG, RECORD, BACKLOG updated | ✅ Done |
+
+### Branch 53: `fix/pre-v2-audit` ✅ Done — PR #112
+**Theme:** Final hardening audit before the v2.0.0 release. Nine parallel review agents swept the entire codebase; this branch fixes everything actionable they found (all High + Medium + cheap Low/Nit) plus the version bump. Behavior is preserved except where a fix corrects an outright bug and the two user-approved behavior changes (scheduler catch-up, 500ms hotkey debounce). Verified clean by the audit: theme parity, no MessageBox, hotkey atom hygiene, installer safety, SECURITY.md "no network requests".
+
+| # | Item | Status |
+|---|------|--------|
+| Security | `DeleteOrphanedIcon` canonicalizes before `File.Delete` (closes a path-traversal arbitrary-delete via imported config); `IconHelper.LoadIcon` canonicalizes the icons dir too | ✅ Done |
+| Data | `TryImport` validates the file is a real VibeSwitcher config before replacing settings; `Migrate` clamps Hour/Minute/ReminderMinutes, validates `ProfileMode`, and nulls a dangling `ActiveProfileId` | ✅ Done |
+| Reliability | Tray icon registers via a 6s splash-fallback so an interrupted splash can't leave the app headless; `ShowIcon` bails if registration fails | ✅ Done |
+| Resource | `AudioProfileApplier` COM objects created inside the try (no leak on unsupported OS); `HidHeadsetService` awaits its loop before disposing the CTS + guards zero-length reports; `DeviceNotificationClient` is disposable with per-device debounce; `SettingsViewModel` is `IDisposable` (device sub + file watcher + cards); logo storyboards stop on Unload; `IconHelper` DCL fields volatile | ✅ Done |
+| Concurrency | Config saves snapshot on the caller thread (`SaveDeferred`) + flush on exit; `AppLogger` write is locked; `AppWatcher.Poll` has a re-entrancy gate; `AppTrigger` lookup marshals to the UI thread; `DeviceTrigger` revert uses one consistent snapshot | ✅ Done |
+| Scheduler | Range-based catch-up so a switch missed while asleep/off fires on wake/launch (2h window) and survives DST; min-interval clamp; reminder fallback guarded; `EvaluateNow` returns whether it fired so startup restore doesn't clobber a due schedule | ✅ Done |
+| Switching | Switch lock released before banners/sound/modal error dialog (no dropped switches behind a dialog); applier surfaces present-but-failed applies; scheduled-switch failures show a balloon, not a modal; mute badge re-reads actual device after a switch | ✅ Done |
+| Audio | WAV custom-sound parser rewritten as a safe chunk-walker with bounds checks + a 25MB size cap | ✅ Done |
+| UI | Title-bar maximize glyph swaps to a restore glyph when maximized; `ScheduleEntry` enable toggle snaps back on conflict; import refreshes app-triggers + mini/mute panels; dead `ProfileFilter.IsActive` removed; `UpdateMuteFlash`→`UpdateMuteBadge`; stale comments fixed | ✅ Done |
+| Release | Version bumped 1.1.0 → 2.0.0; release zip packs `publish\*` (exe at root); About panel / ARCHITECTURE / CHANGELOG corrected (System.Media + Windows Core Audio + HidSharp, not NAudio/CoreAudio); README notes Win10 1809+ | ✅ Done |
+| Tests | 6 new tests (scheduler catch-up ×2, import validation ×2, config clamp, dangling active id); suite at 230 | ✅ Done |

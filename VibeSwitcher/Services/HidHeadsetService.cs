@@ -167,6 +167,7 @@ public sealed class HidHeadsetService : IDisposable
         private readonly CancellationTokenSource _cts = new();
         private readonly IAppLogger _logger;
         private HidStream? _stream;
+        private Task? _loopTask;
 
         private bool? _lastConnected;
 
@@ -190,7 +191,7 @@ public sealed class HidHeadsetService : IDisposable
                 HidProtocolType.LogitechHidPP or
                 HidProtocolType.CorsairVoid;
 
-            Task.Run(isEventDriven ? ReadLoop : PollLoop);
+            _loopTask = Task.Run(isEventDriven ? ReadLoop : PollLoop);
         }
 
         // ── Event-driven loop (Logitech, Corsair) ─────────────────────────────
@@ -222,7 +223,14 @@ public sealed class HidHeadsetService : IDisposable
                         }
                     }
 
-                    var buffer = new byte[_device.GetMaxInputReportLength()];
+                    int reportLen = _device.GetMaxInputReportLength();
+                    if (reportLen <= 0)
+                    {
+                        _logger.Warning("HidHeadsetService.ReadLoop",
+                            $"{_descriptor.ModelName} reports a zero-length input report — not readable.");
+                        return; // avoid a tight zero-byte read spin
+                    }
+                    var buffer = new byte[reportLen];
 
                     while (!_cts.Token.IsCancellationRequested)
                     {
@@ -463,6 +471,11 @@ public sealed class HidHeadsetService : IDisposable
         {
             _cts.Cancel();
             _stream?.Close();
+            // Wait (briefly) for the read/poll loop to observe cancellation before disposing the
+            // CTS, so a still-running iteration can't touch a disposed token. The loop runs on a
+            // pool thread with no captured context, so this Wait can't deadlock.
+            try { _loopTask?.Wait(TimeSpan.FromSeconds(1)); }
+            catch { /* loop exceptions are already logged */ }
             _cts.Dispose();
         }
     }

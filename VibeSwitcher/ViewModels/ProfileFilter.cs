@@ -14,11 +14,4 @@ public sealed record ProfileFilter
     public bool               ReminderOnly  { get; init; }
     public bool               SoundOnly     { get; init; }
     public HashSet<DayOfWeek> ActiveDays    { get; init; } = [];
-
-    public bool IsActive =>
-        ModeFilter != "Any mode"               ||
-        PinnedOnly  || ActiveOnly  || SilentOnly  ||
-        HotkeyOnly  || NotesOnly   || IconOnly     ||
-        WarningOnly || ScheduledOnly || ReminderOnly ||
-        SoundOnly   || ActiveDays.Count > 0;
 }

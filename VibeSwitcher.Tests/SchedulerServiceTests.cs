@@ -81,9 +81,36 @@ public class SchedulerServiceTests
     {
         var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
         var switched = new List<DeviceProfile>();
+        // 12:00 is well outside the catch-up window of the 09:00 schedule, so nothing fires.
         var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
-            clock: () => new DateTime(2026, 1, 5, 10, 0, 0)); // 10:00, not 09:00
+            clock: () => new DateTime(2026, 1, 5, 12, 0, 0));
         svc.EvaluateNow();
+        Assert.Empty(switched);
+    }
+
+    [Fact]
+    public void CatchUp_FiresMissedSwitch_WithinWindow()
+    {
+        // App launches at 09:30 having missed the 09:00 switch (PC was off/asleep) — it fires.
+        var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var profile = ProfileWithSchedule(entry);
+        var switched = new List<DeviceProfile>();
+        var svc = new SchedulerService(MakeConfig(profile), (p, _) => switched.Add(p), (_, _) => { },
+            clock: () => new DateTime(2026, 1, 5, 9, 30, 0)); // Monday 09:30 — 30 min late
+        var fired = svc.EvaluateNow();
+        Assert.Single(switched);
+        Assert.True(fired);
+    }
+
+    [Fact]
+    public void CatchUp_DoesNotFire_OutsideWindow()
+    {
+        // Three hours after the schedule is too late to catch up — nothing fires.
+        var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var switched = new List<DeviceProfile>();
+        var svc = new SchedulerService(MakeConfig(ProfileWithSchedule(entry)), (p, _) => switched.Add(p), (_, _) => { },
+            clock: () => new DateTime(2026, 1, 5, 12, 1, 0)); // Monday 12:01
+        Assert.False(svc.EvaluateNow());
         Assert.Empty(switched);
     }
 

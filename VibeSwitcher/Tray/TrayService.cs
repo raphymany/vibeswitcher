@@ -108,6 +108,8 @@ public class TrayService : IDisposable
             _logger.Error("TrayService.ShowIcon", ex);
             _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
                 $"The system tray icon failed to register: {ex.Message}");
+            _pendingBalloons.Clear(); // icon never registered — don't try to show balloons on it
+            return;
         }
 
         foreach (var (title, message, sound) in _pendingBalloons)
@@ -192,12 +194,12 @@ public class TrayService : IDisposable
         SwitchRequested?.Invoke(profiles[nextIndex]);
     }
 
+    public (bool Mic, bool Speakers) MuteState { get; private set; }
+
     // Call whenever mute state changes. Shows a static colored badge on the tray icon
     // (mic-only = red, speakers-only = blue, both = purple) or removes it when nothing is muted.
     // No flashing — the badge is composited onto the current profile/app icon in UpdateIcon.
-    public (bool Mic, bool Speakers) MuteState { get; private set; }
-
-    public void UpdateMuteFlash(bool micMuted, bool speakersMuted)
+    public void UpdateMuteBadge(bool micMuted, bool speakersMuted)
     {
         MuteState = (micMuted, speakersMuted);
         if (!micMuted && !speakersMuted)

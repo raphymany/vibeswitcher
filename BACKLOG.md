@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-11 — Branch 52 (`feat/installer`) — PR #110 (Inno Setup per-user installer published with every release + in-app uninstall with keep/delete-data choice).
+**Last updated:** 2026-06-12 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 

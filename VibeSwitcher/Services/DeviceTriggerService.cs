@@ -79,7 +79,7 @@ public sealed class DeviceTriggerService : IDisposable
                 if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !ri.Value.IsHidTriggered)
                 {
                     lock (_stateLock) _revertStack.Pop();
-                    RevertToPrevious(ri.Value.PreviousProfileId);
+                    RevertToPrevious(ri.Value.PreviousProfileId, current);
                     return;
                 }
             }
@@ -124,7 +124,10 @@ public sealed class DeviceTriggerService : IDisposable
         DispatchSwitch(profile);
     }
 
-    private void RevertToPrevious(Guid? previousProfileId)
+    // 'connected' is the connected-device snapshot for the event being processed, passed in so
+    // the whole revert cascade reasons over one consistent view rather than re-reading the field
+    // (which another DevicesChanged event could swap underneath it).
+    private void RevertToPrevious(Guid? previousProfileId, HashSet<string> connected)
     {
         if (!previousProfileId.HasValue) return;
         var prev = _configService.Current.Profiles.FirstOrDefault(p => p.Id == previousProfileId);
@@ -134,11 +137,11 @@ public sealed class DeviceTriggerService : IDisposable
         // to the next revert entry. This handles e.g. BT turning off while on Logitech —
         // when Logitech later reverts "to BT", BT is gone, so we fall through to Speaker.
         if (prev.TriggerOnConnect && !IsHidManaged(prev) &&
-            prev.PlaybackDeviceId != null && !_connectedIds.Contains(prev.PlaybackDeviceId))
+            prev.PlaybackDeviceId != null && !connected.Contains(prev.PlaybackDeviceId))
         {
             RevertInfo? next;
             lock (_stateLock) next = _revertStack.Count > 0 ? _revertStack.Pop() : null;
-            RevertToPrevious(next?.PreviousProfileId);
+            RevertToPrevious(next?.PreviousProfileId, connected);
             return;
         }
 
@@ -235,7 +238,7 @@ public sealed class DeviceTriggerService : IDisposable
         _logger.Info("DeviceTriggerService.HidRevert",
             $"{descriptor.ModelName}: reverting from '{triggeredProfile.Name}'.");
         lock (_stateLock) _revertStack.Pop();
-        RevertToPrevious(ri.Value.PreviousProfileId);
+        RevertToPrevious(ri.Value.PreviousProfileId, _connectedIds);
     }
 
     private bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)

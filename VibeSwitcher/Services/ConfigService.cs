@@ -115,11 +115,55 @@ public class ConfigService : IConfigService
         // v1 used -1 as a sentinel for "window position not yet saved"; v1.0.1+ uses null.
         if (config.WindowLeft == -1) config.WindowLeft = null;
         if (config.WindowTop  == -1) config.WindowTop  = null;
+
+        // Clamp/validate values that come straight from JSON, so a hand-edited or imported
+        // config with out-of-range numbers can't produce a broken enum or a schedule that
+        // silently never fires.
+        foreach (var profile in config.Profiles)
+        {
+            if (!Enum.IsDefined(typeof(ProfileMode), profile.Mode))
+                profile.Mode = ProfileMode.Both;
+
+            profile.Schedules ??= new();
+            foreach (var s in profile.Schedules)
+            {
+                s.Hour   = Math.Clamp(s.Hour, 0, 23);
+                s.Minute = Math.Clamp(s.Minute, 0, 59);
+                s.ReminderMinutes = Math.Clamp(s.ReminderMinutes, 0, 24 * 60 - 1);
+            }
+        }
+
+        // A dangling ActiveProfileId (e.g. from an imported config) is reset so the tray
+        // doesn't show a stale/wrong state.
+        if (config.ActiveProfileId.HasValue &&
+            !config.Profiles.Any(p => p.Id == config.ActiveProfileId.Value))
+            config.ActiveProfileId = null;
     }
 
+    // Fully synchronous: serialize + write on the calling thread. Used by startup, import,
+    // and tests that need the file on disk before returning.
     public void SaveImmediate()
     {
         Save(_config);
+    }
+
+    // UI-thread callers: serialize a consistent snapshot on the CURRENT thread (where the model
+    // isn't being mutated concurrently), then write the bytes on a background thread. This avoids
+    // "collection was modified" races from serializing the live object graph on a pool thread,
+    // which previously caused saves to be silently skipped.
+    public void SaveDeferred()
+    {
+        string json;
+        try
+        {
+            json = JsonSerializer.Serialize(_config, JsonOptions);
+        }
+        catch (Exception ex)
+        {
+            LogSaveError(ex);
+            return;
+        }
+        _ = Task.Run(() => WriteJson(json));
     }
 
     public void ExportTo(string destinationPath)
@@ -147,6 +191,11 @@ public class ConfigService : IConfigService
             error = "No file path was provided.";
             return false;
         }
+        if (!LooksLikeVibeSwitcherConfig(sourcePath))
+        {
+            error = "This file isn't a VibeSwitcher configuration.";
+            return false;
+        }
         if (!TryLoad(sourcePath, out var config) || config == null)
         {
             error = "The file could not be read or is not a valid VibeSwitcher configuration.";
@@ -160,7 +209,45 @@ public class ConfigService : IConfigService
         return true;
     }
 
+    // Guards against importing arbitrary well-formed JSON (e.g. {} or an unrelated file), which
+    // would otherwise deserialize to a defaults-only AppConfig and silently wipe the user's setup.
+    // Requires a JSON object carrying at least one recognizable VibeSwitcher marker.
+    private bool LooksLikeVibeSwitcherConfig(string path)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+            foreach (var marker in new[] { "ConfigVersion", "Profiles" })
+            {
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                    if (string.Equals(prop.Name, marker, StringComparison.OrdinalIgnoreCase))
+                        return true;
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public void Save(AppConfig config)
+    {
+        string json;
+        try
+        {
+            json = JsonSerializer.Serialize(config, JsonOptions);
+        }
+        catch (Exception ex)
+        {
+            LogSaveError(ex);
+            return;
+        }
+        WriteJson(json);
+    }
+
+    private void WriteJson(string json)
     {
         lock (_saveLock)
         {
@@ -171,15 +258,19 @@ public class ConfigService : IConfigService
                 if (File.Exists(_configPath))
                     File.Copy(_configPath, _configBakPath, overwrite: true);
 
-                var json = JsonSerializer.Serialize(config, JsonOptions);
                 File.WriteAllText(_configTmpPath, json);
                 File.Move(_configTmpPath, _configPath, overwrite: true);
             }
             catch (Exception ex)
             {
-                _logger.Error("ConfigService.Save", ex);
-                _errorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
+                LogSaveError(ex);
             }
         }
+    }
+
+    private void LogSaveError(Exception ex)
+    {
+        _logger.Error("ConfigService.Save", ex);
+        _errorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
     }
 }

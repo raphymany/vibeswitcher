@@ -123,6 +123,69 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void TryImport_RejectsNonVibeSwitcherJson()
+    {
+        var svc = MakeSvc();
+        svc.Load();
+        svc.Current.Profiles.Add(new DeviceProfile { Name = "Keep" });
+        svc.SaveImmediate();
+
+        var foreign = Path.Combine(_dir, "foreign.json");
+        File.WriteAllText(foreign, """{ "hello": "world", "count": 3 }""");
+
+        bool ok = svc.TryImport(foreign, out var error);
+        Assert.False(ok);
+        Assert.NotNull(error);
+        // The existing config must be untouched.
+        Assert.Single(svc.Current.Profiles);
+        Assert.Equal("Keep", svc.Current.Profiles[0].Name);
+    }
+
+    [Fact]
+    public void TryImport_AcceptsValidExportedConfig()
+    {
+        var src = MakeSvc();
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile { Name = "Imported" });
+        var exportPath = Path.Combine(_dir, "export.json");
+        src.ExportTo(exportPath);
+
+        var dest = MakeSvc(Path.Combine(_dir, "dest"));
+        dest.Load();
+        bool ok = dest.TryImport(exportPath, out var error);
+        Assert.True(ok);
+        Assert.Null(error);
+        Assert.Single(dest.Current.Profiles);
+        Assert.Equal("Imported", dest.Current.Profiles[0].Name);
+    }
+
+    [Fact]
+    public void Load_ClampsOutOfRangeScheduleAndMode()
+    {
+        File.WriteAllText(Path.Combine(_dir, "config.json"),
+            """{ "ConfigVersion": 1, "Profiles": [ { "Name": "P", "Mode": 99, "Schedules": [ { "Hour": 25, "Minute": 70, "ReminderMinutes": 99999 } ] } ] }""");
+
+        var svc = MakeSvc();
+        svc.Load();
+        var p = svc.Current.Profiles[0];
+        Assert.Equal(ProfileMode.Both, p.Mode); // invalid enum value falls back to Both
+        Assert.Equal(23, p.Schedules[0].Hour);
+        Assert.Equal(59, p.Schedules[0].Minute);
+        Assert.True(p.Schedules[0].ReminderMinutes <= 24 * 60 - 1);
+    }
+
+    [Fact]
+    public void Load_NullsDanglingActiveProfileId()
+    {
+        File.WriteAllText(Path.Combine(_dir, "config.json"),
+            """{ "ConfigVersion": 1, "Profiles": [], "ActiveProfileId": "11111111-1111-1111-1111-111111111111" }""");
+
+        var svc = MakeSvc();
+        svc.Load();
+        Assert.Null(svc.Current.ActiveProfileId);
+    }
+
+    [Fact]
     public void Load_CorruptPrimary_FallsBackToBackup()
     {
         var svc = MakeSvc();

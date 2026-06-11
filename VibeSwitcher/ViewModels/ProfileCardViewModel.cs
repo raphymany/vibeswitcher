@@ -539,7 +539,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
         AddScheduleCommand = new RelayCommand(AddSchedule);
-        EditFirstScheduleCommand = new RelayCommand(() => EditSchedule(Schedules[0]), () => HasSchedules);
+        EditFirstScheduleCommand = new RelayCommand(() => { if (Schedules.Count > 0) EditSchedule(Schedules[0]); }, () => HasSchedules);
         ConfigureSoundCommand = new RelayCommand(ConfigureSound);
         OpenAppTriggersCommand = new RelayCommand(OpenAppTriggerWizard);
     }
@@ -680,7 +680,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             // Restore all hotkeys (profiles + Settings + Mini Mode + mute) that were unregistered above.
             _hotkeyService.RegisterAll(_configService.Current.Profiles);
             var settingsHk = _configService.Current.SettingsHotkey;
-            if (settingsHk is { IsEmpty: false })
+            if (settingsHk is { IsEmpty: false } && _configService.Current.SettingsHotkeyEnabled)
                 _hotkeyService.RegisterSettingsHotkey(settingsHk);
             var cfg = _configService.Current;
             if (cfg.CompactHotkeyEnabled && cfg.CompactHotkey is { IsEmpty: false })
@@ -943,6 +943,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _flashCts?.Dispose();
         _flashCts = null;
         _iconPreview = null;
+        // Drop the view-set callback so a disposed card can't keep the window alive through it.
+        OnSuggestionSelected = null;
     }
 
     private static readonly HashSet<char> _invalidFileNameChars = new(System.IO.Path.GetInvalidFileNameChars());

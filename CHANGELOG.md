@@ -4,7 +4,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ---
 
-## [Unreleased]
+## [2.0.0] - 2026-06-12
 
 ### Added
 - **Windows installer (C2)** — new Inno Setup per-user installer (`VibeSwitcher-Setup-vX.Y.Z-win-x64.exe`) published with every release alongside the portable zip; installs to the user's Programs folder with no admin/UAC prompt, optional desktop shortcut and start-with-Windows tasks, Start Menu shortcut, and a launch-after-install option; setup detects and asks to close a running instance; the portable zip remains available *(PR #110)*
@@ -26,7 +26,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Always-visible profile card action strip** — two rows of icon buttons (silent toggle, app triggers, auto-switch, pin, activate / clone, schedule, switch sound, delete) are permanently visible on every card without requiring hover *(PR #105)*
 - **Profile card separators** — visual dividers between the mode badge, device rows, and hotkey chip sections on each card *(PR #105)*
 - **Filter bar with search placeholder** — collapsible filter bar with a real-time search box, placeholder text overlay, and category/day-of-week chip filters; animates open and closed with `CubicEase` *(PR #105)*
-- **About panel** — rebuilt inside the main window: app icon, version read from assembly, description, GitHub / Changelog / License / Report a bug links, Built With section (WPF/.NET 8, NAudio, CoreAudio, HID API), Raphael Mansour credit, copyright *(PR #105)*
+- **About panel** — rebuilt inside the main window: app icon, version read from assembly, description, GitHub / Changelog / License / Report a bug links, Built With section (WPF/.NET 8, Windows Core Audio, System.Media, HidSharp), Raphael Mansour credit, copyright *(PR #105)*
 - **"View session log" button in Settings panel** — Diagnostics section at the bottom of the Settings panel opens the session log window directly *(PR #105)*
 - **Panel navigation auto-cleanup** — switching tabs dismisses the profile detail overlay and collapses the filter bar automatically *(PR #105)*
 - **Settings tray menu item** — "Settings" appears in the tray right-click context menu as a direct shortcut to open the Settings window *(pre-release audit)*
@@ -154,6 +154,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Newtonsoft.Json replaced with System.Text.Json** — built-in serializer removes the NuGet dependency; `PropertyNameCaseInsensitive = true` preserves compatibility with hand-edited configs *(PR #29)*
 
 ### Fixed
+- **Pre-v2 hardening audit** — a full codebase audit resolved a set of reliability and safety issues: a path-traversal hole in orphaned-icon deletion; importing a non-VibeSwitcher JSON could silently wipe profiles (now validated); the tray icon could fail to appear if the splash was interrupted; a COM-object leak on unsupported Windows; config saves racing the UI thread; thread-safe logging; scheduler catch-up so a switch missed while the PC was asleep/off now fires on wake (and survives DST); the profile-switch lock no longer held across the error dialog; mute state now re-reads the actual device after a profile switch; plus assorted resource-lifetime and concurrency fixes
 - **Tray menu flashing closed on first right-click** — the menu's one-time creation cost broke the focus handoff on its very first open, dismissing it instantly; the menu is now primed invisibly at startup and re-asserts foreground when it opens *(PR #110)*
 - **Toast attribution icon colors** — the tray's default icon is now loaded directly from the embedded multi-resolution `.ico` instead of a runtime PNG conversion that degraded color depth, and the small ico frames were regenerated with the brand orange restored *(PR #110)*
 - **Startup no longer dismisses an open tray menu** — the automatic window-open at launch waits until the tray menu is closed instead of stealing focus from it *(PR #110)*
@@ -182,7 +183,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Remove Sound confirmation dialog** — "Remove Sound" on a profile card now shows a confirmation dialog before removing, preventing accidental deletion *(pre-release audit)*
 - **Bell button no longer disappears when switch sound is configured** — the 🔔 icon now dims to 35% opacity and becomes non-interactive instead of collapsing; it remains in the icon bar as a visual placeholder *(pre-release audit)*
 - **Switch sound banner defaults to on** — opening the sound wizard for a profile with no sound configured now passes `showBanner: true` so the "Don't show notification banner" toggle starts unchecked (banner on); existing profiles with a sound already configured are unaffected *(pre-release audit)*
-- **`FakeDialogService` implements `ShowConfirmSoundRemove`** — test stub was missing the new interface method, causing CI build failure; added with `ConfirmSoundRemoveResult` property defaulting to `true` *(pre-release audit)*
+- **Sound-removal confirmation flow** — removing a per-profile switch sound goes through the shared styled `ShowConfirm` dialog (with its test stub), keeping confirmations consistent across the app *(pre-release audit)*
 - **Tray "Settings" item now expands the settings card** — clicking Settings in the tray right-click menu now opens the window with the General Settings card already expanded; all other entry points (hotkey, header click, first-run, single-instance wakeup) are unaffected *(pre-release audit)*
 - **Shortcuts toggle switches removed** — the four enable/disable toggles in the Shortcuts section are gone; setting a hotkey now enables it automatically, and a new ✕ clear button (visible only when a hotkey is set) resets it to None and auto-disables *(PR #96)*
 - **Immediate switch on Done** — adding an app trigger no longer switches profiles immediately when the dialog closes; the switch now only fires when the assigned executable actually launches *(PR #96)*

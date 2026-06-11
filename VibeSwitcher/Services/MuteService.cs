@@ -25,33 +25,83 @@ public class MuteService
 
     public void Toggle(MuteScope scope)
     {
+        // Base the toggle on the CURRENT default device's actual mute state, not a cached flag.
+        // The default device may have changed (profile switch) or been muted in Windows directly
+        // since the last toggle, so the cached flag can be stale and out of sync with reality.
         bool muting;
         switch (scope)
         {
             case MuteScope.Mic:
-                muting = !_micMuted;
+                muting = !(GetDeviceMute(EDataFlow.Capture) ?? _micMuted);
                 if (SetDeviceMute(EDataFlow.Capture, muting))
                     _micMuted = muting;
                 else
                     muting = _micMuted; // COM failed — keep current state for sound
                 break;
             case MuteScope.Speakers:
-                muting = !_speakersMuted;
+                muting = !(GetDeviceMute(EDataFlow.Render) ?? _speakersMuted);
                 if (SetDeviceMute(EDataFlow.Render, muting))
                     _speakersMuted = muting;
                 else
                     muting = _speakersMuted;
                 break;
             default: // Both
-                muting = !(_micMuted && _speakersMuted);
-                bool micOk = SetDeviceMute(EDataFlow.Capture, muting);
-                bool spkOk = SetDeviceMute(EDataFlow.Render, muting);
-                if (micOk) _micMuted = muting;
-                if (spkOk) _speakersMuted = muting;
+                bool micCur = GetDeviceMute(EDataFlow.Capture) ?? _micMuted;
+                bool spkCur = GetDeviceMute(EDataFlow.Render) ?? _speakersMuted;
+                muting = !(micCur && spkCur);
+                if (SetDeviceMute(EDataFlow.Capture, muting)) _micMuted = muting;
+                if (SetDeviceMute(EDataFlow.Render, muting)) _speakersMuted = muting;
                 break;
         }
         MuteStateChanged?.Invoke();
         _ = Task.Run(() => PlaySound(scope, muting));
+    }
+
+    // Re-reads the current default devices' actual mute state and refreshes the indicator.
+    // Called after a profile switch so the tray/mini badge reflects the now-current device
+    // rather than a flag left over from a previously-muted (different) device.
+    public void ResyncState()
+    {
+        bool mic = GetDeviceMute(EDataFlow.Capture) ?? _micMuted;
+        bool spk = GetDeviceMute(EDataFlow.Render) ?? _speakersMuted;
+        if (mic == _micMuted && spk == _speakersMuted) return;
+        _micMuted = mic;
+        _speakersMuted = spk;
+        MuteStateChanged?.Invoke();
+    }
+
+    private bool? GetDeviceMute(EDataFlow flow)
+    {
+        IMMDeviceEnumerator? enumerator = null;
+        IMMDevice? device = null;
+        try
+        {
+            enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+            enumerator.GetDefaultAudioEndpoint(flow, ERole.Console, out device);
+            if (device == null) return null;
+
+            var volumeGuid = typeof(IAudioEndpointVolume).GUID;
+            device.Activate(ref volumeGuid, 23, IntPtr.Zero, out var obj);
+            if (obj is not IAudioEndpointVolume vol) return null;
+            try
+            {
+                return vol.GetMute(out bool muted) == 0 ? muted : (bool?)null;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(vol);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning("MuteService.GetDeviceMute", ex.Message);
+            return null;
+        }
+        finally
+        {
+            if (device != null) Marshal.ReleaseComObject(device);
+            if (enumerator != null) Marshal.ReleaseComObject(enumerator);
+        }
     }
 
     private bool SetDeviceMute(EDataFlow flow, bool mute)

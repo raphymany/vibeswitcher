@@ -10,62 +10,46 @@ internal static class AudioProfileApplier
     internal static ProfileSwitchResult Apply(
         DeviceProfile profile, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
-        var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
-        var rawPolicy = new PolicyConfigClient();
-
-        // Try modern IID (Win7/8/10/11) first, fall back to Vista IID
-        Action<string>? setDefault = rawPolicy switch
-        {
-            IPolicyConfig modern => id =>
-            {
-                int hr;
-                if ((hr = modern.SetDefaultEndpoint(id, ERole.Console)) != 0 ||
-                    (hr = modern.SetDefaultEndpoint(id, ERole.Multimedia)) != 0 ||
-                    (hr = modern.SetDefaultEndpoint(id, ERole.Communications)) != 0)
-                {
-                    var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
-                    logger.Error("AudioProfileApplier.Apply", msg);
-                    errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
-                        "Set Default Audio Endpoint Failed", msg);
-                }
-            },
-            IPolicyConfigVista vista => id =>
-            {
-                int hr;
-                if ((hr = vista.SetDefaultEndpoint(id, ERole.Console)) != 0 ||
-                    (hr = vista.SetDefaultEndpoint(id, ERole.Multimedia)) != 0 ||
-                    (hr = vista.SetDefaultEndpoint(id, ERole.Communications)) != 0)
-                {
-                    var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
-                    logger.Error("AudioProfileApplier.Apply", msg);
-                    errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
-                        "Set Default Audio Endpoint Failed", msg);
-                }
-            },
-            _ => null
-        };
-
-        if (setDefault == null)
-        {
-            var msg = "PolicyConfig COM interface is not supported on this Windows version. Audio switching is unavailable.";
-            logger.Error("AudioProfileApplier.Apply", msg);
-            errorTracker.Record(ErrorCode.PolicyConfigUnsupported, "PolicyConfig Not Supported", msg);
-            throw new NotSupportedException(msg);
-        }
-
+        // Created inside the try so the unsupported-OS throw below cannot leak these COM objects.
+        IMMDeviceEnumerator? enumerator = null;
+        object? rawPolicy = null;
         try
         {
+            enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
+            rawPolicy = new PolicyConfigClient();
+
+            // Try modern IID (Win7/8/10/11) first, fall back to Vista IID.
+            // Returns true only when all three roles were set successfully.
+            Func<string, bool>? setDefault = rawPolicy switch
+            {
+                IPolicyConfig modern => id => TrySetAllRoles(
+                    (eid, role) => modern.SetDefaultEndpoint(eid, role), id, logger, errorTracker),
+                IPolicyConfigVista vista => id => TrySetAllRoles(
+                    (eid, role) => vista.SetDefaultEndpoint(eid, role), id, logger, errorTracker),
+                _ => null
+            };
+
+            if (setDefault == null)
+            {
+                var msg = "PolicyConfig COM interface is not supported on this Windows version. Audio switching is unavailable.";
+                logger.Error("AudioProfileApplier.Apply", msg);
+                errorTracker.Record(ErrorCode.PolicyConfigUnsupported, "PolicyConfig Not Supported", msg);
+                throw new NotSupportedException(msg);
+            }
+
             bool playbackApplied = false;
             bool recordingApplied = false;
             string? missingPlayback = null;
             string? missingRecording = null;
+            bool playbackFailed = false;
+            bool recordingFailed = false;
 
             if (!string.IsNullOrEmpty(profile.PlaybackDeviceId))
             {
                 if (IsDeviceActive(enumerator, profile.PlaybackDeviceId))
                 {
-                    setDefault(profile.PlaybackDeviceId);
-                    playbackApplied = true;
+                    playbackApplied = setDefault(profile.PlaybackDeviceId);
+                    playbackFailed = !playbackApplied; // active device, but SetDefaultEndpoint failed
                 }
                 else
                 {
@@ -77,8 +61,8 @@ internal static class AudioProfileApplier
             {
                 if (IsDeviceActive(enumerator, profile.RecordingDeviceId))
                 {
-                    setDefault(profile.RecordingDeviceId);
-                    recordingApplied = true;
+                    recordingApplied = setDefault(profile.RecordingDeviceId);
+                    recordingFailed = !recordingApplied;
                 }
                 else
                 {
@@ -86,7 +70,9 @@ internal static class AudioProfileApplier
                 }
             }
 
-            return new ProfileSwitchResult(playbackApplied, recordingApplied, missingPlayback, missingRecording);
+            return new ProfileSwitchResult(
+                playbackApplied, recordingApplied, missingPlayback, missingRecording,
+                playbackFailed, recordingFailed);
         }
         catch (COMException ex) when (ex.HResult == unchecked((int)0x80070424))
         {
@@ -97,9 +83,26 @@ internal static class AudioProfileApplier
         }
         finally
         {
-            Marshal.ReleaseComObject(rawPolicy);
-            Marshal.ReleaseComObject(enumerator);
+            if (rawPolicy != null) Marshal.ReleaseComObject(rawPolicy);
+            if (enumerator != null) Marshal.ReleaseComObject(enumerator);
         }
+    }
+
+    private static bool TrySetAllRoles(
+        Func<string, ERole, int> set, string id, IAppLogger logger, ISessionErrorTracker errorTracker)
+    {
+        int hr;
+        if ((hr = set(id, ERole.Console)) != 0 ||
+            (hr = set(id, ERole.Multimedia)) != 0 ||
+            (hr = set(id, ERole.Communications)) != 0)
+        {
+            var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
+            logger.Error("AudioProfileApplier.Apply", msg);
+            errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
+                "Set Default Audio Endpoint Failed", msg);
+            return false;
+        }
+        return true;
     }
 
     internal static bool IsDeviceActive(IMMDeviceEnumerator enumerator, string deviceId)

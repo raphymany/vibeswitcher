@@ -6,7 +6,7 @@ using VibeSwitcher.Services;
 
 namespace VibeSwitcher.ViewModels;
 
-public class SettingsViewModel : ViewModelBase
+public class SettingsViewModel : ViewModelBase, IDisposable
 {
     private readonly IConfigService _configService;
     private readonly IAudioService _audioService;
@@ -706,7 +706,7 @@ public class SettingsViewModel : ViewModelBase
 
     public ICommand AddProfileCommand { get; }
 
-    private void SaveAsync() => Task.Run(_configService.SaveImmediate);
+    private void SaveAsync() => _configService.SaveDeferred();
 
     public SettingsViewModel(
         IConfigService configService,
@@ -1075,10 +1075,34 @@ public class SettingsViewModel : ViewModelBase
     internal static void DeleteOrphanedIcon(string? iconPath, string iconsDir, IAppLogger logger, ISessionErrorTracker errorTracker, string? exceptPath = null)
     {
         if (string.IsNullOrEmpty(iconPath)) return;
-        var prefix = iconsDir + System.IO.Path.DirectorySeparatorChar;
-        if (!iconPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
-        if (exceptPath != null && string.Equals(iconPath, exceptPath, StringComparison.OrdinalIgnoreCase)) return;
-        try { System.IO.File.Delete(iconPath); }
+
+        // Canonicalize BOTH sides before the prefix check, then delete the canonical path.
+        // Without this, a crafted/imported icon path like "Icons\..\..\secret.ico" passes a raw
+        // StartsWith check but File.Delete resolves the ".." and deletes outside the icons folder.
+        string canonical, prefix;
+        try
+        {
+            canonical = System.IO.Path.GetFullPath(iconPath);
+            prefix = System.IO.Path.GetFullPath(iconsDir)
+                         .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar)
+                     + System.IO.Path.DirectorySeparatorChar;
+        }
+        catch (Exception ex)
+        {
+            logger.Warning("SettingsViewModel.DeleteOrphanedIcon", ex.Message);
+            return;
+        }
+        if (!canonical.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
+        if (exceptPath != null)
+        {
+            try
+            {
+                if (string.Equals(canonical, System.IO.Path.GetFullPath(exceptPath), StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
+            catch { /* fall through — a bad exceptPath shouldn't block deleting a valid orphan */ }
+        }
+        try { System.IO.File.Delete(canonical); }
         catch (Exception ex)
         {
             logger.Warning("SettingsViewModel.DeleteOrphanedIcon", ex.Message);
@@ -1157,11 +1181,41 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(Theme));
         OnPropertyChanged(nameof(Use12HourClock));
         OnPropertyChanged(nameof(Use24HourClock));
+        // Mini-mode and mute panels read from config too — refresh them after an import.
+        OnPropertyChanged(nameof(CompactHotkeyDisplay));
+        OnPropertyChanged(nameof(CompactHotkeyIsSet));
+        OnPropertyChanged(nameof(CompactAlwaysOnTop));
+        OnPropertyChanged(nameof(CompactTranslucent));
+        OnPropertyChanged(nameof(MuteMicHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteBothHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteMicHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteBothHotkeyEnabled));
         _applyTheme(_configService.Current.Theme ?? "Auto");
 
         ReregisterHotkeys();
         _onProfilesChanged();
+        // Imported app-trigger lists must be (re)watched and removed ones unwatched.
+        _onAppTriggersChanged?.Invoke();
         return true;
+    }
+
+    public void Dispose()
+    {
+        _audioService.DevicesChanged -= OnDevicesChanged;
+        if (_iconWatcher != null)
+        {
+            _iconWatcher.Deleted -= OnIconFileChanged;
+            _iconWatcher.Renamed -= OnIconFileChanged;
+            _iconWatcher.Dispose();
+            _iconWatcher = null;
+        }
+        _loadCts?.Cancel();
+        _loadCts?.Dispose();
+        _loadCts = null;
+        foreach (var card in Profiles)
+            card.Dispose();
     }
 
     private void RebuildProfiles()

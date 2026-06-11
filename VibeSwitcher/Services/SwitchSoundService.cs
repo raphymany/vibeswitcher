@@ -140,7 +140,7 @@ public class SwitchSoundService : ISwitchSoundService
 
     private static short[] GenerateSoft(float amplitude)
     {
-        // 220 Hz warm sine (A3), 0.8 s very gradual linear fade — gentle background notification
+        // 220 Hz warm sine (A3), 0.8 s gentle exponential fade — soft background notification
         int frames = (int)(SampleRate * 0.8);
         var s = new short[frames];
         for (int i = 0; i < frames; i++)
@@ -213,34 +213,46 @@ public class SwitchSoundService : ISwitchSoundService
 
     // ── Custom WAV loading ────────────────────────────────────────────────────
 
-    private static byte[] LoadAndScaleWav(string path, int volume)
+    // A switch cue is tiny; cap the read so a config pointing SoundCustomPath at a huge
+    // file can't OOM the process. Oversized files fall back to a built-in tone.
+    private const long MaxCustomWavBytes = 25 * 1024 * 1024; // 25 MB
+
+    private byte[] LoadAndScaleWav(string path, int volume)
     {
+        var info = new FileInfo(path);
+        if (info.Length > MaxCustomWavBytes)
+        {
+            _logger.Warning("SwitchSoundService.LoadAndScaleWav",
+                $"Custom WAV '{path}' is {info.Length} bytes (> {MaxCustomWavBytes}); using a built-in tone instead.");
+            return GenerateTone("Click", volume);
+        }
+
         byte[] raw = File.ReadAllBytes(path);
 
-        // Find the "fmt " chunk and verify it is 16-bit PCM.
+        // Find the "fmt " chunk and verify it is 16-bit PCM. Bounds-check before reading fields.
         int fmtOffset = FindChunk(raw, "fmt ");
-        if (fmtOffset < 0) return raw; // unknown format — play as-is
+        if (fmtOffset < 0 || fmtOffset + 24 > raw.Length) return raw; // unknown/truncated — play as-is
 
         int audioFormat   = BitConverter.ToInt16(raw, fmtOffset + 8);
         int channels      = BitConverter.ToInt16(raw, fmtOffset + 10);
         int bitsPerSample = BitConverter.ToInt16(raw, fmtOffset + 22);
 
-        if (audioFormat != 1 || bitsPerSample != 16) return raw; // not PCM-16 — play as-is
+        if (audioFormat != 1 || bitsPerSample != 16 || channels < 1) return raw; // not PCM-16 — play as-is
 
         int dataOffset = FindChunk(raw, "data");
-        if (dataOffset < 0) return raw;
+        if (dataOffset < 0 || dataOffset + 8 > raw.Length) return raw;
 
         int dataSize = BitConverter.ToInt32(raw, dataOffset + 4);
+        if (dataSize < 0) return raw;
         int sampleStart = dataOffset + 8;
+        // Clamp the data region to the actual file length so a lying header can't read OOB.
+        int dataEnd = (int)Math.Min((long)sampleStart + dataSize, raw.Length);
 
         float scale = Math.Clamp(volume / 100f, 0f, 1f);
         byte[] result = (byte[])raw.Clone();
 
-        int sampleCount = dataSize / (bitsPerSample / 8 * channels);
-        for (int i = 0; i < sampleCount * channels; i++)
+        for (int bytePos = sampleStart; bytePos + 2 <= dataEnd; bytePos += 2)
         {
-            int bytePos = sampleStart + i * 2;
-            if (bytePos + 2 > result.Length) break;
             short s = BitConverter.ToInt16(result, bytePos);
             short scaled = (short)(s * scale);
             result[bytePos]     = (byte)(scaled & 0xFF);
@@ -250,19 +262,22 @@ public class SwitchSoundService : ISwitchSoundService
         return result;
     }
 
+    // Walks RIFF chunks from offset 12, reading an 8-byte (id + size) header and advancing by
+    // 8 + size (+1 byte pad for odd sizes). Returns the matching chunk's header offset, or -1.
     private static int FindChunk(byte[] data, string id)
     {
+        if (data.Length < 12) return -1;
         byte[] tag = System.Text.Encoding.ASCII.GetBytes(id);
-        for (int i = 12; i < data.Length - 8; i++)
+        int i = 12;
+        while (i + 8 <= data.Length)
         {
             if (data[i] == tag[0] && data[i + 1] == tag[1] &&
                 data[i + 2] == tag[2] && data[i + 3] == tag[3])
                 return i;
-            int chunkSize = BitConverter.ToInt32(data, i + 4);
-            if (chunkSize < 0) return -1; // malformed file — bail out
-            // RIFF pads odd-length chunks with a zero byte; account for it.
-            int pad = chunkSize % 2;
-            i += 7 + chunkSize + pad; // 8-byte header - 1 for loop increment + optional pad
+            uint chunkSize = BitConverter.ToUInt32(data, i + 4);
+            long next = (long)i + 8 + chunkSize + (chunkSize & 1); // +pad for odd sizes
+            if (next <= i || next > data.Length) return -1; // malformed / overflow — bail out
+            i = (int)next;
         }
         return -1;
     }

@@ -33,7 +33,7 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 
 ## Requirements
 
-- Windows 10 or 11 (x64)
+- Windows 10 version 1809 (build 17763) or newer, or Windows 11 (x64)
 - No additional runtime required — the release build is self-contained
 
 ## Installation

@@ -104,7 +104,7 @@ public partial class App : Application
         _muteService = new MuteService(_logger);
         _muteService.MuteStateChanged += () =>
         {
-            _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
+            _trayService.UpdateMuteBadge(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
             _windowManager?.NotifyMuteChanged(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
         };
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService,
@@ -117,6 +117,8 @@ public partial class App : Application
         _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);
         // Keep the settings window's active-profile indicators in sync with background switches.
         _orchestrator.ProfileSwitched += () => _windowManager!.NotifyProfileSwitched();
+        // A switch can change the default device, so re-read actual mute state to keep the badge accurate.
+        _orchestrator.ProfileSwitched += () => _muteService!.ResyncState();
 
         // 6. Register hotkeys
         RegisterHotkeys();
@@ -137,24 +139,27 @@ public partial class App : Application
 
         var activeProfile = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        if (activeProfile != null)
-            _orchestrator.SwitchToProfile(activeProfile);
 
-        // 8. Refresh tray
-        _trayService.UpdateIcon(activeProfile);
-        _trayService.RebuildMenu();
-
-        // 9. Re-apply active profile when the PC wakes from sleep/hibernate
-        SystemEvents.PowerModeChanged += _orchestrator.OnPowerModeChanged;
-
-        // 9b. Profile scheduler — evaluates on startup and every 10 seconds
+        // 8. Profile scheduler — created and evaluated BEFORE the restore so a schedule that was
+        //    due while the app wasn't running takes precedence over re-applying the last profile
+        //    (otherwise the restore would hold the switch lock and the due schedule would be dropped).
         _schedulerService = new SchedulerService(
             _configService,
             (profile, silent) => _orchestrator.SwitchToProfile(profile, silent),
             (title, msg) => _trayService!.ShowBalloon(title, msg));
         SystemEvents.PowerModeChanged += _schedulerService.OnPowerModeChanged;
-        _schedulerService.Start();
-        _schedulerService.EvaluateNow();
+        bool scheduleFired = _schedulerService.EvaluateNow();
+
+        // 9. Restore last active profile only if no due schedule already switched us.
+        if (!scheduleFired && activeProfile != null)
+            _orchestrator.SwitchToProfile(activeProfile);
+
+        // 10. Refresh tray
+        _trayService.UpdateIcon(activeProfile);
+        _trayService.RebuildMenu();
+
+        // 11. Re-apply active profile when the PC wakes from sleep/hibernate
+        SystemEvents.PowerModeChanged += _orchestrator.OnPowerModeChanged;
 
         // 9c. Device trigger — auto-switch when a profile's device is connected
         _deviceTriggerService = new DeviceTriggerService(
@@ -195,6 +200,17 @@ public partial class App : Application
             _trayService.RunWhenContextMenuClosed(OpenSettingsWindow);
         };
         splash.Show();
+
+        // Safety net: if the splash animation is interrupted (closed early, storyboard fault),
+        // AnimationComplete may never fire — guarantee the tray icon still appears so the app
+        // can't end up headless. ShowIcon is idempotent.
+        var iconFallback = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+        iconFallback.Tick += (_, _) =>
+        {
+            iconFallback.Stop();
+            _trayService?.ShowIcon();
+        };
+        iconFallback.Start();
     }
 
     private void RegisterSettingsHotkey()
@@ -265,7 +281,9 @@ public partial class App : Application
 
     // Debounce per-atom to suppress WM_HOTKEY auto-repeat when a key is held down.
     private readonly Dictionary<ushort, long> _hotkeyLastFired = new();
-    private const long HotkeyDebounceTicks = 1000 * TimeSpan.TicksPerMillisecond;
+    // 500ms suppresses key auto-repeat while still allowing a deliberate quick re-press
+    // (e.g. mute then immediately unmute).
+    private const long HotkeyDebounceTicks = 500 * TimeSpan.TicksPerMillisecond;
 
     private bool ShouldHandleHotkey(ushort atomId)
     {
@@ -330,6 +348,10 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        // Flush any pending config synchronously so a SaveDeferred queued just before exit
+        // (e.g. a setting toggled then Exit clicked) isn't lost when the process ends.
+        try { _configService?.SaveImmediate(); } catch { /* best-effort on exit */ }
+
         // _orchestrator is null when a second instance exits early via Shutdown() before OnStartup completes.
         if (_orchestrator != null)
             SystemEvents.PowerModeChanged -= _orchestrator.OnPowerModeChanged;

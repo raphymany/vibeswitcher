@@ -94,7 +94,10 @@ public partial class TitleBar : UserControl
         _stateChangedHandler = null;
     }
 
-    private void UpdateMaxBtn(Window window) { }
+    // Swap the maximize glyph (□) for a restore glyph (❐) while the window is maximized,
+    // matching standard Windows title-bar behavior.
+    private void UpdateMaxBtn(Window window)
+        => MaxBtnText.Text = window.WindowState == WindowState.Maximized ? "❐" : "□";
 
     private void Close_Click(object sender, RoutedEventArgs e) =>
         Window.GetWindow(this)?.Close();

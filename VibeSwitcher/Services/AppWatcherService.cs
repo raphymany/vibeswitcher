@@ -18,6 +18,9 @@ public sealed class AppWatcherService : IDisposable
     private HashSet<string> _skipOnNextPoll = new(StringComparer.OrdinalIgnoreCase);
     private readonly Timer _timer;
     private volatile bool _disposed;
+    // Re-entrancy gate: a slow poll (many Process.GetProcessesByName calls) can run past the 2s
+    // period; without this, two concurrent polls race the _runningExeNames read-modify-write.
+    private int _polling;
     private readonly IAppLogger _logger;
 
     public AppWatcherService(IAppLogger logger)
@@ -50,7 +53,20 @@ public sealed class AppWatcherService : IDisposable
     private void Poll(object? _)
     {
         if (_disposed) return;
+        // Skip this tick if the previous one is still running (no overlapping polls).
+        if (Interlocked.Exchange(ref _polling, 1) == 1) return;
+        try
+        {
+            PollCore();
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _polling, 0);
+        }
+    }
 
+    private void PollCore()
+    {
         var paths = _watchedPaths;
         if (paths.Count == 0)
         {
