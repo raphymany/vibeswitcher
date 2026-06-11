@@ -41,3 +41,4 @@ ClaudeDesign/
 
 # Local publish output and build artifacts
 publish/
+installer/output/

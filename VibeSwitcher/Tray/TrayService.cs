@@ -47,19 +47,6 @@ public class TrayService : IDisposable
             ToolTipText = "VibeSwitcher",
         };
 
-        // Required when creating TaskbarIcon programmatically (not via XAML)
-        // to trigger Shell_NotifyIcon registration with the system tray.
-        try
-        {
-            _taskbarIcon.ForceCreate(false);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error("TrayService", ex);
-            _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
-                $"The system tray icon failed to register: {ex.Message}");
-        }
-
         _taskbarIcon.TrayLeftMouseUp += (_, _) =>
         {
             if (_configService.Current.LeftClickCyclesProfiles) CycleNextProfile();
@@ -68,6 +55,64 @@ public class TrayService : IDisposable
 
         UpdateIcon(null);
         RebuildMenu();
+        // Subscribed on the icon, not the menu — RebuildMenu replaces the menu object.
+        _taskbarIcon.TrayContextMenuOpen += (_, _) => RefreshMiniMenuItem();
+    }
+
+    // A WPF ContextMenu pays a one-time creation cost on its first-ever open, which
+    // makes the tray's focus handoff miss — the menu flashes and instantly closes.
+    // Priming it once invisibly off-screen at idle (well before any click, so the
+    // warm-up popup is fully torn down again) absorbs that cost out of sight.
+    // It must NOT run during the open itself: the real open would then reuse the
+    // still-alive warm-up popup at its clamped off-screen position.
+    private void PrimeContextMenuAtIdle()
+    {
+        var menu = _contextMenu;
+        menu.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() =>
+        {
+            if (menu != _contextMenu || menu.IsOpen) return; // rebuilt or already in use
+            var placement = menu.Placement;
+            var hOffset   = menu.HorizontalOffset;
+            var vOffset   = menu.VerticalOffset;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint;
+            menu.HorizontalOffset = -32000;
+            menu.VerticalOffset = -32000;
+            menu.Opacity = 0;
+            menu.IsOpen = true;
+            menu.UpdateLayout();
+            menu.IsOpen = false;
+            menu.Opacity = 1;
+            menu.Placement = placement;
+            menu.HorizontalOffset = hOffset;
+            menu.VerticalOffset = vOffset;
+        }));
+    }
+
+    // The icon is registered with the shell only once the app is ready (the splash
+    // animation has completed), so users can't interact with a half-started app.
+    private bool _iconShown;
+    private readonly List<(string Title, string Message, bool Sound)> _pendingBalloons = new();
+
+    public void ShowIcon()
+    {
+        if (_iconShown) return;
+        _iconShown = true;
+        try
+        {
+            // Required when creating TaskbarIcon programmatically (not via XAML)
+            // to trigger Shell_NotifyIcon registration with the system tray.
+            _taskbarIcon.ForceCreate(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("TrayService.ShowIcon", ex);
+            _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
+                $"The system tray icon failed to register: {ex.Message}");
+        }
+
+        foreach (var (title, message, sound) in _pendingBalloons)
+            ShowBalloon(title, message, sound);
+        _pendingBalloons.Clear();
     }
 
     public void ClearIconCache()
@@ -229,6 +274,16 @@ public class TrayService : IDisposable
     public void RebuildMenu()
     {
         _contextMenu = new ContextMenu();
+        // On the menu's first-ever open its popup window doesn't exist yet when the
+        // tray library hands it focus, so the handoff misses, Windows activates the
+        // app window instead, and the menu instantly dismisses. Re-assert foreground
+        // onto the menu once it has actually opened (its window exists by then).
+        _contextMenu.Opened += (_, _) =>
+        {
+            if (System.Windows.Interop.HwndSource.FromVisual(_contextMenu)
+                is System.Windows.Interop.HwndSource src)
+                NativeMethods.WinApi.SetForegroundWindow(src.Handle);
+        };
         _taskbarIcon.ContextMenu = _contextMenu;
 
         try
@@ -295,8 +350,8 @@ public class TrayService : IDisposable
         var settingsItem = new MenuItem { Header = BuildActionHeader("IcoSettings", "Settings"), Padding = new Thickness(12, 8, 16, 8) };
         settingsItem.Click += (_, _) => OpenSettingsExpanded();
 
-        var miniItem = new MenuItem { Header = BuildActionHeader("IcoCompact", "Mini Mode"), Padding = new Thickness(12, 8, 16, 8) };
-        miniItem.Click += (_, _) => OpenMiniMode();
+        _miniItem = new MenuItem { Header = BuildActionHeader("IcoCompact", "Mini Mode"), Padding = new Thickness(12, 8, 16, 8) };
+        _miniItem.Click += (_, _) => ToggleMiniMode();
 
         var soundSettingsItem = new MenuItem { Header = BuildActionHeader("IcoSpeaker", "Open Sound Settings"), Padding = new Thickness(12, 8, 16, 8) };
         soundSettingsItem.Click += (_, _) =>
@@ -323,7 +378,7 @@ public class TrayService : IDisposable
         _contextMenu.Items.Add(aboutItem);
         _contextMenu.Items.Add(faqItem);
         _contextMenu.Items.Add(settingsItem);
-        _contextMenu.Items.Add(miniItem);
+        _contextMenu.Items.Add(_miniItem);
         _contextMenu.Items.Add(soundSettingsItem);
 
         _contextMenu.Items.Add(BuildSeparator());
@@ -336,6 +391,8 @@ public class TrayService : IDisposable
         var active = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         _taskbarIcon.ToolTipText = BuildTooltip(active);
+
+        PrimeContextMenuAtIdle();
     }
 
     // Fast path: only flip IsChecked on profile items — no menu rebuild needed on a simple switch.
@@ -350,6 +407,13 @@ public class TrayService : IDisposable
 
     public void ShowBalloon(string title, string message, bool sound = true)
     {
+        // Balloons raised before the icon exists (e.g. startup hotkey conflicts)
+        // are queued and flushed when the icon appears.
+        if (!_iconShown)
+        {
+            _pendingBalloons.Add((title, message, sound));
+            return;
+        }
         _taskbarIcon.ShowNotification(
             title,
             message,
@@ -361,6 +425,7 @@ public class TrayService : IDisposable
 
     public void RecreateIcon()
     {
+        if (!_iconShown) return; // Explorer restarted before the icon was ever shown
         try
         {
             _taskbarIcon.ForceCreate(false);
@@ -402,10 +467,41 @@ public class TrayService : IDisposable
             app.OpenFaqPanel();
     }
 
-    private static void OpenMiniMode()
+    private static void ToggleMiniMode()
     {
         if (Application.Current is App app)
-            app.OpenMiniMode();
+            app.ToggleMiniMode();
+    }
+
+    // The mini item flips between entering and leaving mini mode depending on the
+    // window's current state, refreshed each time the menu opens.
+    private MenuItem? _miniItem;
+
+    private void RefreshMiniMenuItem()
+    {
+        if (_miniItem == null) return;
+        bool active = Application.Current is App app && app.IsMiniModeActive;
+        _miniItem.Header = active
+            ? BuildActionHeader("IcoExpand", "Exit Mini Mode")
+            : BuildActionHeader("IcoCompact", "Mini Mode");
+    }
+
+    // Runs the action immediately, or — if the tray menu is currently open — defers it
+    // until the menu closes, so window activation can't dismiss the user's menu.
+    public void RunWhenContextMenuClosed(Action action)
+    {
+        var menu = _contextMenu;
+        if (!menu.IsOpen)
+        {
+            action();
+            return;
+        }
+        void Handler(object sender, RoutedEventArgs e)
+        {
+            menu.Closed -= Handler;
+            action();
+        }
+        menu.Closed += Handler;
     }
 
     private static MenuItem BuildSeparator()

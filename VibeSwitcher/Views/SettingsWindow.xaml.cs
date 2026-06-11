@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using Microsoft.Win32;
 using System.Windows.Controls;
@@ -128,6 +129,21 @@ public partial class SettingsWindow : Window
         if (_configService.Current.CompactMode)
             EnterCompact();
 
+        // Uninstalling only applies to copies installed by the setup program; the card
+        // stays visible for portable copies with the button disabled and a hint instead.
+        if (!IsInstalledCopy())
+        {
+            UninstallBtn.IsEnabled = false;
+            PortableUninstallNote.Visibility = Visibility.Visible;
+        }
+        RefreshStorageInfo();
+        try
+        {
+            var v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            InstallVersionText.Text = v != null ? $"{v.Major}.{v.Minor}.{v.Build}" : "—";
+        }
+        catch { InstallVersionText.Text = "—"; }
+
         _errorAddedHandler = (_, _) => Dispatcher.InvokeAsync(UpdateLogsButton);
 
         IsVisibleChanged += (_, e) =>
@@ -137,6 +153,7 @@ public partial class SettingsWindow : Window
                 _errorTracker.ErrorAdded += _errorAddedHandler;
                 UpdateLogsButton();
                 _viewModel.RefreshActiveStates();
+                RefreshStorageInfo();
             }
             else
             {
@@ -330,6 +347,91 @@ public partial class SettingsWindow : Window
     private void LogsButton_Click(object sender, RoutedEventArgs e)
     {
         new SessionLogWindow(_logger, _errorTracker) { Owner = this }.ShowDialog();
+    }
+
+    // ── In-app uninstall (installed copies only) ────────────────────
+
+    private static bool IsInstalledCopy()
+    {
+        var installRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Programs", "VibeSwitcher");
+        var baseDir = Path.GetFullPath(AppContext.BaseDirectory).TrimEnd(Path.DirectorySeparatorChar);
+        return baseDir.Equals(Path.GetFullPath(installRoot).TrimEnd(Path.DirectorySeparatorChar),
+                              StringComparison.OrdinalIgnoreCase)
+            && File.Exists(Path.Combine(baseDir, "unins000.exe"));
+    }
+
+    private void BrowseInstallFolder_Click(object sender, RoutedEventArgs e) =>
+        OpenFolderInExplorer(AppContext.BaseDirectory);
+
+    private void OpenDataFolder_Click(object sender, RoutedEventArgs e) =>
+        OpenFolderInExplorer(Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher"));
+
+    // Recomputed on every window show (the window is hidden, not destroyed, on close).
+    private void RefreshStorageInfo()
+    {
+        var dataFolder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "VibeSwitcher");
+        InstallLocationText.Text = AppContext.BaseDirectory;
+        DataLocationText.Text    = dataFolder;
+        InstallSizeText.Text     = FormatFolderSize(AppContext.BaseDirectory);
+        DataSizeText.Text        = FormatFolderSize(dataFolder);
+    }
+
+    private static string FormatFolderSize(string path)
+    {
+        try
+        {
+            if (!Directory.Exists(path)) return "—";
+            long bytes = new DirectoryInfo(path)
+                .EnumerateFiles("*", SearchOption.AllDirectories)
+                .Sum(f => f.Length);
+            return bytes switch
+            {
+                >= 1024L * 1024 * 1024 => $"{bytes / (1024.0 * 1024 * 1024):0.##} GB",
+                >= 1024L * 1024        => $"{bytes / (1024.0 * 1024):0.#} MB",
+                >= 1024                => $"{bytes / 1024.0:0.#} KB",
+                _                      => $"{bytes} B",
+            };
+        }
+        catch { return "—"; }
+    }
+
+    private void OpenFolderInExplorer(string path)
+    {
+        try
+        {
+            if (!Directory.Exists(path)) return;
+            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{path}\"") { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning("SettingsWindow.OpenFolder", ex.Message);
+        }
+    }
+
+    private void UninstallButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!IsInstalledCopy()) return;
+
+        var dialog = new UninstallDialog { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        var uninstaller = Path.Combine(AppContext.BaseDirectory, "unins000.exe");
+        var args = "/SILENT" + (dialog.DeleteData ? " /DELETEDATA=1" : "");
+
+        // Launch through cmd with a short delay so this process can exit and release
+        // the installer-detection mutex before the uninstaller checks for it.
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            Arguments = $"/c timeout /t 2 /nobreak >nul & \"{uninstaller}\" {args}",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        });
+        Application.Current.Shutdown();
     }
 
     private void RestoreWindowBounds()

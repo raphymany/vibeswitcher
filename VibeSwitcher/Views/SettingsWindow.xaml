@@ -1818,6 +1818,31 @@
                                     <TextBlock Text="Logs" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
+
+                            <!-- Uninstall (installed copies only — hidden for portable) -->
+                            <Button x:Name="UninstallNavBtn" Command="{Binding SelectCategoryCommand}" CommandParameter="uninstall">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource SettingsNavItemStyle}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsUninstallSelected}" Value="True">
+                                                <Setter Property="Background" Value="#0FF5820A"/>
+                                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Data="{StaticResource IcoTrash}"
+                                                  Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                  StrokeLineJoin="Round" Fill="Transparent"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Install &amp; Updates" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
 
                         <!-- Back button at bottom of sidebar -->
@@ -2378,6 +2403,80 @@
                                                FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                                     <Button Content="View session log" Style="{StaticResource ActionButton}"
                                             HorizontalAlignment="Left" Click="LogsButton_Click"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Uninstall ────────────────────── -->
+                        <StackPanel>
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsUninstallSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <TextBlock Text="Install / Update / Uninstall" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
+
+                            <!-- App location -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="THIS INSTALLATION" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="Version" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                        <TextBlock x:Name="InstallVersionText" FontSize="12.5" Foreground="{DynamicResource SecondaryText}"
+                                                   Margin="8,0,0,0"/>
+                                        <TextBlock Text="•" FontSize="12.5" Foreground="{DynamicResource VSLabel}" Margin="10,0"/>
+                                        <TextBlock Text="Size" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                        <TextBlock x:Name="InstallSizeText" FontSize="12.5" Foreground="{DynamicResource SecondaryText}"
+                                                   Margin="8,0,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Location" FontSize="12.5" Foreground="{DynamicResource VSLabel}" Margin="0,4,0,2"/>
+                                    <TextBlock x:Name="InstallLocationText" FontSize="11" FontFamily="Consolas"
+                                               Foreground="{DynamicResource SecondaryText}" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,0,0,10"/>
+                                    <Button Content="Browse install location" Style="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="BrowseInstallFolder_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- App data -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="APP DATA" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="Your profiles, settings, custom icons, and the error log live in the app's data folder. This is also what Backup &amp; Restore exports."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="Size" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                        <TextBlock x:Name="DataSizeText" FontSize="12.5" Foreground="{DynamicResource SecondaryText}"
+                                                   Margin="8,0,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Text="Location" FontSize="12.5" Foreground="{DynamicResource VSLabel}" Margin="0,4,0,2"/>
+                                    <TextBlock x:Name="DataLocationText" FontSize="11" FontFamily="Consolas"
+                                               Foreground="{DynamicResource SecondaryText}" TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,0,0,10"/>
+                                    <Button Content="Open data folder" Style="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="OpenDataFolder_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Uninstall (button disabled for portable copies) -->
+                            <Border x:Name="UninstallCard" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="UNINSTALL VIBESWITCHER" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="Removes VibeSwitcher from this PC — no admin prompt needed. Your profiles and settings are kept unless you choose to delete them too."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <TextBlock x:Name="PortableUninstallNote" Visibility="Collapsed"
+                                               Text="You're running the portable version — there's nothing to uninstall. To remove it, just delete the folder containing VibeSwitcher.exe."
+                                               FontSize="10.5" Foreground="{DynamicResource WarningText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <Button x:Name="UninstallBtn" Content="Uninstall VibeSwitcher…" Style="{StaticResource DeleteButton}"
+                                            HorizontalAlignment="Left" Click="UninstallButton_Click"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>
