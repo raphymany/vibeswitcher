@@ -426,7 +426,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | # | Issue | Location |
 |---|-------|----------|
 | ~~C1~~ | UI thread freeze during Settings open — **fixed** | ✅ Done |
-| C2 | No installer / distribution mechanism | Build pipeline |
+| ~~C2~~ | ~~No installer / distribution mechanism~~ | ✅ Done — PR #110 |
 | C3 | No code signing (SmartScreen blocks app on every first run) | Build pipeline |
 | ~~C4~~ | ~~No LICENSE file~~ | ✅ Done |
 | ~~C5~~ | ~~No README.md~~ | ✅ Done |
@@ -579,20 +579,20 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 
 | Category | Total | Fixed | Remaining |
 |----------|-------|-------|-----------|
-| Critical | 9 | 7 | 2 (C2, C3) |
+| Critical | 9 | 8 | 1 (C3) |
 | High | 10 | 10 | 0 |
 | Medium | 19 | 17 | 0 |
 | Low | 23 | 22 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
 | Feature Additions | 43 | 32 | 6 |
-| **Total** | **117** | **101** | **8** |
+| **Total** | **117** | **102** | **7** |
 
 *Totals count every tracked item. The 8-item difference between Total and Fixed + Remaining is reclassified work: M1 → F16, M11 → F2, and L17 → F16 (moved to Feature Additions); F4, F12, F14 (removed); and F10, F27 (dropped).*
 
 ---
 
-*The most impactful remaining items before any public release: C2/C3 (installer + code signing).*
+*Remaining before any public release: C3 (code signing — dropped, no certificate) and F8 (auto-updater — next up now that the installer exists).*
 
 ---
 
@@ -602,7 +602,7 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 **All remaining work is tracked in BACKLOG.md — Planned Branches (Branches 28–43, in execution order).**
 
-**Explicitly deferred (no branch):** C2/8.1 (installer — saving for last), C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — needs installer first), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (distribution and discovery — post-v1.0), 10.8 (website), Mica/Acrylic (UI/UX redesign phase).
+**Explicitly deferred (no branch):** C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — unblocked by PR #110, planned next), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (distribution and discovery — post-v1.0), 10.8 (website), Mica/Acrylic (UI/UX redesign phase).
 
 *(M16, M17 resolved PR #40; M18, M19 resolved PR #42; L21, L22, L23 resolved PR #44; L20/8.9 resolved PR #46; 7.16 resolved PR #48)*
 
@@ -1379,3 +1379,16 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | FAQ | Clickable in-app actions across FAQ answers (new profile, filter bar, settings sections, try mini) + 4 new cards: Mini Mode, panic/mute hotkeys, app launch triggers, switch sounds & silent profiles | ✅ Done |
 | Fix | Confirmation-dialog subtitles wrap instead of clipping; re-entrancy guard prevents the mini hotkey from corrupting saved full-window bounds while the intro dialog is open | ✅ Done |
 | Tests | 2 new ConfigService tests (mini-mode round-trip + legacy-config defaults); suite at 224 | ✅ Done |
+
+### Branch 52: `feat/installer` ✅ Done — PR #110
+**Theme:** Windows installer (C2) — Inno Setup per-user installer published with every release, plus an in-app uninstall flow. Verified end-to-end locally: silent install to `{localappdata}\Programs\VibeSwitcher` with no UAC prompt, Start Menu shortcut, running-instance detection via a new fixed-name mutex, and silent uninstall that removes the app while keeping `%APPDATA%\VibeSwitcher`.
+
+| # | Item | Status |
+|---|------|--------|
+| Installer | `installer/VibeSwitcher.iss` — per-user (PrivilegesRequired=lowest, no UAC), stable AppId for upgrades, version auto-read from the published exe, optional desktop-shortcut and start-with-Windows tasks (writes the same HKCU Run value StartupService manages), launch-after-install, AppMutex running-app detection | ✅ Done |
+| Installer | Uninstall removes app, shortcuts, and the Run value; keeps `%APPDATA%\VibeSwitcher` by default; the `[Code]` section deletes that one constant path only when the explicit `/DELETEDATA=1` parameter is passed (no wildcards anywhere) | ✅ Done |
+| CI | `release.yml` — builds the installer with ISCC on tag push; publishes `VibeSwitcher-Setup-vX.Y.Z-win-x64.exe` alongside the portable zip with SHA256 checksums for both | ✅ Done |
+| App | Fixed-name mutex `Local\VibeSwitcher_App` in `SingleInstanceHelper` so setup/uninstall can detect a running instance (single-instancing itself unchanged) | ✅ Done |
+| UI | "Uninstall" Settings category (hidden for portable copies) with a danger-styled card; new `UninstallDialog` — confirmation plus an "also delete my profiles and settings" toggle that defaults to keep | ✅ Done |
+| UI | Uninstall flow: launches `unins000.exe /SILENT` (with `/DELETEDATA=1` only when opted in) via a short delayed start so the app can exit first, then shuts down | ✅ Done |
+| Docs | README Installation rewritten (installer primary, portable zip kept); CHANGELOG, RECORD, BACKLOG updated | ✅ Done |

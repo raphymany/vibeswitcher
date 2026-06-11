@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-11 — Branch 51 (`feat/compact-mode`) — PR #108 (Mini Mode compact profile switcher: rows/icon-grid layouts, setup wizard, pin, translucency, global hotkey, mute badge, clickable FAQ actions + 4 new FAQ cards).
+**Last updated:** 2026-06-11 — Branch 52 (`feat/installer`) — PR #110 (Inno Setup per-user installer published with every release + in-app uninstall with keep/delete-data choice).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -71,7 +71,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 ### ~~CRITICAL — Must fix before any release~~
 
-*(C2 and C3 deferred — installer and code signing saved for last)*
+*(C2 installer ✅ Done — PR #110; C3 code signing dropped — no certificate)*
 
 ### ~~HIGH — Important before v1.0.0~~
 
@@ -157,8 +157,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 | # | Feature | Why deferred |
 |---|---------|--------------|
-| C2 / 8.1 | Installer (Inno Setup or WiX) | Saving for last |
-| F8 / 8.3 | Auto-updater (GitHub Releases check) | Needs installer first |
+| F8 / 8.3 | Auto-updater (GitHub Releases check) | Next up — unblocked by the installer (PR #110) |
 | 8.7 | Distribution and discovery — package managers (winget, Chocolatey, Scoop); community posts (Reddit r/Windows + r/Windows11 + r/pcmasterrace, Hacker News Show HN, Product Hunt); AlternativeTo listing; GitHub repo topics; short YouTube demo | Post-v1.0 |
 | 10.8 | Website ("coming soon") | External, not in this repo |
 

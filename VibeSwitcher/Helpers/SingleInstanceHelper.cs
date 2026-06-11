@@ -7,8 +7,12 @@ public class SingleInstanceHelper : IDisposable
         $"Local\\VibeSwitcher_SingleInstance_v1_{Environment.UserName}";
     private static readonly string EventName =
         $"Local\\VibeSwitcher_Activate_v1_{Environment.UserName}";
+    // Fixed name (no username) referenced by the installer's AppMutex directive so
+    // setup/uninstall can detect a running instance. Never used for single-instancing.
+    private const string InstallerDetectMutexName = "Local\\VibeSwitcher_App";
 
     private Mutex?           _mutex;
+    private Mutex?           _installerDetectMutex;
     private EventWaitHandle? _activationEvent;
     private CancellationTokenSource? _listenerCts;
     private bool _owned;
@@ -36,6 +40,10 @@ public class SingleInstanceHelper : IDisposable
         }
 
         // First instance: create the named event and start listening for signals.
+        // The detect mutex is best-effort — if the name is somehow taken by another
+        // kernel object type, the app must still start (installer detection degrades).
+        try { _installerDetectMutex = new Mutex(initiallyOwned: false, name: InstallerDetectMutexName); }
+        catch (WaitHandleCannotBeOpenedException) { }
         _activationEvent = new EventWaitHandle(false, EventResetMode.AutoReset, EventName);
         if (onActivationRequested != null)
             StartListener(onActivationRequested);
@@ -73,5 +81,7 @@ public class SingleInstanceHelper : IDisposable
         }
         _mutex?.Dispose();
         _mutex = null;
+        _installerDetectMutex?.Dispose();
+        _installerDetectMutex = null;
     }
 }

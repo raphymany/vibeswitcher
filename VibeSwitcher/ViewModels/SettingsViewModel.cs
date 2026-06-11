@@ -387,6 +387,7 @@ public class SettingsViewModel : ViewModelBase
                 OnPropertyChanged(nameof(IsShortcutsSelected));
                 OnPropertyChanged(nameof(IsCompactSelected));
                 OnPropertyChanged(nameof(IsLogsSelected));
+                OnPropertyChanged(nameof(IsUninstallSelected));
             }
         }
     }
@@ -399,6 +400,7 @@ public class SettingsViewModel : ViewModelBase
     public bool IsShortcutsSelected => _selectedCategory == "shortcuts";
     public bool IsCompactSelected   => _selectedCategory == "compact";
     public bool IsLogsSelected      => _selectedCategory == "logs";
+    public bool IsUninstallSelected => _selectedCategory == "uninstall";
 
     private bool _clearing;
     private void ClearFilters()

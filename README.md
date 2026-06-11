@@ -38,7 +38,9 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 
 ## Installation
 
-No installer yet — download `VibeSwitcher-vX.X.X-win-x64.zip` from the [latest release](https://github.com/raphymany/vibeswitcher/releases/latest), extract, and run `VibeSwitcher.exe`.
+**Installer (recommended):** download `VibeSwitcher-Setup-vX.X.X-win-x64.exe` from the [latest release](https://github.com/raphymany/vibeswitcher/releases/latest) and run it. It installs per-user — no admin prompt — with optional desktop shortcut and start-with-Windows. Uninstall any time from Windows Settings → Apps, or from inside the app (Settings → Uninstall); your profiles are kept unless you explicitly choose to delete them.
+
+**Portable:** download `VibeSwitcher-vX.X.X-win-x64.zip`, extract, and run `VibeSwitcher.exe`.
 
 > **Note:** Windows SmartScreen may warn on first run since the app is not yet code-signed. Click "More info" → "Run anyway" to proceed.
 
