@@ -5,7 +5,6 @@
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         xmlns:controls="clr-namespace:VibeSwitcher.Controls"
         Title="VibeSwitcher"
-        BorderBrush="{DynamicResource Accent}" BorderThickness="1"
         Icon="pack://application:,,,/Resources/Icons/vs-icon.ico"
         UseLayoutRounding="True"
         Width="920" Height="720"
@@ -1222,62 +1221,118 @@
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,10,0,0"/>
 
-                                                    <!-- Mode chip — same geometry as every other card chip (radius 6, 8x3 padding) -->
+                                                    <!-- Mode chip — same geometry as every other card chip; brand orange for all modes -->
                                                     <Border Margin="0,8,0,0" CornerRadius="6" Padding="8,3"
-                                                            HorizontalAlignment="Center">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Background"   Value="#1FF5820A"/>
-                                                                <Setter Property="BorderBrush"  Value="#40F5820A"/>
-                                                                <Setter Property="BorderThickness" Value="1"/>
-                                                                <Style.Triggers>
-                                                                    <MultiDataTrigger>
-                                                                        <MultiDataTrigger.Conditions>
-                                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Visible"/>
-                                                                            <Condition Binding="{Binding RecordingVisible}" Value="Collapsed"/>
-                                                                        </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Background"  Value="#1A4AA8FF"/>
-                                                                        <Setter Property="BorderBrush" Value="#334AA8FF"/>
-                                                                    </MultiDataTrigger>
-                                                                    <MultiDataTrigger>
-                                                                        <MultiDataTrigger.Conditions>
-                                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Collapsed"/>
-                                                                            <Condition Binding="{Binding RecordingVisible}" Value="Visible"/>
-                                                                        </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Background"  Value="#1A30D278"/>
-                                                                        <Setter Property="BorderBrush" Value="#3330D278"/>
-                                                                    </MultiDataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
+                                                            HorizontalAlignment="Center"
+                                                            Background="#1FF5820A" BorderBrush="#40F5820A" BorderThickness="1">
                                                         <TextBlock Text="{Binding ModeLabel}"
-                                                                   FontSize="10" FontWeight="SemiBold">
-                                                            <TextBlock.Style>
-                                                                <Style TargetType="TextBlock">
-                                                                    <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
-                                                                    <Style.Triggers>
-                                                                        <MultiDataTrigger>
-                                                                            <MultiDataTrigger.Conditions>
-                                                                                <Condition Binding="{Binding PlaybackVisible}" Value="Visible"/>
-                                                                                <Condition Binding="{Binding RecordingVisible}" Value="Collapsed"/>
-                                                                            </MultiDataTrigger.Conditions>
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSBlue}"/>
-                                                                        </MultiDataTrigger>
-                                                                        <MultiDataTrigger>
-                                                                            <MultiDataTrigger.Conditions>
-                                                                                <Condition Binding="{Binding PlaybackVisible}" Value="Collapsed"/>
-                                                                                <Condition Binding="{Binding RecordingVisible}" Value="Visible"/>
-                                                                            </MultiDataTrigger.Conditions>
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSMint}"/>
-                                                                        </MultiDataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </TextBlock.Style>
-                                                        </TextBlock>
+                                                                   FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource Accent}"/>
                                                     </Border>
 
-                                                    <!-- Separator (badge → devices) -->
+                                                    <!-- Separator (mode → sections) -->
                                                     <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
+
+                                                    <!-- Schedule & sound section — its own separator-delimited block between the
+                                                         mode chip and the devices; chips share the mode chip's orange palette -->
+                                                    <StackPanel Visibility="{Binding HasVisibilityChips, Converter={StaticResource BoolToVis}}">
+                                                        <!-- Schedule chip — clickable, edits existing schedule -->
+                                                        <Button Command="{Binding EditFirstScheduleCommand}"
+                                                                Click="ChipButton_Click"
+                                                                Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                                                                HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                                ToolTip="Click to edit schedule"
+                                                                Visibility="{Binding HasSchedules, Converter={StaticResource BoolToVis}}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="Button">
+                                                                                <Border x:Name="bd"
+                                                                                        Background="#1FF5820A"
+                                                                                        BorderBrush="#40F5820A"
+                                                                                        BorderThickness="1"
+                                                                                        CornerRadius="6"
+                                                                                        Padding="8,3">
+                                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                </Border>
+                                                                                <ControlTemplate.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter TargetName="bd" Property="Background" Value="#33F5820A"/>
+                                                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#66F5820A"/>
+                                                                                    </Trigger>
+                                                                                </ControlTemplate.Triggers>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                    <Canvas Width="16" Height="16">
+                                                                        <Path Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7"
+                                                                              Fill="Transparent" Stroke="{DynamicResource Accent}"
+                                                                              StrokeThickness="1.4" StrokeStartLineCap="Round"
+                                                                              StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                                <TextBlock Text="{Binding ScheduleSummaryText}"
+                                                                           FontFamily="Consolas" FontSize="10"
+                                                                           Foreground="{DynamicResource Accent}" VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                        </Button>
+
+                                                        <!-- Sound chip — clickable, opens sound configuration -->
+                                                        <Button Command="{Binding ConfigureSoundCommand}"
+                                                                Click="ChipButton_Click"
+                                                                Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                                                                HorizontalAlignment="Center" Margin="0,6,0,0"
+                                                                ToolTip="Click to configure switch sound"
+                                                                Visibility="{Binding SoundOverride, Converter={StaticResource BoolToVis}}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="Button">
+                                                                                <Border x:Name="bd"
+                                                                                        Background="#1FF5820A"
+                                                                                        BorderBrush="#40F5820A"
+                                                                                        BorderThickness="1"
+                                                                                        CornerRadius="6"
+                                                                                        Padding="8,3">
+                                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                </Border>
+                                                                                <ControlTemplate.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter TargetName="bd" Property="Background" Value="#33F5820A"/>
+                                                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#66F5820A"/>
+                                                                                    </Trigger>
+                                                                                </ControlTemplate.Triggers>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                    <Canvas Width="16" Height="16">
+                                                                        <Path Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7"
+                                                                              Fill="Transparent" Stroke="{DynamicResource Accent}"
+                                                                              StrokeThickness="1.7" StrokeStartLineCap="Round"
+                                                                              StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                                <TextBlock Text="{Binding SoundSummary}"
+                                                                           FontFamily="Consolas" FontSize="10"
+                                                                           Foreground="{DynamicResource Accent}" VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                        </Button>
+
+                                                        <!-- Separator (schedule/sound → devices) -->
+                                                        <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
+                                                    </StackPanel>
 
                                                     <!-- Device chips — same geometry as the rest, neutral palette -->
                                                     <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
@@ -1322,100 +1377,6 @@
                                                                        MaxWidth="180" TextTrimming="CharacterEllipsis"/>
                                                         </StackPanel>
                                                     </Border>
-
-                                                    <!-- Schedule chip — clickable, edits existing schedule -->
-                                                    <Button Command="{Binding EditFirstScheduleCommand}"
-                                                            Click="ChipButton_Click"
-                                                            Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
-                                                            HorizontalAlignment="Center" Margin="0,6,0,0"
-                                                            ToolTip="Click to edit schedule"
-                                                            Visibility="{Binding HasSchedules, Converter={StaticResource BoolToVis}}">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button">
-                                                                <Setter Property="Template">
-                                                                    <Setter.Value>
-                                                                        <ControlTemplate TargetType="Button">
-                                                                            <Border x:Name="bd"
-                                                                                    Background="{DynamicResource VSScheduleBg}"
-                                                                                    BorderBrush="{DynamicResource VSScheduleBorder}"
-                                                                                    BorderThickness="1"
-                                                                                    CornerRadius="6"
-                                                                                    Padding="8,3">
-                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                            </Border>
-                                                                            <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource VSScheduleHoverBg}"/>
-                                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource VSScheduleHoverBorder}"/>
-                                                                                </Trigger>
-                                                                            </ControlTemplate.Triggers>
-                                                                        </ControlTemplate>
-                                                                    </Setter.Value>
-                                                                </Setter>
-                                                            </Style>
-                                                        </Button.Style>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <Viewbox Width="9" Height="9" Margin="0,0,5,0">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Path Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7"
-                                                                          Fill="Transparent" Stroke="{DynamicResource VSBlue}"
-                                                                          StrokeThickness="1.4" StrokeStartLineCap="Round"
-                                                                          StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                            <TextBlock Text="{Binding ScheduleSummaryText}"
-                                                                       FontFamily="Consolas" FontSize="10"
-                                                                       Foreground="{DynamicResource VSBlue}" VerticalAlignment="Center"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                    <!-- Sound chip — clickable, opens sound configuration -->
-                                                    <Button Command="{Binding ConfigureSoundCommand}"
-                                                            Click="ChipButton_Click"
-                                                            Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
-                                                            HorizontalAlignment="Center" Margin="0,6,0,0"
-                                                            ToolTip="Click to configure switch sound"
-                                                            Visibility="{Binding SoundOverride, Converter={StaticResource BoolToVis}}">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button">
-                                                                <Setter Property="Template">
-                                                                    <Setter.Value>
-                                                                        <ControlTemplate TargetType="Button">
-                                                                            <Border x:Name="bd"
-                                                                                    Background="{DynamicResource VSSoundBg}"
-                                                                                    BorderBrush="{DynamicResource VSSoundBorder}"
-                                                                                    BorderThickness="1"
-                                                                                    CornerRadius="6"
-                                                                                    Padding="8,3">
-                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                            </Border>
-                                                                            <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource VSSoundHoverBg}"/>
-                                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource VSSoundHoverBorder}"/>
-                                                                                </Trigger>
-                                                                            </ControlTemplate.Triggers>
-                                                                        </ControlTemplate>
-                                                                    </Setter.Value>
-                                                                </Setter>
-                                                            </Style>
-                                                        </Button.Style>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <Viewbox Width="9" Height="9" Margin="0,0,5,0">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Path Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7"
-                                                                          Fill="Transparent" Stroke="{DynamicResource VSGreen}"
-                                                                          StrokeThickness="1.7" StrokeStartLineCap="Round"
-                                                                          StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                            <TextBlock Text="{Binding SoundSummary}"
-                                                                       FontFamily="Consolas" FontSize="10"
-                                                                       Foreground="{DynamicResource VSGreen}" VerticalAlignment="Center"
-                                                                       TextTrimming="CharacterEllipsis"/>
-                                                        </StackPanel>
-                                                    </Button>
 
                                                     <!-- Hotkey chip -->
                                                     <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
@@ -2903,10 +2864,16 @@
                                        Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,10"/>
                             <TextBlock Text="Designed and built by" FontSize="11"
                                        Foreground="{DynamicResource SecondaryText}"/>
-                            <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource PrimaryText}" Margin="0,2,0,6"/>
-                            <TextBlock Text="Developed with Claude Code (Anthropic)" FontSize="11"
-                                       Foreground="{DynamicResource SecondaryText}" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                                <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"/>
+                                <Border CornerRadius="6" Background="#1FF5820A" BorderBrush="#40F5820A"
+                                        BorderThickness="1" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center"
+                                        ToolTip="Pair-programmed with Anthropic's Claude Code">
+                                    <TextBlock Text="with Claude Code" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource Accent}"/>
+                                </Border>
+                            </StackPanel>
                             <TextBlock Text="&#xA9; 2026 Raphael Mansour. All rights reserved."
                                        FontSize="11" Foreground="{DynamicResource DisabledText}"/>
                         </StackPanel>
@@ -3360,6 +3327,12 @@
             </Grid>
 
         </Grid><!-- /MainGrid -->
+    
+        <!-- Accent window frame: a rounded overlay (not a Window border) so it follows
+             Windows 11's rounded window corners instead of being clipped at them. -->
+        <Border Grid.RowSpan="99" Grid.ColumnSpan="99" CornerRadius="8"
+                BorderBrush="#66F5820A" BorderThickness="1"
+                IsHitTestVisible="False" Panel.ZIndex="9999"/>
     </Grid><!-- /outer Grid -->
 </Window>
 

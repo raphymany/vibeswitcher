@@ -4,7 +4,6 @@
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         xmlns:controls="clr-namespace:VibeSwitcher.Controls"
         Title="VibeSwitcher"
-        BorderBrush="{DynamicResource Accent}" BorderThickness="1"
         Width="400" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
@@ -172,5 +171,11 @@
                         HorizontalAlignment="Right" MinWidth="90" Click="Save_Click"/>
             </Grid>
         </StackPanel>
+    
+        <!-- Accent window frame: a rounded overlay (not a Window border) so it follows
+             Windows 11's rounded window corners instead of being clipped at them. -->
+        <Border Grid.RowSpan="99" Grid.ColumnSpan="99" CornerRadius="8"
+                BorderBrush="#66F5820A" BorderThickness="1"
+                IsHitTestVisible="False" Panel.ZIndex="9999"/>
     </Grid>
 </Window>

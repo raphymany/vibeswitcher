@@ -3,7 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         Title="VibeSwitcher"
-        BorderBrush="{DynamicResource Accent}" BorderThickness="1"
         Width="420" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
@@ -244,5 +243,11 @@
             </DockPanel>
 
         </StackPanel>
+    
+        <!-- Accent window frame: a rounded overlay (not a Window border) so it follows
+             Windows 11's rounded window corners instead of being clipped at them. -->
+        <Border Grid.RowSpan="99" Grid.ColumnSpan="99" CornerRadius="8"
+                BorderBrush="#66F5820A" BorderThickness="1"
+                IsHitTestVisible="False" Panel.ZIndex="9999"/>
     </Grid>
 </Window>
