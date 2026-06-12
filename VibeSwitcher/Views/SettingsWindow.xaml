@@ -397,6 +397,18 @@
                                 <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
                             </Trigger>
+                            <!-- Checked + hovered: keep the accent (checked) icon color while still showing the
+                                 hover background. Declared last so it wins over the plain hover trigger — otherwise
+                                 toggling the button on while the cursor is still on it shows no color change. -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked"   Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#40F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                            </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -2815,7 +2827,7 @@
                         <StackPanel>
                             <TextBlock Text="APP LAUNCH TRIGGERS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Link one or more programs to a profile with the trigger button (&#x25B6;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">its card</Hyperlink> — VibeSwitcher switches to that profile automatically within seconds of any linked app launching, and stays there until you switch yourself.
+                                Link one or more programs to a profile with the trigger button (&#x25B6;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> — VibeSwitcher switches to that profile automatically within seconds of any linked app launching, and stays there until you switch yourself.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -2824,7 +2836,7 @@
                         <StackPanel>
                             <TextBlock Text="SWITCH SOUNDS &amp; SILENT PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Each profile can play a tone when it activates — choose from 7 built-in tones or your own WAV via the sound button on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">its card</Hyperlink>. Prefer quiet? The silent toggle on a card skips the Windows notification banner for that profile, and app-wide notification options live in <Hyperlink Tag="notifications" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Notifications</Hyperlink>.
+                                Each profile can play a tone when it activates — choose from 7 built-in tones or your own WAV via the sound button on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink>. Prefer quiet? The silent toggle on a card skips the Windows notification banner for that profile, and app-wide notification options live in <Hyperlink Tag="notifications" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Notifications</Hyperlink>.
                             </TextBlock>
                         </StackPanel>
                     </Border>

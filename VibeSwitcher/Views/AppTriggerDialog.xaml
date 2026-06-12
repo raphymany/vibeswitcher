@@ -124,19 +124,22 @@
                 </Border>
             </StackPanel>
 
-            <!-- App list -->
+            <!-- App list — fixed-height area so the window size is settled up front; without this the
+                 window opens small at the "Loading…" size, centers, then grows and jumps once the
+                 running/installed apps finish loading asynchronously. The loading label overlays the
+                 (initially empty) list rather than adding its own height. -->
             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                     CornerRadius="6" Margin="0,0,0,8">
-                <StackPanel>
-                    <TextBlock x:Name="LoadingLabel"
-                               Text="Loading installed apps…"
-                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
-                               HorizontalAlignment="Center" Margin="0,8"/>
-                    <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
+                <Grid Height="220">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
                         <StackPanel x:Name="RunningPanel" Margin="0,4,0,4"/>
                     </ScrollViewer>
-                </StackPanel>
+                    <TextBlock x:Name="LoadingLabel"
+                               Text="Loading installed apps…"
+                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
 
             <!-- Browse button -->

@@ -59,6 +59,12 @@ public class TrayService : IDisposable
         _taskbarIcon.TrayContextMenuOpen += (_, _) => RefreshMiniMenuItem();
     }
 
+    // The popup warm-up below only needs to happen ONCE per app lifetime — the first-open cost is
+    // WPF-global (the popup/HwndSource machinery), not per ContextMenu instance. RebuildMenu runs on
+    // every profile edit (incl. each keystroke when renaming), so without this guard the warm-up
+    // popup would flash on every change.
+    private bool _contextMenuPrimed;
+
     // A WPF ContextMenu pays a one-time creation cost on its first-ever open, which
     // makes the tray's focus handoff miss — the menu flashes and instantly closes.
     // Priming it once invisibly off-screen at idle (well before any click, so the
@@ -67,10 +73,13 @@ public class TrayService : IDisposable
     // still-alive warm-up popup at its clamped off-screen position.
     private void PrimeContextMenuAtIdle()
     {
+        if (_contextMenuPrimed) return;
         var menu = _contextMenu;
         menu.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() =>
         {
-            if (menu != _contextMenu || menu.IsOpen) return; // rebuilt or already in use
+            // Already primed (another queued action did it) / rebuilt before this ran / in use:
+            // bail and let a later RebuildMenu reschedule, so exactly one warm-up actually happens.
+            if (_contextMenuPrimed || menu != _contextMenu || menu.IsOpen) return;
             var placement = menu.Placement;
             var hOffset   = menu.HorizontalOffset;
             var vOffset   = menu.VerticalOffset;
@@ -85,6 +94,7 @@ public class TrayService : IDisposable
             menu.Placement = placement;
             menu.HorizontalOffset = hOffset;
             menu.VerticalOffset = vOffset;
+            _contextMenuPrimed = true; // one successful warm-up serves the whole app lifetime
         }));
     }
 
