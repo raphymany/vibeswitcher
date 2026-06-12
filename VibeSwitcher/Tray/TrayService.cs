@@ -24,11 +24,6 @@ public class TrayService : IDisposable
     // Caches raw icon bytes per profile so UpdateIcon avoids disk reads on repeat switches.
     // Bytes (not Icon objects) are cached because H.NotifyIcon disposes the Icon it holds on each change.
     private readonly Dictionary<Guid, byte[]> _trayIconBytesCache = new();
-    // Mute indicator state — a static colored badge is composited onto the active icon
-    // (no flashing). _muted gates the overlay that UpdateIcon applies.
-    private bool _muted;
-    private System.Drawing.Color _muteColor;
-    private string? _muteTooltip;
 
     private readonly IAppLogger _logger;
     private readonly ISessionErrorTracker _errorTracker;
@@ -156,15 +151,8 @@ public class TrayService : IDisposable
             icon.Save(ms);
             _trayIconBytesCache[activeProfile.Id] = ms.ToArray();
         }
-        if (_muted)
-        {
-            var badged = ComposeMutedIcon(icon, _muteColor);
-            icon.Dispose();
-            icon = badged;
-        }
-
         _taskbarIcon.Icon = icon;
-        _taskbarIcon.ToolTipText = _muted ? (_muteTooltip ?? "VibeSwitcher") : BuildTooltip(activeProfile);
+        _taskbarIcon.ToolTipText = BuildTooltip(activeProfile);
     }
 
     private string BuildTooltip(DeviceProfile? activeProfile)
@@ -203,85 +191,6 @@ public class TrayService : IDisposable
         var nextIndex = (currentIndex + 1) % profiles.Count;
         SwitchRequested?.Invoke(profiles[nextIndex]);
     }
-
-    public (bool Mic, bool Speakers) MuteState { get; private set; }
-
-    // Call whenever mute state changes. Shows a static colored badge on the tray icon
-    // (mic-only = red, speakers-only = blue, both = purple) or removes it when nothing is muted.
-    // No flashing — the badge is composited onto the current profile/app icon in UpdateIcon.
-    public void UpdateMuteBadge(bool micMuted, bool speakersMuted)
-    {
-        MuteState = (micMuted, speakersMuted);
-        if (!micMuted && !speakersMuted)
-        {
-            _muted = false;
-            _muteTooltip = null;
-            RefreshActiveIcon();
-            return;
-        }
-
-        _muteColor = (micMuted, speakersMuted) switch
-        {
-            (true, true)  => System.Drawing.Color.FromArgb(150, 70, 230),  // purple — both
-            (true, false) => System.Drawing.Color.FromArgb(225, 55, 55),   // red    — mic only
-            _             => System.Drawing.Color.FromArgb(45, 120, 230),  // blue   — speakers only
-        };
-        _muteTooltip = (micMuted, speakersMuted) switch
-        {
-            (true, true)  => "VibeSwitcher — Mic + Speakers muted",
-            (true, false) => "VibeSwitcher — Mic muted",
-            _             => "VibeSwitcher — Speakers muted",
-        };
-        _muted = true;
-        RefreshActiveIcon();
-    }
-
-    private void RefreshActiveIcon()
-    {
-        var active = _configService.Current.Profiles
-            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        UpdateIcon(active);
-    }
-
-    // Composites a small colored mute badge (white-ringed dot) onto the bottom-right
-    // corner of the active icon. Keeps the brand/profile icon visible — no full-icon swap.
-    private static Icon ComposeMutedIcon(Icon baseIcon, System.Drawing.Color badge)
-    {
-        using var bmp = new System.Drawing.Bitmap(32, 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-        using (var g = System.Drawing.Graphics.FromImage(bmp))
-        {
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-            using (var baseBmp = baseIcon.ToBitmap())
-                g.DrawImage(baseBmp, new System.Drawing.Rectangle(0, 0, 32, 32));
-
-            const float d = 15f;
-            float x = 32f - d, y = 32f - d;
-            using (var ring = new System.Drawing.SolidBrush(System.Drawing.Color.White))
-                g.FillEllipse(ring, x - 1.5f, y - 1.5f, d + 3f, d + 3f);
-            using (var fill = new System.Drawing.SolidBrush(badge))
-                g.FillEllipse(fill, x, y, d, d);
-        }
-
-        // GetHicon returns an HICON we own — Icon.FromHandle does NOT take ownership,
-        // so we copy to a stream for an independent Icon then destroy the raw handle.
-        var hIcon = bmp.GetHicon();
-        try
-        {
-            using var temp = Icon.FromHandle(hIcon);
-            using var ms = new MemoryStream();
-            temp.Save(ms);
-            ms.Seek(0, SeekOrigin.Begin);
-            return new Icon(ms);
-        }
-        finally
-        {
-            DestroyIcon(hIcon);
-        }
-    }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool DestroyIcon(IntPtr hIcon);
 
     public void RebuildMenu()
     {

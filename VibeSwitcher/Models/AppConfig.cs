@@ -39,6 +39,12 @@ public class AppConfig
     public HotkeyDefinition? MuteBothHotkey { get; set; }
     public bool MuteBothHotkeyEnabled { get; set; } = false;
 
+    // Per-shortcut banner suppression for the mute hotkeys (true = no banner when that hotkey fires).
+    // Default false = show the brief "muted/unmuted" banner.
+    public bool MuteMicSilent { get; set; } = false;
+    public bool MuteSpeakersSilent { get; set; } = false;
+    public bool MuteBothSilent { get; set; } = false;
+
     // Mini (compact) mode
     public bool CompactMode { get; set; } = false;
     public HotkeyDefinition? CompactHotkey { get; set; }

@@ -698,6 +698,24 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         set => SetMuteHotkeyEnabled(Models.MuteScope.Both, value);
     }
 
+    // Per-shortcut banner suppression for the mute hotkeys. Bound to the bell (silent) toggle in the
+    // Shortcuts settings — checked = no "muted/unmuted" banner when that hotkey fires.
+    public bool MuteMicSilent
+    {
+        get => _configService.Current.MuteMicSilent;
+        set { if (_configService.Current.MuteMicSilent == value) return; _configService.Current.MuteMicSilent = value; SaveAsync(); OnPropertyChanged(nameof(MuteMicSilent)); }
+    }
+    public bool MuteSpeakersSilent
+    {
+        get => _configService.Current.MuteSpeakersSilent;
+        set { if (_configService.Current.MuteSpeakersSilent == value) return; _configService.Current.MuteSpeakersSilent = value; SaveAsync(); OnPropertyChanged(nameof(MuteSpeakersSilent)); }
+    }
+    public bool MuteBothSilent
+    {
+        get => _configService.Current.MuteBothSilent;
+        set { if (_configService.Current.MuteBothSilent == value) return; _configService.Current.MuteBothSilent = value; SaveAsync(); OnPropertyChanged(nameof(MuteBothSilent)); }
+    }
+
     // Called from SettingsWindow when a mute hotkey capture dialog closes.
     internal void SetMuteHotkeyFromDialog(Models.MuteScope scope, HotkeyDefinition captured)
         => SetMuteHotkey(scope, captured);

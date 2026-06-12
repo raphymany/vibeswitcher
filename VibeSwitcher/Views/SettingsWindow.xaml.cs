@@ -583,7 +583,6 @@ public partial class SettingsWindow : Window
         }
 
         Topmost = cfg.CompactAlwaysOnTop;
-        UpdateMiniMuteBadge(_trayService.MuteState.Mic, _trayService.MuteState.Speakers);
 
         if (!cfg.CompactMode)
         {
@@ -655,25 +654,6 @@ public partial class SettingsWindow : Window
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
         };
         BeginAnimation(OpacityProperty, anim);
-    }
-
-    // Mirrors the tray mute badge inside the mini title bar (the tray is hidden under fullscreen apps).
-    public void UpdateMiniMuteBadge(bool micMuted, bool speakersMuted)
-    {
-        if (!micMuted && !speakersMuted)
-        {
-            MiniMuteDot.Visibility = Visibility.Collapsed;
-            return;
-        }
-        var (color, tip) = (micMuted, speakersMuted) switch
-        {
-            (true, true)  => (Color.FromRgb(150, 70, 230), "Mic + Speakers muted"),
-            (true, false) => (Color.FromRgb(225, 55, 55),  "Mic muted"),
-            _             => (Color.FromRgb(45, 120, 230), "Speakers muted"),
-        };
-        MiniMuteDot.Fill = new SolidColorBrush(color);
-        MiniMuteDot.ToolTip = tip;
-        MiniMuteDot.Visibility = Visibility.Visible;
     }
 
     private System.Windows.Data.ListCollectionView _miniRowsView = null!;

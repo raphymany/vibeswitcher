@@ -17,11 +17,9 @@ public class MuteService
         _logger = logger;
     }
 
-    public bool IsAnyMuteActive   => _micMuted || _speakersMuted;
-    public bool IsMicMuted        => _micMuted;
-    public bool IsSpeakersMuted   => _speakersMuted;
-
-    public event Action? MuteStateChanged;
+    // Raised after a mute hotkey toggles a scope; the bool is the new state (true = now muted).
+    // App shows the transient banner from this, honoring the per-shortcut "silent" setting.
+    public event Action<MuteScope, bool>? MuteToggled;
 
     public void Toggle(MuteScope scope)
     {
@@ -53,28 +51,8 @@ public class MuteService
                 if (SetDeviceMute(EDataFlow.Render, muting)) _speakersMuted = muting;
                 break;
         }
-        MuteStateChanged?.Invoke();
+        MuteToggled?.Invoke(scope, muting);
         _ = Task.Run(() => PlaySound(scope, muting));
-    }
-
-    // Re-reads the current default devices' actual mute state and refreshes the indicator.
-    // Called after a profile switch so the tray/mini badge reflects the now-current device
-    // rather than a flag left over from a previously-muted (different) device.
-    public void ResyncState()
-    {
-        // The COM round-trips to the default endpoints can block briefly; do them off the UI thread,
-        // then marshal the badge refresh back only when the state actually changed.
-        _ = Task.Run(() =>
-        {
-            bool mic = GetDeviceMute(EDataFlow.Capture) ?? _micMuted;
-            bool spk = GetDeviceMute(EDataFlow.Render) ?? _speakersMuted;
-            if (mic == _micMuted && spk == _speakersMuted) return;
-            _micMuted = mic;
-            _speakersMuted = spk;
-            var d = System.Windows.Application.Current?.Dispatcher;
-            if (d != null) d.InvokeAsync(() => MuteStateChanged?.Invoke());
-            else MuteStateChanged?.Invoke();
-        });
     }
 
     private bool? GetDeviceMute(EDataFlow flow) =>

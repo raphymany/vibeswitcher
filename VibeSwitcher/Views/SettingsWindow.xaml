@@ -415,6 +415,55 @@
             </Setter>
         </Style>
 
+        <!-- Compact bell (silent) toggle for the Shortcuts mute rows — same icon/behavior as the
+             profile card's silent toggle. Checked (accent) = no notification banner for that shortcut. -->
+        <Style x:Key="MuteBannerToggle" TargetType="ToggleButton">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Width"  Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bg" CornerRadius="7"
+                                Background="{DynamicResource VSGlassFill}" BorderBrush="{DynamicResource VSGlassBorder}" BorderThickness="1">
+                            <Viewbox Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Canvas Width="16" Height="16">
+                                    <Path Data="M8,2 A5,5 0 0 0 3,7 V10 L2,12 H14 L13,10 V7 A5,5 0 0 0 8,2 Z" Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                    <Path Data="M6.5,13.5 A1.5,1.5 0 0 0 9.5,13.5" Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Path Data="M2,2 L14,14" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                </Canvas>
+                            </Viewbox>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="#1FF5820A"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#40F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked"   Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#40F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- ── Tooltip ──────────────────────────────────────────── -->
         <Style TargetType="ToolTip">
             <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
@@ -628,8 +677,6 @@
                         <TextBlock Text="{Binding CompactHotkeyDisplay}" FontFamily="Courier New"
                                    FontSize="9.5" Foreground="{DynamicResource VSLabel}"/>
                     </Border>
-                    <Ellipse x:Name="MiniMuteDot" Width="9" Height="9" Margin="8,0,0,0"
-                             VerticalAlignment="Center" Visibility="Collapsed"/>
                 </StackPanel>
 
                 <!-- Right: shrink-to-mini / pin / expand / min / max / close -->
@@ -2195,9 +2242,12 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Microphone" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteMicSilent}" ToolTip="Don't show a notification banner for this shortcut"/>
+                                        <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteMicHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
@@ -2210,8 +2260,8 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </Border>
-                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Mic" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
-                                        <Button Grid.Column="3" Content="✕" Tag="Mic" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                        <Button Grid.Column="3" Content="Set" Style="{StaticResource ActionButton}" Tag="Mic" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="4" Content="✕" Tag="Mic" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
                                                     <Style.Triggers>
@@ -2231,9 +2281,12 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteSpeakersSilent}" ToolTip="Don't show a notification banner for this shortcut"/>
+                                        <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteSpeakersHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
@@ -2246,8 +2299,8 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </Border>
-                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Speakers" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
-                                        <Button Grid.Column="3" Content="✕" Tag="Speakers" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                        <Button Grid.Column="3" Content="Set" Style="{StaticResource ActionButton}" Tag="Speakers" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="4" Content="✕" Tag="Speakers" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
                                                     <Style.Triggers>
@@ -2267,9 +2320,12 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Mic + Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteBothSilent}" ToolTip="Don't show a notification banner for this shortcut"/>
+                                        <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteBothHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
@@ -2282,8 +2338,8 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </Border>
-                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Both" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
-                                        <Button Grid.Column="3" Content="✕" Tag="Both" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                        <Button Grid.Column="3" Content="Set" Style="{StaticResource ActionButton}" Tag="Both" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="4" Content="✕" Tag="Both" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
                                                     <Style.Triggers>

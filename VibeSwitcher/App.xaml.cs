@@ -102,10 +102,24 @@ public partial class App : Application
         var switchSoundService = new SwitchSoundService(_logger);
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher, _logger, _errorTracker);
         _muteService = new MuteService(_logger);
-        _muteService.MuteStateChanged += () =>
+        // Show a brief banner when a mute hotkey toggles, unless that shortcut is set to silent.
+        _muteService.MuteToggled += (scope, muted) =>
         {
-            _trayService.UpdateMuteBadge(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
-            _windowManager?.NotifyMuteChanged(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
+            var cfg = _configService!.Current;
+            bool silent = scope switch
+            {
+                Models.MuteScope.Mic      => cfg.MuteMicSilent,
+                Models.MuteScope.Speakers => cfg.MuteSpeakersSilent,
+                _                         => cfg.MuteBothSilent,
+            };
+            if (silent) return;
+            string what = scope switch
+            {
+                Models.MuteScope.Mic      => "Microphone",
+                Models.MuteScope.Speakers => "Speakers",
+                _                         => "Mic + Speakers",
+            };
+            _trayService!.ShowBalloon("VibeSwitcher", $"{what} {(muted ? "muted" : "unmuted")}", sound: false);
         };
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService,
             _logger, _errorTracker, _themeService.Apply,
@@ -117,8 +131,6 @@ public partial class App : Application
         _trayService.SwitchRequested = p => _orchestrator.SwitchToProfile(p);
         // Keep the settings window's active-profile indicators in sync with background switches.
         _orchestrator.ProfileSwitched += () => _windowManager!.NotifyProfileSwitched();
-        // A switch can change the default device, so re-read actual mute state to keep the badge accurate.
-        _orchestrator.ProfileSwitched += () => _muteService!.ResyncState();
 
         // 6. Register hotkeys
         RegisterHotkeys();
