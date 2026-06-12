@@ -216,15 +216,27 @@
 
             <!-- ── Footer ────────────────────────────────────── -->
             <DockPanel Margin="0,24,0,0">
+                <Button x:Name="RemoveBtn" Content="Remove" DockPanel.Dock="Left"
+                        Style="{StaticResource DangerButton}"
+                        Padding="16,0"
+                        Visibility="Collapsed"
+                        Click="Remove_Click"/>
                 <Button Content="Cancel" DockPanel.Dock="Left"
                         Style="{StaticResource ActionButton}"
                         Padding="16,0"
-                        Click="Cancel_Click"/>
-                <Button x:Name="RemoveBtn" Content="Remove" DockPanel.Dock="Left"
-                        Style="{StaticResource DangerButton}"
-                        Padding="16,0" Margin="8,0,0,0"
-                        Visibility="Collapsed"
-                        Click="Remove_Click"/>
+                        Click="Cancel_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                            <!-- No gap needed when Remove is hidden (adding a new schedule) -->
+                            <Setter Property="Margin" Value="8,0,0,0"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Visibility, ElementName=RemoveBtn}" Value="Collapsed">
+                                    <Setter Property="Margin" Value="0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
                 <!-- Left margin guarantees a gap to Cancel/Remove even at the widest button set
                      (editing: Remove + Back + Save + Next). -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,0,0,0">
