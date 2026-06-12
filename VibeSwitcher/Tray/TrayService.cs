@@ -459,7 +459,7 @@ public class TrayService : IDisposable
     private static MenuItem BuildSeparator()
     {
         var line = new Border { Height = 1, Margin = new Thickness(8, 4, 8, 4) };
-        line.SetResourceReference(Border.BackgroundProperty, "SeparatorBrush");
+        line.SetResourceReference(Border.BackgroundProperty, "TrayMenuSeparatorBrush");
         return new MenuItem
         {
             Tag = "sep",

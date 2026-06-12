@@ -86,6 +86,9 @@
     <!-- ── Separators ──────────────────────────────────────────── -->
     <SolidColorBrush x:Key="SeparatorBrush"       Color="#1E1E2C"/>
     <SolidColorBrush x:Key="CardSeparator"        Color="#1A1A28"/>
+    <!-- Tray menu dividers need to be brighter than SeparatorBrush, which is near-invisible
+         against the dark menu background. -->
+    <SolidColorBrush x:Key="TrayMenuSeparatorBrush" Color="#3D3D55"/>
 
     <!-- ── Error / Danger ──────────────────────────────────────── -->
     <SolidColorBrush x:Key="ErrorText"            Color="#E05555"/>

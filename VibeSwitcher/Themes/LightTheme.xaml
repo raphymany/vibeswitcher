@@ -88,6 +88,8 @@
     <!-- Separators -->
     <SolidColorBrush x:Key="SeparatorBrush"     Color="#AAAAAA"/>
     <SolidColorBrush x:Key="CardSeparator"      Color="#D4D4D4"/>
+    <!-- Tray menu dividers (dark theme needs a brighter value; light keeps the standard tone). -->
+    <SolidColorBrush x:Key="TrayMenuSeparatorBrush" Color="#AAAAAA"/>
 
     <!-- Error / Danger -->
     <SolidColorBrush x:Key="ErrorText"          Color="#C00000"/>
