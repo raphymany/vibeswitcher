@@ -20,12 +20,12 @@ internal static class AudioProfileApplier
 
             // Try modern IID (Win7/8/10/11) first, fall back to Vista IID.
             // Returns true only when all three roles were set successfully.
-            Func<string, bool>? setDefault = rawPolicy switch
+            Func<EDataFlow, string, bool>? setDefault = rawPolicy switch
             {
-                IPolicyConfig modern => id => TrySetAllRoles(
-                    (eid, role) => modern.SetDefaultEndpoint(eid, role), id, logger, errorTracker),
-                IPolicyConfigVista vista => id => TrySetAllRoles(
-                    (eid, role) => vista.SetDefaultEndpoint(eid, role), id, logger, errorTracker),
+                IPolicyConfig modern => (flow, id) => TrySetAllRoles(
+                    enumerator, (eid, role) => modern.SetDefaultEndpoint(eid, role), flow, id, logger, errorTracker),
+                IPolicyConfigVista vista => (flow, id) => TrySetAllRoles(
+                    enumerator, (eid, role) => vista.SetDefaultEndpoint(eid, role), flow, id, logger, errorTracker),
                 _ => null
             };
 
@@ -48,7 +48,7 @@ internal static class AudioProfileApplier
             {
                 if (IsDeviceActive(enumerator, profile.PlaybackDeviceId))
                 {
-                    playbackApplied = setDefault(profile.PlaybackDeviceId);
+                    playbackApplied = setDefault(EDataFlow.Render, profile.PlaybackDeviceId);
                     playbackFailed = !playbackApplied; // active device, but SetDefaultEndpoint failed
                 }
                 else
@@ -61,7 +61,7 @@ internal static class AudioProfileApplier
             {
                 if (IsDeviceActive(enumerator, profile.RecordingDeviceId))
                 {
-                    recordingApplied = setDefault(profile.RecordingDeviceId);
+                    recordingApplied = setDefault(EDataFlow.Capture, profile.RecordingDeviceId);
                     recordingFailed = !recordingApplied;
                 }
                 else
@@ -89,20 +89,49 @@ internal static class AudioProfileApplier
     }
 
     private static bool TrySetAllRoles(
-        Func<string, ERole, int> set, string id, IAppLogger logger, ISessionErrorTracker errorTracker)
+        IMMDeviceEnumerator enumerator, Func<string, ERole, int> set, EDataFlow flow, string id,
+        IAppLogger logger, ISessionErrorTracker errorTracker)
     {
-        int hr;
-        if ((hr = set(id, ERole.Console)) != 0 ||
-            (hr = set(id, ERole.Multimedia)) != 0 ||
-            (hr = set(id, ERole.Communications)) != 0)
+        foreach (var role in new[] { ERole.Console, ERole.Multimedia, ERole.Communications })
         {
-            var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
-            logger.Error("AudioProfileApplier.Apply", msg);
-            errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
-                "Set Default Audio Endpoint Failed", msg);
-            return false;
+            // Skip roles where this device is already the default. Re-setting an already-default
+            // endpoint makes Windows tear down and re-initialize it, causing a brief audio dropout —
+            // e.g. re-selecting the profile you're already on. (It's already correct, so this counts
+            // as applied.)
+            if (IsDefaultEndpoint(enumerator, flow, role, id)) continue;
+
+            int hr = set(id, role);
+            if (hr != 0)
+            {
+                var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
+                logger.Error("AudioProfileApplier.Apply", msg);
+                errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
+                    "Set Default Audio Endpoint Failed", msg);
+                return false;
+            }
         }
         return true;
+    }
+
+    // True if 'deviceId' is already the default endpoint for (flow, role) — used to avoid the audio
+    // dropout from redundantly re-applying a default that's already set.
+    private static bool IsDefaultEndpoint(IMMDeviceEnumerator enumerator, EDataFlow flow, ERole role, string deviceId)
+    {
+        IMMDevice? dev = null;
+        try
+        {
+            if (enumerator.GetDefaultAudioEndpoint(flow, role, out dev) != 0 || dev == null) return false;
+            return dev.GetId(out var id) == 0 && id != null &&
+                   string.Equals(id, deviceId, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex) when (ex is COMException or InvalidComObjectException)
+        {
+            return false;
+        }
+        finally
+        {
+            if (dev != null) Marshal.ReleaseComObject(dev);
+        }
     }
 
     internal static bool IsDeviceActive(IMMDeviceEnumerator enumerator, string deviceId)
