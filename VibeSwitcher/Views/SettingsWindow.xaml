@@ -1222,8 +1222,8 @@
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,10,0,0"/>
 
-                                                    <!-- Mode badge -->
-                                                    <Border Margin="0,6,0,0" CornerRadius="10" Padding="8,2.5"
+                                                    <!-- Mode chip — same geometry as every other card chip (radius 6, 8x3 padding) -->
+                                                    <Border Margin="0,8,0,0" CornerRadius="6" Padding="8,3"
                                                             HorizontalAlignment="Center">
                                                         <Border.Style>
                                                             <Style TargetType="Border">
@@ -1251,7 +1251,7 @@
                                                             </Style>
                                                         </Border.Style>
                                                         <TextBlock Text="{Binding ModeLabel}"
-                                                                   FontSize="9.5" FontWeight="SemiBold">
+                                                                   FontSize="10" FontWeight="SemiBold">
                                                             <TextBlock.Style>
                                                                 <Style TargetType="TextBlock">
                                                                     <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
@@ -1279,30 +1279,55 @@
                                                     <!-- Separator (badge → devices) -->
                                                     <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
 
-                                                    <!-- Device rows -->
-                                                    <StackPanel Margin="0,10,0,0">
-                                                        <TextBlock Text="{Binding SelectedPlaybackDevice.FriendlyName}"
-                                                                   FontSize="11" Foreground="{DynamicResource VSLabel}"
-                                                                   HorizontalAlignment="Center"
-                                                                   MaxWidth="220" TextTrimming="CharacterEllipsis"
-                                                                   Margin="0,0,0,4"
-                                                                   Visibility="{Binding PlaybackVisible}"/>
-                                                        <TextBlock Text="{Binding SelectedRecordingDevice.FriendlyName}"
-                                                                   FontSize="11" Foreground="{DynamicResource VSLabel}"
-                                                                   HorizontalAlignment="Center"
-                                                                   MaxWidth="220" TextTrimming="CharacterEllipsis"
-                                                                   Visibility="{Binding RecordingVisible}"/>
-                                                    </StackPanel>
-
-                                                    <!-- Chips section: separator + chips, only shown when chips exist -->
-                                                    <StackPanel Visibility="{Binding HasVisibilityChips, Converter={StaticResource BoolToVis}}">
-                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
+                                                    <!-- Device chips — same geometry as the rest, neutral palette -->
+                                                    <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
+                                                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                            Padding="8,3" HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                            Visibility="{Binding PlaybackVisible}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Viewbox Width="10" Height="10" Margin="0,0,5,0">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M2.5,6 H5.5 L9.5,2.5 V13.5 L5.5,10 H2.5 Z M11.5,5.5 A3.6,3.6 0 0 1 11.5,10.5"
+                                                                          Fill="Transparent" Stroke="{DynamicResource VSLabel}"
+                                                                          StrokeThickness="1.4" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                            <TextBlock Text="{Binding SelectedPlaybackDevice.FriendlyName}"
+                                                                       FontSize="10" Foreground="{DynamicResource VSLabel}"
+                                                                       VerticalAlignment="Center"
+                                                                       MaxWidth="180" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
+                                                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                            Padding="8,3" HorizontalAlignment="Center" Margin="0,6,0,0"
+                                                            Visibility="{Binding RecordingVisible}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Viewbox Width="10" Height="10" Margin="0,0,5,0">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Rectangle Canvas.Left="6" Canvas.Top="1.5" Width="4" Height="7.5"
+                                                                               RadiusX="2" RadiusY="2"
+                                                                               Fill="Transparent" Stroke="{DynamicResource VSLabel}"
+                                                                               StrokeThickness="1.4"/>
+                                                                    <Path Data="M4,7.5 A4,4 0 0 0 12,7.5 M8,11.5 V14 M5.5,14 H10.5"
+                                                                          Fill="Transparent" Stroke="{DynamicResource VSLabel}"
+                                                                          StrokeThickness="1.4" StrokeStartLineCap="Round"
+                                                                          StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                            <TextBlock Text="{Binding SelectedRecordingDevice.FriendlyName}"
+                                                                       FontSize="10" Foreground="{DynamicResource VSLabel}"
+                                                                       VerticalAlignment="Center"
+                                                                       MaxWidth="180" TextTrimming="CharacterEllipsis"/>
+                                                        </StackPanel>
+                                                    </Border>
 
                                                     <!-- Schedule chip — clickable, edits existing schedule -->
                                                     <Button Command="{Binding EditFirstScheduleCommand}"
                                                             Click="ChipButton_Click"
                                                             Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
-                                                            HorizontalAlignment="Center" Margin="0,10,0,0"
+                                                            HorizontalAlignment="Center" Margin="0,6,0,0"
                                                             ToolTip="Click to edit schedule"
                                                             Visibility="{Binding HasSchedules, Converter={StaticResource BoolToVis}}">
                                                         <Button.Style>
@@ -1314,7 +1339,7 @@
                                                                                     Background="{DynamicResource VSScheduleBg}"
                                                                                     BorderBrush="{DynamicResource VSScheduleBorder}"
                                                                                     BorderThickness="1"
-                                                                                    CornerRadius="4"
+                                                                                    CornerRadius="6"
                                                                                     Padding="8,3">
                                                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                             </Border>
@@ -1349,7 +1374,7 @@
                                                     <Button Command="{Binding ConfigureSoundCommand}"
                                                             Click="ChipButton_Click"
                                                             Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
-                                                            HorizontalAlignment="Center" Margin="0,10,0,0"
+                                                            HorizontalAlignment="Center" Margin="0,6,0,0"
                                                             ToolTip="Click to configure switch sound"
                                                             Visibility="{Binding SoundOverride, Converter={StaticResource BoolToVis}}">
                                                         <Button.Style>
@@ -1361,7 +1386,7 @@
                                                                                     Background="{DynamicResource VSSoundBg}"
                                                                                     BorderBrush="{DynamicResource VSSoundBorder}"
                                                                                     BorderThickness="1"
-                                                                                    CornerRadius="4"
+                                                                                    CornerRadius="6"
                                                                                     Padding="8,3">
                                                                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                             </Border>
@@ -1391,25 +1416,22 @@
                                                                        TextTrimming="CharacterEllipsis"/>
                                                         </StackPanel>
                                                     </Button>
-                                                    </StackPanel>
 
-                                                    <!-- Hotkey section: separator + chip, only shown when a hotkey is set -->
-                                                    <StackPanel Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
-                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
-                                                    <Border CornerRadius="4" Background="{DynamicResource HotkeyBg}"
+                                                    <!-- Hotkey chip -->
+                                                    <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
                                                             BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                             Padding="8,3"
                                                             HorizontalAlignment="Center"
-                                                            Margin="0,10,0,0">
+                                                            Margin="0,6,0,0"
+                                                            Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="&#x2328;" FontSize="9" Foreground="{DynamicResource VSLabel}"
                                                                        VerticalAlignment="Center" Margin="0,-4,5,0"/>
                                                             <TextBlock Text="{Binding HotkeyDisplay}"
-                                                                       FontFamily="Consolas" FontSize="11"
+                                                                       FontFamily="Consolas" FontSize="10"
                                                                        Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Border>
-                                                    </StackPanel>
                                                 </StackPanel>
                                             </Button>
 

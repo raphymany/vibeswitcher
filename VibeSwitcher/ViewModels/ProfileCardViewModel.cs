@@ -438,7 +438,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool HasSchedules       => Schedules.Count > 0;
     public bool HasSingleSchedule  => Schedules.Count == 1;
-    public bool HasVisibilityChips => HasSchedules || SoundOverride;
 
     public string ScheduleSummaryText => Schedules.Count switch
     {
@@ -553,7 +552,6 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(SoundSummary));
         OnPropertyChanged(nameof(HasSchedules));
         OnPropertyChanged(nameof(HasSingleSchedule));
-        OnPropertyChanged(nameof(HasVisibilityChips));
         OnPropertyChanged(nameof(ScheduleSummaryText));
     }
 
