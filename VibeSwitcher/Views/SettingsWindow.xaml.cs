@@ -1019,6 +1019,22 @@ public partial class SettingsWindow : Window
             case "miniTry":
                 EnterCompact();
                 break;
+            case "traySettings":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "tray";
+                break;
+            case "startupSettings":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "startup";
+                break;
+            case "deviceAliases":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "devices";
+                break;
+            case "installSettings":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "uninstall";
+                break;
         }
     }
 

@@ -583,7 +583,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#0DF5820A"/>
+                                <!-- 5% orange was invisible over the light title bar — 10% reads in both themes -->
+                                <Setter TargetName="bg" Property="Background" Value="#1AF5820A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -1516,11 +1517,8 @@
                                                             </Button.Style>
                                                             <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Ellipse Canvas.Left="1" Canvas.Top="1" Width="14" Height="14"
-                                                                             Fill="Transparent"
-                                                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                             StrokeThickness="1.7"/>
-                                                                    <Path Data="M4.5,8 L7,10.5 L11.5,5.5"
+                                                                    <!-- Power symbol: broken ring + vertical stroke -->
+                                                                    <Path Data="M11.2,4.1 A5.4,5.4 0 1 1 4.8,4.1 M8,1.2 L8,7.6"
                                                                           Fill="Transparent"
                                                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
                                                                           StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
@@ -2785,6 +2783,15 @@
                                         <TextBlock Text="Report a bug" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
+                                <!-- Placeholder until the site exists — set Tag to the URL and
+                                     remove IsEnabled/Opacity to activate. -->
+                                <Button Style="{StaticResource LinkChipStyle}" IsEnabled="False" Opacity="0.45"
+                                        ToolTip="Coming soon" ToolTipService.ShowOnDisabled="True">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Website — coming soon" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -3007,6 +3014,42 @@
                         </StackPanel>
                     </Border>
 
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="TRAY ICON BASICS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                VibeSwitcher lives in the system tray. Left-click the icon to cycle to the next profile (or open the window instead — choose in <Hyperlink Tag="traySettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Tray</Hyperlink>), and right-click for the full menu with all profiles and quick actions. Hover the icon to see the active profile and your hotkey cheat sheet.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="STARTING WITH WINDOWS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                In <Hyperlink Tag="startupSettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Startup</Hyperlink> you can have VibeSwitcher launch when Windows starts, begin minimized to the tray, and keep running in the tray when the window is closed — so your hotkeys, schedules, and auto-switching are always active.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="RENAMING DEVICES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                Windows device names can be a mouthful ("Headphones (3- Logitech PRO X Wireless Gaming Headset)"). Give devices short friendly names like "GoXLR" or "Desk Speakers" in <Hyperlink Tag="deviceAliases" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Devices</Hyperlink> — aliases are shown everywhere in the app instead of the raw names.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="INSTALL, UPDATES &amp; UNINSTALL" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                <Hyperlink Tag="installSettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Install &amp; Updates</Hyperlink> shows your version, where the app and its data live (with folder sizes), and lets you uninstall from inside the app. Uninstalling keeps your profiles and settings unless you explicitly choose to delete them — so a reinstall picks up right where you left off.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
                 </StackPanel>
             </ScrollViewer>
 
@@ -3090,35 +3133,12 @@
                                              BorderThickness="0"
                                              Padding="0"
                                              Margin="0,0,0,6"/>
-                                    <Border CornerRadius="10" Padding="8,2.5"
-                                            HorizontalAlignment="Left">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background"   Value="#1FF5820A"/>
-                                                <Setter Property="BorderBrush"  Value="#40F5820A"/>
-                                                <Setter Property="BorderThickness" Value="1"/>
-                                                <Style.Triggers>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Visible"/>
-                                                            <Condition Binding="{Binding RecordingVisible}" Value="Collapsed"/>
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="Background"  Value="#1A4AA8FF"/>
-                                                        <Setter Property="BorderBrush" Value="#334AA8FF"/>
-                                                    </MultiDataTrigger>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Collapsed"/>
-                                                            <Condition Binding="{Binding RecordingVisible}" Value="Visible"/>
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="Background"  Value="#1A30D278"/>
-                                                        <Setter Property="BorderBrush" Value="#3330D278"/>
-                                                    </MultiDataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
+                                    <!-- Mode chip — brand orange for all modes, matching the card chips -->
+                                    <Border CornerRadius="6" Padding="8,3"
+                                            HorizontalAlignment="Left"
+                                            Background="#1FF5820A" BorderBrush="#40F5820A" BorderThickness="1">
                                         <TextBlock Text="{Binding ModeLabel}"
-                                                   FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}"/>
+                                                   FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Accent}"/>
                                     </Border>
                                 </StackPanel>
 
@@ -3307,8 +3327,6 @@
                             <Grid>
                                 <!-- Quick action buttons (left) -->
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button Style="{StaticResource ActionButton}" Content="Activate"
-                                            Command="{Binding ActivateCommand}" Margin="0,0,6,0"/>
                                     <Button Style="{StaticResource ActionButton}" Content="Clone"
                                             Command="{Binding CloneCommand}" Margin="0,0,6,0"/>
                                     <Button Style="{StaticResource DangerButton}" Content="Delete"
