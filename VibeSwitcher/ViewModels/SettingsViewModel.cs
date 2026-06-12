@@ -1076,23 +1076,10 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     {
         if (string.IsNullOrEmpty(iconPath)) return;
 
-        // Canonicalize BOTH sides before the prefix check, then delete the canonical path.
-        // Without this, a crafted/imported icon path like "Icons\..\..\secret.ico" passes a raw
-        // StartsWith check but File.Delete resolves the ".." and deletes outside the icons folder.
-        string canonical, prefix;
-        try
-        {
-            canonical = System.IO.Path.GetFullPath(iconPath);
-            prefix = System.IO.Path.GetFullPath(iconsDir)
-                         .TrimEnd(System.IO.Path.DirectorySeparatorChar, System.IO.Path.AltDirectorySeparatorChar)
-                     + System.IO.Path.DirectorySeparatorChar;
-        }
-        catch (Exception ex)
-        {
-            logger.Warning("SettingsViewModel.DeleteOrphanedIcon", ex.Message);
-            return;
-        }
-        if (!canonical.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
+        // Resolve and confirm the path is inside the icons folder before deleting. Without canonical
+        // resolution, a crafted/imported path like "Icons\..\..\secret.ico" passes a raw prefix check
+        // but File.Delete resolves the ".." and deletes outside the icons folder.
+        if (!PathSafety.TryResolveInside(iconPath, iconsDir, out var canonical)) return;
         if (exceptPath != null)
         {
             try

@@ -53,7 +53,18 @@ public sealed class DeviceTriggerService : IDisposable
         return ids;
     }
 
+    // Audio device-change callbacks arrive on a background (COM/debounce) thread. Marshal the whole
+    // handler to the UI thread so the profile-list reads below run on the same thread that mutates
+    // config during Settings edits — avoiding a "collection was modified" race that silently drops
+    // the auto-switch.
     private void OnDevicesChanged()
+    {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(HandleDevicesChanged); return; }
+        HandleDevicesChanged();
+    }
+
+    private void HandleDevicesChanged()
     {
         if (_disposed) return;
 
@@ -102,6 +113,13 @@ public sealed class DeviceTriggerService : IDisposable
     // power-ON for these devices, so there is no property-change signal for power-OFF.
     // Revert (if applicable) is handled by OnDevicesChanged on actual disconnect.
     private void OnDevicePropertyChanged(string deviceId)
+    {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(() => HandleDevicePropertyChanged(deviceId)); return; }
+        HandleDevicePropertyChanged(deviceId);
+    }
+
+    private void HandleDevicePropertyChanged(string deviceId)
     {
         if (_disposed) return;
 
@@ -179,6 +197,13 @@ public sealed class DeviceTriggerService : IDisposable
     // which arrives 3-5 seconds later for LIGHTSPEED dongles.
     public void OnHidWirelessConnected(HidHeadsetDescriptor descriptor)
     {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(() => HandleHidConnected(descriptor)); return; }
+        HandleHidConnected(descriptor);
+    }
+
+    private void HandleHidConnected(HidHeadsetDescriptor descriptor)
+    {
         if (_disposed) return;
 
         var profile = _configService.Current.Profiles
@@ -198,6 +223,13 @@ public sealed class DeviceTriggerService : IDisposable
     // Called by HidHeadsetService when a monitored wireless headset powers off.
     // Triggers the same revert logic as a physical device disconnect.
     public void OnHidWirelessDisconnected(HidHeadsetDescriptor descriptor)
+    {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(() => HandleHidDisconnected(descriptor)); return; }
+        HandleHidDisconnected(descriptor);
+    }
+
+    private void HandleHidDisconnected(HidHeadsetDescriptor descriptor)
     {
         if (_disposed) return;
 

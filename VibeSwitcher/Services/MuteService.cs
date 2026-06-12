@@ -62,15 +62,37 @@ public class MuteService
     // rather than a flag left over from a previously-muted (different) device.
     public void ResyncState()
     {
-        bool mic = GetDeviceMute(EDataFlow.Capture) ?? _micMuted;
-        bool spk = GetDeviceMute(EDataFlow.Render) ?? _speakersMuted;
-        if (mic == _micMuted && spk == _speakersMuted) return;
-        _micMuted = mic;
-        _speakersMuted = spk;
-        MuteStateChanged?.Invoke();
+        // The COM round-trips to the default endpoints can block briefly; do them off the UI thread,
+        // then marshal the badge refresh back only when the state actually changed.
+        _ = Task.Run(() =>
+        {
+            bool mic = GetDeviceMute(EDataFlow.Capture) ?? _micMuted;
+            bool spk = GetDeviceMute(EDataFlow.Render) ?? _speakersMuted;
+            if (mic == _micMuted && spk == _speakersMuted) return;
+            _micMuted = mic;
+            _speakersMuted = spk;
+            var d = System.Windows.Application.Current?.Dispatcher;
+            if (d != null) d.InvokeAsync(() => MuteStateChanged?.Invoke());
+            else MuteStateChanged?.Invoke();
+        });
     }
 
-    private bool? GetDeviceMute(EDataFlow flow)
+    private bool? GetDeviceMute(EDataFlow flow) =>
+        WithEndpointVolume(flow, "MuteService.GetDeviceMute", (bool?)null,
+            vol => vol.GetMute(out bool muted) == 0 ? muted : (bool?)null);
+
+    private bool SetDeviceMute(EDataFlow flow, bool mute) =>
+        WithEndpointVolume(flow, "MuteService.SetDeviceMute", false, vol =>
+        {
+            var ctx = Guid.Empty;
+            vol.SetMute(mute, ref ctx);
+            return true;
+        });
+
+    // Shared COM lifecycle for the default endpoint of a flow: acquire enumerator + device +
+    // IAudioEndpointVolume, run 'op', then release every COM object in a finally. Returns 'fallback'
+    // on any failure (null device, wrong interface, or HRESULT/exception).
+    private T WithEndpointVolume<T>(EDataFlow flow, string context, T fallback, Func<IAudioEndpointVolume, T> op)
     {
         IMMDeviceEnumerator? enumerator = null;
         IMMDevice? device = null;
@@ -78,14 +100,14 @@ public class MuteService
         {
             enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
             enumerator.GetDefaultAudioEndpoint(flow, ERole.Console, out device);
-            if (device == null) return null;
+            if (device == null) return fallback;
 
             var volumeGuid = typeof(IAudioEndpointVolume).GUID;
             device.Activate(ref volumeGuid, 23, IntPtr.Zero, out var obj);
-            if (obj is not IAudioEndpointVolume vol) return null;
+            if (obj is not IAudioEndpointVolume vol) return fallback;
             try
             {
-                return vol.GetMute(out bool muted) == 0 ? muted : (bool?)null;
+                return op(vol);
             }
             finally
             {
@@ -94,45 +116,8 @@ public class MuteService
         }
         catch (Exception ex)
         {
-            _logger.Warning("MuteService.GetDeviceMute", ex.Message);
-            return null;
-        }
-        finally
-        {
-            if (device != null) Marshal.ReleaseComObject(device);
-            if (enumerator != null) Marshal.ReleaseComObject(enumerator);
-        }
-    }
-
-    private bool SetDeviceMute(EDataFlow flow, bool mute)
-    {
-        IMMDeviceEnumerator? enumerator = null;
-        IMMDevice? device = null;
-        try
-        {
-            enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
-            enumerator.GetDefaultAudioEndpoint(flow, ERole.Console, out device);
-            if (device == null) return false;
-
-            var volumeGuid = typeof(IAudioEndpointVolume).GUID;
-            device.Activate(ref volumeGuid, 23, IntPtr.Zero, out var obj);
-            if (obj is not IAudioEndpointVolume vol) return false;
-
-            try
-            {
-                var ctx = Guid.Empty;
-                vol.SetMute(mute, ref ctx);
-                return true;
-            }
-            finally
-            {
-                Marshal.ReleaseComObject(vol);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.Warning("MuteService.SetDeviceMute", ex.Message);
-            return false;
+            _logger.Warning(context, ex.Message);
+            return fallback;
         }
         finally
         {

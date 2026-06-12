@@ -27,6 +27,11 @@ public class ConfigService : IConfigService
 
     private volatile AppConfig _config = new();
     private readonly object _saveLock = new();
+    // Monotonic version stamped on every save request. A background (deferred) write that finishes
+    // out of order is skipped if a newer version already reached disk, so the latest snapshot always
+    // wins regardless of thread-pool scheduling.
+    private long _saveVersion;
+    private long _lastWrittenVersion;
 
     public ConfigService(IAppLogger logger, ISessionErrorTracker errorTracker, string? baseDir = null)
     {
@@ -140,11 +145,12 @@ public class ConfigService : IConfigService
             config.ActiveProfileId = null;
     }
 
-    // Fully synchronous: serialize + write on the calling thread. Used by startup, import,
-    // and tests that need the file on disk before returning.
+    // Fully synchronous: serialize + write on the calling thread. Used by startup, import, the exit
+    // flush, and tests that need the file on disk before returning.
     public void SaveImmediate()
     {
-        Save(_config);
+        if (TrySerialize(out var json))
+            WriteJson(json, Interlocked.Increment(ref _saveVersion));
     }
 
     // UI-thread callers: serialize a consistent snapshot on the CURRENT thread (where the model
@@ -153,17 +159,24 @@ public class ConfigService : IConfigService
     // which previously caused saves to be silently skipped.
     public void SaveDeferred()
     {
-        string json;
+        if (!TrySerialize(out var json)) return;
+        var version = Interlocked.Increment(ref _saveVersion);
+        _ = Task.Run(() => WriteJson(json, version));
+    }
+
+    private bool TrySerialize(out string json)
+    {
         try
         {
             json = JsonSerializer.Serialize(_config, JsonOptions);
+            return true;
         }
         catch (Exception ex)
         {
             LogSaveError(ex);
-            return;
+            json = "";
+            return false;
         }
-        _ = Task.Run(() => WriteJson(json));
     }
 
     public void ExportTo(string destinationPath)
@@ -232,25 +245,12 @@ public class ConfigService : IConfigService
         }
     }
 
-    public void Save(AppConfig config)
-    {
-        string json;
-        try
-        {
-            json = JsonSerializer.Serialize(config, JsonOptions);
-        }
-        catch (Exception ex)
-        {
-            LogSaveError(ex);
-            return;
-        }
-        WriteJson(json);
-    }
-
-    private void WriteJson(string json)
+    private void WriteJson(string json, long version)
     {
         lock (_saveLock)
         {
+            // Skip a stale write: a newer save already reached disk while this one was queued.
+            if (version < _lastWrittenVersion) return;
             try
             {
                 Directory.CreateDirectory(_configDir);
@@ -260,6 +260,7 @@ public class ConfigService : IConfigService
 
                 File.WriteAllText(_configTmpPath, json);
                 File.Move(_configTmpPath, _configPath, overwrite: true);
+                _lastWrittenVersion = version;
             }
             catch (Exception ex)
             {

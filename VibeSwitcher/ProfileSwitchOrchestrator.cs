@@ -53,7 +53,8 @@ public class ProfileSwitchOrchestrator : IDisposable
     }
 
     // async void is intentional: called as fire-and-forget from WndProc, PowerModeChanged, and tray click.
-    // The try/catch ensures exceptions are always handled, so the async void is safe.
+    // Exceptions during the switch are captured into 'failure'; the post-lock feedback runs inside its
+    // own try/catch — so nothing escapes this async void and crashes the process.
     public async void SwitchToProfile(DeviceProfile profile, bool? scheduleSilent = null)
     {
         // Drop concurrent switch requests — spamming the hotkey or tray menu cannot queue overlapping
@@ -71,22 +72,19 @@ public class ProfileSwitchOrchestrator : IDisposable
             // Dispatch to UI thread — SwitchToProfile can be called from the PowerModeChanged
             // background thread (SystemEvents callbacks run off the UI thread).
             await _dispatcher.InvokeAsync(() => _trayService.SetSwitchingTooltip(profile.Name));
-            try
+            result = await _audioService.ApplyProfileAsync(profile);
+            await _dispatcher.InvokeAsync(() =>
             {
-                result = await _audioService.ApplyProfileAsync(profile);
-                await _dispatcher.InvokeAsync(() =>
-                {
-                    _configService.Current.ActiveProfileId = profile.Id;
-                    ProfileSwitched?.Invoke();
-                    _configService.SaveDeferred();
-                    _trayService.UpdateIcon(profile);
-                    _trayService.SetActiveProfile(profile.Id);
-                });
-            }
-            catch (Exception ex)
-            {
-                failure = ex;
-            }
+                _configService.Current.ActiveProfileId = profile.Id;
+                ProfileSwitched?.Invoke();
+                _configService.SaveDeferred();
+                _trayService.UpdateIcon(profile);
+                _trayService.SetActiveProfile(profile.Id);
+            });
+        }
+        catch (Exception ex)
+        {
+            failure = ex;
         }
         finally
         {
@@ -95,98 +93,108 @@ public class ProfileSwitchOrchestrator : IDisposable
             _switchLock.Release();
         }
 
-        if (failure != null)
+        // All user feedback runs after the lock is released. Guard it: a throw here (balloon, switch
+        // sound, error dialog, or a ProfileSwitched handler) would otherwise escape this async void
+        // and terminate the process.
+        try
         {
-            _logger.Error("SwitchToProfile", failure);
-            var detail = failure.InnerException?.Message ?? failure.Message;
-            _errorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                $"Could not switch to '{profile.Name}': {detail}");
-            await _dispatcher.InvokeAsync(() =>
+            if (failure != null)
             {
-                var still = _configService.Current.Profiles
-                    .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-                _trayService.UpdateIcon(still);
-                // Background switches (scheduled — they pass scheduleSilent) must never pop a modal
-                // dialog that would block, e.g. a failed 3am schedule. They still log + record.
-                if (scheduleSilent == null)
+                _logger.Error("SwitchToProfile", failure);
+                var detail = failure.InnerException?.Message ?? failure.Message;
+                _errorTracker.Record(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                    $"Could not switch to '{profile.Name}': {detail}");
+                await _dispatcher.InvokeAsync(() =>
                 {
-                    var dialog = new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
-                        $"Could not switch to '{profile.Name}': {detail}", _logger, _errorTracker);
-                    var owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsVisible);
-                    if (owner != null)
+                    var still = _configService.Current.Profiles
+                        .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+                    _trayService.UpdateIcon(still);
+                    // Background switches (scheduled — they pass scheduleSilent) must never pop a modal
+                    // dialog that would block, e.g. a failed 3am schedule. They still log + record.
+                    if (scheduleSilent == null)
                     {
-                        dialog.Owner = owner;
-                        dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-                    }
-                    dialog.ShowDialog();
-                }
-                else
-                {
-                    _trayService.ShowBalloon("Profile Switch Failed",
-                        $"Could not switch to '{profile.Name}': {detail}");
-                }
-            });
-            return;
-        }
-
-        // Success feedback runs with the switch lock already released.
-        var r = result!;
-        await _dispatcher.InvokeAsync(() =>
-        {
-            _ = _soundService.PlayAsync(profile);
-
-            if (r.MissingPlaybackId != null)
-            {
-                var msg = $"Playback device for '{profile.Name}' is disconnected.";
-                _logger.Warning("SwitchToProfile", msg);
-                _errorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
-            }
-            if (r.MissingRecordingId != null)
-            {
-                var msg = $"Recording device for '{profile.Name}' is disconnected.";
-                _logger.Warning("SwitchToProfile", msg);
-                _errorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
-            }
-
-            bool anyMissing   = r.MissingPlaybackId != null || r.MissingRecordingId != null;
-            bool anySetFailed = r.PlaybackSetFailed || r.RecordingSetFailed; // active device, but apply failed
-
-            if (_configService.Current.ShowNotifications)
-            {
-                if (!anyMissing && !anySetFailed)
-                {
-                    if (profile.SoundOverride)
-                    {
-                        // Switch sound handles audio; show a silent banner only if the profile opts in,
-                        // and only when the schedule hasn't requested silence.
-                        bool scheduleSuppressed = scheduleSilent.HasValue && scheduleSilent.Value;
-                        if (!scheduleSuppressed && profile.SoundShowBanner)
-                            _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}", sound: false);
+                        var dialog = new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                            $"Could not switch to '{profile.Name}': {detail}", _logger, _errorTracker);
+                        var owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w.IsVisible);
+                        if (owner != null)
+                        {
+                            dialog.Owner = owner;
+                            dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                        }
+                        dialog.ShowDialog();
                     }
                     else
                     {
-                        // No switch sound — standard banner + Windows ding, gated by Silent flag.
-                        bool effectiveSilent = scheduleSilent.HasValue ? scheduleSilent.Value : profile.Silent;
-                        if (!effectiveSilent)
-                            _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
+                        _trayService.ShowBalloon("Profile Switch Failed",
+                            $"Could not switch to '{profile.Name}': {detail}");
+                    }
+                });
+                return;
+            }
+
+            // Success feedback runs with the switch lock already released.
+            var r = result!;
+            await _dispatcher.InvokeAsync(() =>
+            {
+                _ = _soundService.PlayAsync(profile);
+
+                if (r.MissingPlaybackId != null)
+                {
+                    var msg = $"Playback device for '{profile.Name}' is disconnected.";
+                    _logger.Warning("SwitchToProfile", msg);
+                    _errorTracker.Record(ErrorCode.PlaybackDeviceUnavailable, "Device Unavailable", msg);
+                }
+                if (r.MissingRecordingId != null)
+                {
+                    var msg = $"Recording device for '{profile.Name}' is disconnected.";
+                    _logger.Warning("SwitchToProfile", msg);
+                    _errorTracker.Record(ErrorCode.RecordingDeviceUnavailable, "Device Unavailable", msg);
+                }
+
+                bool anyMissing   = r.MissingPlaybackId != null || r.MissingRecordingId != null;
+                bool anySetFailed = r.PlaybackSetFailed || r.RecordingSetFailed; // active device, but apply failed
+
+                if (_configService.Current.ShowNotifications)
+                {
+                    if (!anyMissing && !anySetFailed)
+                    {
+                        if (profile.SoundOverride)
+                        {
+                            // Switch sound handles audio; show a silent banner only if the profile opts in,
+                            // and only when the schedule hasn't requested silence.
+                            bool scheduleSuppressed = scheduleSilent.HasValue && scheduleSilent.Value;
+                            if (!scheduleSuppressed && profile.SoundShowBanner)
+                                _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}", sound: false);
+                        }
+                        else
+                        {
+                            // No switch sound — standard banner + Windows ding, gated by Silent flag.
+                            bool effectiveSilent = scheduleSilent.HasValue ? scheduleSilent.Value : profile.Silent;
+                            if (!effectiveSilent)
+                                _trayService.ShowBalloon("VibeSwitcher", $"Switched to {profile.Name}");
+                        }
+                    }
+                    else
+                    {
+                        // Warnings always show regardless of Silent flag.
+                        if (r.MissingPlaybackId != null)
+                            _trayService.ShowBalloon("Device Unavailable",
+                                $"Playback device for '{profile.Name}' is disconnected.");
+                        if (r.MissingRecordingId != null)
+                            _trayService.ShowBalloon("Device Unavailable",
+                                $"Recording device for '{profile.Name}' is disconnected.");
+                        // Present-but-failed apply (not a disconnect) — surface it instead of a false "Switched".
+                        if (anySetFailed && !anyMissing)
+                            _trayService.ShowBalloon("Switch Incomplete",
+                                $"'{profile.Name}' could not be fully applied — see the session log.");
                     }
                 }
-                else
-                {
-                    // Warnings always show regardless of Silent flag.
-                    if (r.MissingPlaybackId != null)
-                        _trayService.ShowBalloon("Device Unavailable",
-                            $"Playback device for '{profile.Name}' is disconnected.");
-                    if (r.MissingRecordingId != null)
-                        _trayService.ShowBalloon("Device Unavailable",
-                            $"Recording device for '{profile.Name}' is disconnected.");
-                    // Present-but-failed apply (not a disconnect) — surface it instead of a false "Switched".
-                    if (anySetFailed && !anyMissing)
-                        _trayService.ShowBalloon("Switch Incomplete",
-                            $"'{profile.Name}' could not be fully applied — see the session log.");
-                }
-            }
-        });
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.Error("SwitchToProfile.Feedback", ex);
+        }
     }
 
     public void Dispose() => _switchLock.Dispose();

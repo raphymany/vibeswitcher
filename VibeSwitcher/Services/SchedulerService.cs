@@ -148,28 +148,37 @@ public class SchedulerService : IDisposable
 
     private bool Evaluate(DateTime now)
     {
-        bool firedSwitch = false;
+        // Persisted high-water mark: a switch/reminder is only "missed" if its moment is after the
+        // last time we evaluated. This survives restarts, so reopening within the catch-up window
+        // won't re-fire a switch that already ran while the app was alive.
+        var lastRun = _configService.Current.LastSchedulerEvaluation;
+
+        bool firedAnything = false;
+        // Collect every due switch, then fire only the single most recent one — the user can only be
+        // on one profile, so firing each due switch would just let them stomp each other (and with the
+        // single-switch lock, all but the first would be silently dropped).
+        var dueSwitches = new List<(DeviceProfile profile, ScheduleEntry entry, DateTime occurrence)>();
+
         foreach (var profile in _configService.Current.Profiles)
         {
             foreach (var entry in profile.Schedules)
             {
                 if (!entry.Enabled || entry.Days.Count == 0) continue;
 
-                // Switch: the most recent scheduled occurrence at or before now. Fire it if it's
-                // recent (within the catch-up window) and that exact slot hasn't been fired yet.
+                // Switch: the most recent scheduled occurrence at or before now. Due if it's recent
+                // (within the catch-up window), happened since the last evaluation, and that exact
+                // slot hasn't already been fired this session.
                 var occurrence = GetMostRecentOccurrence(now, entry.Days, entry.Hour, entry.Minute);
-                if (occurrence != null && now - occurrence.Value <= CatchUpWindow)
+                if (occurrence != null && now - occurrence.Value <= CatchUpWindow &&
+                    (lastRun == null || occurrence.Value > lastRun.Value) &&
+                    (!_lastSwitchFired.TryGetValue(entry.Id, out var last) || last != occurrence.Value))
                 {
-                    if (!_lastSwitchFired.TryGetValue(entry.Id, out var last) || last != occurrence.Value)
-                    {
-                        _lastSwitchFired[entry.Id] = occurrence.Value;
-                        _switchCallback(profile, entry.Silent);
-                        firedSwitch = true;
-                    }
+                    dueSwitches.Add((profile, entry, occurrence.Value));
                 }
 
                 // Reminder: fire once we reach the moment ReminderMinutes before the upcoming
-                // switch, but before the switch itself. Deduped by the upcoming switch slot.
+                // switch, but before the switch itself. Deduped by the upcoming switch slot and
+                // gated on the last-run mark so a restart doesn't repeat it.
                 if (entry.ReminderMinutes > 0)
                 {
                     var nextSwitch = GetNextOccurrence(now, entry.Days, entry.Hour, entry.Minute);
@@ -177,20 +186,43 @@ public class SchedulerService : IDisposable
                     {
                         var reminderMoment = nextSwitch.Value.AddMinutes(-entry.ReminderMinutes);
                         if (now >= reminderMoment && now < nextSwitch.Value &&
-                            now - reminderMoment <= CatchUpWindow)
+                            now - reminderMoment <= CatchUpWindow &&
+                            (lastRun == null || reminderMoment > lastRun.Value) &&
+                            (!_lastReminderFired.TryGetValue(entry.Id, out var lastReminder) ||
+                             lastReminder != nextSwitch.Value))
                         {
-                            if (!_lastReminderFired.TryGetValue(entry.Id, out var lastReminder) ||
-                                lastReminder != nextSwitch.Value)
-                            {
-                                _lastReminderFired[entry.Id] = nextSwitch.Value;
-                                _notifyCallback("VibeSwitcher",
-                                    $"{profile.Name} activates in {entry.ReminderMinutes} minutes");
-                            }
+                            _lastReminderFired[entry.Id] = nextSwitch.Value;
+                            _notifyCallback("VibeSwitcher",
+                                $"{profile.Name} activates in {entry.ReminderMinutes} minutes");
+                            firedAnything = true;
                         }
                     }
                 }
             }
         }
+
+        bool firedSwitch = false;
+        if (dueSwitches.Count > 0)
+        {
+            // Mark every due slot as fired so a superseded one can't re-fire on a later pass, then
+            // switch to only the most recent occurrence.
+            foreach (var d in dueSwitches)
+                _lastSwitchFired[d.entry.Id] = d.occurrence;
+
+            var winner = dueSwitches.OrderByDescending(d => d.occurrence).First();
+            _switchCallback(winner.profile, winner.entry.Silent);
+            firedSwitch = true;
+            firedAnything = true;
+        }
+
+        // Advance the persisted high-water mark only when something fired, so future restarts
+        // within the window don't repeat it. (A no-op evaluation has nothing to guard against.)
+        if (firedAnything)
+        {
+            _configService.Current.LastSchedulerEvaluation = now;
+            _configService.SaveDeferred();
+        }
+
         return firedSwitch;
     }
 

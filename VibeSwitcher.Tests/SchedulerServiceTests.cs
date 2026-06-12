@@ -261,8 +261,11 @@ public class SchedulerServiceTests
     }
 
     [Fact]
-    public void TwoConflictingProfiles_BothSwitch()
+    public void TwoConflictingProfiles_OnlyOneSwitches()
     {
+        // Two profiles scheduled for the same minute can't both win — the user ends on one profile.
+        // The scheduler fires a single switch instead of two that would stomp each other (and the
+        // second of which the single-switch lock would silently drop in production).
         var p1 = new DeviceProfile { Name = "P1" };
         p1.Schedules.Add(new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] });
         var p2 = new DeviceProfile { Name = "P2" };
@@ -272,7 +275,47 @@ public class SchedulerServiceTests
         var svc = new SchedulerService(MakeConfig(p1, p2), (p, _) => switched.Add(p), (_, _) => { },
             clock: () => new DateTime(2026, 1, 5, 9, 0, 0));
         svc.EvaluateNow();
-        Assert.Equal(2, switched.Count);
+        Assert.Single(switched);
+    }
+
+    [Fact]
+    public void CatchUp_FiresMostRecent_WhenMultipleDue()
+    {
+        // PC was off; two schedules are both within the catch-up window at launch. The user should
+        // land on the most recent one (09:30), not the earlier (09:00).
+        var early = new DeviceProfile { Name = "Early" };
+        early.Schedules.Add(new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] });
+        var late = new DeviceProfile { Name = "Late" };
+        late.Schedules.Add(new ScheduleEntry { Enabled = true, Hour = 9, Minute = 30, Days = [DayOfWeek.Monday] });
+
+        var switched = new List<DeviceProfile>();
+        var svc = new SchedulerService(MakeConfig(early, late), (p, _) => switched.Add(p), (_, _) => { },
+            clock: () => new DateTime(2026, 1, 5, 9, 45, 0)); // both within the 2h window
+        svc.EvaluateNow();
+        Assert.Single(switched);
+        Assert.Same(late, switched[0]);
+    }
+
+    [Fact]
+    public void CatchUp_DoesNotRefire_AfterRestart_WithinWindow()
+    {
+        // A schedule fired at launch (catch-up). Reopening the app a few minutes later — still inside
+        // the 2h window — must NOT re-fire it, because the last-run mark is persisted in config.
+        var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var profile = ProfileWithSchedule(entry);
+        var config = MakeConfig(profile);
+        var switched = new List<DeviceProfile>();
+
+        var svc1 = new SchedulerService(config, (p, _) => switched.Add(p), (_, _) => { },
+            clock: () => new DateTime(2026, 1, 5, 9, 30, 0));
+        Assert.True(svc1.EvaluateNow());   // catch-up fires the missed 09:00 switch
+        Assert.Single(switched);
+
+        // Simulate a restart 10 min later: fresh service (in-memory dedup reset), same persisted config.
+        var svc2 = new SchedulerService(config, (p, _) => switched.Add(p), (_, _) => { },
+            clock: () => new DateTime(2026, 1, 5, 9, 40, 0));
+        Assert.False(svc2.EvaluateNow());  // last-run mark prevents the re-fire
+        Assert.Single(switched);
     }
 
     [Fact]

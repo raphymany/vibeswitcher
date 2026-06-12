@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-12 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0).
+**Last updated:** 2026-06-12 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0; plus a deep `/code-review` follow-up: scheduler fires only the most-recent due switch, catch-up no longer re-fires on restart, switch feedback crash-guarded, ordered config saves, device/HID triggers marshalled to the UI thread).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 

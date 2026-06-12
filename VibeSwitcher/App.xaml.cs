@@ -154,8 +154,10 @@ public partial class App : Application
         if (!scheduleFired && activeProfile != null)
             _orchestrator.SwitchToProfile(activeProfile);
 
-        // 10. Refresh tray
-        _trayService.UpdateIcon(activeProfile);
+        // 10. Refresh tray. When a schedule fired, that switch updates the icon itself — setting the
+        //     old active profile's icon here would briefly flash the wrong icon, so skip it.
+        if (!scheduleFired)
+            _trayService.UpdateIcon(activeProfile);
         _trayService.RebuildMenu();
 
         // 11. Re-apply active profile when the PC wakes from sleep/hibernate

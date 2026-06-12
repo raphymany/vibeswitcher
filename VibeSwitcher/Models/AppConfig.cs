@@ -54,4 +54,9 @@ public class AppConfig
     public List<Guid> CompactProfileIds { get; set; } = new();
     // First-time intro dialog has been shown
     public bool CompactIntroShown { get; set; } = false;
+
+    // Wall-clock time of the last scheduler evaluation. Persisted so catch-up only fires schedules
+    // genuinely missed while the app wasn't running — reopening within the catch-up window won't
+    // re-fire a switch that already ran. null = never evaluated (treat everything as catch-up-able).
+    public DateTime? LastSchedulerEvaluation { get; set; }
 }
