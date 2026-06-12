@@ -55,66 +55,56 @@ public class TrayService : IDisposable
     }
 
     // ── Tray menu warm-up ────────────────────────────────────────────────────
-    // The menu's first-ever open pays a heavy one-time cost (JIT + template/visual-tree
-    // construction). When that cost is paid during a real right-click, the focus handoff
-    // misses: the popup window doesn't exist yet when the tray hands it focus, Windows
-    // activates the app window instead, and the menu flashes and instantly closes.
-    // The warm-up below absorbs that cost by opening and closing the menu invisibly.
+    // The menu's first-ever open in the PROCESS pays a heavy one-time cost (JIT, default
+    // menu styles, popup plumbing). When that cost is paid during a real right-click, the
+    // focus handoff misses: the popup window doesn't exist yet when the tray hands it
+    // focus, Windows activates the app window instead, and the menu flashes and closes.
+    // The warm-up below absorbs that cost by opening and closing a menu invisibly.
     //
-    // Hard-won constraints — this has regressed twice, do not relax them:
-    // 1. The warm-up MUST be truly invisible. Opacity=0 is NOT enough: the popup's drop
-    //    shadow is drawn by the OS around the popup HWND (CS_DROPSHADOW) and ignores WPF
-    //    opacity, and off-screen coordinates get clamped onto the monitor — the result
-    //    was a menu-sized shadow flashing at the top-left corner (at launch, and on every
-    //    profile-edit keystroke via RebuildMenu). Forcing the menu to 0x0 via
-    //    MaxWidth/MaxHeight leaves the OS nothing to draw.
-    // 2. The first warm-up MUST complete before the tray icon registers (see ShowIcon):
-    //    a user can't right-click an icon that doesn't exist yet, so priming there closes
-    //    the launch race that an ApplicationIdle prime alone loses (the dispatcher is busy
-    //    with splash animations exactly when the user is most likely to click).
-    // 3. RebuildMenu creates a NEW ContextMenu (profile edits, theme changes), so every
-    //    new instance is re-primed at idle; being invisible, that no longer flashes.
-    // 4. It must NOT run during a real open: the open would reuse the still-alive warm-up
-    //    popup at its clamped position (that was the original top-left-placement bug).
-    private void PrimeContextMenu(ContextMenu menu)
-    {
-        if (menu.IsOpen) return;
-        var placement = menu.Placement;
-        var hOffset   = menu.HorizontalOffset;
-        var vOffset   = menu.VerticalOffset;
-        var maxWidth  = menu.MaxWidth;
-        var maxHeight = menu.MaxHeight;
-        try
-        {
-            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint;
-            menu.HorizontalOffset = -32000;
-            menu.VerticalOffset = -32000;
-            menu.MaxWidth = 0;   // 0x0 popup window — no frame, no OS drop shadow, nothing to flash
-            menu.MaxHeight = 0;
-            menu.Opacity = 0;
-            menu.IsOpen = true;
-            menu.UpdateLayout();
-            menu.IsOpen = false;
-        }
-        finally
-        {
-            menu.Opacity = 1;
-            menu.MaxWidth = maxWidth;
-            menu.MaxHeight = maxHeight;
-            menu.Placement = placement;
-            menu.HorizontalOffset = hOffset;
-            menu.VerticalOffset = vOffset;
-        }
-    }
+    // Hard-won constraints — this has regressed FOUR times. Read before touching:
+    // 1. The cost is PER-PROCESS, not per menu instance: before any priming existed the
+    //    failure only ever hit the first click after launch, never after profile edits
+    //    (which always recreate the menu). The warm-up therefore runs exactly ONCE
+    //    (_menuWarmedUp); re-priming each rebuilt menu caused a flash on every
+    //    profile-name keystroke / schedule / sound change.
+    // 2. THE ROOT CAUSE OF EVERY FLASH (diagnosed with a window-show hook: a full-size
+    //    212x444 popup appearing at (0,0)): closing a menu popup is ASYNCHRONOUS — it
+    //    fades out. Earlier warm-ups opened the real menu shrunk to 0x0/transparent, then
+    //    restored its size in a finally block. The restore raced the fade-out and resized
+    //    the still-visible popup back to full size at the clamped position (off-screen
+    //    coordinates clamp to the monitor's top-left corner). The invisible open was never
+    //    the problem; the synchronous restore was.
+    // 3. Therefore: warm up a SACRIFICIAL menu and never restore anything. It uses the
+    //    same control types (ContextMenu, MenuItem, Separator → same template/JIT cost as
+    //    the real menu), stays 0x0/transparent/shadowless through its entire async close,
+    //    and is discarded. The real menu is never touched, so no restore can race.
+    // 4. The warm-up MUST complete before the tray icon registers (see ShowIcon): a user
+    //    can't right-click an icon that doesn't exist yet, so priming there closes the
+    //    launch race that a deferred (ApplicationIdle) prime loses while startup keeps
+    //    the dispatcher busy.
+    private bool _menuWarmedUp;
 
-    private void PrimeContextMenuAtIdle()
+    private void WarmUpMenuInfrastructure()
     {
-        var menu = _contextMenu;
-        menu.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() =>
+        if (_menuWarmedUp) return;
+        _menuWarmedUp = true;
+        var dummy = new ContextMenu
         {
-            if (menu != _contextMenu || menu.IsOpen) return; // rebuilt or already in use
-            PrimeContextMenu(menu);
-        }));
+            Opacity = 0,
+            MaxWidth = 0,
+            MaxHeight = 0,
+            HasDropShadow = false,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint,
+            HorizontalOffset = -32000,
+            VerticalOffset = -32000,
+        };
+        dummy.Items.Add(new MenuItem { Header = "" });
+        dummy.Items.Add(BuildSeparator());
+        dummy.IsOpen = true;
+        dummy.UpdateLayout();
+        dummy.IsOpen = false;
+        // Deliberately no property restore: the dummy remains invisible while its popup
+        // finishes closing, then it is garbage — that is the entire point (see note 2/3).
     }
 
     // The icon is registered with the shell only once the app is ready (the splash
@@ -127,10 +117,10 @@ public class TrayService : IDisposable
         if (_iconShown) return;
         _iconShown = true;
 
-        // Warm the menu BEFORE the icon becomes clickable — the user can't right-click an
-        // icon that isn't registered yet, so the very first click is guaranteed to hit an
-        // already-warm menu (the at-idle prime alone can lose this race during startup).
-        try { PrimeContextMenu(_contextMenu); }
+        // Warm the menu machinery BEFORE the icon becomes clickable — the user can't
+        // right-click an icon that isn't registered yet, so the very first click is
+        // guaranteed to hit a warm process (the at-idle prime alone loses this race).
+        try { WarmUpMenuInfrastructure(); }
         catch (Exception ex) { _logger.Warning("TrayService.PrimeMenu", ex.Message); }
 
         try
@@ -344,7 +334,9 @@ public class TrayService : IDisposable
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         _taskbarIcon.ToolTipText = BuildTooltip(active);
 
-        PrimeContextMenuAtIdle();
+        // Deliberately NO warm-up here: the first-open cost is per-process and already
+        // absorbed once in ShowIcon. Re-priming every rebuilt menu is what used to flash
+        // the top-left corner on every profile-name keystroke / schedule / sound change.
     }
 
     // Fast path: only flip IsChecked on profile items — no menu rebuild needed on a simple switch.
@@ -373,6 +365,14 @@ public class TrayService : IDisposable
             customIconHandle: IconHelper.GetBalloonIconHandle(),
             largeIcon: true,
             sound: sound);
+
+        // Known H.NotifyIcon 2.0.x bug (fixed upstream in PR #239, unreleased): the
+        // notification's NIM_MODIFY omits NIF_SHOWTIP, which flips the icon out of
+        // standard-tooltip mode — the hover tooltip silently stops appearing after any
+        // balloon. Re-asserting the tooltip text sends a NIM_MODIFY that restores it.
+        var tip = _taskbarIcon.ToolTipText;
+        _taskbarIcon.ToolTipText = "";
+        _taskbarIcon.ToolTipText = tip;
     }
 
     public void RecreateIcon()
