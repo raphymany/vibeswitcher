@@ -4,6 +4,7 @@
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         xmlns:controls="clr-namespace:VibeSwitcher.Controls"
         Title="VibeSwitcher"
+        BorderBrush="{DynamicResource Accent}" BorderThickness="1"
         Width="400" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"

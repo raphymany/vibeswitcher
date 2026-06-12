@@ -299,7 +299,7 @@
                                FontFamily="Segoe UI"
                                FontSize="26"
                                FontWeight="Bold"
-                               Foreground="#E4E4EF"
+                               Foreground="#F5820A"
                                HorizontalAlignment="Center"
                                Margin="0,0,0,6"/>
 

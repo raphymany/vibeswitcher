@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         Title="VibeSwitcher"
+        BorderBrush="{DynamicResource Accent}" BorderThickness="1"
         Width="400" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"

@@ -5,6 +5,7 @@
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         xmlns:controls="clr-namespace:VibeSwitcher.Controls"
         Title="VibeSwitcher"
+        BorderBrush="{DynamicResource Accent}" BorderThickness="1"
         Icon="pack://application:,,,/Resources/Icons/vs-icon.ico"
         UseLayoutRounding="True"
         Width="920" Height="720"
@@ -349,6 +350,10 @@
             <Setter Property="Width"      Value="44"/>
             <Setter Property="Height"     Value="44"/>
             <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+            <!-- Background/BorderBrush flow through TemplateBinding so per-button styles can show an
+                 "enabled" state (orange/green/red tint when the feature is on) like the toggles do. -->
+            <Setter Property="Background"  Value="{DynamicResource VSGlassFill}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource VSGlassBorder}"/>
             <Setter Property="Cursor"     Value="Hand"/>
             <Setter Property="Focusable"  Value="True"/>
             <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
@@ -356,7 +361,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bg" CornerRadius="8"
-                                Background="{DynamicResource VSGlassFill}" BorderBrush="{DynamicResource VSGlassBorder}" BorderThickness="1">
+                                Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -1408,8 +1413,11 @@
                                                 </StackPanel>
                                             </Button>
 
-                                            <!-- Always-visible action strip -->
+                                            <!-- Always-visible action strip. The bottom corner radius (card radius 14 minus the 1px
+                                                 border) keeps the strip's fill from painting square corners over the card's rounded
+                                                 border stroke — without it the orange active border looks cut at the bottom corners. -->
                                             <Border Grid.Row="1" BorderBrush="{DynamicResource VSHairline}" BorderThickness="0,1,0,0"
+                                                    CornerRadius="0,0,13,13"
                                                     Padding="10,7,10,9" Background="{DynamicResource VSStripOverlay}">
                                                 <StackPanel>
                                                     <!-- Row 1: 5 buttons, space-between -->
@@ -1459,7 +1467,9 @@
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding HasAppTriggers}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                                                                            <Setter Property="Background"  Value="#1FF5820A"/>
+                                                                            <Setter Property="BorderBrush" Value="#40F5820A"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -1514,7 +1524,9 @@
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSGreen}"/>
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource VSGreen}"/>
+                                                                            <Setter Property="Background"  Value="#1F30D278"/>
+                                                                            <Setter Property="BorderBrush" Value="#4030D278"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -1533,32 +1545,18 @@
                                                             </Viewbox>
                                                         </Button>
                                                     </Grid>
-                                                    <!-- Row 2: 4 buttons, centered with 10px gap -->
+                                                    <!-- Row 2: 3 buttons (clone lives in the profile detail), centered with even gaps -->
                                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                        <!-- 6. Clone — two overlapping rectangles -->
-                                                        <Button Style="{StaticResource CardActionBtn}" Margin="10,0"
-                                                                Command="{Binding CloneCommand}" ToolTip="Clone this profile">
-                                                            <Viewbox Width="18" Height="18">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Rectangle Canvas.Left="2" Canvas.Top="5.5" Width="8.5" Height="8.5" RadiusX="2" RadiusY="2"
-                                                                               Fill="Transparent"
-                                                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                               StrokeThickness="1.6"/>
-                                                                    <Rectangle Canvas.Left="5.5" Canvas.Top="2" Width="8.5" Height="8.5" RadiusX="2" RadiusY="2"
-                                                                               Fill="Transparent"
-                                                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                               StrokeThickness="1.6"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </Button>
-                                                        <!-- 7. Schedule — clock with hands -->
+                                                        <!-- 6. Schedule — clock with hands -->
                                                         <Button Margin="10,0"
                                                                 Command="{Binding AddScheduleCommand}" ToolTip="Schedule this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding HasSchedules}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSBlue}"/>
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                                                                            <Setter Property="Background"  Value="#1FF5820A"/>
+                                                                            <Setter Property="BorderBrush" Value="#40F5820A"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -1572,14 +1570,16 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 8. Sound — sine wave -->
+                                                        <!-- 7. Sound — music notes -->
                                                         <Button Margin="10,0"
                                                                 Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSGreen}"/>
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                                                                            <Setter Property="Background"  Value="#1FF5820A"/>
+                                                                            <Setter Property="BorderBrush" Value="#40F5820A"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -1593,11 +1593,14 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 9. Delete — trash can -->
+                                                        <!-- 8. Delete — trash can, always red so the danger action is unmistakable -->
                                                         <Button Margin="10,0"
                                                                 Command="{Binding DeleteCommand}" ToolTip="Delete this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
+                                                                    <Setter Property="Foreground"  Value="{DynamicResource ErrorText}"/>
+                                                                    <Setter Property="Background"  Value="#1FE13737"/>
+                                                                    <Setter Property="BorderBrush" Value="#40E13737"/>
                                                                     <Style.Triggers>
                                                                         <Trigger Property="IsMouseOver" Value="True">
                                                                             <Setter Property="Foreground" Value="{DynamicResource ErrorText}"/>
@@ -2750,9 +2753,8 @@
                             </Grid.ColumnDefinitions>
                             <controls:AboutLogoIcon Grid.Column="0" Width="84" Height="84" Margin="0,0,20,0"/>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock FontSize="20" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}">
-                                    <Run Text="Vibe"/><Run Text="Switcher" Foreground="{DynamicResource Accent}"/>
-                                </TextBlock>
+                                <TextBlock Text="VibeSwitcher" FontSize="20" FontWeight="Bold"
+                                           Foreground="{DynamicResource Accent}"/>
                                 <TextBlock x:Name="AboutVersionText"
                                            FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0"/>
                                 <TextBlock Text="Manage audio device profiles with global hotkeys, schedules, app triggers, and headset auto-detection."
@@ -2839,7 +2841,7 @@
                                 <TextBlock Grid.Column="1" Text="Switch sound playback" FontSize="12"
                                            Foreground="{DynamicResource SecondaryText}"/>
                             </Grid>
-                            <Grid>
+                            <Grid Margin="0,0,0,6">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="*"/>
@@ -2847,6 +2849,26 @@
                                 <TextBlock Grid.Column="0" Text="HidSharp" FontSize="12" FontWeight="SemiBold"
                                            Foreground="{DynamicResource PrimaryText}"/>
                                 <TextBlock Grid.Column="1" Text="Wireless headset detection" FontSize="12"
+                                           Foreground="{DynamicResource SecondaryText}"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="H.NotifyIcon" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryText}"/>
+                                <TextBlock Grid.Column="1" Text="System tray icon and notifications" FontSize="12"
+                                           Foreground="{DynamicResource SecondaryText}"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="Inno Setup" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryText}"/>
+                                <TextBlock Grid.Column="1" Text="Windows installer" FontSize="12"
                                            Foreground="{DynamicResource SecondaryText}"/>
                             </Grid>
                         </StackPanel>
@@ -2860,7 +2882,9 @@
                             <TextBlock Text="Designed and built by" FontSize="11"
                                        Foreground="{DynamicResource SecondaryText}"/>
                             <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource PrimaryText}" Margin="0,2,0,10"/>
+                                       Foreground="{DynamicResource PrimaryText}" Margin="0,2,0,6"/>
+                            <TextBlock Text="Developed with Claude Code (Anthropic)" FontSize="11"
+                                       Foreground="{DynamicResource SecondaryText}" Margin="0,0,0,10"/>
                             <TextBlock Text="&#xA9; 2026 Raphael Mansour. All rights reserved."
                                        FontSize="11" Foreground="{DynamicResource DisabledText}"/>
                         </StackPanel>
@@ -2883,7 +2907,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="WHAT IS VIBESWITCHER?" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="WHAT IS VIBESWITCHER?" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 VibeSwitcher is a Windows system tray app that lets you save audio device configurations as profiles and switch between them instantly — using hotkeys, schedules, or a single click.
                             </TextBlock>
@@ -2892,7 +2916,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="SETTING UP PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="SETTING UP PROFILES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Click <Hyperlink Tag="newProfile" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">+ New Profile</Hyperlink> to create a profile. Choose a mode (Playback, Recording, or Both), pick your devices, then give it a name. You can assign a global hotkey to activate it from anywhere.
                             </TextBlock>
@@ -2901,7 +2925,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="CUSTOM PROFILE ICONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="CUSTOM PROFILE ICONS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,6">
                                 Open <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile</Hyperlink>, click its icon, and choose "Browse from disk" to use your own <Run FontFamily="Consolas">.ico</Run> file. To make one from any picture:
                             </TextBlock>
@@ -2915,7 +2939,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="FILTERING PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="FILTERING PROFILES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Use the <Hyperlink Tag="filters" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">search box and filter chips</Hyperlink> to narrow down your profile list. Filters stack (AND logic). Clear all filters with the ✕ Clear button.
                             </TextBlock>
@@ -2924,7 +2948,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="USING HOTKEYS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="USING HOTKEYS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Click <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to open profile details, then click "Set Hotkey". Press your desired key combination. Hotkeys work globally — even when VibeSwitcher is minimized to the tray. App-wide shortcuts (open/close the window, mute) live in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
                             </TextBlock>
@@ -2933,16 +2957,16 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="SCHEDULED SWITCHING" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="SCHEDULED SWITCHING" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Click the schedule button (&#x231A;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to add a schedule. Choose a time and days of the week. Multiple schedules per profile are supported. The blue dot on a card means at least one schedule is active.
+                                Click the schedule button (&#x231A;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to add a schedule. Choose a time and days of the week. Multiple schedules per profile are supported. The schedule button lights up orange when at least one schedule is set, and the card shows a schedule chip you can click to edit it.
                             </TextBlock>
                         </StackPanel>
                     </Border>
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="AUTO-SWITCH ON CONNECT" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="AUTO-SWITCH ON CONNECT" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Click the auto-switch button (&#x26A1;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to enable auto-switch. VibeSwitcher will activate this profile whenever its playback device connects. Best for wireless headsets and USB audio interfaces.
                             </TextBlock>
@@ -2951,7 +2975,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="MINI MODE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="MINI MODE" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Shrink VibeSwitcher into a small profile switcher that sits in a corner of your screen — perfect over games. Enter it with the shrink button in the title bar, the tray menu, or a hotkey; the expand button brings the full window back. In <Hyperlink Tag="miniSettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Mini Window</Hyperlink> you can pick the layout (rows or icon grid), choose which profiles appear, set the toggle shortcut, keep it always on top, and make it fade when inactive. Or just <Hyperlink Tag="miniTry" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">try Mini Mode now</Hyperlink>.
                             </TextBlock>
@@ -2960,16 +2984,16 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="PANIC / MUTE HOTKEYS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="PANIC / MUTE HOTKEYS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Set global hotkeys to instantly mute your microphone, speakers, or both — from inside any app. While muted, the tray icon (and the mini window) shows a colored badge: red for mic, blue for speakers, purple for both. Press the hotkey again to unmute. Set them up in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
+                                Set global hotkeys to instantly mute your microphone, speakers, or both — from inside any app. Each toggle plays a distinct sound and shows a brief "muted / unmuted" notification (you can silence the banner per shortcut with its bell toggle). Press the hotkey again to unmute. Set them up in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
                             </TextBlock>
                         </StackPanel>
                     </Border>
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="APP LAUNCH TRIGGERS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="APP LAUNCH TRIGGERS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Link one or more programs to a profile with the trigger button (&#x25B6;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> — VibeSwitcher switches to that profile automatically within seconds of any linked app launching, and stays there until you switch yourself.
                             </TextBlock>
@@ -2978,7 +3002,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="SWITCH SOUNDS &amp; SILENT PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="SWITCH SOUNDS &amp; SILENT PROFILES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Each profile can play a tone when it activates — choose from 7 built-in tones or your own WAV via the sound button on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink>. Prefer quiet? The silent toggle on a card skips the Windows notification banner for that profile, and app-wide notification options live in <Hyperlink Tag="notifications" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Notifications</Hyperlink>.
                             </TextBlock>
@@ -2987,7 +3011,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="BACKUP &amp; RESTORE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="BACKUP &amp; RESTORE" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Go to <Hyperlink Tag="backup" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Backup &amp; Restore</Hyperlink> to export your config to a JSON file. Import that file on a new machine to restore all your profiles. Config is stored at %APPDATA%\VibeSwitcher\config.json.
                             </TextBlock>

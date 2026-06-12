@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         Title="Session Errors"
+        BorderBrush="{DynamicResource Accent}" BorderThickness="1"
         Width="520" Height="360"
         MinWidth="400" MinHeight="260"
         WindowStartupLocation="CenterOwner"

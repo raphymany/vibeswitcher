@@ -522,7 +522,8 @@ public class TrayService : IDisposable
             FontWeight = FontWeights.SemiBold,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        label.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryText");
+        // The wordmark is brand-orange everywhere (title bar, About, splash) — keep the tray in step.
+        label.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
         sp.Children.Add(label);
         return sp;
     }
