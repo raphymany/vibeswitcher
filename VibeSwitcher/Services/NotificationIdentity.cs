@@ -21,6 +21,10 @@ internal static class NotificationIdentity
             Directory.CreateDirectory(dir);
             var iconPath = Path.Combine(dir, "app-icon.png");
 
+            // Pre-redesign builds wrote an "app.ico" (old icon design) here for balloon
+            // notifications; nothing references it anymore — clean it up on upgrade.
+            try { File.Delete(Path.Combine(dir, "app.ico")); } catch { /* best-effort */ }
+
             // Refresh the on-disk icon from the embedded resource each launch so it always matches
             // the current build (and overwrites any stale icon a previous build wrote).
             try
