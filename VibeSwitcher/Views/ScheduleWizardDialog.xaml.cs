@@ -153,8 +153,9 @@ public partial class ScheduleWizardDialog : Window
         };
 
         BackBtn.Visibility = step > 0 ? Visibility.Visible : Visibility.Collapsed;
-        SkipBtn.Visibility = step < 3 ? Visibility.Visible : Visibility.Collapsed;
-        NextBtn.Content = step == 3 ? "Finish ✓" : "Next →";
+        // On the last step "Next" itself becomes the save action, so the shortcut is redundant.
+        SaveBtn.Visibility = step < 3 ? Visibility.Visible : Visibility.Collapsed;
+        NextBtn.Content = step == 3 ? "Save ✓" : "Next →";
 
         UpdateDots(step);
 
@@ -220,9 +221,9 @@ public partial class ScheduleWizardDialog : Window
         }
     }
 
-    private void Advance(bool commit)
+    private void Advance()
     {
-        if (commit) CommitStep(_currentStep);
+        CommitStep(_currentStep);
         if (_currentStep < 3)
             GoToStep(_currentStep + 1);
         else
@@ -244,8 +245,15 @@ public partial class ScheduleWizardDialog : Window
         DialogResult = true;
     }
 
-    private void Next_Click(object sender, RoutedEventArgs e) => Advance(commit: true);
-    private void Skip_Click(object sender, RoutedEventArgs e) => Advance(commit: false);
+    private void Next_Click(object sender, RoutedEventArgs e) => Advance();
+
+    // Commit the step the user is looking at and finish right away — the remaining steps
+    // keep their current values (the existing ones when editing, defaults when adding).
+    private void Save_Click(object sender, RoutedEventArgs e)
+    {
+        CommitStep(_currentStep);
+        Finish();
+    }
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {

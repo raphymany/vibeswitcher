@@ -231,10 +231,12 @@
                             Padding="14,0" Margin="0,0,8,0"
                             Visibility="Collapsed"
                             Click="Back_Click"/>
-                    <Button x:Name="SkipBtn" Content="Skip"
+                    <!-- Save commits the current step and finishes immediately — no need to walk
+                         the remaining steps just to change one thing. -->
+                    <Button x:Name="SaveBtn" Content="Save"
                             Style="{StaticResource ActionButton}"
                             Padding="14,0" Margin="0,0,8,0"
-                            Click="Skip_Click"/>
+                            Click="Save_Click"/>
                     <Button x:Name="NextBtn" Content="Next →"
                             Style="{StaticResource PrimaryButton}"
                             Padding="18,0"
