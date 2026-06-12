@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         Title="VibeSwitcher"
-        Width="420" SizeToContent="Height"
+        Width="470" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBg}"
@@ -225,7 +225,9 @@
                         Padding="16,0" Margin="8,0,0,0"
                         Visibility="Collapsed"
                         Click="Remove_Click"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <!-- Left margin guarantees a gap to Cancel/Remove even at the widest button set
+                     (editing: Remove + Back + Save + Next). -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,0,0,0">
                     <Button x:Name="BackBtn" Content="← Back"
                             Style="{StaticResource ActionButton}"
                             Padding="14,0" Margin="0,0,8,0"
