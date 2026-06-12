@@ -1236,12 +1236,12 @@
                                                     <!-- Schedule & sound section — its own separator-delimited block between the
                                                          mode chip and the devices; chips share the mode chip's orange palette -->
                                                     <StackPanel Visibility="{Binding HasVisibilityChips, Converter={StaticResource BoolToVis}}">
-                                                        <!-- Schedule chip — clickable, edits existing schedule -->
-                                                        <Button Command="{Binding EditFirstScheduleCommand}"
+                                                        <!-- Schedule chip — one schedule edits directly; several open the manage dialog -->
+                                                        <Button Command="{Binding ManageSchedulesCommand}"
                                                                 Click="ChipButton_Click"
                                                                 Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
                                                                 HorizontalAlignment="Center" Margin="0,8,0,0"
-                                                                ToolTip="Click to edit schedule"
+                                                                ToolTip="Click to view or edit schedules"
                                                                 Visibility="{Binding HasSchedules, Converter={StaticResource BoolToVis}}">
                                                             <Button.Style>
                                                                 <Style TargetType="Button">
@@ -3028,7 +3028,7 @@
                         Margin="20"
                         Background="{DynamicResource VSModalBg}"
                         CornerRadius="18"
-                        BorderBrush="#29F5820A" BorderThickness="1">
+                        BorderBrush="#66F5820A" BorderThickness="1">
                     <Grid x:Name="ProfileDetailContent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>  <!-- header -->

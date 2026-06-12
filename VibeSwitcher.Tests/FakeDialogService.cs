@@ -56,4 +56,7 @@ internal sealed class FakeDialogService : IDialogService
 
     public List<string>? AppTriggerWizardResult { get; set; } = null;
     public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers) => AppTriggerWizardResult;
+
+    public int ManageSchedulesShownCount { get; private set; }
+    public void ShowManageSchedules(object profileCard) => ManageSchedulesShownCount++;
 }

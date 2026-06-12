@@ -180,7 +180,8 @@
             <DropShadowEffect Color="#000000" BlurRadius="40" ShadowDepth="0" Opacity="0.7"/>
         </Border.Effect>
 
-        <Border Background="#0D0D12" CornerRadius="20">
+        <Border Background="#0D0D12" CornerRadius="20"
+                BorderBrush="#66F5820A" BorderThickness="1">
             <StackPanel x:Name="RootPanel"
                         VerticalAlignment="Center"
                         HorizontalAlignment="Center"

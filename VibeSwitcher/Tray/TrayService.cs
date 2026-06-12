@@ -54,32 +54,66 @@ public class TrayService : IDisposable
         _taskbarIcon.TrayContextMenuOpen += (_, _) => RefreshMiniMenuItem();
     }
 
-    // A WPF ContextMenu pays a one-time creation cost on its first-ever open, which
-    // makes the tray's focus handoff miss — the menu flashes and instantly closes.
-    // Priming it invisibly off-screen at idle (well before any click, so the warm-up
-    // popup is fully torn down again) absorbs that cost out of sight.
-    // It must NOT run during the open itself: the real open would then reuse the
-    // still-alive warm-up popup at its clamped off-screen position.
+    // ── Tray menu warm-up ────────────────────────────────────────────────────
+    // The menu's first-ever open pays a heavy one-time cost (JIT + template/visual-tree
+    // construction). When that cost is paid during a real right-click, the focus handoff
+    // misses: the popup window doesn't exist yet when the tray hands it focus, Windows
+    // activates the app window instead, and the menu flashes and instantly closes.
+    // The warm-up below absorbs that cost by opening and closing the menu invisibly.
+    //
+    // Hard-won constraints — this has regressed twice, do not relax them:
+    // 1. The warm-up MUST be truly invisible. Opacity=0 is NOT enough: the popup's drop
+    //    shadow is drawn by the OS around the popup HWND (CS_DROPSHADOW) and ignores WPF
+    //    opacity, and off-screen coordinates get clamped onto the monitor — the result
+    //    was a menu-sized shadow flashing at the top-left corner (at launch, and on every
+    //    profile-edit keystroke via RebuildMenu). Forcing the menu to 0x0 via
+    //    MaxWidth/MaxHeight leaves the OS nothing to draw.
+    // 2. The first warm-up MUST complete before the tray icon registers (see ShowIcon):
+    //    a user can't right-click an icon that doesn't exist yet, so priming there closes
+    //    the launch race that an ApplicationIdle prime alone loses (the dispatcher is busy
+    //    with splash animations exactly when the user is most likely to click).
+    // 3. RebuildMenu creates a NEW ContextMenu (profile edits, theme changes), so every
+    //    new instance is re-primed at idle; being invisible, that no longer flashes.
+    // 4. It must NOT run during a real open: the open would reuse the still-alive warm-up
+    //    popup at its clamped position (that was the original top-left-placement bug).
+    private void PrimeContextMenu(ContextMenu menu)
+    {
+        if (menu.IsOpen) return;
+        var placement = menu.Placement;
+        var hOffset   = menu.HorizontalOffset;
+        var vOffset   = menu.VerticalOffset;
+        var maxWidth  = menu.MaxWidth;
+        var maxHeight = menu.MaxHeight;
+        try
+        {
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint;
+            menu.HorizontalOffset = -32000;
+            menu.VerticalOffset = -32000;
+            menu.MaxWidth = 0;   // 0x0 popup window — no frame, no OS drop shadow, nothing to flash
+            menu.MaxHeight = 0;
+            menu.Opacity = 0;
+            menu.IsOpen = true;
+            menu.UpdateLayout();
+            menu.IsOpen = false;
+        }
+        finally
+        {
+            menu.Opacity = 1;
+            menu.MaxWidth = maxWidth;
+            menu.MaxHeight = maxHeight;
+            menu.Placement = placement;
+            menu.HorizontalOffset = hOffset;
+            menu.VerticalOffset = vOffset;
+        }
+    }
+
     private void PrimeContextMenuAtIdle()
     {
         var menu = _contextMenu;
         menu.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() =>
         {
             if (menu != _contextMenu || menu.IsOpen) return; // rebuilt or already in use
-            var placement = menu.Placement;
-            var hOffset   = menu.HorizontalOffset;
-            var vOffset   = menu.VerticalOffset;
-            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint;
-            menu.HorizontalOffset = -32000;
-            menu.VerticalOffset = -32000;
-            menu.Opacity = 0;
-            menu.IsOpen = true;
-            menu.UpdateLayout();
-            menu.IsOpen = false;
-            menu.Opacity = 1;
-            menu.Placement = placement;
-            menu.HorizontalOffset = hOffset;
-            menu.VerticalOffset = vOffset;
+            PrimeContextMenu(menu);
         }));
     }
 
@@ -92,6 +126,13 @@ public class TrayService : IDisposable
     {
         if (_iconShown) return;
         _iconShown = true;
+
+        // Warm the menu BEFORE the icon becomes clickable — the user can't right-click an
+        // icon that isn't registered yet, so the very first click is guaranteed to hit an
+        // already-warm menu (the at-idle prime alone can lose this race during startup).
+        try { PrimeContextMenu(_contextMenu); }
+        catch (Exception ex) { _logger.Warning("TrayService.PrimeMenu", ex.Message); }
+
         try
         {
             // Required when creating TaskbarIcon programmatically (not via XAML)

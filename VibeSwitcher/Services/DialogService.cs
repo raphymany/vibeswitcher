@@ -131,6 +131,12 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true ? dialog.ResultTriggers : null;
     }
 
+    public void ShowManageSchedules(object profileCard)
+    {
+        if (profileCard is not ViewModels.ProfileCardViewModel card) return;
+        new ManageSchedulesDialog(card) { Owner = OwnerWindow }.ShowDialog();
+    }
+
     // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.
     // The front square's fill matches the badge background so it cleanly occludes the back square.
     private static UIElement BuildCopyIcon(Brush badgeBg, Brush stroke)

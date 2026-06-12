@@ -469,7 +469,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
     public ICommand AddScheduleCommand { get; }
-    public ICommand EditFirstScheduleCommand { get; }
+    public ICommand ManageSchedulesCommand { get; }
+    public ICommand EditScheduleEntryCommand { get; }
+    public ICommand DeleteScheduleEntryCommand { get; }
     public ICommand ConfigureSoundCommand { get; }
     public ICommand OpenAppTriggersCommand { get; }
 
@@ -540,7 +542,24 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
         AddScheduleCommand = new RelayCommand(AddSchedule);
-        EditFirstScheduleCommand = new RelayCommand(() => { if (Schedules.Count > 0) EditSchedule(Schedules[0]); }, () => HasSchedules);
+        // One schedule: clicking the chip edits it directly. More than one: open the manage
+        // dialog so the user can see every schedule and pick what to edit or delete.
+        ManageSchedulesCommand = new RelayCommand(() =>
+        {
+            if (Schedules.Count == 1) EditSchedule(Schedules[0]);
+            else if (Schedules.Count > 1) _dialogService.ShowManageSchedules(this);
+        }, () => HasSchedules);
+        EditScheduleEntryCommand = new RelayCommand(p =>
+        {
+            if (p is ScheduleEntryViewModel vm) EditSchedule(vm);
+        });
+        DeleteScheduleEntryCommand = new RelayCommand(p =>
+        {
+            if (p is ScheduleEntryViewModel vm &&
+                _dialogService.ShowConfirm("Remove Schedule?",
+                    $"Remove \"{vm.Summary}\" from \"{Name}\"?", "Remove"))
+                RemoveScheduleEntry(vm);
+        });
         ConfigureSoundCommand = new RelayCommand(ConfigureSound);
         OpenAppTriggersCommand = new RelayCommand(OpenAppTriggerWizard);
     }

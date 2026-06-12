@@ -20,4 +20,6 @@ public interface IDialogService
     bool ShowConfirm(string title, string message, string actionLabel);
     bool ShowSupportedHeadsets();
     List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers);
+    // Takes the ProfileCardViewModel as object so the dialog contract stays free of view-model types.
+    void ShowManageSchedules(object profileCard);
 }
