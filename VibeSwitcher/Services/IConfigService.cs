@@ -12,4 +12,5 @@ public interface IConfigService
     void SaveDeferred();
     void ExportTo(string destinationPath);
     bool TryImport(string sourcePath, out string? error);
+    void ResetSettingsToDefaults();
 }

@@ -180,7 +180,9 @@
             <DropShadowEffect Color="#000000" BlurRadius="40" ShadowDepth="0" Opacity="0.7"/>
         </Border.Effect>
 
-        <Border Background="#0D0D12" CornerRadius="20"
+        <!-- Theme-aware card (the theme is applied before the splash is shown); the icon puck
+             inside stays dark intentionally — it reproduces the actual app icon. -->
+        <Border Background="{DynamicResource AppBg}" CornerRadius="20"
                 BorderBrush="#66F5820A" BorderThickness="1">
             <StackPanel x:Name="RootPanel"
                         VerticalAlignment="Center"
@@ -307,7 +309,7 @@
                     <TextBlock Text="Switch between your audios seamlessly"
                                FontFamily="Segoe UI"
                                FontSize="12"
-                               Foreground="#38384E"
+                               Foreground="{DynamicResource SecondaryText}"
                                HorizontalAlignment="Center"/>
                 </StackPanel>
 

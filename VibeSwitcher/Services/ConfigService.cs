@@ -182,6 +182,22 @@ public class ConfigService : IConfigService
         }
     }
 
+    // Replaces every setting with its default while preserving the user's data: profiles
+    // (incl. their schedules/sounds/triggers), the active profile, and device aliases.
+    public void ResetSettingsToDefaults()
+    {
+        var cur = _config;
+        _config = new AppConfig
+        {
+            Profiles = cur.Profiles,
+            ActiveProfileId = cur.ActiveProfileId,
+            DeviceAliases = cur.DeviceAliases,
+            CompactIntroShown = cur.CompactIntroShown,       // don't re-show the first-run intro
+            LastSchedulerEvaluation = cur.LastSchedulerEvaluation, // keep catch-up dedup history
+        };
+        SaveImmediate();
+    }
+
     public void ExportTo(string destinationPath)
     {
         lock (_saveLock)

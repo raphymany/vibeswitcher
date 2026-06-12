@@ -17,6 +17,16 @@ internal sealed class FakeConfigService : IConfigService
     public void SaveDeferred() { }
     public void ExportTo(string destinationPath) { }
     public bool TryImport(string sourcePath, out string? error) { error = null; return false; }
+    public void ResetSettingsToDefaults()
+    {
+        var cur = _config;
+        _config = new AppConfig
+        {
+            Profiles = cur.Profiles,
+            ActiveProfileId = cur.ActiveProfileId,
+            DeviceAliases = cur.DeviceAliases,
+        };
+    }
 
     public void SetConfig(AppConfig config) => _config = config;
 }

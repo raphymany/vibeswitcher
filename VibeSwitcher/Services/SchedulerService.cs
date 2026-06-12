@@ -146,8 +146,13 @@ public class SchedulerService : IDisposable
     // being rejected by an exact-minute match. The per-slot dedup below prevents repeats.
     private static readonly TimeSpan CatchUpWindow = TimeSpan.FromHours(2);
 
+    // With catch-up disabled, a slot only fires near its exact moment. 90s comfortably covers
+    // timer jitter and the 1s minimum re-arm delay without ever feeling like a "late" switch.
+    private static readonly TimeSpan ExactWindow = TimeSpan.FromSeconds(90);
+
     private bool Evaluate(DateTime now)
     {
+        var window = _configService.Current.SchedulerCatchUp ? CatchUpWindow : ExactWindow;
         // Persisted high-water mark: a switch/reminder is only "missed" if its moment is after the
         // last time we evaluated. This survives restarts, so reopening within the catch-up window
         // won't re-fire a switch that already ran while the app was alive.
@@ -169,7 +174,7 @@ public class SchedulerService : IDisposable
                 // (within the catch-up window), happened since the last evaluation, and that exact
                 // slot hasn't already been fired this session.
                 var occurrence = GetMostRecentOccurrence(now, entry.Days, entry.Hour, entry.Minute);
-                if (occurrence != null && now - occurrence.Value <= CatchUpWindow &&
+                if (occurrence != null && now - occurrence.Value <= window &&
                     (lastRun == null || occurrence.Value > lastRun.Value) &&
                     (!_lastSwitchFired.TryGetValue(entry.Id, out var last) || last != occurrence.Value))
                 {
@@ -186,7 +191,7 @@ public class SchedulerService : IDisposable
                     {
                         var reminderMoment = nextSwitch.Value.AddMinutes(-entry.ReminderMinutes);
                         if (now >= reminderMoment && now < nextSwitch.Value &&
-                            now - reminderMoment <= CatchUpWindow &&
+                            now - reminderMoment <= window &&
                             (lastRun == null || reminderMoment > lastRun.Value) &&
                             (!_lastReminderFired.TryGetValue(entry.Id, out var lastReminder) ||
                              lastReminder != nextSwitch.Value))

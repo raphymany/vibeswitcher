@@ -730,6 +730,14 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         set { if (_configService.Current.MuteBothSilent == value) return; _configService.Current.MuteBothSilent = value; SaveAsync(); OnPropertyChanged(nameof(MuteBothSilent)); }
     }
 
+    // When on (default), a scheduled switch missed while the PC was off/asleep fires on
+    // wake or launch (within the scheduler's catch-up window). Off = exact-time only.
+    public bool SchedulerCatchUp
+    {
+        get => _configService.Current.SchedulerCatchUp;
+        set { if (_configService.Current.SchedulerCatchUp == value) return; _configService.Current.SchedulerCatchUp = value; SaveAsync(); OnPropertyChanged(nameof(SchedulerCatchUp)); }
+    }
+
     // Called from SettingsWindow when a mute hotkey capture dialog closes.
     internal void SetMuteHotkeyFromDialog(Models.MuteScope scope, HotkeyDefinition captured)
         => SetMuteHotkey(scope, captured);
@@ -737,6 +745,7 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     // ────────────────────────────────────────────────────────────────────────────
 
     public ICommand AddProfileCommand { get; }
+    public ICommand ResetSettingsCommand { get; }
 
     private void SaveAsync() => _configService.SaveDeferred();
 
@@ -789,6 +798,16 @@ public class SettingsViewModel : ViewModelBase, IDisposable
                 .Select(p => CreateCard(p)));
 
         AddProfileCommand = new RelayCommand(AddProfile);
+
+        ResetSettingsCommand = new RelayCommand(() =>
+        {
+            if (!_dialogService.ShowConfirm("Reset Settings?",
+                    "All app settings will return to their defaults. Your profiles, schedules, app triggers, and device aliases are kept.",
+                    "Reset"))
+                return;
+            _configService.ResetSettingsToDefaults();
+            RefreshFromConfig();
+        });
 
         Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
 
@@ -1173,7 +1192,14 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     {
         if (!_configService.TryImport(sourcePath, out error))
             return false;
+        RefreshFromConfig();
+        return true;
+    }
 
+    // Re-syncs every binding, hotkey, theme, and dependent service after the underlying
+    // config object has been wholesale replaced (import or reset-to-defaults).
+    private void RefreshFromConfig()
+    {
         RebuildProfiles();
 
         _startWithWindows    = _startupService.IsStartupEnabled();
@@ -1211,13 +1237,19 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(MuteMicHotkeyEnabled));
         OnPropertyChanged(nameof(MuteSpeakersHotkeyEnabled));
         OnPropertyChanged(nameof(MuteBothHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteMicSilent));
+        OnPropertyChanged(nameof(MuteSpeakersSilent));
+        OnPropertyChanged(nameof(MuteBothSilent));
+        OnPropertyChanged(nameof(SchedulerCatchUp));
+        OnPropertyChanged(nameof(LogoAnimation));
+        VibeSwitcher.Controls.LogoAnimator.Mode =
+            VibeSwitcher.Controls.LogoAnimator.Parse(_configService.Current.LogoAnimation);
         _applyTheme(_configService.Current.Theme ?? "Auto");
 
         ReregisterHotkeys();
         _onProfilesChanged();
-        // Imported app-trigger lists must be (re)watched and removed ones unwatched.
+        // Replaced app-trigger lists must be (re)watched and removed ones unwatched.
         _onAppTriggersChanged?.Invoke();
-        return true;
     }
 
     public void Dispose()

@@ -68,4 +68,8 @@ public class AppConfig
 
     // Animated logo: "Full" (60fps), "Reduced" (~24fps, lower CPU), "Static" (no animation).
     public string LogoAnimation { get; set; } = "Full";
+
+    // When true (default), a scheduled switch missed while the PC was off/asleep fires on
+    // wake or launch (within the scheduler's catch-up window). False = exact-time only.
+    public bool SchedulerCatchUp { get; set; } = true;
 }

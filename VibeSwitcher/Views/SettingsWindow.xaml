@@ -1404,10 +1404,9 @@
                                                     CornerRadius="0,0,13,13"
                                                     Padding="10,7,10,9" Background="{DynamicResource VSStripOverlay}">
                                                 <StackPanel>
-                                                    <!-- Row 1: 5 buttons, space-between -->
+                                                    <!-- Row 1: silent, app triggers, auto-switch, activate (power, top-right) -->
                                                     <Grid Margin="0,0,0,14">
                                                         <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
@@ -1488,20 +1487,8 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </ToggleButton>
-                                                        <!-- 4. Favorite/Pin — filled star -->
-                                                        <ToggleButton Grid.Column="3" HorizontalAlignment="Center"
-                                                                      IsChecked="{Binding IsPinned}"
-                                                                      Style="{StaticResource CardActionToggle}"
-                                                                      ToolTip="Pin to top of list">
-                                                            <Viewbox Width="18" Height="18">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
-                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </ToggleButton>
-                                                        <!-- 5. Activate — circle + checkmark -->
-                                                        <Button Grid.Column="4" HorizontalAlignment="Center"
+                                                        <!-- 4. Activate — power symbol (top-right) -->
+                                                        <Button Grid.Column="3" HorizontalAlignment="Center"
                                                                 Command="{Binding ActivateCommand}"
                                                                 ToolTip="Activate this profile">
                                                             <Button.Style>
@@ -1526,10 +1513,28 @@
                                                             </Viewbox>
                                                         </Button>
                                                     </Grid>
-                                                    <!-- Row 2: 3 buttons (clone lives in the profile detail), centered with even gaps -->
-                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <!-- Row 2: favorite, schedule, sound, delete (bottom-right); columns align with row 1 -->
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <!-- 5. Favorite/Pin — filled star -->
+                                                        <ToggleButton Grid.Column="0" HorizontalAlignment="Center"
+                                                                      IsChecked="{Binding IsPinned}"
+                                                                      Style="{StaticResource CardActionToggle}"
+                                                                      ToolTip="Pin to top of list">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
+                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </ToggleButton>
                                                         <!-- 6. Schedule — clock with hands -->
-                                                        <Button Margin="10,0"
+                                                        <Button Grid.Column="1" HorizontalAlignment="Center"
                                                                 Command="{Binding AddScheduleCommand}" ToolTip="Schedule this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
@@ -1552,7 +1557,7 @@
                                                             </Viewbox>
                                                         </Button>
                                                         <!-- 7. Sound — music notes -->
-                                                        <Button Margin="10,0"
+                                                        <Button Grid.Column="2" HorizontalAlignment="Center"
                                                                 Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
@@ -1574,8 +1579,8 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 8. Delete — trash can, always red so the danger action is unmistakable -->
-                                                        <Button Margin="10,0"
+                                                        <!-- 8. Delete — trash can, always red, bottom-right -->
+                                                        <Button Grid.Column="3" HorizontalAlignment="Center"
                                                                 Command="{Binding DeleteCommand}" ToolTip="Delete this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
@@ -1598,7 +1603,7 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                    </StackPanel>
+                                                    </Grid>
                                                 </StackPanel>
                                             </Border>
                                         </Grid>
@@ -1981,6 +1986,20 @@
                                     <Grid Margin="14,10">
                                         <TextBlock Text="Close to tray" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                         <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CloseToTray}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="14,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                            <TextBlock Text="Catch up missed schedules" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                            <TextBlock Text="If a scheduled switch was missed while the PC was off or asleep, fire it on wake or launch (within 2 hours)"
+                                                       FontSize="10.5" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding SchedulerCatchUp}"
                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
@@ -2602,6 +2621,18 @@
                                                ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}" Margin="0,0,0,10"/>
                                     <Button Content="Open data folder" Style="{StaticResource ActionButton}"
                                             HorizontalAlignment="Left" Click="OpenDataFolder_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Reset settings (keeps profiles and data) -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="RESET SETTINGS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="Returns every app setting to its default — theme, notifications, shortcuts, Mini Mode, and the rest. Your profiles, schedules, app triggers, and device aliases are kept."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <Button Content="Reset settings to defaults…" Style="{StaticResource DangerButton}"
+                                            HorizontalAlignment="Left" Command="{Binding ResetSettingsCommand}"/>
                                 </StackPanel>
                             </Border>
 

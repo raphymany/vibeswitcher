@@ -297,6 +297,34 @@ public class SchedulerServiceTests
     }
 
     [Fact]
+    public void CatchUp_Disabled_DoesNotFireMissedSwitch()
+    {
+        // With the catch-up toggle off, a switch missed half an hour ago must NOT fire late —
+        // only near-exact-time evaluation counts.
+        var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var config = MakeConfig(ProfileWithSchedule(entry));
+        config.Current.SchedulerCatchUp = false;
+        var switched = new List<DeviceProfile>();
+        var svc = new SchedulerService(config, (p, _) => switched.Add(p), (_, _) => { },
+            clock: () => new DateTime(2026, 1, 5, 9, 30, 0)); // Monday 09:30 — 30 min late
+        Assert.False(svc.EvaluateNow());
+        Assert.Empty(switched);
+    }
+
+    [Fact]
+    public void CatchUp_Disabled_StillFiresAtExactTime()
+    {
+        var entry = new ScheduleEntry { Enabled = true, Hour = 9, Minute = 0, Days = [DayOfWeek.Monday] };
+        var config = MakeConfig(ProfileWithSchedule(entry));
+        config.Current.SchedulerCatchUp = false;
+        var switched = new List<DeviceProfile>();
+        var svc = new SchedulerService(config, (p, _) => switched.Add(p), (_, _) => { },
+            clock: () => new DateTime(2026, 1, 5, 9, 0, 30)); // 30s past the slot — within jitter
+        Assert.True(svc.EvaluateNow());
+        Assert.Single(switched);
+    }
+
+    [Fact]
     public void CatchUp_DoesNotRefire_AfterRestart_WithinWindow()
     {
         // A schedule fired at launch (catch-up). Reopening the app a few minutes later — still inside
