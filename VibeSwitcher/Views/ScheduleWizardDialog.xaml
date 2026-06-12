@@ -222,7 +222,6 @@
                         Visibility="Collapsed"
                         Click="Remove_Click"/>
                 <Button Content="Cancel" DockPanel.Dock="Left"
-                        Style="{StaticResource ActionButton}"
                         Padding="16,0"
                         Click="Cancel_Click">
                     <Button.Style>
