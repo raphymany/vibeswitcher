@@ -30,4 +30,10 @@ internal static class WinApi
 
     [DllImport("user32.dll")]
     public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    // Gives the process a stable identity so the taskbar groups it correctly and Windows resolves
+    // toast/notification attribution to our icon (instead of a stale cached one).
+    [DllImport("shell32.dll", SetLastError = true)]
+    public static extern void SetCurrentProcessExplicitAppUserModelID(
+        [MarshalAs(UnmanagedType.LPWStr)] string appID);
 }

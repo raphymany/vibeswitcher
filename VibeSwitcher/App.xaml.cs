@@ -33,10 +33,19 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Give the process a stable identity before any UI/notification — fixes taskbar grouping and
+        // makes Windows resolve toast/notification icon attribution to our icon (not a stale cache).
+        try { WinApi.SetCurrentProcessExplicitAppUserModelID("RaphaelMansour.VibeSwitcher"); }
+        catch { /* non-fatal — only affects taskbar grouping / toast attribution */ }
+
         _logger = new AppLogger();
         _errorTracker = new SessionErrorTracker();
         AppLog.Register(_logger);
         AppErrors.Register(_errorTracker);
+
+        // Register the AUMID's display name + icon so toast attribution shows "VibeSwitcher" + our
+        // icon instead of the raw AUMID string (the dev build has no Start Menu shortcut to resolve it).
+        NotificationIdentity.Register(_logger);
 
         // Last-resort handler for exceptions that escape all other catch blocks on the UI thread.
         // Marking Handled=true keeps the app alive for recoverable cases (e.g. a bad tray click).

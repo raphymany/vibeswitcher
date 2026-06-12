@@ -56,8 +56,10 @@ Name: "startupentry"; Description: "Start {#MyAppName} when Windows starts"; Fla
 Source: "{#SourceDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{userdesktop}\{#MyAppName}";  Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+; AppUserModelID matches the ID the app sets via SetCurrentProcessExplicitAppUserModelID, so
+; Windows resolves toast/notification icon attribution to the shortcut's (our) icon.
+Name: "{userprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; AppUserModelID: "RaphaelMansour.VibeSwitcher"
+Name: "{userdesktop}\{#MyAppName}";  Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; AppUserModelID: "RaphaelMansour.VibeSwitcher"
 
 [Registry]
 ; Optional install task — writes the exact value name the app's StartupService manages.
