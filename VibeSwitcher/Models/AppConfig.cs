@@ -65,4 +65,7 @@ public class AppConfig
     // genuinely missed while the app wasn't running — reopening within the catch-up window won't
     // re-fire a switch that already ran. null = never evaluated (treat everything as catch-up-able).
     public DateTime? LastSchedulerEvaluation { get; set; }
+
+    // Animated logo: "Full" (60fps), "Reduced" (~24fps, lower CPU), "Static" (no animation).
+    public string LogoAnimation { get; set; } = "Full";
 }

@@ -198,6 +198,20 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         }
     }
 
+    // "Full" / "Reduced" / "Static" — bound to the Logo animation radios; applies live.
+    public string LogoAnimation
+    {
+        get => _configService.Current.LogoAnimation;
+        set
+        {
+            if (_configService.Current.LogoAnimation == value) return;
+            _configService.Current.LogoAnimation = value;
+            VibeSwitcher.Controls.LogoAnimator.Mode = VibeSwitcher.Controls.LogoAnimator.Parse(value);
+            SaveAsync();
+            OnPropertyChanged(nameof(LogoAnimation));
+        }
+    }
+
     public bool SettingsCardExpanded
     {
         get => _configService.Current.SettingsCardExpanded;

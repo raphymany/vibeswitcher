@@ -464,6 +464,47 @@
             </Setter>
         </Style>
 
+        <!-- Segmented radio button (Logo animation picker; mirrors the inline Theme picker style).
+             GroupName is set per-instance so different pickers don't share a selection group. -->
+        <Style x:Key="SegmentRadio" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background"  Value="#1DF5820A"/>
+                    <Setter Property="BorderBrush" Value="#38F5820A"/>
+                    <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <!-- ── Tooltip ──────────────────────────────────────────── -->
         <Style TargetType="ToolTip">
             <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
@@ -2055,6 +2096,53 @@
                                                     <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding Theme}" Value="Dark">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Logo animation row -->
+                                    <Grid Margin="14,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="Logo animation" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                            <TextBlock Text="Lower it or turn it off to reduce CPU while the window is open" FontSize="10.5" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <RadioButton Content="Full" Tag="Full" GroupName="LogoAnimGroup" Checked="LogoAnimRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource SegmentRadio}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding LogoAnimation}" Value="Full">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                            <RadioButton Content="Reduced" Tag="Reduced" GroupName="LogoAnimGroup" Checked="LogoAnimRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource SegmentRadio}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding LogoAnimation}" Value="Reduced">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                            <RadioButton Content="Static" Tag="Static" Margin="0" GroupName="LogoAnimGroup" Checked="LogoAnimRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource SegmentRadio}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding LogoAnimation}" Value="Static">
                                                                 <Setter Property="IsChecked" Value="True"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>

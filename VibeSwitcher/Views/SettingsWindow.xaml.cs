@@ -1076,6 +1076,12 @@ public partial class SettingsWindow : Window
             _viewModel.Theme = tag;
     }
 
+    private void LogoAnimRadio_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Primitives.ToggleButton rb && rb.Tag is string tag)
+            _viewModel.LogoAnimation = tag;
+    }
+
     private void ExportButton_Click(object sender, RoutedEventArgs e)
     {
         var dlg = new SaveFileDialog

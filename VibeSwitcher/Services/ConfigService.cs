@@ -143,6 +143,9 @@ public class ConfigService : IConfigService
         if (config.ActiveProfileId.HasValue &&
             !config.Profiles.Any(p => p.Id == config.ActiveProfileId.Value))
             config.ActiveProfileId = null;
+
+        if (config.LogoAnimation is not ("Full" or "Reduced" or "Static"))
+            config.LogoAnimation = "Full";
     }
 
     // Fully synchronous: serialize + write on the calling thread. Used by startup, import, the exit

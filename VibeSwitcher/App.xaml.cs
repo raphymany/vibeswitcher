@@ -83,6 +83,9 @@ public partial class App : Application
         _configService = new ConfigService(_logger, _errorTracker);
         _configService.Load();
 
+        // Apply the saved logo-animation preference before any logo control loads.
+        Controls.LogoAnimator.Mode = Controls.LogoAnimator.Parse(_configService.Current.LogoAnimation);
+
         // 2a. Apply theme before any UI is shown
         _themeService = new ThemeService(_configService);
         _themeService.Apply();
