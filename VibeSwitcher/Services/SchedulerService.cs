@@ -1,5 +1,4 @@
 using System.Windows.Threading;
-using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 
@@ -28,10 +27,6 @@ public class SchedulerService : IDisposable
         _clock = clock ?? (() => DateTime.Now);
     }
 
-    // Called once at startup. EvaluateNow() is called separately by App.xaml.cs to
-    // catch any schedules that were due while the app wasn't running.
-    public void Start() => ScheduleNext(_clock());
-
     // Recompute and reset the timer — call whenever profiles or schedules change.
     public void Reschedule()
     {
@@ -49,18 +44,6 @@ public class SchedulerService : IDisposable
         bool fired = Evaluate(_clock());
         ScheduleNext(_clock());
         return fired;
-    }
-
-    public void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
-    {
-        if (e.Mode != PowerModes.Resume) return;
-        // SystemEvents fires on a thread-pool thread — marshal to the UI thread so Evaluate()
-        // runs on the same thread as the timer-tick path and avoids dictionary races.
-        var dispatcher = System.Windows.Application.Current?.Dispatcher;
-        if (dispatcher != null)
-            dispatcher.InvokeAsync(EvaluateNow);
-        else
-            EvaluateNow(); // headless / test environment
     }
 
     private void ScheduleNext(DateTime now)

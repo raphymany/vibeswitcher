@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Threading;
-using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Services;
@@ -38,18 +37,6 @@ public class ProfileSwitchOrchestrator : IDisposable
         _dispatcher = dispatcher;
         _logger = logger;
         _errorTracker = errorTracker;
-    }
-
-    public void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
-    {
-        if (e.Mode != PowerModes.Resume) return;
-        var activeProfile = _configService.Current.Profiles
-            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        if (activeProfile != null)
-            SwitchToProfile(activeProfile);
-        // If a switch is in progress when the PC resumes, the resume request is dropped, but the
-        // lock is now held only for the audio apply itself (UI feedback/error dialog run outside
-        // it), so the window is tiny.
     }
 
     // async void is intentional: called as fire-and-forget from WndProc, PowerModeChanged, and tray click.

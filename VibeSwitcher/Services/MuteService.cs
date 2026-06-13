@@ -82,7 +82,11 @@ public class MuteService
 
             var volumeGuid = typeof(IAudioEndpointVolume).GUID;
             device.Activate(ref volumeGuid, 23, IntPtr.Zero, out var obj);
-            if (obj is not IAudioEndpointVolume vol) return fallback;
+            if (obj is not IAudioEndpointVolume vol)
+            {
+                if (obj != null) Marshal.ReleaseComObject(obj);
+                return fallback;
+            }
             try
             {
                 return op(vol);

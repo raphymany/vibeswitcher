@@ -250,12 +250,13 @@ public class ConfigService : IConfigService
         {
             using var doc = JsonDocument.Parse(File.ReadAllText(path));
             if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
-            foreach (var marker in new[] { "ConfigVersion", "Profiles" })
-            {
-                foreach (var prop in doc.RootElement.EnumerateObject())
-                    if (string.Equals(prop.Name, marker, StringComparison.OrdinalIgnoreCase))
-                        return true;
-            }
+            // Require the VibeSwitcher-specific "ConfigVersion" marker. Every config the app writes
+            // includes it; keying off it (rather than the generic "Profiles") rejects unrelated JSON
+            // files that merely happen to carry a "profiles" property, which would otherwise overwrite
+            // the user's real config on import.
+            foreach (var prop in doc.RootElement.EnumerateObject())
+                if (string.Equals(prop.Name, "ConfigVersion", StringComparison.OrdinalIgnoreCase))
+                    return true;
             return false;
         }
         catch
@@ -277,6 +278,10 @@ public class ConfigService : IConfigService
                 if (File.Exists(_configPath))
                     File.Copy(_configPath, _configBakPath, overwrite: true);
 
+                // Delete any pre-existing temp file first so the write always lands in a fresh regular
+                // file — if something planted a symlink at this predictable path, WriteAllText would
+                // otherwise follow it and redirect the write. Deleting removes the link, not its target.
+                if (File.Exists(_configTmpPath)) File.Delete(_configTmpPath);
                 File.WriteAllText(_configTmpPath, json);
                 File.Move(_configTmpPath, _configPath, overwrite: true);
                 _lastWrittenVersion = version;

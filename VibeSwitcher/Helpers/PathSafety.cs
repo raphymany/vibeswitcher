@@ -23,7 +23,7 @@ public static class PathSafety
             canonical = full;
             return true;
         }
-        catch
+        catch (Exception)
         {
             return false;
         }

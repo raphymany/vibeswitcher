@@ -20,14 +20,24 @@ internal static class AudioMicMonitor
                 try
                 {
                     if (client.GetMixFormat(out var fmtPtr) != 0) return;
-                    var fmt = Marshal.PtrToStructure<WAVEFORMATEX>(fmtPtr);
-                    bool isFloat = AudioTestTonePlayer.IsFloatFormat(fmt, fmtPtr);
-                    int channels = fmt.nChannels;
+                    WAVEFORMATEX fmt;
+                    bool isFloat;
+                    int channels, hr;
+                    try
+                    {
+                        fmt = Marshal.PtrToStructure<WAVEFORMATEX>(fmtPtr);
+                        isFloat = AudioTestTonePlayer.IsFloatFormat(fmt, fmtPtr);
+                        channels = fmt.nChannels;
 
-                    client.GetDevicePeriod(out long defaultPeriod, out _);
-                    var sessionGuid = Guid.Empty;
-                    int hr = client.Initialize(0 /* SHARED */, 0, defaultPeriod * 4, 0, fmtPtr, ref sessionGuid);
-                    Ole32.CoTaskMemFree(fmtPtr);
+                        client.GetDevicePeriod(out long defaultPeriod, out _);
+                        var sessionGuid = Guid.Empty;
+                        hr = client.Initialize(0 /* SHARED */, 0, defaultPeriod * 4, 0, fmtPtr, ref sessionGuid);
+                    }
+                    finally
+                    {
+                        // Free the mix-format buffer on every path, including an exception during setup.
+                        Ole32.CoTaskMemFree(fmtPtr);
+                    }
                     if (hr != 0) return;
 
                     var capId = typeof(IAudioCaptureClient).GUID;

@@ -92,6 +92,7 @@ internal static class AudioProfileApplier
         IMMDeviceEnumerator enumerator, Func<string, ERole, int> set, EDataFlow flow, string id,
         IAppLogger logger, ISessionErrorTracker errorTracker)
     {
+        bool allRolesOk = true;
         foreach (var role in new[] { ERole.Console, ERole.Multimedia, ERole.Communications })
         {
             // Skip roles where this device is already the default. Re-setting an already-default
@@ -103,14 +104,16 @@ internal static class AudioProfileApplier
             int hr = set(id, role);
             if (hr != 0)
             {
-                var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}'.";
+                var msg = $"SetDefaultEndpoint returned HRESULT 0x{hr:X8} for device '{id}' (role {role}).";
                 logger.Error("AudioProfileApplier.Apply", msg);
                 errorTracker.Record(ErrorCode.PolicySetDefaultFailed,
                     "Set Default Audio Endpoint Failed", msg);
-                return false;
+                // Keep going and attempt the remaining roles — setting as many as possible is better
+                // than leaving the device default for some roles but not others.
+                allRolesOk = false;
             }
         }
-        return true;
+        return allRolesOk;
     }
 
     // True if 'deviceId' is already the default endpoint for (flow, role) — used to avoid the audio

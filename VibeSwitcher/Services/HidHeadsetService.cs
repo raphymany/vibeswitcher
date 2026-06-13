@@ -382,6 +382,12 @@ public sealed class HidHeadsetService : IDisposable
                 _logger.Warning("HidHeadsetService.PollLoop",
                     $"{_descriptor.ModelName} could not be opened: {ex.Message}");
             }
+            finally
+            {
+                // Close the stream when the poll loop exits (cancellation or error), mirroring ReadLoop.
+                _stream?.Close();
+                _stream = null;
+            }
         }
 
         private Task<bool?> QueryConnectionStateAsync(byte[] responseBuffer) =>

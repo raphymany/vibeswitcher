@@ -121,7 +121,12 @@ public class AudioService : IAudioService
                 Marshal.ReleaseComObject(device);
             }
         }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            _logger.Debug("AudioService.GetAudioEndpointPath",
+                $"Could not read endpoint path for '{audioDeviceId}': {ex.Message}");
+            return null;
+        }
         finally { Marshal.ReleaseComObject(enumerator); }
     }
 }

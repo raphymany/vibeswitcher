@@ -15,7 +15,7 @@ internal sealed class DeviceNotificationClient : IMMNotificationClient, IDisposa
     // Per-device debounce so simultaneous property changes on different devices aren't collapsed
     // into one event (which would drop an earlier device's power-on trigger).
     private readonly Dictionary<string, CancellationTokenSource> _propDebounce = new();
-    private bool _disposed;
+    private volatile bool _disposed;
 
     public event Action? DevicesChanged;
     public event Action<string>? DevicePropertyChanged;
@@ -52,7 +52,9 @@ internal sealed class DeviceNotificationClient : IMMNotificationClient, IDisposa
                     _propDebounce.Remove(deviceId);
             }
             cts.Dispose();
-            if (t.IsCanceled) return;
+            // Don't fire after disposal: a continuation whose delay already elapsed can run while
+            // Dispose() is tearing down, and subscribers may have detached.
+            if (t.IsCanceled || _disposed) return;
             try { DevicePropertyChanged?.Invoke(deviceId); }
             catch (Exception ex) { AppLog.Warning("DeviceNotificationClient", ex.Message); }
         }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
@@ -70,7 +72,7 @@ internal sealed class DeviceNotificationClient : IMMNotificationClient, IDisposa
         }
         _ = Task.Delay(_debounceInterval, cts.Token).ContinueWith(t =>
         {
-            if (t.IsCanceled) return;
+            if (t.IsCanceled || _disposed) return;
             try { DevicesChanged?.Invoke(); }
             catch (Exception ex) { AppLog.Warning("DeviceNotificationClient", ex.Message); }
         }, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);

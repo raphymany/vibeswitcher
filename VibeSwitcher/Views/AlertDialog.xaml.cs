@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
@@ -15,17 +16,18 @@ public partial class AlertDialog : Window
         TitleText.Text = title;
         MessageText.Text = message;
 
+        // Use theme brushes so the badge adapts to light/dark instead of staying a fixed light tint.
         if (kind == AlertKind.Warning)
         {
-            IconBorder.Background = new SolidColorBrush(Color.FromRgb(0xFF, 0xF8, 0xE0));
+            IconBorder.SetResourceReference(Border.BackgroundProperty, "WarningBg");
             IconPath.Data = (Geometry)FindResource("IcoWarning");
-            IconPath.Stroke = new SolidColorBrush(Color.FromRgb(0x7A, 0x58, 0x00)); // dark amber
+            IconPath.SetResourceReference(Shape.StrokeProperty, "WarningText");
         }
         else
         {
-            IconBorder.Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xF4, 0xFF));
+            IconBorder.SetResourceReference(Border.BackgroundProperty, "InfoBadgeBg");
             IconPath.Data = (Geometry)FindResource("IcoInfo");
-            IconPath.Stroke = new SolidColorBrush(Color.FromRgb(0x15, 0x65, 0xC0)); // info blue
+            IconPath.SetResourceReference(Shape.StrokeProperty, "InfoBadgeText");
         }
     }
 

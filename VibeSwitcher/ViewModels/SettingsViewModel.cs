@@ -42,8 +42,6 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     public event Action? ProfileDeletedOrCloned;
 
     public bool HasNoProfiles => Profiles.Count == 0;
-    // True when at least one audio device is known — used to show/hide the empty-state label.
-    public bool HasKnownDevices => DeviceAliases.Count > 0;
 
     public bool StartWithWindows
     {
@@ -926,8 +924,6 @@ public class SettingsViewModel : ViewModelBase, IDisposable
             item.AliasChanged += OnAliasChanged;
             DeviceAliases.Add(item);
         }
-
-        OnPropertyChanged(nameof(HasKnownDevices));
     }
 
     private void OnAliasChanged(string deviceId, string alias)
@@ -1227,6 +1223,7 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(Use12HourClock));
         OnPropertyChanged(nameof(Use24HourClock));
         // Mini-mode and mute panels read from config too — refresh them after an import.
+        OnPropertyChanged(nameof(CompactHotkey));
         OnPropertyChanged(nameof(CompactHotkeyDisplay));
         OnPropertyChanged(nameof(CompactHotkeyIsSet));
         OnPropertyChanged(nameof(CompactAlwaysOnTop));
@@ -1234,6 +1231,9 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(MuteMicHotkeyDisplay));
         OnPropertyChanged(nameof(MuteSpeakersHotkeyDisplay));
         OnPropertyChanged(nameof(MuteBothHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteMicHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteBothHotkeyIsSet));
         OnPropertyChanged(nameof(MuteMicHotkeyEnabled));
         OnPropertyChanged(nameof(MuteSpeakersHotkeyEnabled));
         OnPropertyChanged(nameof(MuteBothHotkeyEnabled));

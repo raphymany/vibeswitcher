@@ -160,6 +160,58 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void TryImport_RejectsJsonWithProfilesKeyButNoConfigVersion()
+    {
+        // A foreign file that happens to carry a "profiles" property but lacks the VibeSwitcher
+        // ConfigVersion marker must be rejected — it must not overwrite the user's real config.
+        var svc = MakeSvc();
+        svc.Load();
+        svc.Current.Profiles.Add(new DeviceProfile { Name = "Keep" });
+        svc.SaveImmediate();
+
+        var foreign = Path.Combine(_dir, "foreign2.json");
+        File.WriteAllText(foreign, """{ "profiles": [], "name": "some other tool" }""");
+
+        bool ok = svc.TryImport(foreign, out var error);
+        Assert.False(ok);
+        Assert.NotNull(error);
+        Assert.Single(svc.Current.Profiles);
+        Assert.Equal("Keep", svc.Current.Profiles[0].Name);
+    }
+
+    [Fact]
+    public void ResetSettingsToDefaults_PreservesUserDataButResetsPreferences()
+    {
+        var svc = MakeSvc();
+        svc.Load();
+        var profile = new DeviceProfile { Name = "Keep" };
+        svc.Current.Profiles.Add(profile);
+        svc.Current.ActiveProfileId = profile.Id;
+        svc.Current.DeviceAliases["dev1"] = "My Device";
+        svc.Current.CompactIntroShown = true;
+        var lastEval = new DateTime(2026, 6, 13, 9, 0, 0);
+        svc.Current.LastSchedulerEvaluation = lastEval;
+        // Flip preferences away from their defaults.
+        svc.Current.CloseToTray = false;      // default true
+        svc.Current.SchedulerCatchUp = false; // default true
+        svc.Current.Theme = "Dark";           // default "Auto"
+
+        svc.ResetSettingsToDefaults();
+
+        // User data and dedup/intro state are preserved.
+        Assert.Single(svc.Current.Profiles);
+        Assert.Equal("Keep", svc.Current.Profiles[0].Name);
+        Assert.Equal(profile.Id, svc.Current.ActiveProfileId);
+        Assert.Equal("My Device", svc.Current.DeviceAliases["dev1"]);
+        Assert.True(svc.Current.CompactIntroShown);
+        Assert.Equal(lastEval, svc.Current.LastSchedulerEvaluation);
+        // Preferences return to their defaults.
+        Assert.True(svc.Current.CloseToTray);
+        Assert.True(svc.Current.SchedulerCatchUp);
+        Assert.Equal("Auto", svc.Current.Theme);
+    }
+
+    [Fact]
     public void Load_ClampsOutOfRangeScheduleAndMode()
     {
         File.WriteAllText(Path.Combine(_dir, "config.json"),

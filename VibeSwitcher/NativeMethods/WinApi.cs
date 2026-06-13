@@ -33,7 +33,8 @@ internal static class WinApi
 
     // Gives the process a stable identity so the taskbar groups it correctly and Windows resolves
     // toast/notification attribution to our icon (instead of a stale cached one).
-    [DllImport("shell32.dll", SetLastError = true)]
-    public static extern void SetCurrentProcessExplicitAppUserModelID(
+    // Returns an HRESULT (S_OK == 0); a non-zero value means the identity wasn't applied.
+    [DllImport("shell32.dll")]
+    public static extern int SetCurrentProcessExplicitAppUserModelID(
         [MarshalAs(UnmanagedType.LPWStr)] string appID);
 }

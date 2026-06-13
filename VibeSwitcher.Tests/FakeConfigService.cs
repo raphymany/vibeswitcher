@@ -25,6 +25,8 @@ internal sealed class FakeConfigService : IConfigService
             Profiles = cur.Profiles,
             ActiveProfileId = cur.ActiveProfileId,
             DeviceAliases = cur.DeviceAliases,
+            CompactIntroShown = cur.CompactIntroShown,
+            LastSchedulerEvaluation = cur.LastSchedulerEvaluation,
         };
     }
 

@@ -94,8 +94,10 @@ public class AppLoggerTests : IDisposable
     }
 
     [Fact]
-    public void LogPath_IsProductionPath()
+    public void LogPath_IsUnderAppDataVibeSwitcher()
     {
-        Assert.DoesNotContain("VSLogTest", AppLogger.LogPath);
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        Assert.StartsWith(appData, AppLogger.LogPath, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("VibeSwitcher", AppLogger.LogPath);
     }
 }

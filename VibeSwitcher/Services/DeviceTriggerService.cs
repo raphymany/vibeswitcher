@@ -270,7 +270,9 @@ public sealed class DeviceTriggerService : IDisposable
         _logger.Info("DeviceTriggerService.HidRevert",
             $"{descriptor.ModelName}: reverting from '{triggeredProfile.Name}'.");
         lock (_stateLock) _revertStack.Pop();
-        RevertToPrevious(ri.Value.PreviousProfileId, _connectedIds);
+        // Take a fresh connected-device snapshot for the revert cascade (matching HandleDevicesChanged),
+        // rather than passing the live _connectedIds field which a concurrent change could swap.
+        RevertToPrevious(ri.Value.PreviousProfileId, BuildConnectedSet());
     }
 
     private bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)

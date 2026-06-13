@@ -45,9 +45,26 @@ internal static class LogoAnimator
     // and stops + detaches on unload (so the perpetual storyboards don't keep ticking off-screen).
     public static void Attach(FrameworkElement control)
     {
-        Action apply = () => Apply(control);
-        control.Loaded   += (_, _) => { Apply(control); ModeChanged += apply; };
-        control.Unloaded += (_, _) => { ModeChanged -= apply; StopAll(control); };
+        // Subscribe to the static ModeChanged event exactly once for this control. Wiring it inside
+        // Loaded would re-add a subscription on every (re)load — WPF can raise Loaded more than once —
+        // pinning the control through the static event and running Apply multiple times per change.
+        // A WeakReference keeps the static event from rooting the control so it can still be collected.
+        var weak = new WeakReference<FrameworkElement>(control);
+        void OnModeChanged()
+        {
+            if (weak.TryGetTarget(out var c))
+            {
+                if (c.IsLoaded) Apply(c);   // only animate while the control is in the visual tree
+            }
+            else
+            {
+                ModeChanged -= OnModeChanged; // control was collected — detach the dead handler
+            }
+        }
+
+        control.Loaded   += (_, _) => Apply(control);
+        control.Unloaded += (_, _) => StopAll(control); // stop the perpetual storyboards off-screen
+        ModeChanged += OnModeChanged;
     }
 
     private static void Apply(FrameworkElement control)
