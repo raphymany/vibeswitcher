@@ -851,10 +851,22 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     private IReadOnlyList<AudioDeviceInfo> FilterDevices(IReadOnlyList<AudioDeviceInfo> devices)
     {
         if (_showDisabledDevices && _showDisconnectedDevices) return devices;
+
+        // Always keep a device that a profile is assigned to, even if it's been disabled/unplugged and
+        // the global filter would otherwise hide it — a profile must never lose sight of its own device.
+        // It still shows with the red (unavailable) dot; the assignment is preserved.
+        var assigned = new HashSet<string>(
+            _configService.Current.Profiles
+                .SelectMany(p => new[] { p.PlaybackDeviceId, p.RecordingDeviceId })
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Select(id => id!),
+            StringComparer.OrdinalIgnoreCase);
+
         return devices.Where(d =>
             d.IsConnected ||
             (d.IsDisabled  && _showDisabledDevices) ||
-            (!d.IsConnected && !d.IsDisabled && _showDisconnectedDevices)
+            (!d.IsConnected && !d.IsDisabled && _showDisconnectedDevices) ||
+            assigned.Contains(d.Id)
         ).ToList();
     }
 
