@@ -1031,7 +1031,7 @@
 
             <!-- ── PANEL A: Profiles ─────────────────────────────── -->
             <ScrollViewer x:Name="ProfilesPanel"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="18,18,18,18">
 
@@ -1936,7 +1936,7 @@
                 </Border>
 
                 <!-- RIGHT CONTENT -->
-                <ScrollViewer Grid.Column="1" Focusable="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer Grid.Column="1" Focusable="True" IsTabStop="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="22,20,22,20">
 
                         <!-- ── Startup ──────────────────────── -->
@@ -2688,7 +2688,7 @@
             <ScrollViewer x:Name="MiniPanel"
                           Visibility="Collapsed"
                           VerticalScrollBarVisibility="Auto"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           Padding="10,8,10,4">
                 <Grid>
                 <ItemsControl x:Name="MiniList">
@@ -2786,7 +2786,7 @@
             <!-- ── PANEL C: About ─────────────────────────────────── -->
             <ScrollViewer x:Name="AboutPanel"
                           Visibility="Collapsed"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
@@ -2970,7 +2970,7 @@
             <!-- ── PANEL D: FAQ ───────────────────────────────────── -->
             <ScrollViewer x:Name="FaqPanel"
                           Visibility="Collapsed"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">

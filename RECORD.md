@@ -1452,7 +1452,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | App-trigger watcher | ✅ Fixed — was doing N process-table enumerations every 2s (one per watched exe) and never disposing the returned `Process` handles; now one `Process.GetProcesses()` per tick with all handles disposed |
 | Imported icon paths | ✅ Fixed — `TryImport` now drops icon paths outside the managed Icons folder (mirrors the existing sound guard); +2 tests |
 | Uninstall leftover | ✅ Fixed — installer removes the runtime `AppUserModelId` HKCU key on uninstall |
-| Accessibility / keyboard | ✅ Improved — screen-reader names on icon-only controls; volume slider keyboard-adjustable; Clone wizard Enter-to-advance (focus rings only on keyboard nav) |
+| Accessibility / keyboard | ✅ Improved — screen-reader names on icon-only controls; volume slider keyboard-adjustable; Clone wizard Enter-to-advance (focus rings only on keyboard nav); the five content scroll panels (Profiles/Settings/About/FAQ/Mini) were focusable Tab stops with no focus visual (an "invisible" Tab stop before the first card) — now `IsTabStop="False"` so Tab skips them, wheel-scroll unaffected |
 | DPI / installer / leaks / IO / crash-safety / exception handling | ✅ Verified GOOD, no change — PerMonitorV2 manifest; fixed-AppId upgrade + AppMutex detection + opt-in data deletion; SettingsWindow/ViewModel/LogoAnimator disposal; atomic save + corrupt-fallback; documented crash/shutdown guarantees; global exception handlers + best-effort catches |
 
 #### Tests
