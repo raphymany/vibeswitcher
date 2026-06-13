@@ -2784,13 +2784,38 @@
                         <StackPanel>
                             <TextBlock Text="LINKS" FontSize="10" FontWeight="SemiBold"
                                        Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,12"/>
-                            <WrapPanel>
+            <WrapPanel>
+                                <!-- Placeholder until the site exists — set Tag to the URL and
+                                     remove IsEnabled/Opacity to activate. -->
+                                <Button Style="{StaticResource LinkChipStyle}" IsEnabled="False" Opacity="0.45"
+                                        ToolTip="Coming soon" ToolTipService.ShowOnDisabled="True">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Website — coming soon" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                                 <Button Style="{StaticResource LinkChipStyle}"
                                         Tag="https://github.com/raphymany/vibeswitcher"
                                         Click="LinkChip_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="GitHub" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher/issues/new/choose"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Report a bug" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher/blob/main/README.md"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="ReadMe" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Style="{StaticResource LinkChipStyle}"
@@ -2807,23 +2832,6 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="License (MIT)" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource LinkChipStyle}"
-                                        Tag="https://github.com/raphymany/vibeswitcher/issues/new/choose"
-                                        Click="LinkChip_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Report a bug" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                                <!-- Placeholder until the site exists — set Tag to the URL and
-                                     remove IsEnabled/Opacity to activate. -->
-                                <Button Style="{StaticResource LinkChipStyle}" IsEnabled="False" Opacity="0.45"
-                                        ToolTip="Coming soon" ToolTipService.ShowOnDisabled="True">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Website — coming soon" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </WrapPanel>
