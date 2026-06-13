@@ -19,7 +19,7 @@ A lightweight Windows tray app for switching audio devices instantly — no digg
 - **Per-profile schedule** — automatically activate a profile at a set time and day of week, with an optional reminder notification before it fires
 - **Switch sounds** — each profile can optionally play a tone when activated; choose from 7 built-in tones or a custom WAV file, with adjustable volume and an optional notification banner toggle per profile
 - **Silent switch** — per-profile toggle to suppress the Windows notification banner when that profile activates
-- **Panic / deafen hotkey** — instantly mute your mic, speakers, or both from anywhere; press again to unmute; tray flashes to show mute state
+- **Panic / deafen hotkey** — instantly mute your mic, speakers, or both from anywhere; press again to unmute; a brief banner confirms the change, with a per-hotkey toggle to silence it
 - **Pinned profiles** — star a profile to keep it at the top of the tray menu
 - **Profile notes** — attach a short description to any profile, visible on its card
 - **Filter chips** — quickly narrow the profile list by mode, pinned, active, hotkey, sound, schedule, and more

@@ -43,8 +43,8 @@ Config and logs are written to `%APPDATA%\VibeSwitcher\`.
 - **C# 12, .NET 8** — use file-scoped namespaces, primary constructors where they reduce noise, and `nullable enable`.
 - **No comments on obvious code** — names should be self-explanatory; add a comment only when the *why* is non-obvious (a Windows quirk, a workaround, a hidden invariant).
 - **Error handling at boundaries** — catch at service/UI call sites, log with `AppLogger`, record structured errors via `SessionErrorTracker.Record(ErrorCode.X, ...)`. Don't swallow exceptions silently.
-- **Atomic config writes** — always use `ConfigService.SaveImmediate()`, never write `config.json` directly.
-- **Icon paths** — icon files must live inside `ConfigService.IconsDir`; `IconHelper.LoadIcon` enforces this.
+- **Atomic config writes** — go through `ConfigService.SaveDeferred()` (UI-thread snapshot + background write) or `SaveImmediate()` (startup, exit flush, import); never write `config.json` directly.
+- **Icon and sound paths** — custom icon and switch-sound files must live inside `ConfigService.IconsDir` / `SoundsDir`; `IconHelper.LoadIcon` and the config-import guard enforce this via `PathSafety`.
 
 ## Pull request process
 
@@ -56,7 +56,7 @@ Config and logs are written to `%APPDATA%\VibeSwitcher\`.
 
 ## What we do NOT accept
 
-- **Changes to the atomic config write pattern** — `ConfigService.SaveImmediate()` exists to prevent partial-write corruption; workarounds or direct file writes are rejected.
+- **Changes to the atomic config write pattern** — `ConfigService.SaveDeferred()` / `SaveImmediate()` exist to prevent partial-write corruption; workarounds or direct file writes are rejected.
 - **New external API or NuGet dependencies** without prior discussion in an issue. The dependency footprint is intentionally small.
 - **Hotkey or audio switching behaviour changes** that could silently affect the user's active audio device without an explicit profile switch action.
 - **Features that require elevated privileges** (UAC, admin rights). The app runs as a normal user by design.

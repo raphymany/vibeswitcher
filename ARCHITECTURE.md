@@ -1,6 +1,6 @@
 # VibeSwitcher — Architecture
 
-VibeSwitcher is a Windows system tray application built with WPF and .NET 8. It switches the Windows default audio device (both Multimedia and Communications roles) by activating a saved profile, triggered by a global hotkey, tray menu click, or left-click cycle.
+VibeSwitcher is a Windows system tray application built with WPF and .NET 8. It switches the Windows default audio device (Console, Multimedia, and Communications roles) by activating a saved profile, triggered by a global hotkey, tray menu click, or left-click cycle.
 
 ---
 
@@ -51,6 +51,7 @@ Supporting subsystems that cut across layers:
 | `AppLogger` | `Helpers/` | File-based logging with rotation; `Debug` level writes to stderr only (never to disk) |
 | `SessionErrorTracker` | `Helpers/` | Per-session structured error accumulation |
 | `IconHelper` | `Helpers/` | ICO loading, image source conversion, security validation |
+| `PathSafety` | `Helpers/` | Canonicalizes a path and confirms it stays inside an allowed folder (icons, sounds) before a read/write/delete |
 | `WinApi` | `NativeMethods/` | P/Invoke: `RegisterHotKey`, `UnregisterHotKey`, `GlobalAddAtom` |
 
 ---
@@ -61,7 +62,7 @@ Supporting subsystems that cut across layers:
 |---|---|
 | `App.xaml.cs` | Bootstrap — single-instance check, service wiring, `WM_HOTKEY` / `WM_TASKBARCREATED` message loop |
 | `Services/ConfigService.cs` | Load / atomic save of `config.json`; backup-and-recover on corruption |
-| `Services/AudioService.cs` | COM audio device enumeration; sets both Multimedia and Communications roles on every switch |
+| `Services/AudioService.cs` | COM audio device enumeration; sets the Console, Multimedia, and Communications roles on every switch (skipping any already correct) |
 | `Services/HotkeyService.cs` | Registers global hotkeys via `HwndSource`; maps atom IDs back to profiles and feature hotkeys |
 | `Services/MuteService.cs` | Tracks per-scope mute state; toggles Windows audio endpoints and plays feedback sounds |
 | `Services/SchedulerService.cs` | Fires switch events on time-of-week schedules; emits reminder events N minutes before switch time |
@@ -72,7 +73,7 @@ Supporting subsystems that cut across layers:
 | `Services/AppTriggerService.cs` | Maps executable names to profiles; responds to `AppWatcherService` events |
 | `Services/AppWatcherService.cs` | Polls `Process.GetProcesses()` and `GetForegroundWindow()` on a background timer |
 | `Tray/TrayService.cs` | Owns the `TaskbarIcon`; rebuilds the context menu when profiles change |
-| `ViewModels/SettingsViewModel.cs` | All settings and profile list logic; fires `SaveImmediate` on every property change |
+| `ViewModels/SettingsViewModel.cs` | All settings and profile list logic; fires `SaveDeferred` when settings change |
 | `ViewModels/ProfileCardViewModel.cs` | Per-profile bindings, hotkey capture, icon browse, save flash |
 
 ---
@@ -83,8 +84,8 @@ Supporting subsystems that cut across layers:
 2. `ConfigService.Load()` — reads `config.json`; falls back to `.bak` on corruption; sets `IsFirstRun` if neither exists.
 3. Hidden `HwndSource` created — receives `WM_HOTKEY` and `WM_TASKBARCREATED` messages.
 4. `AudioService`, `HotkeyService`, `TrayService`, `MuteService`, `SwitchSoundService`, `ThemeService`, `SchedulerService`, `DeviceTriggerService`, `HidHeadsetService`, `AppWatcherService`, `AppTriggerService` initialised.
-5. `HotkeyService.RegisterAll(profiles)` — registers all profile hotkeys, the Settings open hotkey, and all mute hotkeys.
-6. `ProfileSwitchOrchestrator.RestoreActiveProfile()` — re-applies the last active profile so the Windows default matches what the config says.
+5. `HotkeyService.RegisterAll(profiles)` registers the profile hotkeys; the Settings-open, Mini Mode, and mute hotkeys are registered separately.
+6. `SchedulerService.EvaluateNow()` runs first (fires any schedule missed while the app was off); only if none fired is the last active profile re-applied via `ProfileSwitchOrchestrator.SwitchToProfile()`, so the Windows default matches the config. The same evaluate-then-restore order runs on wake from sleep (`OnSystemResume`).
 7. If `IsFirstRun` → `OpenSettingsWindow()`.
 8. App runs with `ShutdownMode = OnExplicitShutdown`; only the tray Exit item calls `Application.Shutdown()`.
 
@@ -99,19 +100,19 @@ Trigger: hotkey press / tray menu click / left-click cycle / schedule / device c
 ProfileSwitchOrchestrator.SwitchToProfile(profile)
   │  (SemaphoreSlim — drops concurrent calls)
   ├─ TrayService.SetSwitchingTooltip("Switching to …")
-  ├─ AudioService.ApplyProfile(profile)
-  │    ├─ SetDefaultAudioEndpoint(playbackId, Multimedia)
-  │    ├─ SetDefaultAudioEndpoint(playbackId, Communications)
-  │    ├─ SetDefaultAudioEndpoint(recordingId, Multimedia)
-  │    └─ SetDefaultAudioEndpoint(recordingId, Communications)
-  ├─ SwitchSoundService.PlayAsync(profile)         ← optional audio cue
-  ├─ ConfigService: ActiveProfileId = profile.Id → SaveImmediate()
+  ├─ AudioService.ApplyProfileAsync(profile)
+  │    ├─ playbackId  → set as default for Console, Multimedia, Communications
+  │    └─ recordingId → set as default for Console, Multimedia, Communications
+  │         (each role skipped if the device is already its default)
+  ├─ ConfigService: ActiveProfileId = profile.Id → SaveDeferred()
   ├─ TrayService.SetActiveProfile(profile.Id)       ← fast path, no rebuild
-  ├─ TrayService.UpdateIcon(profile)               ← re-applies the mute badge if muted
+  ├─ TrayService.UpdateIcon(profile)               ← refreshes the tray icon to the active profile
+  │  (switch lock released here — feedback below runs outside it)
+  ├─ SwitchSoundService.PlayAsync(profile)         ← optional audio cue
   └─ if ShowNotifications → TrayService.ShowBalloon(…)
 ```
 
-If a device is missing, `ApplyProfile` returns partial-success flags and the orchestrator shows an `ErrorDialog` instead of a balloon.
+If a device is missing or a role fails to apply, `ApplyProfileAsync` returns partial-success flags; an interactive switch shows an `ErrorDialog`, while a scheduled/background switch shows a balloon instead of a modal.
 
 ---
 
