@@ -139,7 +139,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ### Changed
 - **Icon picker previews the chosen Black/White colour** — the built-in icon grid now renders each icon in the selected Black or White colour over a neutral checkerboard tile, updating live as you toggle, so the preview matches the icon that gets saved *(2.0 polish)*
-- **Mini Mode title bar shows its shortcut** — the mini window's title bar now displays the configured Mini Mode toggle hotkey; the "VibeSwitcher" wordmark is dropped in mini mode so the chip always fits in the narrow window *(2.0 polish)*
+- **Mini Mode shows hotkeys** — each profile's activation hotkey now appears in the mini switcher in both layouts (a chip on each row, a small caption under each grid icon); the mini title bar also shows the Mini Mode toggle hotkey, with the "VibeSwitcher" wordmark dropped so it fits the narrow window *(2.0 polish)*
 - **Notifications setting relabeled** — "Show device switch alerts" is now "Show switch & warning alerts" with a description clarifying it's a master switch: per-profile Silent still applies on top when it's on, and turning it off also hides device-unavailable warnings *(2.0 polish)*
 - **Unified "Not set" wording** — empty dropdowns, hotkey labels, and the clone dialog now read "Not set" instead of "(None)" / "None" *(2.0 polish)*
 - **Profile card favorite & silent buttons swapped** — the favorite (pin) and "no notification banner" buttons traded positions in the card action strip *(2.0 polish)*

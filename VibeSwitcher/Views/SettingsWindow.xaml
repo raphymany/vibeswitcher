@@ -2684,6 +2684,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid Grid.Column="0" Width="24" Height="24" Margin="0,0,10,0">
                                         <Image Source="{Binding IconPreview}" Stretch="Uniform"
@@ -2705,7 +2706,15 @@
                                     <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
                                                Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis"/>
-                                    <Ellipse Grid.Column="2" Width="8" Height="8" Fill="{DynamicResource Accent}"
+                                    <!-- This profile's activation hotkey -->
+                                    <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
+                                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="Courier New"
+                                                   FontSize="9.5" Foreground="{DynamicResource VSLabel}"/>
+                                    </Border>
+                                    <Ellipse Grid.Column="3" Width="8" Height="8" Fill="{DynamicResource Accent}"
                                              VerticalAlignment="Center" Margin="8,0,2,0"
                                              Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}"/>
                                 </Grid>
@@ -2727,23 +2736,30 @@
                                     Command="{Binding ActivateCommand}"
                                     ToolTip="{Binding Name}"
                                     ToolTipService.ShowOnDisabled="True">
-                                <Grid Width="30" Height="30">
-                                    <Image Source="{Binding IconPreview}" Stretch="Uniform"
-                                           RenderOptions.BitmapScalingMode="HighQuality"
-                                           Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
-                                    <controls:AboutLogoIcon Width="26" Height="26">
-                                        <controls:AboutLogoIcon.Style>
-                                            <Style TargetType="controls:AboutLogoIcon">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </controls:AboutLogoIcon.Style>
-                                    </controls:AboutLogoIcon>
-                                </Grid>
+                                <StackPanel VerticalAlignment="Center">
+                                    <Grid Width="26" Height="26" HorizontalAlignment="Center">
+                                        <Image Source="{Binding IconPreview}" Stretch="Uniform"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
+                                        <controls:AboutLogoIcon Width="24" Height="24">
+                                            <controls:AboutLogoIcon.Style>
+                                                <Style TargetType="controls:AboutLogoIcon">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </controls:AboutLogoIcon.Style>
+                                        </controls:AboutLogoIcon>
+                                    </Grid>
+                                    <!-- This profile's activation hotkey -->
+                                    <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="Courier New" FontSize="8"
+                                               Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center"
+                                               Margin="0,2,0,0" TextTrimming="CharacterEllipsis" MaxWidth="52"
+                                               Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}"/>
+                                </StackPanel>
                             </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
