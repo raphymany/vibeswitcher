@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-13 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0; plus a deep `/code-review` follow-up: scheduler fires only the most-recent due switch, catch-up no longer re-fires on restart, switch feedback crash-guarded, ordered config saves, device/HID triggers marshalled to the UI thread; plus a final full-audit fix pass — correctness, resource leaks, theme/accessibility, dead code; plus a run of 2.0 UI polish on the same branch — clone wizard, "Not set" wording, card clear-buttons, themed checkboxes, "Your uploads" icon/sound library, Black/White icon previews, Mini Mode shortcut chip, customizable tray menu, Notifications relabel — with non-blocking follow-ups logged under "Deferred — Pre-v2 audit follow-ups" below).
+**Last updated:** 2026-06-13 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0; plus a deep `/code-review` follow-up: scheduler fires only the most-recent due switch, catch-up no longer re-fires on restart, switch feedback crash-guarded, ordered config saves, device/HID triggers marshalled to the UI thread; plus a final full-audit fix pass — correctness, resource leaks, theme/accessibility, dead code; plus a run of 2.0 UI polish on the same branch — clone wizard, "Not set" wording, card clear-buttons, themed checkboxes, "Your uploads" icon/sound library, Black/White icon previews, Mini Mode shortcut chip, customizable tray menu, Notifications relabel — plus a final report-only 8-agent audit whose three Medium findings (custom-sound path confinement, app-trigger COM release, exact release version guard) were fixed, with all remaining non-blocking items consolidated under "Deferred — pre-v2.0.0 follow-ups" below).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -51,7 +51,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 ## ~~SECTION 8 — DEPLOYMENT & DISTRIBUTION~~
 
-*(All remaining items tracked in Planned Branches / Deferred — 8.1/C2 → Deferred, 8.2/C3 → Dropped, 8.3 → F8 Deferred, 8.7 → Deferred)*
+*(All remaining items tracked in Planned Branches / Deferred — 8.1/C2 → ✅ Done (PR #110), 8.2/C3 → Dropped, 8.3 → F8 Deferred, 8.7 → Deferred)*
 
 ---
 
@@ -164,14 +164,27 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
-### Deferred — Pre-v2 audit follow-ups (from PR #112 review)
+### Deferred — pre-v2.0.0 follow-ups
 
-The full audit follow-up table (AF1–AF5 with outcomes) now lives in **RECORD.md → Branch 53 → "Audit follow-ups (AF)"**. Only the items still genuinely open are repeated here.
+Open items from the PR #112 review and the final consolidated 8-agent report-only audit. M1–M3 were fixed on this branch; everything below is deferred (none are Critical/High — none crash, lose data, or block core function). The full AF1–AF5 outcomes live in **RECORD.md → Branch 53 → "Audit follow-ups (AF)"**. Severity in parentheses.
 
-| # | Item | Why still open |
-|---|------|---------------|
-| AF3 | CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. |
-| LP1 | Custom switch-sound orphan cleanup on profile rename | Low. `StoreCustomSound` re-copies to a name-matching `Sounds\{name}-{guid}.wav` after a rename, leaving the old per-profile copy behind (no `DeleteOrphanedSound` exists, unlike icons). Harmless stray file in AppData; deferred to keep the upload-library change focused. |
+| # | Item | Notes |
+|---|------|-------|
+| M4 | (Medium) `UploadLibrary` de-dups uploads by **name + byte-length only** (`Helpers/UploadLibrary.cs:30-31`) | Two different files with the same name and identical length silently reuse the first; the test enshrines it. Fix: compare a content hash, not just length, then update `UploadLibraryTests`. Low probability. |
+| AF3 | (Low) CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. (Overlaps A8.) |
+| LP1 | (Low) Custom switch-sound orphan cleanup on profile rename | `StoreCustomSound` re-copies to a name-matching `Sounds\{name}-{guid}.wav` after a rename, leaving the old per-profile copy behind (no `DeleteOrphanedSound` exists, unlike icons). Harmless stray file in AppData. |
+| A1 | (Low) `MuteService` "Both" partial-failure banner (`Services/MuteService.cs:46-52`) | If one endpoint's SetMute fails, the banner still announces both changed. Derive the banner state from each call's result. |
+| A2 | (Low) `AppWatcherService` two-field swap not atomic (`Services/AppWatcherService.cs:45-46,66-90`) | `_watchedPaths` + `_skipOnNextPoll` swapped separately; a narrow interleave right after editing triggers could fire one spurious auto-switch. Pack into one immutable record swapped atomically. |
+| A3 | (Low) Audio enumeration has no outer catch (`Services/AudioDeviceEnumerator.cs`) | If `EnumAudioEndpoints` itself throws, `DeviceTriggerService.BuildConnectedSet`/ctor let it escape to the global handler. Wrap to log `AudioEnumerationFailed` and return empty. |
+| A4 | (Low) Scheduler/DeviceTrigger dictionaries + revert stack not pruned on delete/import (`SchedulerService.cs:15-16`, `DeviceTriggerService.cs:25`) | Tiny unbounded growth; a stale revert-stack top can block a legit revert after delete/import. Prune keys/stack against the current config on Reschedule / config replace. |
+| A5 | (Low) `PathSafety` doesn't resolve symlinks/junctions (`Helpers/PathSafety.cs:18-22`) | Only `..` traversal is blocked. Requires an attacker who can already write into `%APPDATA%\VibeSwitcher\`. Reject reparse-point components for defense-in-depth; SECURITY.md slightly overstates the guarantee. |
+| A6 | (Low) Config import surfaces errors twice and reads the file twice (`Services/ConfigService.cs:240,269-288`) | A bad import logs a session error *and* shows the dialog; minor TOCTOU/double-parse. Read once; suppress the session-error record on the import path. |
+| A7 | (Low) `sha256sums.txt` written with a UTF-8 BOM (`release.yml:66`) | Breaks `sha256sum -c` on Linux. Use `[IO.File]::WriteAllLines` / `-Encoding ascii`. |
+| A8 | (Low) Pin the Chocolatey Inno Setup version (`release.yml:51`, `installer/VibeSwitcher.iss:46`) | `x64compatible` needs Inno 6.3+; an older runner-resolved version could break the installer build. (Overlaps AF3.) |
+| A9 | (Low) 10 dead theme tokens + accent-chip literals | `VSBlue`, `VSMint`, `VSSchedule*`, `VSSound*` in both theme files are unreferenced; `#1FF5820A`/`#40F5820A`/`#66F5820A` chip tints bake the dark accent. Cosmetic (the prior AF4 items). |
+| A10 | (Nit) `TrayService.CycleNextProfile` misleading log (`Tray/TrayService.cs:202-213`) | When the active profile isn't found it still lands on profile 0 correctly; only the warning text reads oddly. Make the fallback explicit. |
+| A11 | (Nit) `CHANGELOG.md:279` scheduler-timer entry stale | Says "reduced to 10 seconds" (PR #78); the scheduler now uses a dynamic next-event timer. Historical entry — leave as history or annotate. |
+| A12 | (Nit) "Install & Updates" label implies an updater | No update-check code exists (F8 deferred). Consider renaming until F8 ships. |
 
 ---
 

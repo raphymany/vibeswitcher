@@ -120,7 +120,7 @@ public partial class App : Application
         _themeService.ThemeApplied += () => _trayService.RebuildMenu();
 
         // 5. Initialise orchestrators
-        var switchSoundService = new SwitchSoundService(_logger);
+        var switchSoundService = new SwitchSoundService(_logger, _configService.SoundsDir);
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher, _logger, _errorTracker);
         _muteService = new MuteService(_logger);
         // Show a brief banner when a mute hotkey toggles, unless that shortcut is set to silent.

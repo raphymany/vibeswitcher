@@ -1457,6 +1457,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Scheduler / DST | ✅ Verified GOOD, no change — catch-up window covers spring-forward; per-occurrence dedup prevents fall-back double-fire; next-fire always ≤7 days (timer interval in range); multiple-due collapses to most-recent |
 | Audio / COM thread-safety | ✅ Verified GOOD, no change — per-call COM enumerators (no cross-apartment sharing) with `Marshal.Release`/`ReleaseComObject` + `PropVariantClear`; `DeviceNotificationClient` lock-guarded debounce with `_disposed` checks; both `DevicesChanged` subscribers marshal UI/config work to the dispatcher; race-safe CTS via `Interlocked.Exchange` |
 | Dialog initial focus | ✅ Improved — Clone wizard focuses + selects the name field on open (other dialogs rely on `IsDefault`/`IsCancel` + Tab, which is acceptable) |
+| Final report-only audit (8 agents) | ✅ Done — no Critical/High. Fixed the 3 Medium findings: custom switch-sound path confined to `SoundsDir` at playback (`SwitchSoundService`, +4 tests); `WScript.Shell` COM objects released in the app-trigger picker; release-workflow version guard uses an exact normalized comparison instead of a prefix match. Remaining Low/Nit items (incl. M4 upload dedup-by-size) consolidated in BACKLOG "Deferred — pre-v2.0.0 follow-ups". Suite at 255 |
 
 #### Tests
 | Item | Status |

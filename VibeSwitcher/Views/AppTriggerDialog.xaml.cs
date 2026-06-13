@@ -380,16 +380,31 @@ public partial class AppTriggerDialog : Window
                 if (shellType == null) return;
                 dynamic shell = Activator.CreateInstance(shellType)!;
 
-                foreach (var lnk in lnkFiles)
+                try
                 {
-                    try
+                    foreach (var lnk in lnkFiles)
                     {
-                        dynamic shortcut = shell.CreateShortcut(lnk);
-                        string target = shortcut.TargetPath;
-                        if (!string.IsNullOrEmpty(target))
-                            resolved[lnk] = target;
+                        dynamic? shortcut = null;
+                        try
+                        {
+                            shortcut = shell.CreateShortcut(lnk);
+                            string target = shortcut.TargetPath;
+                            if (!string.IsNullOrEmpty(target))
+                                resolved[lnk] = target;
+                        }
+                        catch { }
+                        finally
+                        {
+                            // Release the out-of-process COM shortcut RCW immediately instead of
+                            // leaving hundreds for the finalizer (one per Start Menu .lnk).
+                            if (shortcut != null)
+                                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
+                        }
                     }
-                    catch { }
+                }
+                finally
+                {
+                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
                 }
             }
             catch { }

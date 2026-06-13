@@ -8,10 +8,15 @@ namespace VibeSwitcher.Services;
 public class SwitchSoundService : ISwitchSoundService
 {
     private readonly IAppLogger _logger;
+    // When set, a profile's custom sound is only trusted if it resolves inside this managed folder
+    // (mirrors IconHelper.LoadIcon). Null disables the check — used for the dialog's Test button,
+    // where the user just picked the file explicitly.
+    private readonly string? _soundsDir;
 
-    public SwitchSoundService(IAppLogger logger)
+    public SwitchSoundService(IAppLogger logger, string? soundsDir = null)
     {
         _logger = logger;
+        _soundsDir = soundsDir;
     }
 
     public Task PlayAsync(DeviceProfile profile)
@@ -19,7 +24,27 @@ public class SwitchSoundService : ISwitchSoundService
         var resolved = Resolve(profile);
         if (resolved is null) return Task.CompletedTask;
         var (tone, customPath, volume) = resolved.Value;
+
+        // A custom sound path from a (possibly hand-edited) config is untrusted: only play it if it
+        // lives inside the managed Sounds folder. Otherwise fall back to a built-in tone so the app
+        // never reads an arbitrary file on disk on every switch.
+        if (tone == "Custom" && !IsAllowedCustomPath(customPath, _soundsDir))
+        {
+            _logger.Warning("SwitchSoundService.PlayAsync",
+                $"Custom sound '{customPath}' is outside the managed Sounds folder; using a built-in tone.");
+            customPath = null;
+        }
+
         return Task.Run(() => PlaySync(tone, customPath, volume));
+    }
+
+    // A custom sound path is allowed when there's no confinement dir (Test playback) or when it
+    // resolves inside the managed Sounds folder. An empty path is "not allowed" (falls back to a tone).
+    internal static bool IsAllowedCustomPath(string? customPath, string? soundsDir)
+    {
+        if (string.IsNullOrEmpty(customPath)) return false;
+        if (soundsDir == null) return true;
+        return PathSafety.TryResolveInside(customPath, soundsDir, out _);
     }
 
     public Task TestAsync(string tone, string? customPath, int volume)
