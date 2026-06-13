@@ -7,6 +7,7 @@ public interface IConfigService
     AppConfig Current { get; }
     bool IsFirstRun { get; }
     string IconsDir { get; }
+    string SoundsDir { get; }
     void Load();
     void SaveImmediate();
     void SaveDeferred();

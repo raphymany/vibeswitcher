@@ -52,7 +52,7 @@ Config and logs are written to `%APPDATA%\VibeSwitcher\`.
 2. Fork the repo and create a branch from `main` (e.g. `fix/hotkey-conflict`, `feat/dark-mode`).
 3. Keep each PR focused on one concern — separate bug fixes from feature additions.
 4. Make sure the project builds cleanly: `dotnet build VibeSwitcher/VibeSwitcher.csproj -c Release`.
-5. Open a PR against `main` with a clear title and description of what changed and why. The maintainer updates `CHANGELOG.md` on merge.
+5. Open a PR against `main` with a clear title and description of what changed and why. Update `CHANGELOG.md` in your branch as part of the PR (before it is merged).
 
 ## What we do NOT accept
 

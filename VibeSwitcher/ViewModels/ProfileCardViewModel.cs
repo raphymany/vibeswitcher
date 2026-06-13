@@ -589,11 +589,38 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         if (result == null) return;
         _model.SoundOverride    = result.Enabled;
         _model.SoundTone        = result.Tone;
-        _model.SoundCustomPath  = result.CustomPath;
+        _model.SoundCustomPath  = StoreCustomSound(result.Tone, result.CustomPath);
         _model.SoundVolume      = result.Volume;
         _model.SoundShowBanner  = result.ShowBanner;
         RaiseChipBindings();
         _onChanged(this);
+    }
+
+    // Copy a user-picked custom switch sound into the managed Sounds folder (mirrors how custom icons
+    // are stored) so the app only ever reads sound files from its own data directory. Returns the
+    // managed path, or the original unchanged if it's already managed, missing, or not a custom tone.
+    private string? StoreCustomSound(string? tone, string? sourcePath)
+    {
+        if (tone != "Custom" || string.IsNullOrWhiteSpace(sourcePath)) return sourcePath;
+        var soundsDir = _configService.SoundsDir;
+        if (PathSafety.TryResolveInside(sourcePath, soundsDir, out _)) return sourcePath; // already managed
+        if (!System.IO.File.Exists(sourcePath)) return sourcePath; // let the player handle a missing file
+
+        var namePrefix = SanitizeName(_model.Name);
+        var guidPrefix = _model.Id.ToString("N")[..8];
+        var dest = System.IO.Path.Combine(soundsDir, $"{namePrefix}-{guidPrefix}.wav");
+        try
+        {
+            System.IO.Directory.CreateDirectory(soundsDir);
+            if (!string.Equals(sourcePath, dest, StringComparison.OrdinalIgnoreCase))
+                System.IO.File.Copy(sourcePath, dest, overwrite: true);
+            return dest;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning("ProfileCardViewModel.StoreCustomSound", ex.Message);
+            return sourcePath; // non-fatal: fall back to the original path, sound still plays
+        }
     }
 
     private async Task TestSound()

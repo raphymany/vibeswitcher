@@ -212,6 +212,55 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void TryImport_ClearsCustomSoundPathOutsideManagedFolder()
+    {
+        // An imported config must not be able to point the app at an arbitrary file on disk; a custom
+        // sound path outside the importer's managed Sounds folder is dropped.
+        var src = MakeSvc();
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile
+        {
+            Name = "P",
+            SoundOverride = true,
+            SoundTone = "Custom",
+            SoundCustomPath = @"C:\Windows\Media\ding.wav",
+        });
+        var exportPath = Path.Combine(_dir, "export-sound.json");
+        src.ExportTo(exportPath);
+
+        var dest = MakeSvc(Path.Combine(_dir, "dest-sound"));
+        dest.Load();
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Single(dest.Current.Profiles);
+        Assert.Null(dest.Current.Profiles[0].SoundCustomPath);
+    }
+
+    [Fact]
+    public void TryImport_KeepsCustomSoundPathInsideManagedFolder()
+    {
+        // A sound that already lives in the importer's managed Sounds folder must survive import.
+        var dest = MakeSvc(Path.Combine(_dir, "dest-keep"));
+        dest.Load();
+        Directory.CreateDirectory(dest.SoundsDir);
+        var managed = Path.Combine(dest.SoundsDir, "keep.wav");
+        File.WriteAllBytes(managed, new byte[] { 0x52, 0x49, 0x46, 0x46 });
+
+        var src = MakeSvc(Path.Combine(_dir, "src-keep"));
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile
+        {
+            Name = "P", SoundOverride = true, SoundTone = "Custom", SoundCustomPath = managed,
+        });
+        var exportPath = Path.Combine(_dir, "export-keep.json");
+        src.ExportTo(exportPath);
+
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Equal(managed, dest.Current.Profiles[0].SoundCustomPath);
+    }
+
+    [Fact]
     public void Load_ClampsOutOfRangeScheduleAndMode()
     {
         File.WriteAllText(Path.Combine(_dir, "config.json"),

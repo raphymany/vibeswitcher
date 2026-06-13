@@ -18,6 +18,7 @@ public class ConfigService : IConfigService
     private readonly ISessionErrorTracker _errorTracker;
 
     public string IconsDir { get; }
+    public string SoundsDir { get; }
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -39,6 +40,7 @@ public class ConfigService : IConfigService
         _errorTracker = errorTracker;
         _configDir    = baseDir ?? DefaultConfigDir;
         IconsDir      = Path.Combine(_configDir, "Icons");
+        SoundsDir     = Path.Combine(_configDir, "Sounds");
         _configPath   = Path.Combine(_configDir, "config.json");
         _configBakPath = Path.Combine(_configDir, "config.json.bak");
         _configTmpPath = Path.Combine(_configDir, "config.json.tmp");
@@ -235,6 +237,15 @@ public class ConfigService : IConfigService
         }
         config.Profiles ??= new();
         Migrate(config);
+        // Imported configs are untrusted: a custom switch-sound path must already live inside the
+        // managed Sounds folder, otherwise drop it so an import can't point the app at an arbitrary
+        // file on disk. The user's own picked sounds are copied into that folder, so they survive.
+        foreach (var p in config.Profiles)
+        {
+            if (!string.IsNullOrEmpty(p.SoundCustomPath) &&
+                !PathSafety.TryResolveInside(p.SoundCustomPath, SoundsDir, out _))
+                p.SoundCustomPath = null;
+        }
         _config = config;
         SaveImmediate();
         error = null;

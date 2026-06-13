@@ -120,7 +120,21 @@ public partial class AppTriggerDialog : Window
 
     private void FilterChip_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (sender is not Border chip) return;
+        if (sender is Border chip) ActivateFilterChip(chip);
+    }
+
+    // Keyboard equivalent of clicking a filter chip (the chips are focusable Borders, not Buttons).
+    private void FilterChip_KeyDown(object sender, KeyEventArgs e)
+    {
+        if ((e.Key == Key.Enter || e.Key == Key.Space) && sender is Border chip)
+        {
+            ActivateFilterChip(chip);
+            e.Handled = true;
+        }
+    }
+
+    private void ActivateFilterChip(Border chip)
+    {
         _activeFilter = (chip.Tag as string) switch
         {
             "Running"   => AppFilter.Running,

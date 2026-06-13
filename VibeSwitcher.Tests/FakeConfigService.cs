@@ -11,6 +11,8 @@ internal sealed class FakeConfigService : IConfigService
     public bool IsFirstRun { get; set; }
     public string IconsDir { get; set; } =
         Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Icons");
+    public string SoundsDir { get; set; } =
+        Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Sounds");
 
     public void Load() { }
     public void SaveImmediate() { }

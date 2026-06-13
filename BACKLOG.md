@@ -170,10 +170,10 @@ Non-blocking items found by the final pre-v2 audit and intentionally left out of
 | # | Item | Why not done in the audit-fix commit |
 |---|------|--------------------------------------|
 | AF1 | Confine custom switch-sound files — copy a user-picked `.wav` into a managed `%APPDATA%\VibeSwitcher\Sounds\` folder and reject paths outside it (mirror the icon handling) | Behavior change: relocates sound storage and needs migration of existing `SoundCustomPath` values, so it deserves its own change. Threat is low — the file is user-picked and already size-capped. |
-| AF2 | Make the App-Trigger dialog filter chips (All / Running / Installed / In Use) keyboard-accessible — convert the mouse-only `Border` chips to focusable `ToggleButton`s | Doable now; held back only to keep the fix diff focused. Restyling carries minor visual-regression risk. |
+| ~~AF2~~ | ~~App-Trigger dialog filter chips keyboard-accessible~~ | ✅ Done — focusable + Enter/Space + automation names (kept as Borders rather than restyling to ToggleButtons) |
 | AF3 | CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. |
-| AF4 | XAML de-duplication — shared Window style/base for the accent frame (~18 dialogs), `MuteBannerToggle` → `BasedOn CardActionToggle`, named styles for the orange chips, move `DayPillStyle` + icon geometries to shared resources | Pure refactors with no behavior change; held back to keep the fix diff focused and regression-safe. |
-| AF5 | Doc nits — reconcile CONTRIBUTING.md vs CLAUDE.md on when the changelog is updated; recount the RECORD.md Section 11 summary-table totals | Cosmetic doc bookkeeping. |
+| AF4 | XAML de-duplication — shared control for the accent frame (19 dialogs), `MuteBannerToggle` template, named orange-chip styles, shared `DayPillStyle`/icon geometries | Pure cosmetic refactor, verifiable only by running the UI (the accent frame's hit-test/namespace failure mode isn't caught by build or tests, and `MuteBannerToggle` bakes in its own icon so it isn't a clean `BasedOn`). Best as its own PR with a click-through pass, not bundled into the release candidate. |
+| AF5 | Doc nit — recount the RECORD.md Section 11 summary-table totals (the CONTRIBUTING.md vs CLAUDE.md changelog-timing wording was fixed) | Cosmetic doc bookkeeping. |
 
 ---
 
