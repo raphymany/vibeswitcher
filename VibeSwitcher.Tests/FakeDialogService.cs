@@ -8,7 +8,6 @@ internal sealed class FakeDialogService : IDialogService
 {
     public HotkeyDefinition? HotkeyCaptureResult { get; set; }
     public bool ConfirmDeleteResult { get; set; } = true;
-    public bool ConfirmCloneResult { get; set; } = true;
     public string? BrowseIconFileResult { get; set; }
     public GalleryPickResult? IconGalleryResult { get; set; }
     public ProfileMode? ProfileTypeResult { get; set; } = ProfileMode.Both;
@@ -19,7 +18,13 @@ internal sealed class FakeDialogService : IDialogService
 
     public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current) => HotkeyCaptureResult;
     public bool ShowConfirmDelete(string profileName) => ConfirmDeleteResult;
-    public bool ShowConfirmClone(string profileName) => ConfirmCloneResult;
+    public DeviceProfile? CloneWizardResult { get; set; } = null;
+    public DeviceProfile? ShowCloneWizard(
+        DeviceProfile source,
+        IReadOnlyList<AudioDeviceInfo> playbackDevices,
+        IReadOnlyList<AudioDeviceInfo> recordingDevices,
+        bool use12Hour,
+        Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey) => CloneWizardResult;
     public string? ShowBrowseIconFile() => BrowseIconFileResult;
     public GalleryPickResult? ShowIconGallery() => IconGalleryResult;
     public void ShowAlert(string title, string message) => AlertsShown.Add((title, message));
@@ -56,4 +61,7 @@ internal sealed class FakeDialogService : IDialogService
 
     public List<string>? AppTriggerWizardResult { get; set; } = null;
     public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers) => AppTriggerWizardResult;
+
+    public int ManageSchedulesShownCount { get; private set; }
+    public void ShowManageSchedules(object profileCard) => ManageSchedulesShownCount++;
 }

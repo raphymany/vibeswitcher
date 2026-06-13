@@ -16,6 +16,28 @@
 
     <Window.Resources>
 
+        <!-- Neutral checkerboard tile so monochrome glyphs (black or white) are always visible. -->
+        <DrawingBrush x:Key="CheckerBrush" TileMode="Tile" Stretch="None"
+                      Viewport="0,0,10,10" ViewportUnits="Absolute">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#D2D2D2">
+                        <GeometryDrawing.Geometry>
+                            <RectangleGeometry Rect="0,0,10,10"/>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                    <GeometryDrawing Brush="#8E8E8E">
+                        <GeometryDrawing.Geometry>
+                            <GeometryGroup>
+                                <RectangleGeometry Rect="0,0,5,5"/>
+                                <RectangleGeometry Rect="5,5,5,5"/>
+                            </GeometryGroup>
+                        </GeometryDrawing.Geometry>
+                    </GeometryDrawing>
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
         <Style x:Key="GalleryItemButton" TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource GalleryItemBg}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource GalleryItemBorder}"/>
@@ -110,11 +132,11 @@
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,14">
                 <TextBlock Text="Icon color:" FontSize="12" Foreground="{DynamicResource SecondaryText}"
                            VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <RadioButton x:Name="ColorBlack" Content="Black" GroupName="IconColor" IsChecked="True" Style="{StaticResource ColorPill}"/>
-                <RadioButton x:Name="ColorWhite" Content="White" GroupName="IconColor" Margin="0" Style="{StaticResource ColorPill}"/>
+                <RadioButton x:Name="ColorBlack" Content="Black" GroupName="IconColor" IsChecked="True" Style="{StaticResource ColorPill}" Checked="Color_Changed"/>
+                <RadioButton x:Name="ColorWhite" Content="White" GroupName="IconColor" Margin="0" Style="{StaticResource ColorPill}" Checked="Color_Changed"/>
             </StackPanel>
 
-            <ItemsControl ItemsSource="{Binding Items}">
+            <ItemsControl ItemsSource="{Binding PreviewItems}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Columns="4"/>
@@ -126,11 +148,12 @@
                                 Style="{StaticResource GalleryItemButton}"
                                 Click="GalleryItem_Click">
                             <StackPanel>
-                                <TextBlock Text="{Binding Emoji}"
-                                           FontSize="34"
-                                           FontFamily="Segoe UI Emoji"
-                                           HorizontalAlignment="Center"
-                                           Margin="0,0,0,4"/>
+                                <Border Width="46" Height="46" CornerRadius="8" Background="{StaticResource CheckerBrush}"
+                                        HorizontalAlignment="Center" Margin="0,0,0,5" ClipToBounds="True">
+                                    <Image Source="{Binding Preview}" Width="30" Height="30" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
                                 <TextBlock Text="{Binding Label}"
                                            FontSize="11"
                                            Foreground="{DynamicResource SecondaryText}"
@@ -146,6 +169,52 @@
                        HorizontalAlignment="Center" TextAlignment="Center"
                        Margin="0,10,0,0"/>
 
+            <!-- ── Your uploads ──────────────────────────────────────────
+                 Custom .ico files the user has browsed for before — re-pick without browsing again. -->
+            <StackPanel x:Name="LibrarySection" Visibility="Collapsed" Margin="0,4,0,0">
+                <Separator Margin="0,12,0,10"/>
+                <TextBlock Text="YOUR UPLOADS" FontSize="9" FontWeight="Bold"
+                           Foreground="{DynamicResource SectionLabelText}" Margin="2,0,0,8"/>
+                <ItemsControl ItemsSource="{Binding LibraryItems}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="4"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="4">
+                                <Button Tag="{Binding}"
+                                        Style="{StaticResource GalleryItemButton}"
+                                        Margin="0"
+                                        Click="LibraryItem_Click"
+                                        ToolTip="{Binding Name}"
+                                        AutomationProperties.Name="{Binding Name}">
+                                    <Image Source="{Binding Preview}" Width="34" Height="34" Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Button>
+                                <!-- Remove from library -->
+                                <Button Tag="{Binding}" Click="DeleteLibraryItem_Click"
+                                        Width="18" Height="18" Padding="0"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"
+                                        Background="#E04A4A" Foreground="White"
+                                        Cursor="Hand" ToolTip="Remove from your uploads"
+                                        AutomationProperties.Name="Remove from your uploads">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="9">
+                                                <TextBlock Text="✕" FontSize="9" Foreground="White"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
             <Separator Margin="0,16"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -160,5 +229,8 @@
             </StackPanel>
 
         </StackPanel>
+    
+        <!-- Shared accent window frame (Views/AccentFrame.xaml). -->
+        <views:AccentFrame Grid.RowSpan="99" Grid.ColumnSpan="99" Panel.ZIndex="9999"/>
     </Grid>
 </Window>

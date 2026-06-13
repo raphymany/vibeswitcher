@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-11 — Branch 52 (`feat/installer`) — PR #110 (Inno Setup per-user installer published with every release + in-app uninstall with keep/delete-data choice).
+**Last updated:** 2026-06-13 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0; plus a deep `/code-review` follow-up: scheduler fires only the most-recent due switch, catch-up no longer re-fires on restart, switch feedback crash-guarded, ordered config saves, device/HID triggers marshalled to the UI thread; plus a final full-audit fix pass — correctness, resource leaks, theme/accessibility, dead code; plus a run of 2.0 UI polish on the same branch — clone wizard, "Not set" wording, card clear-buttons, themed checkboxes, "Your uploads" icon/sound library, Black/White icon previews, Mini Mode shortcut chip, customizable tray menu, Notifications relabel — plus a final report-only 8-agent audit whose three Medium findings (custom-sound path confinement, app-trigger COM release, exact release version guard) were fixed, with all remaining non-blocking items consolidated under "Deferred — pre-v2.0.0 follow-ups" below).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -51,7 +51,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 
 ## ~~SECTION 8 — DEPLOYMENT & DISTRIBUTION~~
 
-*(All remaining items tracked in Planned Branches / Deferred — 8.1/C2 → Deferred, 8.2/C3 → Dropped, 8.3 → F8 Deferred, 8.7 → Deferred)*
+*(All remaining items tracked in Planned Branches / Deferred — 8.1/C2 → ✅ Done (PR #110), 8.2/C3 → Dropped, 8.3 → F8 Deferred, 8.7 → Deferred)*
 
 ---
 
@@ -102,9 +102,10 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F3~~ | ~~"Test sound" button to verify active device plays audio~~ | ✅ Done — PR #61 |
 | ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip~~ | ✅ Done — PR #57 |
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
-| F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
+| ~~F9~~ | ~~Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss~~ | Dropped — blocked by Windows App SDK tooling |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | ~~F11~~ | ~~Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override~~ | ✅ Done — PR #74 |
+| F13 | Portable mode — store config next to the exe when a `portable.txt` marker file is present, instead of `%APPDATA%` (USB/portable installs) | Deferred |
 | ~~F16~~ | ~~Light / dark / high-contrast support — replace hardcoded colours with `SystemColors` brushes so the app follows the Windows OS theme automatically~~ | ✅ Done — PR #70 |
 | ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ | ✅ Done — PR #68 |
@@ -125,9 +126,9 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30~~ | ✅ Done — PR #84 |
 | ~~F37~~ | ~~Deafen / panic hotkey — global configurable hotkeys (one per scope) that instantly mute system-wide; configurable scope: mic only (tray flashes red), speakers only (tray flashes blue), or both (tray flashes purple); distinct built-in activate/deactivate sounds; press again to unmute~~ | ✅ Done — PR #86 |
-| F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | Deferred |
+| ~~F38~~ | ~~Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes~~ | Dropped — not useful enough to prioritize |
 | ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle~~ | ✅ Done — PR #90 |
-| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | Deferred |
+| ~~F40~~ | ~~Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups~~ | Dropped — too broad to scope |
 | ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
@@ -163,12 +164,35 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ---
 
+### Deferred — pre-v2.0.0 follow-ups
+
+Open items from the PR #112 review and the final consolidated 8-agent report-only audit. M1–M3 were fixed on this branch; everything below is deferred (none are Critical/High — none crash, lose data, or block core function). The full AF1–AF5 outcomes live in **RECORD.md → Branch 53 → "Audit follow-ups (AF)"**. Severity in parentheses.
+
+| # | Item | Notes |
+|---|------|-------|
+| M4 | (Medium) `UploadLibrary` de-dups uploads by **name + byte-length only** (`Helpers/UploadLibrary.cs:30-31`) | Two different files with the same name and identical length silently reuse the first; the test enshrines it. Fix: compare a content hash, not just length, then update `UploadLibraryTests`. Low probability. |
+| AF3 | (Low) CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. (Overlaps A8.) |
+| LP1 | (Low) Custom switch-sound orphan cleanup on profile rename | `StoreCustomSound` re-copies to a name-matching `Sounds\{name}-{guid}.wav` after a rename, leaving the old per-profile copy behind (no `DeleteOrphanedSound` exists, unlike icons). Harmless stray file in AppData. |
+| A1 | (Low) `MuteService` "Both" partial-failure banner (`Services/MuteService.cs:46-52`) | If one endpoint's SetMute fails, the banner still announces both changed. Derive the banner state from each call's result. |
+| A2 | (Low) `AppWatcherService` two-field swap not atomic (`Services/AppWatcherService.cs:45-46,66-90`) | `_watchedPaths` + `_skipOnNextPoll` swapped separately; a narrow interleave right after editing triggers could fire one spurious auto-switch. Pack into one immutable record swapped atomically. |
+| A3 | (Low) Audio enumeration has no outer catch (`Services/AudioDeviceEnumerator.cs`) | If `EnumAudioEndpoints` itself throws, `DeviceTriggerService.BuildConnectedSet`/ctor let it escape to the global handler. Wrap to log `AudioEnumerationFailed` and return empty. |
+| A4 | (Low) Scheduler/DeviceTrigger dictionaries + revert stack not pruned on delete/import (`SchedulerService.cs:15-16`, `DeviceTriggerService.cs:25`) | Tiny unbounded growth; a stale revert-stack top can block a legit revert after delete/import. Prune keys/stack against the current config on Reschedule / config replace. |
+| A5 | (Low) `PathSafety` doesn't resolve symlinks/junctions (`Helpers/PathSafety.cs:18-22`) | Only `..` traversal is blocked. Requires an attacker who can already write into `%APPDATA%\VibeSwitcher\`. Reject reparse-point components for defense-in-depth; SECURITY.md slightly overstates the guarantee. |
+| A6 | (Low) Config import surfaces errors twice and reads the file twice (`Services/ConfigService.cs:240,269-288`) | A bad import logs a session error *and* shows the dialog; minor TOCTOU/double-parse. Read once; suppress the session-error record on the import path. |
+| A7 | (Low) `sha256sums.txt` written with a UTF-8 BOM (`release.yml:66`) | Breaks `sha256sum -c` on Linux. Use `[IO.File]::WriteAllLines` / `-Encoding ascii`. |
+| A8 | (Low) Pin the Chocolatey Inno Setup version (`release.yml:51`, `installer/VibeSwitcher.iss:46`) | `x64compatible` needs Inno 6.3+; an older runner-resolved version could break the installer build. (Overlaps AF3.) |
+| A9 | (Low) 10 dead theme tokens + accent-chip literals | `VSBlue`, `VSMint`, `VSSchedule*`, `VSSound*` in both theme files are unreferenced; `#1FF5820A`/`#40F5820A`/`#66F5820A` chip tints bake the dark accent. Cosmetic (the prior AF4 items). |
+| A10 | (Nit) `TrayService.CycleNextProfile` misleading log (`Tray/TrayService.cs:202-213`) | When the active profile isn't found it still lands on profile 0 correctly; only the warning text reads oddly. Make the fallback explicit. |
+| A11 | (Nit) `CHANGELOG.md:279` scheduler-timer entry stale | Says "reduced to 10 seconds" (PR #78); the scheduler now uses a dynamic next-event timer. Historical entry — leave as history or annotate. |
+| A12 | (Nit) "Install & Updates" label implies an updater | No update-check code exists (F8 deferred). Consider renaming until F8 ships. |
+
+---
+
 ### Dropped — Will not implement
 
 | # | Feature | Why dropped |
 |---|---------|-------------|
 | C3 / 8.2 | Code signing (Authenticode) | No certificate yet |
-| F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
 | — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
-| F38 | Temporary / transient profile switch | Not useful enough to prioritize |
-| F40 | Monitor / dock / environment triggers (display, USB device, power source, network location) | Too broad to scope right now |
+
+*(Dropped feature-additions F9, F10, F27, F38, F40 are struck through in the Feature Additions table above.)*

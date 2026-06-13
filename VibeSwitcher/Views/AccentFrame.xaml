@@ -1,0 +1,9 @@
+<UserControl x:Class="VibeSwitcher.Views.AccentFrame"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             IsHitTestVisible="False">
+    <!-- Rounded accent overlay shared by every dialog/window. Placed on top (Panel.ZIndex at the use
+         site) so it follows Windows 11's rounded window corners instead of being clipped at them.
+         IsHitTestVisible="False" keeps it from intercepting clicks meant for the content below. -->
+    <Border CornerRadius="8" BorderBrush="#66F5820A" BorderThickness="1"/>
+</UserControl>

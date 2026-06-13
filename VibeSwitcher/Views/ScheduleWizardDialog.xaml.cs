@@ -11,6 +11,7 @@ public partial class ScheduleWizardDialog : Window
     private readonly bool _use12Hour;
     private readonly Guid _sourceId;
     private readonly bool _sourceEnabled;
+    private readonly bool _isEditing;
     private int _currentStep;
     private bool _isPm;
     private bool _initializingReminderStep;
@@ -54,6 +55,7 @@ public partial class ScheduleWizardDialog : Window
         _reminderMinutes = source.ReminderMinutes;
         _silent = source.Silent;
 
+        _isEditing = isEditing;
         if (isEditing)
         {
             HeaderTitle.Text = "Edit Schedule";
@@ -153,8 +155,11 @@ public partial class ScheduleWizardDialog : Window
         };
 
         BackBtn.Visibility = step > 0 ? Visibility.Visible : Visibility.Collapsed;
-        SkipBtn.Visibility = step < 3 ? Visibility.Visible : Visibility.Collapsed;
-        NextBtn.Content = step == 3 ? "Finish ✓" : "Next →";
+        // The save-early shortcut only makes sense when EDITING (tweak one step, save).
+        // A brand-new schedule must be walked through every step so the user has seen all
+        // its choices before it exists; on the last step "Next" is itself the save action.
+        SaveBtn.Visibility = _isEditing && step < 3 ? Visibility.Visible : Visibility.Collapsed;
+        NextBtn.Content = step == 3 ? "Save ✓" : "Next →";
 
         UpdateDots(step);
 
@@ -220,9 +225,9 @@ public partial class ScheduleWizardDialog : Window
         }
     }
 
-    private void Advance(bool commit)
+    private void Advance()
     {
-        if (commit) CommitStep(_currentStep);
+        CommitStep(_currentStep);
         if (_currentStep < 3)
             GoToStep(_currentStep + 1);
         else
@@ -244,8 +249,15 @@ public partial class ScheduleWizardDialog : Window
         DialogResult = true;
     }
 
-    private void Next_Click(object sender, RoutedEventArgs e) => Advance(commit: true);
-    private void Skip_Click(object sender, RoutedEventArgs e) => Advance(commit: false);
+    private void Next_Click(object sender, RoutedEventArgs e) => Advance();
+
+    // Commit the step the user is looking at and finish right away — the remaining steps
+    // keep their current values (the existing ones when editing, defaults when adding).
+    private void Save_Click(object sender, RoutedEventArgs e)
+    {
+        CommitStep(_currentStep);
+        Finish();
+    }
 
     private void Back_Click(object sender, RoutedEventArgs e)
     {

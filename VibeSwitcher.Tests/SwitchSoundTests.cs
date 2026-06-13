@@ -97,6 +97,39 @@ public class SwitchSoundTests
         Assert.Null(resolved!.Value.customPath);
     }
 
+    // ── Custom-path confinement (security) ────────────────────────────────────
+
+    [Fact]
+    public void IsAllowedCustomPath_NullConfinementDir_AllowsAnyPath()
+    {
+        // Test playback (no managed dir) — the user just picked the file, so it's allowed.
+        Assert.True(SwitchSoundService.IsAllowedCustomPath(@"C:\Windows\Media\ding.wav", null));
+    }
+
+    [Fact]
+    public void IsAllowedCustomPath_PathInsideManagedDir_Allowed()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Sounds");
+        Assert.True(SwitchSoundService.IsAllowedCustomPath(Path.Combine(dir, "mine.wav"), dir));
+    }
+
+    [Fact]
+    public void IsAllowedCustomPath_PathOutsideManagedDir_Rejected()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Sounds");
+        Assert.False(SwitchSoundService.IsAllowedCustomPath(@"C:\Windows\Media\ding.wav", dir));
+        // Traversal out of the managed dir is also rejected.
+        Assert.False(SwitchSoundService.IsAllowedCustomPath(Path.Combine(dir, "..", "escape.wav"), dir));
+    }
+
+    [Fact]
+    public void IsAllowedCustomPath_EmptyPath_Rejected()
+    {
+        var dir = Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Sounds");
+        Assert.False(SwitchSoundService.IsAllowedCustomPath(null, dir));
+        Assert.False(SwitchSoundService.IsAllowedCustomPath("", dir));
+    }
+
     // ── All tones resolve ─────────────────────────────────────────────────────
 
     [Theory]

@@ -27,6 +27,7 @@ public class GalleryPickResult
     public GalleryItem? Item { get; init; }
     public bool BrowseFromDisk { get; init; }
     public IconColor IconColor { get; init; }
+    public string? CustomIconPath { get; init; } // set when the user re-picks a saved upload
 }
 
 public static class GalleryIconHelper
@@ -53,13 +54,12 @@ public static class GalleryIconHelper
         return Items.FirstOrDefault(i => i.Keywords.Any(k => string.Equals(k, lower, StringComparison.OrdinalIgnoreCase)));
     }
 
-    // Renders a gallery item's emoji to a 64×64 .ico file at destPath.
-    // Writes the ICO format directly (single PNG-embedded frame) to preserve full
-    // 64×64 quality — avoids Bitmap.GetHicon() which scales to the system icon size.
-    // Must be called on the STA (UI) thread — uses WPF rendering pipeline.
-    public static void SaveGalleryIcon(GalleryItem item, string destPath, IconColor color = IconColor.Black)
+    // Renders a gallery item's emoji to a 64×64 bitmap in the requested colour.
+    // Shared by SaveGalleryIcon (which encodes it to .ico) and the picker's live preview
+    // so the on-screen thumbnail matches exactly what gets saved.
+    // Must be called on the STA (UI) thread — uses the WPF rendering pipeline.
+    public static BitmapSource RenderGlyph(string emoji, IconColor color, int size = 64)
     {
-        const int size = 64;
         const double dpi = 96.0;
         const double pixelsPerDip = 1.0;
 
@@ -68,7 +68,7 @@ public static class GalleryIconHelper
         {
             var tf = new Typeface(new FontFamily("Segoe UI Emoji"),
                 FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
-            var ft = new FormattedText(item.Emoji, CultureInfo.InvariantCulture,
+            var ft = new FormattedText(emoji, CultureInfo.InvariantCulture,
                 FlowDirection.LeftToRight, tf, size * 0.72, Brushes.Black, pixelsPerDip);
             var x = Math.Max(0, (size - ft.Width) / 2);
             var y = Math.Max(0, (size - ft.Height) / 2);
@@ -84,6 +84,18 @@ public static class GalleryIconHelper
             IconColor.White => ApplyColorMask(rtb, Colors.White),
             _               => rtb
         };
+        bitmap.Freeze();
+        return bitmap;
+    }
+
+    // Renders a gallery item's emoji to a 64×64 .ico file at destPath.
+    // Writes the ICO format directly (single PNG-embedded frame) to preserve full
+    // 64×64 quality — avoids Bitmap.GetHicon() which scales to the system icon size.
+    // Must be called on the STA (UI) thread — uses WPF rendering pipeline.
+    public static void SaveGalleryIcon(GalleryItem item, string destPath, IconColor color = IconColor.Black)
+    {
+        const int size = 64;
+        var bitmap = RenderGlyph(item.Emoji, color, size);
 
         var encoder = new PngBitmapEncoder();
         encoder.Frames.Add(BitmapFrame.Create(bitmap));

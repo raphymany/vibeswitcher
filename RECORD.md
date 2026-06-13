@@ -537,7 +537,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F6~~ | ~~Re-apply active profile on system resume from sleep/hibernate~~ | ✅ Done — PR #18 |
 | ~~F7~~ | ~~`IMMNotificationClient` for real-time device plug/unplug in Settings~~ | ✅ Done — PR #30 |
 | F8 | Auto-updater with GitHub Releases version check |
-| F9 | Windows 11 Toast notifications — replace the current balloon tip with the modern Windows 10/11 Toast API so notifications persist in Action Center, support richer formatting, and stack/dismiss properly |
+| ~~F9~~ | ~~Windows 11 Toast notifications — replace the current balloon tip with the modern Windows 10/11 Toast API so notifications persist in Action Center, support richer formatting, and stack/dismiss properly~~ | Dropped — blocked by Windows App SDK tooling |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | ~~F11~~ | ~~Profile scheduler (e.g., work headset 9-5, speakers evenings)~~ | ✅ Done — PR #74 |
 | ~~F12~~ | ~~Command-line interface: `VibeSwitcher.exe --switch "Profile Name"`~~ | Removed |
@@ -564,9 +564,9 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | ~~F36~~ | ~~Optional switch sound — global default sound that plays on every profile switch, with optional per-profile override; choose from pre-made built-in tones or a custom .wav file; adjustable volume (0–100%) at both the global and per-profile level; per-profile silent toggle to disable entirely; pairs with F25 (silent switch) and F30 (icon flash)~~ | ✅ Done — PR #84 |
 | ~~F37~~ | ~~Deafen / panic hotkey — global configurable hotkey that instantly mutes system-wide; configurable scope: recording devices only (mic mute), playback devices only (deafen), or both; distinct activate and deactivate sounds (pre-made tones or custom .wav); tray icon flashes red while active; pressing again unmutes and restores previous levels~~ | ✅ Done — PR #86 |
-| F38 | Temporary / transient profile switch — optional app-wide feature with a configurable keybind; switches to a profile temporarily and auto-reverts to the previous profile when a timer expires or a linked app closes; useful for quick calls without forgetting to switch back |
+| ~~F38~~ | ~~Temporary / transient profile switch — optional app-wide feature with a configurable keybind; switches to a profile temporarily and auto-reverts to the previous profile when a timer expires or a linked app closes; useful for quick calls without forgetting to switch back~~ | Dropped — not useful enough to prioritize |
 | ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; when that device appears (Bluetooth pair, USB plug-in) VibeSwitcher automatically activates the linked profile; per-device toggle to enable or disable~~ | ✅ Done — PR #90 |
-| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups where undocking a laptop should switch to built-in speakers automatically |
+| ~~F40~~ | ~~Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups where undocking a laptop should switch to built-in speakers automatically~~ | Dropped — too broad to scope |
 | ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; VibeSwitcher switches automatically when that process launches or gains focus and reverts to the previous profile when the app closes; per-rule toggle to enable or disable~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
@@ -585,10 +585,10 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 22 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 43 | 32 | 6 |
-| **Total** | **117** | **102** | **7** |
+| Feature Additions | 43 | 32 | 3 |
+| **Total** | **117** | **102** | **4** |
 
-*Totals count every tracked item. The 8-item difference between Total and Fixed + Remaining is reclassified work: M1 → F16, M11 → F2, and L17 → F16 (moved to Feature Additions); F4, F12, F14 (removed); and F10, F27 (dropped).*
+*Totals count every tracked item. Remaining open feature additions are F8, F13, and F22. The 11-item difference between Total and Fixed + Remaining is reclassified work: M1 → F16, M11 → F2, and L17 → F16 (moved to Feature Additions); F4, F12, F14 (removed); and F10, F27, F9, F38, F40 (dropped).*
 
 ---
 
@@ -602,7 +602,8 @@ This section captures the agreed grouping of remaining work into branches so it 
 
 **All remaining work is tracked in BACKLOG.md — Planned Branches (Branches 28–43, in execution order).**
 
-**Explicitly deferred (no branch):** C3/8.2 (code signing — needs certificate), F8/8.3 (auto-updater — unblocked by PR #110, planned next), F9 (WinRT toast — blocked by Windows App SDK tooling), 8.7 (distribution and discovery — post-v1.0), 10.8 (website), Mica/Acrylic (UI/UX redesign phase).
+**Deferred (no branch):** F8/8.3 (auto-updater — unblocked by PR #110, planned next), 8.7 (distribution and discovery — post-v1.0), 10.8 (website).
+**Dropped:** C3/8.2 (code signing — needs certificate), F9 (WinRT toast — blocked by Windows App SDK tooling), Mica/Acrylic (UI/UX redesign phase).
 
 *(M16, M17 resolved PR #40; M18, M19 resolved PR #42; L21, L22, L23 resolved PR #44; L20/8.9 resolved PR #46; 7.16 resolved PR #48)*
 
@@ -1396,3 +1397,69 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Fix | First-right-click menu flash: menu primed invisibly at dispatcher idle (one-time creation cost absorbed out of sight) + foreground re-asserted on open; startup window-open waits for an open tray menu to close | ✅ Done |
 | Fix | Toast attribution icon colors: default tray icon loaded from the embedded `.ico` (no more lossy runtime PNG conversion); 16–32px ico frames regenerated with brand orange restored | ✅ Done |
 | Docs | README Installation rewritten (installer primary, portable zip kept); CHANGELOG, RECORD, BACKLOG updated | ✅ Done |
+
+### Branch 53: `fix/pre-v2-audit` ✅ Done — PR #112
+**Theme:** Final hardening audit before the v2.0.0 release, plus a run of UI/UX polish that landed on the same branch. Nine parallel review agents swept the entire codebase; this branch fixes everything actionable they found (all High + Medium + cheap Low/Nit), bumps the version, and adds the polish below. Behavior is preserved except where a fix corrects an outright bug and the two user-approved behavior changes (scheduler catch-up, 500ms hotkey debounce). Verified clean by the audit: theme parity, no MessageBox, hotkey atom hygiene, installer safety, SECURITY.md "no network requests".
+
+#### New features
+| Item | Status |
+|------|--------|
+| "Your uploads" library for custom icons (`.ico`) and switch sounds (`.wav`) — kept under `Icons\Library` / `Sounds\Library`, re-pickable + removable in the pickers, browsed files saved there automatically (`UploadLibrary` helper) | ✅ Done |
+| Customizable tray menu — show/hide About, Help & FAQ, Mini Mode, Open Sound Settings (Settings + Exit always shown) via Settings → Tray (`AppConfig.TrayShow*`) | ✅ Done |
+| Clone Profile wizard — step-by-step copy: name/hotkey, devices/mode, which features carry over, which schedules to bring along | ✅ Done |
+| Clear (✕) buttons on the profile card — reset hotkey → "Not set", icon → default | ✅ Done |
+
+#### Changed
+| Item | Status |
+|------|--------|
+| Icon picker previews the chosen Black/White colour live over a neutral checkerboard tile (`GalleryIconHelper.RenderGlyph`) so the preview matches the saved icon | ✅ Done |
+| Mini Mode shows each profile's activation hotkey in both layouts (row chip + grid caption); the title bar also shows the Mini Mode toggle shortcut (wordmark dropped so it fits at 300px) | ✅ Done |
+| Notifications relabeled "Show switch & warning alerts" with a master-switch description (kept, not removed — it's the only mute for device-unavailable warnings) | ✅ Done |
+| Unified "Not set" wording for empty dropdowns / hotkey labels / clone dialog (was "(None)") | ✅ Done |
+| Profile card favorite & "no notification banner" buttons swapped; themed accent checkboxes app-wide + unified `DayPillStyle`; About links reordered (Website, GitHub, Report a Bug, ReadMe, Changelog, License) | ✅ Done |
+| Scheduler (approved) — range-based catch-up so a switch missed while asleep/off fires on wake/launch (2h window) and survives DST; min-interval clamp; `EvaluateNow` returns whether it fired so startup restore doesn't clobber a due schedule | ✅ Done |
+| Mute UX — persistent tray mute badge (and mini-mode mute dot) removed in favor of a brief on-toggle banner with a per-shortcut silence flag (`UpdateMuteFlash`/`UpdateMuteBadge` gone) | ✅ Done |
+| Title-bar maximize glyph swaps to a restore glyph when maximized; hotkey anti-repeat shortened to 500ms | ✅ Done |
+| Release — version 1.1.0 → 2.0.0; release zip packs `publish\*` (exe at root); About / ARCHITECTURE / CHANGELOG corrected (System.Media + Windows Core Audio + HidSharp, not NAudio/CoreAudio); README notes Win10 1809+ | ✅ Done |
+
+#### Fixed
+| Item | Status |
+|------|--------|
+| Security — `DeleteOrphanedIcon` canonicalizes before `File.Delete` (closes a path-traversal arbitrary-delete via imported config); `IconHelper.LoadIcon` canonicalizes the icons dir too | ✅ Done |
+| Data — `TryImport` requires the `ConfigVersion` marker before replacing settings; `Migrate` clamps Hour/Minute/ReminderMinutes, validates `ProfileMode`, nulls a dangling `ActiveProfileId`; custom sounds confined to a managed folder, out-of-folder paths dropped on import | ✅ Done |
+| Reliability — tray icon registers via a 6s splash-fallback so an interrupted splash can't leave the app headless; wake/startup evaluates due schedules before restoring the active profile (single `OnSystemResume`) so a due switch can't lose the lock race | ✅ Done |
+| Scheduler correctness — fires only the most-recent due switch when several were due at once (marks the rest seen); catch-up no longer re-fires on restart within the window (`AppConfig.LastSchedulerEvaluation` persisted) | ✅ Done |
+| Concurrency — config saves snapshot on the caller thread + flush on exit, with a monotonic version guard against out-of-order writes; locked `AppLogger` write; `AppWatcher.Poll` re-entrancy gate; `AppTrigger` and `DeviceTrigger` (device + HID) lookups marshalled to the UI thread | ✅ Done |
+| Resource lifetime — COM leak in `AudioProfileApplier` closed; `HidHeadsetService` awaits its loop before disposing the CTS + guards zero-length reports; `DeviceNotificationClient` disposable with per-device debounce + `_disposed` guard; `SettingsViewModel` `IDisposable`; `LogoAnimator` single `WeakReference` subscribe + storyboards stop on Unload; `fmtPtr`/GDI/COM handle leaks on error paths closed; `IconHelper` DCL fields volatile | ✅ Done |
+| Profile switching — switch lock released before banners/sound/modal error dialog; applier surfaces present-but-failed applies (partial applies attempt all roles best-effort); scheduled-switch failures show a balloon not a modal; the mute toggle re-reads the device's actual state before flipping; switch feedback fully crash-guarded | ✅ Done |
+| Audio — WAV custom-sound parser rewritten as a safe chunk-walker with bounds checks + a 25MB size cap | ✅ Done |
+| Mini Mode keybind chip no longer clipped at the 300px width; picking a custom icon right after a built-in one (or clearing it) refreshes the card preview; disabling a profile's assigned device keeps it selected with a red dot instead of resetting to "Not set" | ✅ Done |
+| Assorted — dead `ProfileFilter.IsActive` / `Start()` / `HasKnownDevices` removed; stale comments fixed; dialog icon badges + app-trigger chips/badges/Running use theme tokens; title-bar + mic-test controls gained automation names; symlink-safe config temp write; UNC app-trigger targets skipped; `FakeConfigService` reset matches the real one; `WinApi` AUMID P/Invoke checks its HRESULT | ✅ Done |
+
+#### Audit follow-ups (AF) — moved here from BACKLOG
+| # | Item | Outcome |
+|---|------|---------|
+| AF1 | Confine custom switch-sound files to a managed Sounds folder | ✅ Done — picked `.wav` copied into `%APPDATA%\VibeSwitcher\Sounds\`; import drops any path outside it (`PathSafety`); +2 tests |
+| AF2 | App-Trigger dialog filter chips keyboard-accessible | ✅ Done — focusable + Enter/Space + automation names (kept as Borders, not restyled to ToggleButtons) |
+| AF3 | CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` artifact | ⏸ Deferred — can't validate workflow changes locally; belongs in a CI-only PR |
+| AF4 | XAML de-duplication | ✅ Done where clean — accent frame → shared `Views/AccentFrame.xaml` across 19 dialogs; `DayPillStyle` later unified into `App.xaml`. Closed as won't-do: `MuteBannerToggle` bakes its own icon; inline accent trigger setters (magic-number promotion, high churn) |
+| AF5 | Doc nits — CONTRIBUTING vs CLAUDE changelog timing + RECORD summary-table recount | ✅ Done — CONTRIBUTING wording aligned with CLAUDE.md; RECORD summary tables re-checked for consistency during the docs accuracy sweep |
+| LP1 | Custom switch-sound orphan cleanup on profile rename | ⏸ Deferred (low) — `StoreCustomSound` re-copies to a name-matching file after a rename, leaving the old per-profile copy behind (no `DeleteOrphanedSound`, unlike icons). Harmless stray file in AppData |
+
+#### Deep pre-v2 audit (later session)
+| Area | Outcome |
+|------|---------|
+| App-trigger watcher | ✅ Fixed — was doing N process-table enumerations every 2s (one per watched exe) and never disposing the returned `Process` handles; now one `Process.GetProcesses()` per tick with all handles disposed |
+| Imported icon paths | ✅ Fixed — `TryImport` now drops icon paths outside the managed Icons folder (mirrors the existing sound guard); +2 tests |
+| Uninstall leftover | ✅ Fixed — installer removes the runtime `AppUserModelId` HKCU key on uninstall |
+| Accessibility / keyboard | ✅ Improved — screen-reader names on icon-only controls; volume slider keyboard-adjustable; Clone wizard Enter-to-advance (focus rings only on keyboard nav); the five content scroll panels (Profiles/Settings/About/FAQ/Mini) were focusable Tab stops with no focus visual (an "invisible" Tab stop before the first card) — now `IsTabStop="False"` so Tab skips them, wheel-scroll unaffected |
+| DPI / installer / leaks / IO / crash-safety / exception handling | ✅ Verified GOOD, no change — PerMonitorV2 manifest; fixed-AppId upgrade + AppMutex detection + opt-in data deletion; SettingsWindow/ViewModel/LogoAnimator disposal; atomic save + corrupt-fallback; documented crash/shutdown guarantees; global exception handlers + best-effort catches |
+| Scheduler / DST | ✅ Verified GOOD, no change — catch-up window covers spring-forward; per-occurrence dedup prevents fall-back double-fire; next-fire always ≤7 days (timer interval in range); multiple-due collapses to most-recent |
+| Audio / COM thread-safety | ✅ Verified GOOD, no change — per-call COM enumerators (no cross-apartment sharing) with `Marshal.Release`/`ReleaseComObject` + `PropVariantClear`; `DeviceNotificationClient` lock-guarded debounce with `_disposed` checks; both `DevicesChanged` subscribers marshal UI/config work to the dispatcher; race-safe CTS via `Interlocked.Exchange` |
+| Dialog initial focus | ✅ Improved — Clone wizard focuses + selects the name field on open (other dialogs rely on `IsDefault`/`IsCancel` + Tab, which is acceptable) |
+| Final report-only audit (8 agents) | ✅ Done — no Critical/High. Fixed the 3 Medium findings: custom switch-sound path confined to `SoundsDir` at playback (`SwitchSoundService`, +4 tests); `WScript.Shell` COM objects released in the app-trigger picker; release-workflow version guard uses an exact normalized comparison instead of a prefix match. Remaining Low/Nit items (incl. M4 upload dedup-by-size) consolidated in BACKLOG "Deferred — pre-v2.0.0 follow-ups". Suite at 255 |
+
+#### Tests
+| Item | Status |
+|------|--------|
+| 8 audit tests + final-pass tests (import-guard reject, reset-to-defaults preservation, log-path) + AF1 sound-confinement ×2 + `UploadLibrary` (6) + library icon pick/save (2) + tray-menu flag round-trip (1) + icon-import path-confinement ×2; suite at **251** | ✅ Done |

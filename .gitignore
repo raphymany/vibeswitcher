@@ -42,3 +42,8 @@ ClaudeDesign/
 # Local publish output and build artifacts
 publish/
 installer/output/
+
+# Release artifacts (the workflow builds these; ignore so a local build can't be committed)
+VibeSwitcher-Setup-*.exe
+VibeSwitcher-*-win-x64.zip
+sha256sums.txt

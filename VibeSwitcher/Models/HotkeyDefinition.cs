@@ -32,7 +32,7 @@ public class HotkeyDefinition
 
     public string ToDisplayString()
     {
-        if (IsEmpty) return "(none)";
+        if (IsEmpty) return "Not set";
 
         var parts = new List<string>();
         if (UseCtrl)  parts.Add("Ctrl");

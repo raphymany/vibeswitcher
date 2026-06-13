@@ -11,11 +11,28 @@ internal sealed class FakeConfigService : IConfigService
     public bool IsFirstRun { get; set; }
     public string IconsDir { get; set; } =
         Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Icons");
+    public string SoundsDir { get; set; } =
+        Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Sounds");
+    public string IconsLibraryDir  => Path.Combine(IconsDir, "Library");
+    public string SoundsLibraryDir => Path.Combine(SoundsDir, "Library");
 
     public void Load() { }
     public void SaveImmediate() { }
+    public void SaveDeferred() { }
     public void ExportTo(string destinationPath) { }
     public bool TryImport(string sourcePath, out string? error) { error = null; return false; }
+    public void ResetSettingsToDefaults()
+    {
+        var cur = _config;
+        _config = new AppConfig
+        {
+            Profiles = cur.Profiles,
+            ActiveProfileId = cur.ActiveProfileId,
+            DeviceAliases = cur.DeviceAliases,
+            CompactIntroShown = cur.CompactIntroShown,
+            LastSchedulerEvaluation = cur.LastSchedulerEvaluation,
+        };
+    }
 
     public void SetConfig(AppConfig config) => _config = config;
 }

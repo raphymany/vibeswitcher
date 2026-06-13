@@ -1,5 +1,4 @@
 using System.Windows.Threading;
-using Microsoft.Win32;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 
@@ -28,10 +27,6 @@ public class SchedulerService : IDisposable
         _clock = clock ?? (() => DateTime.Now);
     }
 
-    // Called once at startup. EvaluateNow() is called separately by App.xaml.cs to
-    // catch any schedules that were due while the app wasn't running.
-    public void Start() => ScheduleNext(_clock());
-
     // Recompute and reset the timer — call whenever profiles or schedules change.
     public void Reschedule()
     {
@@ -40,24 +35,15 @@ public class SchedulerService : IDisposable
         ScheduleNext(_clock());
     }
 
-    public void EvaluateNow()
+    // Returns true if a profile switch was fired — used at startup so the last-active-profile
+    // restore doesn't clobber a schedule that was due while the app wasn't running.
+    public bool EvaluateNow()
     {
         _timer?.Stop();
         _timer = null;
-        Evaluate(_clock());
+        bool fired = Evaluate(_clock());
         ScheduleNext(_clock());
-    }
-
-    public void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
-    {
-        if (e.Mode != PowerModes.Resume) return;
-        // SystemEvents fires on a thread-pool thread — marshal to the UI thread so Evaluate()
-        // runs on the same thread as the timer-tick path and avoids dictionary races.
-        var dispatcher = System.Windows.Application.Current?.Dispatcher;
-        if (dispatcher != null)
-            dispatcher.InvokeAsync(EvaluateNow);
-        else
-            EvaluateNow(); // headless / test environment
+        return fired;
     }
 
     private void ScheduleNext(DateTime now)
@@ -66,7 +52,9 @@ public class SchedulerService : IDisposable
         if (next == null) return; // no schedules — nothing to wait for
 
         var delay = next.Value - now;
-        if (delay < TimeSpan.Zero) delay = TimeSpan.Zero;
+        // Floor the interval at 1s so a just-passed target can't arm a 0ms timer that
+        // re-evaluates and re-schedules in a tight loop.
+        if (delay < TimeSpan.FromSeconds(1)) delay = TimeSpan.FromSeconds(1);
 
         _timer = new DispatcherTimer { Interval = delay };
         _timer.Tick += (_, _) =>
@@ -103,7 +91,13 @@ public class SchedulerService : IDisposable
                         // Reminder for the upcoming switch already passed — look one occurrence further.
                         var nextSwitch = GetNextOccurrence(switchTime.Value, entry.Days, entry.Hour, entry.Minute);
                         if (nextSwitch != null)
-                            TakeEarlier(ref earliest, nextSwitch.Value.AddMinutes(-entry.ReminderMinutes));
+                        {
+                            var fallbackReminder = nextSwitch.Value.AddMinutes(-entry.ReminderMinutes);
+                            // Guard against a past time (e.g. very large ReminderMinutes) which would
+                            // arm a zero-delay timer.
+                            if (fallbackReminder > now)
+                                TakeEarlier(ref earliest, fallbackReminder);
+                        }
                     }
                 }
             }
@@ -129,43 +123,107 @@ public class SchedulerService : IDisposable
         if (current == null || candidate < current) current = candidate;
     }
 
-    private void Evaluate(DateTime now)
+    // Catch-up window: fire a schedule whose most-recent occurrence is within this window of
+    // "now". This makes a switch missed while the PC was asleep/off fire shortly after wake or
+    // launch, and lets a late timer tick (heavy load, DST spring-forward) still fire instead of
+    // being rejected by an exact-minute match. The per-slot dedup below prevents repeats.
+    private static readonly TimeSpan CatchUpWindow = TimeSpan.FromHours(2);
+
+    // With catch-up disabled, a slot only fires near its exact moment. 90s comfortably covers
+    // timer jitter and the 1s minimum re-arm delay without ever feeling like a "late" switch.
+    private static readonly TimeSpan ExactWindow = TimeSpan.FromSeconds(90);
+
+    private bool Evaluate(DateTime now)
     {
+        var window = _configService.Current.SchedulerCatchUp ? CatchUpWindow : ExactWindow;
+        // Persisted high-water mark: a switch/reminder is only "missed" if its moment is after the
+        // last time we evaluated. This survives restarts, so reopening within the catch-up window
+        // won't re-fire a switch that already ran while the app was alive.
+        var lastRun = _configService.Current.LastSchedulerEvaluation;
+
+        bool firedAnything = false;
+        // Collect every due switch, then fire only the single most recent one — the user can only be
+        // on one profile, so firing each due switch would just let them stomp each other (and with the
+        // single-switch lock, all but the first would be silently dropped).
+        var dueSwitches = new List<(DeviceProfile profile, ScheduleEntry entry, DateTime occurrence)>();
+
         foreach (var profile in _configService.Current.Profiles)
         {
             foreach (var entry in profile.Schedules)
             {
                 if (!entry.Enabled || entry.Days.Count == 0) continue;
 
-                if (entry.Days.Contains(now.DayOfWeek) &&
-                    entry.Hour == now.Hour && entry.Minute == now.Minute)
+                // Switch: the most recent scheduled occurrence at or before now. Due if it's recent
+                // (within the catch-up window), happened since the last evaluation, and that exact
+                // slot hasn't already been fired this session.
+                var occurrence = GetMostRecentOccurrence(now, entry.Days, entry.Hour, entry.Minute);
+                if (occurrence != null && now - occurrence.Value <= window &&
+                    (lastRun == null || occurrence.Value > lastRun.Value) &&
+                    (!_lastSwitchFired.TryGetValue(entry.Id, out var last) || last != occurrence.Value))
                 {
-                    var slot = new DateTime(now.Year, now.Month, now.Day, entry.Hour, entry.Minute, 0);
-                    if (!_lastSwitchFired.TryGetValue(entry.Id, out var last) || last != slot)
-                    {
-                        _lastSwitchFired[entry.Id] = slot;
-                        _switchCallback(profile, entry.Silent);
-                    }
+                    dueSwitches.Add((profile, entry, occurrence.Value));
                 }
 
+                // Reminder: fire once we reach the moment ReminderMinutes before the upcoming
+                // switch, but before the switch itself. Deduped by the upcoming switch slot and
+                // gated on the last-run mark so a restart doesn't repeat it.
                 if (entry.ReminderMinutes > 0)
                 {
-                    var reminderTarget = now.AddMinutes(entry.ReminderMinutes);
-                    if (entry.Days.Contains(reminderTarget.DayOfWeek) &&
-                        reminderTarget.Hour == entry.Hour &&
-                        reminderTarget.Minute == entry.Minute)
+                    var nextSwitch = GetNextOccurrence(now, entry.Days, entry.Hour, entry.Minute);
+                    if (nextSwitch != null)
                     {
-                        var reminderSlot = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
-                        if (!_lastReminderFired.TryGetValue(entry.Id, out var lastReminder) || lastReminder != reminderSlot)
+                        var reminderMoment = nextSwitch.Value.AddMinutes(-entry.ReminderMinutes);
+                        if (now >= reminderMoment && now < nextSwitch.Value &&
+                            now - reminderMoment <= window &&
+                            (lastRun == null || reminderMoment > lastRun.Value) &&
+                            (!_lastReminderFired.TryGetValue(entry.Id, out var lastReminder) ||
+                             lastReminder != nextSwitch.Value))
                         {
-                            _lastReminderFired[entry.Id] = reminderSlot;
+                            _lastReminderFired[entry.Id] = nextSwitch.Value;
                             _notifyCallback("VibeSwitcher",
                                 $"{profile.Name} activates in {entry.ReminderMinutes} minutes");
+                            firedAnything = true;
                         }
                     }
                 }
             }
         }
+
+        bool firedSwitch = false;
+        if (dueSwitches.Count > 0)
+        {
+            // Mark every due slot as fired so a superseded one can't re-fire on a later pass, then
+            // switch to only the most recent occurrence.
+            foreach (var d in dueSwitches)
+                _lastSwitchFired[d.entry.Id] = d.occurrence;
+
+            var winner = dueSwitches.OrderByDescending(d => d.occurrence).First();
+            _switchCallback(winner.profile, winner.entry.Silent);
+            firedSwitch = true;
+            firedAnything = true;
+        }
+
+        // Advance the persisted high-water mark only when something fired, so future restarts
+        // within the window don't repeat it. (A no-op evaluation has nothing to guard against.)
+        if (firedAnything)
+        {
+            _configService.Current.LastSchedulerEvaluation = now;
+            _configService.SaveDeferred();
+        }
+
+        return firedSwitch;
+    }
+
+    // Latest occurrence at or before 'now' matching the given days/hour/minute (looks back a week).
+    private static DateTime? GetMostRecentOccurrence(DateTime now, List<DayOfWeek> days, int hour, int minute)
+    {
+        for (int back = 0; back < 8; back++)
+        {
+            var candidate = now.Date.AddDays(-back).AddHours(hour).AddMinutes(minute);
+            if (candidate <= now && days.Contains(candidate.DayOfWeek))
+                return candidate;
+        }
+        return null;
     }
 
     public void Dispose()

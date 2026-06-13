@@ -24,11 +24,6 @@ public class TrayService : IDisposable
     // Caches raw icon bytes per profile so UpdateIcon avoids disk reads on repeat switches.
     // Bytes (not Icon objects) are cached because H.NotifyIcon disposes the Icon it holds on each change.
     private readonly Dictionary<Guid, byte[]> _trayIconBytesCache = new();
-    // Mute indicator state — a static colored badge is composited onto the active icon
-    // (no flashing). _muted gates the overlay that UpdateIcon applies.
-    private bool _muted;
-    private System.Drawing.Color _muteColor;
-    private string? _muteTooltip;
 
     private readonly IAppLogger _logger;
     private readonly ISessionErrorTracker _errorTracker;
@@ -59,33 +54,57 @@ public class TrayService : IDisposable
         _taskbarIcon.TrayContextMenuOpen += (_, _) => RefreshMiniMenuItem();
     }
 
-    // A WPF ContextMenu pays a one-time creation cost on its first-ever open, which
-    // makes the tray's focus handoff miss — the menu flashes and instantly closes.
-    // Priming it once invisibly off-screen at idle (well before any click, so the
-    // warm-up popup is fully torn down again) absorbs that cost out of sight.
-    // It must NOT run during the open itself: the real open would then reuse the
-    // still-alive warm-up popup at its clamped off-screen position.
-    private void PrimeContextMenuAtIdle()
+    // ── Tray menu warm-up ────────────────────────────────────────────────────
+    // The menu's first-ever open in the PROCESS pays a heavy one-time cost (JIT, default
+    // menu styles, popup plumbing). When that cost is paid during a real right-click, the
+    // focus handoff misses: the popup window doesn't exist yet when the tray hands it
+    // focus, Windows activates the app window instead, and the menu flashes and closes.
+    // The warm-up below absorbs that cost by opening and closing a menu invisibly.
+    //
+    // Hard-won constraints — this has regressed FOUR times. Read before touching:
+    // 1. The cost is PER-PROCESS, not per menu instance: before any priming existed the
+    //    failure only ever hit the first click after launch, never after profile edits
+    //    (which always recreate the menu). The warm-up therefore runs exactly ONCE
+    //    (_menuWarmedUp); re-priming each rebuilt menu caused a flash on every
+    //    profile-name keystroke / schedule / sound change.
+    // 2. THE ROOT CAUSE OF EVERY FLASH (diagnosed with a window-show hook: a full-size
+    //    212x444 popup appearing at (0,0)): closing a menu popup is ASYNCHRONOUS — it
+    //    fades out. Earlier warm-ups opened the real menu shrunk to 0x0/transparent, then
+    //    restored its size in a finally block. The restore raced the fade-out and resized
+    //    the still-visible popup back to full size at the clamped position (off-screen
+    //    coordinates clamp to the monitor's top-left corner). The invisible open was never
+    //    the problem; the synchronous restore was.
+    // 3. Therefore: warm up a SACRIFICIAL menu and never restore anything. It uses the
+    //    same control types (ContextMenu, MenuItem, Separator → same template/JIT cost as
+    //    the real menu), stays 0x0/transparent/shadowless through its entire async close,
+    //    and is discarded. The real menu is never touched, so no restore can race.
+    // 4. The warm-up MUST complete before the tray icon registers (see ShowIcon): a user
+    //    can't right-click an icon that doesn't exist yet, so priming there closes the
+    //    launch race that a deferred (ApplicationIdle) prime loses while startup keeps
+    //    the dispatcher busy.
+    private bool _menuWarmedUp;
+
+    private void WarmUpMenuInfrastructure()
     {
-        var menu = _contextMenu;
-        menu.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, new Action(() =>
+        if (_menuWarmedUp) return;
+        _menuWarmedUp = true;
+        var dummy = new ContextMenu
         {
-            if (menu != _contextMenu || menu.IsOpen) return; // rebuilt or already in use
-            var placement = menu.Placement;
-            var hOffset   = menu.HorizontalOffset;
-            var vOffset   = menu.VerticalOffset;
-            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint;
-            menu.HorizontalOffset = -32000;
-            menu.VerticalOffset = -32000;
-            menu.Opacity = 0;
-            menu.IsOpen = true;
-            menu.UpdateLayout();
-            menu.IsOpen = false;
-            menu.Opacity = 1;
-            menu.Placement = placement;
-            menu.HorizontalOffset = hOffset;
-            menu.VerticalOffset = vOffset;
-        }));
+            Opacity = 0,
+            MaxWidth = 0,
+            MaxHeight = 0,
+            HasDropShadow = false,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.AbsolutePoint,
+            HorizontalOffset = -32000,
+            VerticalOffset = -32000,
+        };
+        dummy.Items.Add(new MenuItem { Header = "" });
+        dummy.Items.Add(BuildSeparator());
+        dummy.IsOpen = true;
+        dummy.UpdateLayout();
+        dummy.IsOpen = false;
+        // Deliberately no property restore: the dummy remains invisible while its popup
+        // finishes closing, then it is garbage — that is the entire point (see note 2/3).
     }
 
     // The icon is registered with the shell only once the app is ready (the splash
@@ -97,6 +116,13 @@ public class TrayService : IDisposable
     {
         if (_iconShown) return;
         _iconShown = true;
+
+        // Warm the menu machinery BEFORE the icon becomes clickable — the user can't
+        // right-click an icon that isn't registered yet, so the very first click is
+        // guaranteed to hit a warm process (the at-idle prime alone loses this race).
+        try { WarmUpMenuInfrastructure(); }
+        catch (Exception ex) { _logger.Warning("TrayService.PrimeMenu", ex.Message); }
+
         try
         {
             // Required when creating TaskbarIcon programmatically (not via XAML)
@@ -108,6 +134,8 @@ public class TrayService : IDisposable
             _logger.Error("TrayService.ShowIcon", ex);
             _errorTracker.Record(ErrorCode.TrayIconCreateFailed, "Tray Icon Could Not Be Created",
                 $"The system tray icon failed to register: {ex.Message}");
+            _pendingBalloons.Clear(); // icon never registered — don't try to show balloons on it
+            return;
         }
 
         foreach (var (title, message, sound) in _pendingBalloons)
@@ -144,15 +172,8 @@ public class TrayService : IDisposable
             icon.Save(ms);
             _trayIconBytesCache[activeProfile.Id] = ms.ToArray();
         }
-        if (_muted)
-        {
-            var badged = ComposeMutedIcon(icon, _muteColor);
-            icon.Dispose();
-            icon = badged;
-        }
-
         _taskbarIcon.Icon = icon;
-        _taskbarIcon.ToolTipText = _muted ? (_muteTooltip ?? "VibeSwitcher") : BuildTooltip(activeProfile);
+        _taskbarIcon.ToolTipText = BuildTooltip(activeProfile);
     }
 
     private string BuildTooltip(DeviceProfile? activeProfile)
@@ -191,85 +212,6 @@ public class TrayService : IDisposable
         var nextIndex = (currentIndex + 1) % profiles.Count;
         SwitchRequested?.Invoke(profiles[nextIndex]);
     }
-
-    // Call whenever mute state changes. Shows a static colored badge on the tray icon
-    // (mic-only = red, speakers-only = blue, both = purple) or removes it when nothing is muted.
-    // No flashing — the badge is composited onto the current profile/app icon in UpdateIcon.
-    public (bool Mic, bool Speakers) MuteState { get; private set; }
-
-    public void UpdateMuteFlash(bool micMuted, bool speakersMuted)
-    {
-        MuteState = (micMuted, speakersMuted);
-        if (!micMuted && !speakersMuted)
-        {
-            _muted = false;
-            _muteTooltip = null;
-            RefreshActiveIcon();
-            return;
-        }
-
-        _muteColor = (micMuted, speakersMuted) switch
-        {
-            (true, true)  => System.Drawing.Color.FromArgb(150, 70, 230),  // purple — both
-            (true, false) => System.Drawing.Color.FromArgb(225, 55, 55),   // red    — mic only
-            _             => System.Drawing.Color.FromArgb(45, 120, 230),  // blue   — speakers only
-        };
-        _muteTooltip = (micMuted, speakersMuted) switch
-        {
-            (true, true)  => "VibeSwitcher — Mic + Speakers muted",
-            (true, false) => "VibeSwitcher — Mic muted",
-            _             => "VibeSwitcher — Speakers muted",
-        };
-        _muted = true;
-        RefreshActiveIcon();
-    }
-
-    private void RefreshActiveIcon()
-    {
-        var active = _configService.Current.Profiles
-            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        UpdateIcon(active);
-    }
-
-    // Composites a small colored mute badge (white-ringed dot) onto the bottom-right
-    // corner of the active icon. Keeps the brand/profile icon visible — no full-icon swap.
-    private static Icon ComposeMutedIcon(Icon baseIcon, System.Drawing.Color badge)
-    {
-        using var bmp = new System.Drawing.Bitmap(32, 32, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-        using (var g = System.Drawing.Graphics.FromImage(bmp))
-        {
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-            using (var baseBmp = baseIcon.ToBitmap())
-                g.DrawImage(baseBmp, new System.Drawing.Rectangle(0, 0, 32, 32));
-
-            const float d = 15f;
-            float x = 32f - d, y = 32f - d;
-            using (var ring = new System.Drawing.SolidBrush(System.Drawing.Color.White))
-                g.FillEllipse(ring, x - 1.5f, y - 1.5f, d + 3f, d + 3f);
-            using (var fill = new System.Drawing.SolidBrush(badge))
-                g.FillEllipse(fill, x, y, d, d);
-        }
-
-        // GetHicon returns an HICON we own — Icon.FromHandle does NOT take ownership,
-        // so we copy to a stream for an independent Icon then destroy the raw handle.
-        var hIcon = bmp.GetHicon();
-        try
-        {
-            using var temp = Icon.FromHandle(hIcon);
-            using var ms = new MemoryStream();
-            temp.Save(ms);
-            ms.Seek(0, SeekOrigin.Begin);
-            return new Icon(ms);
-        }
-        finally
-        {
-            DestroyIcon(hIcon);
-        }
-    }
-
-    [System.Runtime.InteropServices.DllImport("user32.dll")]
-    private static extern bool DestroyIcon(IntPtr hIcon);
 
     public void RebuildMenu()
     {
@@ -375,11 +317,12 @@ public class TrayService : IDisposable
             }
         };
 
-        _contextMenu.Items.Add(aboutItem);
-        _contextMenu.Items.Add(faqItem);
-        _contextMenu.Items.Add(settingsItem);
-        _contextMenu.Items.Add(_miniItem);
-        _contextMenu.Items.Add(soundSettingsItem);
+        var cfg = _configService.Current;
+        if (cfg.TrayShowAbout) _contextMenu.Items.Add(aboutItem);
+        if (cfg.TrayShowFaq)   _contextMenu.Items.Add(faqItem);
+        _contextMenu.Items.Add(settingsItem);                       // always available
+        if (cfg.TrayShowMiniMode)      _contextMenu.Items.Add(_miniItem);
+        if (cfg.TrayShowSoundSettings) _contextMenu.Items.Add(soundSettingsItem);
 
         _contextMenu.Items.Add(BuildSeparator());
 
@@ -392,7 +335,9 @@ public class TrayService : IDisposable
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
         _taskbarIcon.ToolTipText = BuildTooltip(active);
 
-        PrimeContextMenuAtIdle();
+        // Deliberately NO warm-up here: the first-open cost is per-process and already
+        // absorbed once in ShowIcon. Re-priming every rebuilt menu is what used to flash
+        // the top-left corner on every profile-name keystroke / schedule / sound change.
     }
 
     // Fast path: only flip IsChecked on profile items — no menu rebuild needed on a simple switch.
@@ -421,6 +366,14 @@ public class TrayService : IDisposable
             customIconHandle: IconHelper.GetBalloonIconHandle(),
             largeIcon: true,
             sound: sound);
+
+        // Known H.NotifyIcon 2.0.x bug (fixed upstream in PR #239, unreleased): the
+        // notification's NIM_MODIFY omits NIF_SHOWTIP, which flips the icon out of
+        // standard-tooltip mode — the hover tooltip silently stops appearing after any
+        // balloon. Re-asserting the tooltip text sends a NIM_MODIFY that restores it.
+        var tip = _taskbarIcon.ToolTipText;
+        _taskbarIcon.ToolTipText = "";
+        _taskbarIcon.ToolTipText = tip;
     }
 
     public void RecreateIcon()
@@ -507,7 +460,7 @@ public class TrayService : IDisposable
     private static MenuItem BuildSeparator()
     {
         var line = new Border { Height = 1, Margin = new Thickness(8, 4, 8, 4) };
-        line.SetResourceReference(Border.BackgroundProperty, "SeparatorBrush");
+        line.SetResourceReference(Border.BackgroundProperty, "TrayMenuSeparatorBrush");
         return new MenuItem
         {
             Tag = "sep",
@@ -611,7 +564,8 @@ public class TrayService : IDisposable
             FontWeight = FontWeights.SemiBold,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        label.SetResourceReference(TextBlock.ForegroundProperty, "PrimaryText");
+        // The wordmark is brand-orange everywhere (title bar, About, splash) — keep the tray in step.
+        label.SetResourceReference(TextBlock.ForegroundProperty, "Accent");
         sp.Children.Add(label);
         return sp;
     }

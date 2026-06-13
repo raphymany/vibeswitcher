@@ -9,7 +9,7 @@ namespace VibeSwitcher.ViewModels;
 
 public class ProfileCardViewModel : ViewModelBase, IDisposable
 {
-    private static readonly AudioDeviceInfo NoneDevice = new AudioDeviceInfo("", "(None)", false);
+    private static readonly AudioDeviceInfo NoneDevice = new AudioDeviceInfo("", "Not set", false);
 
     private readonly DeviceProfile _model;
     private readonly IConfigService _configService;
@@ -19,7 +19,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly ISessionErrorTracker _errorTracker;
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
-    private readonly Action<ProfileCardViewModel> _onClone;
+    private readonly Action<ProfileCardViewModel, DeviceProfile> _onClone;
     private readonly Action<ProfileCardViewModel>? _onActivate;
     private readonly Func<string, Task> _onTestSound;
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
@@ -438,6 +438,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     public bool HasSchedules       => Schedules.Count > 0;
     public bool HasSingleSchedule  => Schedules.Count == 1;
+    // Gates the card's schedule/sound chip section (and its trailing separator).
     public bool HasVisibilityChips => HasSchedules || SoundOverride;
 
     public string ScheduleSummaryText => Schedules.Count switch
@@ -456,19 +457,22 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     // The mini list live-sorts on SortOrder, which the model mutates silently during drag reorder.
     internal void NotifySortOrderChanged() => OnPropertyChanged(nameof(SortOrder));
 
-    public bool IsHotkeySet => !string.IsNullOrWhiteSpace(_hotkeyDisplay) &&
-                               _hotkeyDisplay != "—" && _hotkeyDisplay != "None";
+    public bool IsHotkeySet => !_model.Hotkey.IsEmpty;
 
     public ICommand ActivateCommand { get; }
     public ICommand CaptureHotkeyCommand { get; }
+    public ICommand ClearHotkeyCommand { get; }
     public ICommand PickIconCommand { get; }
+    public ICommand ResetIconCommand { get; }
     public ICommand ApplyNameSuggestionCommand { get; }
     public ICommand CloneCommand { get; }
     public ICommand DeleteCommand { get; }
     public ICommand TestSoundCommand { get; }
     public ICommand TestMicCommand { get; }
     public ICommand AddScheduleCommand { get; }
-    public ICommand EditFirstScheduleCommand { get; }
+    public ICommand ManageSchedulesCommand { get; }
+    public ICommand EditScheduleEntryCommand { get; }
+    public ICommand DeleteScheduleEntryCommand { get; }
     public ICommand ConfigureSoundCommand { get; }
     public ICommand OpenAppTriggersCommand { get; }
 
@@ -483,7 +487,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         IReadOnlyList<AudioDeviceInfo> recordingDevices,
         Action<ProfileCardViewModel> onChanged,
         Action<ProfileCardViewModel> onDelete,
-        Action<ProfileCardViewModel> onClone,
+        Action<ProfileCardViewModel, DeviceProfile> onClone,
         Func<string, Task> onTestSound,
         Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null,
         Action<ProfileCardViewModel>? onActivate = null,
@@ -529,7 +533,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         ActivateCommand = new RelayCommand(() => _onActivate?.Invoke(this), () => !IsActive);
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
+        ClearHotkeyCommand = new RelayCommand(ClearHotkey);
         PickIconCommand = new RelayCommand(PickIcon);
+        ResetIconCommand = new RelayCommand(ResetIcon);
         ApplyNameSuggestionCommand = new RelayCommand(param =>
         {
             if (param is string suggestion) ApplyNameSuggestion(suggestion);
@@ -539,7 +545,24 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         TestSoundCommand = new RelayCommand(() => _ = TestSound());
         TestMicCommand = new RelayCommand(TestMic);
         AddScheduleCommand = new RelayCommand(AddSchedule);
-        EditFirstScheduleCommand = new RelayCommand(() => EditSchedule(Schedules[0]), () => HasSchedules);
+        // One schedule: clicking the chip edits it directly. More than one: open the manage
+        // dialog so the user can see every schedule and pick what to edit or delete.
+        ManageSchedulesCommand = new RelayCommand(() =>
+        {
+            if (Schedules.Count == 1) EditSchedule(Schedules[0]);
+            else if (Schedules.Count > 1) _dialogService.ShowManageSchedules(this);
+        }, () => HasSchedules);
+        EditScheduleEntryCommand = new RelayCommand(p =>
+        {
+            if (p is ScheduleEntryViewModel vm) EditSchedule(vm);
+        });
+        DeleteScheduleEntryCommand = new RelayCommand(p =>
+        {
+            if (p is ScheduleEntryViewModel vm &&
+                _dialogService.ShowConfirm("Remove Schedule?",
+                    $"Remove \"{vm.Summary}\" from \"{Name}\"?", "Remove"))
+                RemoveScheduleEntry(vm);
+        });
         ConfigureSoundCommand = new RelayCommand(ConfigureSound);
         OpenAppTriggersCommand = new RelayCommand(OpenAppTriggerWizard);
     }
@@ -569,11 +592,40 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         if (result == null) return;
         _model.SoundOverride    = result.Enabled;
         _model.SoundTone        = result.Tone;
-        _model.SoundCustomPath  = result.CustomPath;
+        _model.SoundCustomPath  = StoreCustomSound(result.Tone, result.CustomPath);
         _model.SoundVolume      = result.Volume;
         _model.SoundShowBanner  = result.ShowBanner;
         RaiseChipBindings();
         _onChanged(this);
+    }
+
+    // Copy a user-picked custom switch sound into the managed Sounds folder (mirrors how custom icons
+    // are stored) so the app only ever reads sound files from its own data directory. Returns the
+    // managed path, or the original unchanged if it's already managed, missing, or not a custom tone.
+    private string? StoreCustomSound(string? tone, string? sourcePath)
+    {
+        if (tone != "Custom" || string.IsNullOrWhiteSpace(sourcePath)) return sourcePath;
+        var soundsDir = _configService.SoundsDir;
+        if (!System.IO.File.Exists(sourcePath)) return sourcePath; // let the player handle a missing file
+
+        var namePrefix = SanitizeName(_model.Name);
+        var guidPrefix = _model.Id.ToString("N")[..8];
+        var dest = System.IO.Path.Combine(soundsDir, $"{namePrefix}-{guidPrefix}.wav");
+        // Already the managed per-profile copy → nothing to do. (A pick from the uploads library
+        // lives under SoundsDir too, but isn't this profile's copy, so it still gets copied below.)
+        if (string.Equals(sourcePath, dest, StringComparison.OrdinalIgnoreCase)) return sourcePath;
+        try
+        {
+            System.IO.Directory.CreateDirectory(soundsDir);
+            if (!string.Equals(sourcePath, dest, StringComparison.OrdinalIgnoreCase))
+                System.IO.File.Copy(sourcePath, dest, overwrite: true);
+            return dest;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning("ProfileCardViewModel.StoreCustomSound", ex.Message);
+            return sourcePath; // non-fatal: fall back to the original path, sound still plays
+        }
     }
 
     private async Task TestSound()
@@ -676,21 +728,82 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
 
         if (!applied)
+            RestoreAllHotkeys();
+    }
+
+    // Clears the profile's hotkey (→ "Not set") and re-registers so the freed combo is released.
+    private void ClearHotkey()
+    {
+        if (_model.Hotkey.IsEmpty) return;
+        _model.Hotkey = new HotkeyDefinition();
+        HotkeyDisplay = _model.Hotkey.ToDisplayString();
+        _onChanged(this);
+    }
+
+    // Resets the profile to the default VibeSwitcher icon and removes its now-orphaned .ico file.
+    private void ResetIcon()
+    {
+        if (string.IsNullOrEmpty(_iconPath)) return;
+        var previous = _iconPath;
+        IconPath = null; // setter updates the preview, raises HasCustomIcon, and persists via _onChanged
+        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker);
+    }
+
+    // Re-registers every hotkey (profiles + Settings + Mini Mode + mute) after a capture session
+    // temporarily unregistered them all.
+    private void RestoreAllHotkeys()
+    {
+        var cfg = _configService.Current;
+        _hotkeyService.RegisterAll(cfg.Profiles);
+        if (cfg.SettingsHotkey is { IsEmpty: false } && cfg.SettingsHotkeyEnabled)
+            _hotkeyService.RegisterSettingsHotkey(cfg.SettingsHotkey);
+        if (cfg.CompactHotkeyEnabled && cfg.CompactHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterCompactHotkey(cfg.CompactHotkey);
+        if (cfg.MuteMicHotkeyEnabled && cfg.MuteMicHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Mic, cfg.MuteMicHotkey);
+        if (cfg.MuteSpeakersHotkeyEnabled && cfg.MuteSpeakersHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Speakers, cfg.MuteSpeakersHotkey);
+        if (cfg.MuteBothHotkeyEnabled && cfg.MuteBothHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Both, cfg.MuteBothHotkey);
+    }
+
+    // Used by the clone wizard: capture a hotkey for the NEW profile with the same conflict checks as
+    // the card, then restore all hotkeys (the clone's own hotkey is registered later when it's added).
+    internal HotkeyDefinition? CaptureHotkeyForClone(HotkeyDefinition seed)
+    {
+        _hotkeyService.UnregisterAll();
+        try
         {
-            // Restore all hotkeys (profiles + Settings + Mini Mode + mute) that were unregistered above.
-            _hotkeyService.RegisterAll(_configService.Current.Profiles);
-            var settingsHk = _configService.Current.SettingsHotkey;
-            if (settingsHk is { IsEmpty: false })
-                _hotkeyService.RegisterSettingsHotkey(settingsHk);
-            var cfg = _configService.Current;
-            if (cfg.CompactHotkeyEnabled && cfg.CompactHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterCompactHotkey(cfg.CompactHotkey);
-            if (cfg.MuteMicHotkeyEnabled && cfg.MuteMicHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Mic, cfg.MuteMicHotkey);
-            if (cfg.MuteSpeakersHotkeyEnabled && cfg.MuteSpeakersHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Speakers, cfg.MuteSpeakersHotkey);
-            if (cfg.MuteBothHotkeyEnabled && cfg.MuteBothHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Both, cfg.MuteBothHotkey);
+            bool shouldRetry = true;
+            HotkeyDefinition? captured;
+            while (shouldRetry && (captured = _dialogService.ShowHotkeyCapture(seed)) != null)
+            {
+                shouldRetry = false;
+                if (!captured.IsEmpty)
+                {
+                    var owner = FindInternalConflictOwner(captured);
+                    if (owner != null)
+                    {
+                        shouldRetry = _dialogService.ShowHotkeyConflictRetry("Hotkey Already in Use",
+                            $"'{captured.ToDisplayString()}' is already assigned to {owner}.");
+                        if (shouldRetry) seed = captured;
+                        continue;
+                    }
+                    if (_hotkeyService.TestHotkey(captured))
+                    {
+                        shouldRetry = _dialogService.ShowHotkeyConflictRetry("Hotkey Conflict",
+                            $"'{captured.ToDisplayString()}' is already in use by another application.");
+                        if (shouldRetry) seed = captured;
+                        continue;
+                    }
+                }
+                return captured;
+            }
+            return null;
+        }
+        finally
+        {
+            RestoreAllHotkeys();
         }
     }
 
@@ -728,6 +841,12 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        if (!string.IsNullOrEmpty(result.CustomIconPath))
+        {
+            ApplyCustomIconFile(result.CustomIconPath); // re-picked from the user's uploads
+            return;
+        }
+
         if (result.Item != null)
             ApplyGalleryIcon(result.Item, result.IconColor);
     }
@@ -756,13 +875,20 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var previous = _iconPath;
         SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker, exceptPath: dest);
 
-        // When dest matches _iconPath the file has been overwritten but SetField won't
-        // detect a change (same path) — manually refresh the preview and notify bindings.
+        SetIconPath(dest);
+    }
+
+    // Applies the icon at 'dest'. When the path string is unchanged but the file was overwritten
+    // (e.g. switching a gallery icon → a custom one, or re-picking the same dest), the IconPath
+    // setter's SetField won't fire — so refresh the preview and notify bindings manually.
+    private void SetIconPath(string dest)
+    {
         if (string.Equals(_iconPath, dest, StringComparison.OrdinalIgnoreCase))
         {
             _model.IconPath = dest;
             UpdateIconPreview();
             OnPropertyChanged(nameof(IconPath));
+            OnPropertyChanged(nameof(HasCustomIcon));
             _onChanged(this);
         }
         else
@@ -776,6 +902,16 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var source = _dialogService.ShowBrowseIconFile();
         if (source == null) return;
 
+        // Keep the original in the user's uploads library so it can be re-picked without browsing.
+        UploadLibrary.Save(source, _configService.IconsLibraryDir);
+
+        ApplyCustomIconFile(source);
+    }
+
+    // Copies a custom .ico (from a disk browse or the uploads library) into this profile's managed
+    // icon path and applies it.
+    private void ApplyCustomIconFile(string source)
+    {
         var namePrefix = SanitizeName(_model.Name);
         var guidPrefix = _model.Id.ToString("N")[..8];
         var dest = System.IO.Path.Combine(_configService.IconsDir, $"{namePrefix}-{guidPrefix}.ico");
@@ -789,7 +925,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.Error("ProfileCardViewModel.BrowseIconFromDisk", ex);
+                _logger.Error("ProfileCardViewModel.ApplyCustomIconFile", ex);
                 _errorTracker.Record(ErrorCode.IconCopyFailed, "Icon Copy Failed",
                     $"Could not copy icon file to app storage: {ex.Message}");
                 _dialogService.ShowAlert("Icon Error", $"Could not copy the icon file:\n{ex.Message}");
@@ -801,7 +937,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var previous = _iconPath;
         SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker, exceptPath: dest);
 
-        IconPath = dest;
+        SetIconPath(dest);
     }
 
     private void ApplyNameSuggestion(string suggestion)
@@ -824,8 +960,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void CloneProfile()
     {
-        if (_dialogService.ShowConfirmClone(_model.Name))
-            _onClone(this);
+        var clone = _dialogService.ShowCloneWizard(
+            _model, PlaybackDevices, RecordingDevices, _use12Hour(), CaptureHotkeyForClone);
+        if (clone != null) _onClone(this, clone);
     }
 
     private void DeleteProfile()
@@ -943,6 +1080,8 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         _flashCts?.Dispose();
         _flashCts = null;
         _iconPreview = null;
+        // Drop the view-set callback so a disposed card can't keep the window alive through it.
+        OnSuggestionSelected = null;
     }
 
     private static readonly HashSet<char> _invalidFileNameChars = new(System.IO.Path.GetInvalidFileNameChars());

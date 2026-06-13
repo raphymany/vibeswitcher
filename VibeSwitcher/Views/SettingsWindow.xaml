@@ -122,42 +122,7 @@
         </Style>
 
 
-        <!-- ── Day pill ─────────────────────────────────────────── -->
-        <Style x:Key="DayPillStyle" TargetType="ToggleButton">
-            <Setter Property="Background"      Value="{DynamicResource ChipBg}"/>
-            <Setter Property="BorderBrush"     Value="{DynamicResource ChipBorder}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground"      Value="{DynamicResource ChipText}"/>
-            <Setter Property="FontSize"        Value="11"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Padding"         Value="8,3"/>
-            <Setter Property="Height"          Value="26"/>
-            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border x:Name="bg"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="12"
-                                Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource Accent}"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <!-- DayPillStyle moved to App.xaml (shared with the schedule wizard). -->
 
         <!-- ── Chip button ──────────────────────────────────────── -->
         <Style x:Key="ChipButton" TargetType="Button">
@@ -349,6 +314,10 @@
             <Setter Property="Width"      Value="44"/>
             <Setter Property="Height"     Value="44"/>
             <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+            <!-- Background/BorderBrush flow through TemplateBinding so per-button styles can show an
+                 "enabled" state (orange/green/red tint when the feature is on) like the toggles do. -->
+            <Setter Property="Background"  Value="{DynamicResource VSGlassFill}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource VSGlassBorder}"/>
             <Setter Property="Cursor"     Value="Hand"/>
             <Setter Property="Focusable"  Value="True"/>
             <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
@@ -356,7 +325,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="bg" CornerRadius="8"
-                                Background="{DynamicResource VSGlassFill}" BorderBrush="{DynamicResource VSGlassBorder}" BorderThickness="1">
+                                Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -397,10 +366,112 @@
                                 <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
                             </Trigger>
+                            <!-- Checked + hovered: keep the accent (checked) icon color while still showing the
+                                 hover background. Declared last so it wins over the plain hover trigger — otherwise
+                                 toggling the button on while the cursor is still on it shows no color change. -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked"   Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#40F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                            </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Compact bell (silent) toggle for the Shortcuts mute rows — same icon/behavior as the
+             profile card's silent toggle. Checked (accent) = no notification banner for that shortcut. -->
+        <Style x:Key="MuteBannerToggle" TargetType="ToggleButton">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Width"  Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bg" CornerRadius="7"
+                                Background="{DynamicResource VSGlassFill}" BorderBrush="{DynamicResource VSGlassBorder}" BorderThickness="1">
+                            <Viewbox Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Canvas Width="16" Height="16">
+                                    <Path Data="M8,2 A5,5 0 0 0 3,7 V10 L2,12 H14 L13,10 V7 A5,5 0 0 0 8,2 Z" Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                    <Path Data="M6.5,13.5 A1.5,1.5 0 0 0 9.5,13.5" Fill="Transparent" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    <Path Data="M2,2 L14,14" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                </Canvas>
+                            </Viewbox>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="#1FF5820A"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#40F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsChecked"   Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource VSSurfaceHover}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="#40F5820A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Segmented radio button (Logo animation picker; mirrors the inline Theme picker style).
+             GroupName is set per-instance so different pickers don't share a selection group. -->
+        <Style x:Key="SegmentRadio" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bg" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="BorderBrush" Value="{DynamicResource VSBorderStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Background"  Value="#1DF5820A"/>
+                    <Setter Property="BorderBrush" Value="#38F5820A"/>
+                    <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <!-- ── Tooltip ──────────────────────────────────────────── -->
@@ -477,7 +548,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="Background" Value="#0DF5820A"/>
+                                <!-- 5% orange was invisible over the light title bar — 10% reads in both themes -->
+                                <Setter TargetName="bg" Property="Background" Value="#1AF5820A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -593,21 +665,19 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Left (mini mode): animated logo + title + mini-mode keybind -->
+                <!-- Left (mini mode): animated logo + mini-mode keybind.
+                     The "VibeSwitcher" wordmark is dropped here so the keybind chip always fits
+                     in the narrow (300px) mini title bar alongside the right-side buttons. -->
                 <StackPanel x:Name="MiniTitleGroup" Grid.Column="0" Orientation="Horizontal"
                             VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
-                    <controls:NavLogoIcon Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="VibeSwitcher"
-                               FontSize="11.5" FontWeight="SemiBold"
-                               Foreground="{DynamicResource Accent}"
-                               VerticalAlignment="Center"/>
+                    <controls:NavLogoIcon Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <Border Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
-                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0"
+                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="0"
                             VerticalAlignment="Center" ToolTip="Mini Mode shortcut">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="None">
+                                    <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="Not set">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -616,21 +686,21 @@
                         <TextBlock Text="{Binding CompactHotkeyDisplay}" FontFamily="Courier New"
                                    FontSize="9.5" Foreground="{DynamicResource VSLabel}"/>
                     </Border>
-                    <Ellipse x:Name="MiniMuteDot" Width="9" Height="9" Margin="8,0,0,0"
-                             VerticalAlignment="Center" Visibility="Collapsed"/>
                 </StackPanel>
 
                 <!-- Right: shrink-to-mini / pin / expand / min / max / close -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button x:Name="TitleShrinkBtn" Style="{StaticResource TitleBarBtn}"
-                            Click="TitleShrink_Click" ToolTip="Switch to Mini Mode">
+                            Click="TitleShrink_Click" ToolTip="Switch to Mini Mode"
+                            AutomationProperties.Name="Switch to Mini Mode">
                         <Path Data="{StaticResource IcoCompact}" Stretch="Uniform" Width="11" Height="11"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                               StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                               StrokeLineJoin="Round" Fill="Transparent"/>
                     </Button>
                     <Button x:Name="TitlePinBtn" Click="TitlePin_Click" Visibility="Collapsed"
-                            ToolTip="Keep mini window on top">
+                            ToolTip="Keep mini window on top"
+                            AutomationProperties.Name="Keep mini window on top">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource TitleBarBtn}">
                                 <Style.Triggers>
@@ -647,7 +717,8 @@
                               StrokeLineJoin="Round" Fill="Transparent"/>
                     </Button>
                     <Button x:Name="TitleExpandBtn" Style="{StaticResource TitleBarBtn}"
-                            Click="TitleExpand_Click" Visibility="Collapsed" ToolTip="Back to full window">
+                            Click="TitleExpand_Click" Visibility="Collapsed" ToolTip="Back to full window"
+                            AutomationProperties.Name="Back to full window">
                         <Path Data="{StaticResource IcoExpand}" Stretch="Uniform" Width="11" Height="11"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                               StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -655,12 +726,15 @@
                     </Button>
                     <Button Style="{StaticResource TitleBarBtn}"
                             Content="─" FontSize="11"
+                            AutomationProperties.Name="Minimize" ToolTip="Minimize"
                             Click="TitleMinimize_Click"/>
                     <Button x:Name="TitleMaxBtn" Style="{StaticResource TitleBarBtn}"
                             Content="□"
+                            AutomationProperties.Name="Maximize" ToolTip="Maximize"
                             Click="TitleMaximize_Click"/>
                     <Button Style="{StaticResource TitleBarCloseBtn}"
                             Content="✕"
+                            AutomationProperties.Name="Close" ToolTip="Close"
                             Click="TitleClose_Click"/>
                 </StackPanel>
             </Grid>
@@ -770,6 +844,7 @@
                             Style="{StaticResource NavIconBtn}"
                             Margin="0,0,4,0"
                             ToolTip="About VibeSwitcher"
+                            AutomationProperties.Name="About VibeSwitcher"
                             Click="NavAbout_Click">
                         <Path Data="{StaticResource IcoInfo}" Width="17" Height="17" Stretch="Uniform"
                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -779,6 +854,7 @@
                             Style="{StaticResource NavIconBtn}"
                             Margin="0,0,4,0"
                             ToolTip="Help &amp; FAQ"
+                            AutomationProperties.Name="Help and FAQ"
                             Click="NavFaq_Click">
                         <Path Data="{StaticResource IcoHelp}" Width="17" Height="17" Stretch="Uniform"
                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -788,6 +864,7 @@
                             Style="{StaticResource NavIconBtn}"
                             Margin="0,0,12,0"
                             ToolTip="Settings"
+                            AutomationProperties.Name="Settings"
                             Click="NavSettings_Click">
                         <Path Data="{StaticResource IcoSettings}" Width="17" Height="17" Stretch="Uniform"
                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -954,7 +1031,7 @@
 
             <!-- ── PANEL A: Profiles ─────────────────────────────── -->
             <ScrollViewer x:Name="ProfilesPanel"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="18,18,18,18">
 
@@ -1117,214 +1194,299 @@
                                                                TextTrimming="CharacterEllipsis"
                                                                Margin="0,10,0,0"/>
 
-                                                    <!-- Mode badge -->
-                                                    <Border Margin="0,6,0,0" CornerRadius="10" Padding="8,2.5"
-                                                            HorizontalAlignment="Center">
-                                                        <Border.Style>
-                                                            <Style TargetType="Border">
-                                                                <Setter Property="Background"   Value="#1FF5820A"/>
-                                                                <Setter Property="BorderBrush"  Value="#40F5820A"/>
-                                                                <Setter Property="BorderThickness" Value="1"/>
-                                                                <Style.Triggers>
-                                                                    <MultiDataTrigger>
-                                                                        <MultiDataTrigger.Conditions>
-                                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Visible"/>
-                                                                            <Condition Binding="{Binding RecordingVisible}" Value="Collapsed"/>
-                                                                        </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Background"  Value="#1A4AA8FF"/>
-                                                                        <Setter Property="BorderBrush" Value="#334AA8FF"/>
-                                                                    </MultiDataTrigger>
-                                                                    <MultiDataTrigger>
-                                                                        <MultiDataTrigger.Conditions>
-                                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Collapsed"/>
-                                                                            <Condition Binding="{Binding RecordingVisible}" Value="Visible"/>
-                                                                        </MultiDataTrigger.Conditions>
-                                                                        <Setter Property="Background"  Value="#1A30D278"/>
-                                                                        <Setter Property="BorderBrush" Value="#3330D278"/>
-                                                                    </MultiDataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Border.Style>
+                                                    <!-- Mode chip — same geometry as every other card chip; brand orange for all modes -->
+                                                    <Border Margin="0,8,0,0" CornerRadius="6" Padding="8,3"
+                                                            HorizontalAlignment="Center"
+                                                            Background="#1FF5820A" BorderBrush="#40F5820A" BorderThickness="1">
                                                         <TextBlock Text="{Binding ModeLabel}"
-                                                                   FontSize="9.5" FontWeight="SemiBold">
-                                                            <TextBlock.Style>
-                                                                <Style TargetType="TextBlock">
-                                                                    <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
-                                                                    <Style.Triggers>
-                                                                        <MultiDataTrigger>
-                                                                            <MultiDataTrigger.Conditions>
-                                                                                <Condition Binding="{Binding PlaybackVisible}" Value="Visible"/>
-                                                                                <Condition Binding="{Binding RecordingVisible}" Value="Collapsed"/>
-                                                                            </MultiDataTrigger.Conditions>
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSBlue}"/>
-                                                                        </MultiDataTrigger>
-                                                                        <MultiDataTrigger>
-                                                                            <MultiDataTrigger.Conditions>
-                                                                                <Condition Binding="{Binding PlaybackVisible}" Value="Collapsed"/>
-                                                                                <Condition Binding="{Binding RecordingVisible}" Value="Visible"/>
-                                                                            </MultiDataTrigger.Conditions>
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSMint}"/>
-                                                                        </MultiDataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </TextBlock.Style>
-                                                        </TextBlock>
+                                                                   FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource Accent}"/>
                                                     </Border>
 
-                                                    <!-- Separator (badge → devices) -->
-                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
+                                                    <!-- Separator (mode → sections). Spacing rule for the whole card body: every
+                                                         chip and separator uses a uniform 8px top margin — chips can be individually
+                                                         hidden, so any mixed margins would make separator gaps uneven depending on
+                                                         which chip happens to be first/last in a group. -->
+                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,8,0,0" Width="220"/>
 
-                                                    <!-- Device rows -->
-                                                    <StackPanel Margin="0,10,0,0">
-                                                        <TextBlock Text="{Binding SelectedPlaybackDevice.FriendlyName}"
-                                                                   FontSize="11" Foreground="{DynamicResource VSLabel}"
-                                                                   HorizontalAlignment="Center"
-                                                                   MaxWidth="220" TextTrimming="CharacterEllipsis"
-                                                                   Margin="0,0,0,4"
-                                                                   Visibility="{Binding PlaybackVisible}"/>
-                                                        <TextBlock Text="{Binding SelectedRecordingDevice.FriendlyName}"
-                                                                   FontSize="11" Foreground="{DynamicResource VSLabel}"
-                                                                   HorizontalAlignment="Center"
-                                                                   MaxWidth="220" TextTrimming="CharacterEllipsis"
-                                                                   Visibility="{Binding RecordingVisible}"/>
+                                                    <!-- Schedule & sound section — its own separator-delimited block between the
+                                                         mode chip and the devices; chips share the mode chip's orange palette -->
+                                                    <StackPanel Visibility="{Binding HasVisibilityChips, Converter={StaticResource BoolToVis}}">
+                                                        <!-- Schedule chip — one schedule edits directly; several open the manage dialog -->
+                                                        <Button Command="{Binding ManageSchedulesCommand}"
+                                                                Click="ChipButton_Click"
+                                                                Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                                                                HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                                ToolTip="Click to view or edit schedules"
+                                                                Visibility="{Binding HasSchedules, Converter={StaticResource BoolToVis}}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="Button">
+                                                                                <Border x:Name="bd"
+                                                                                        Background="#1FF5820A"
+                                                                                        BorderBrush="#40F5820A"
+                                                                                        BorderThickness="1"
+                                                                                        CornerRadius="6"
+                                                                                        Padding="8,3">
+                                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                </Border>
+                                                                                <ControlTemplate.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter TargetName="bd" Property="Background" Value="#33F5820A"/>
+                                                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#66F5820A"/>
+                                                                                    </Trigger>
+                                                                                </ControlTemplate.Triggers>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                    <Canvas Width="16" Height="16">
+                                                                        <Path Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7"
+                                                                              Fill="Transparent" Stroke="{DynamicResource Accent}"
+                                                                              StrokeThickness="1.4" StrokeStartLineCap="Round"
+                                                                              StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                                <TextBlock Text="{Binding ScheduleSummaryText}"
+                                                                           FontFamily="Consolas" FontSize="10"
+                                                                           Foreground="{DynamicResource Accent}" VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                        </Button>
+
+                                                        <!-- Sound chip — clickable, opens sound configuration -->
+                                                        <Button Command="{Binding ConfigureSoundCommand}"
+                                                                Click="ChipButton_Click"
+                                                                Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                                                                HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                                ToolTip="Click to configure switch sound"
+                                                                Visibility="{Binding SoundOverride, Converter={StaticResource BoolToVis}}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="Button">
+                                                                                <Border x:Name="bd"
+                                                                                        Background="#1FF5820A"
+                                                                                        BorderBrush="#40F5820A"
+                                                                                        BorderThickness="1"
+                                                                                        CornerRadius="6"
+                                                                                        Padding="8,3">
+                                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                                </Border>
+                                                                                <ControlTemplate.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter TargetName="bd" Property="Background" Value="#33F5820A"/>
+                                                                                        <Setter TargetName="bd" Property="BorderBrush" Value="#66F5820A"/>
+                                                                                    </Trigger>
+                                                                                </ControlTemplate.Triggers>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                    <Canvas Width="16" Height="16">
+                                                                        <Path Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7"
+                                                                              Fill="Transparent" Stroke="{DynamicResource Accent}"
+                                                                              StrokeThickness="1.7" StrokeStartLineCap="Round"
+                                                                              StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                                <TextBlock Text="{Binding SoundSummary}"
+                                                                           FontFamily="Consolas" FontSize="10"
+                                                                           Foreground="{DynamicResource Accent}" VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis"/>
+                                                            </StackPanel>
+                                                        </Button>
+
+                                                        <!-- Separator (schedule/sound → devices) -->
+                                                        <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,8,0,0" Width="220"/>
                                                     </StackPanel>
 
-                                                    <!-- Chips section: separator + chips, only shown when chips exist -->
-                                                    <StackPanel Visibility="{Binding HasVisibilityChips, Converter={StaticResource BoolToVis}}">
-                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
-
-                                                    <!-- Schedule chip — clickable, edits existing schedule -->
-                                                    <Button Command="{Binding EditFirstScheduleCommand}"
-                                                            Click="ChipButton_Click"
-                                                            Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
-                                                            HorizontalAlignment="Center" Margin="0,10,0,0"
-                                                            ToolTip="Click to edit schedule"
-                                                            Visibility="{Binding HasSchedules, Converter={StaticResource BoolToVis}}">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button">
-                                                                <Setter Property="Template">
-                                                                    <Setter.Value>
-                                                                        <ControlTemplate TargetType="Button">
-                                                                            <Border x:Name="bd"
-                                                                                    Background="{DynamicResource VSScheduleBg}"
-                                                                                    BorderBrush="{DynamicResource VSScheduleBorder}"
-                                                                                    BorderThickness="1"
-                                                                                    CornerRadius="4"
-                                                                                    Padding="8,3">
-                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                            </Border>
-                                                                            <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource VSScheduleHoverBg}"/>
-                                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource VSScheduleHoverBorder}"/>
-                                                                                </Trigger>
-                                                                            </ControlTemplate.Triggers>
-                                                                        </ControlTemplate>
-                                                                    </Setter.Value>
-                                                                </Setter>
-                                                            </Style>
-                                                        </Button.Style>
+                                                    <!-- Device chips — same geometry as the rest, neutral palette -->
+                                                    <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
+                                                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                            Padding="8,3" HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                            Visibility="{Binding PlaybackVisible}">
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                            <Viewbox Width="10" Height="10" Margin="0,0,5,0">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Path Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7"
-                                                                          Fill="Transparent" Stroke="{DynamicResource VSBlue}"
+                                                                    <Path Data="M2.5,6 H5.5 L9.5,2.5 V13.5 L5.5,10 H2.5 Z M11.5,5.5 A3.6,3.6 0 0 1 11.5,10.5"
+                                                                          Fill="Transparent" Stroke="{DynamicResource VSLabel}"
                                                                           StrokeThickness="1.4" StrokeStartLineCap="Round"
                                                                           StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                                                 </Canvas>
                                                             </Viewbox>
-                                                            <TextBlock Text="{Binding ScheduleSummaryText}"
-                                                                       FontFamily="Consolas" FontSize="10"
-                                                                       Foreground="{DynamicResource VSBlue}" VerticalAlignment="Center"
-                                                                       TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding SelectedPlaybackDevice.FriendlyName}"
+                                                                       FontSize="10" Foreground="{DynamicResource VSLabel}"
+                                                                       VerticalAlignment="Center"
+                                                                       MaxWidth="180" TextTrimming="CharacterEllipsis"/>
                                                         </StackPanel>
-                                                    </Button>
-
-                                                    <!-- Sound chip — clickable, opens sound configuration -->
-                                                    <Button Command="{Binding ConfigureSoundCommand}"
-                                                            Click="ChipButton_Click"
-                                                            Cursor="Hand" FocusVisualStyle="{StaticResource AccentFocusVisual}"
-                                                            HorizontalAlignment="Center" Margin="0,10,0,0"
-                                                            ToolTip="Click to configure switch sound"
-                                                            Visibility="{Binding SoundOverride, Converter={StaticResource BoolToVis}}">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button">
-                                                                <Setter Property="Template">
-                                                                    <Setter.Value>
-                                                                        <ControlTemplate TargetType="Button">
-                                                                            <Border x:Name="bd"
-                                                                                    Background="{DynamicResource VSSoundBg}"
-                                                                                    BorderBrush="{DynamicResource VSSoundBorder}"
-                                                                                    BorderThickness="1"
-                                                                                    CornerRadius="4"
-                                                                                    Padding="8,3">
-                                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                            </Border>
-                                                                            <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter TargetName="bd" Property="Background" Value="{DynamicResource VSSoundHoverBg}"/>
-                                                                                    <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource VSSoundHoverBorder}"/>
-                                                                                </Trigger>
-                                                                            </ControlTemplate.Triggers>
-                                                                        </ControlTemplate>
-                                                                    </Setter.Value>
-                                                                </Setter>
-                                                            </Style>
-                                                        </Button.Style>
+                                                    </Border>
+                                                    <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
+                                                            BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
+                                                            Padding="8,3" HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                            Visibility="{Binding RecordingVisible}">
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                            <Viewbox Width="10" Height="10" Margin="0,0,5,0">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Path Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7"
-                                                                          Fill="Transparent" Stroke="{DynamicResource VSGreen}"
-                                                                          StrokeThickness="1.7" StrokeStartLineCap="Round"
+                                                                    <Rectangle Canvas.Left="6" Canvas.Top="1.5" Width="4" Height="7.5"
+                                                                               RadiusX="2" RadiusY="2"
+                                                                               Fill="Transparent" Stroke="{DynamicResource VSLabel}"
+                                                                               StrokeThickness="1.4"/>
+                                                                    <Path Data="M4,7.5 A4,4 0 0 0 12,7.5 M8,11.5 V14 M5.5,14 H10.5"
+                                                                          Fill="Transparent" Stroke="{DynamicResource VSLabel}"
+                                                                          StrokeThickness="1.4" StrokeStartLineCap="Round"
                                                                           StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
                                                                 </Canvas>
                                                             </Viewbox>
-                                                            <TextBlock Text="{Binding SoundSummary}"
-                                                                       FontFamily="Consolas" FontSize="10"
-                                                                       Foreground="{DynamicResource VSGreen}" VerticalAlignment="Center"
-                                                                       TextTrimming="CharacterEllipsis"/>
+                                                            <TextBlock Text="{Binding SelectedRecordingDevice.FriendlyName}"
+                                                                       FontSize="10" Foreground="{DynamicResource VSLabel}"
+                                                                       VerticalAlignment="Center"
+                                                                       MaxWidth="180" TextTrimming="CharacterEllipsis"/>
                                                         </StackPanel>
-                                                    </Button>
-                                                    </StackPanel>
+                                                    </Border>
 
-                                                    <!-- Hotkey section: separator + chip, only shown when a hotkey is set -->
-                                                    <StackPanel Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
-                                                    <Border Height="1" Background="{DynamicResource VSHairline}" Margin="0,10,0,0" Width="220"/>
-                                                    <Border CornerRadius="4" Background="{DynamicResource HotkeyBg}"
+                                                    <!-- Hotkey chip -->
+                                                    <Border CornerRadius="6" Background="{DynamicResource HotkeyBg}"
                                                             BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                                                             Padding="8,3"
                                                             HorizontalAlignment="Center"
-                                                            Margin="0,10,0,0">
+                                                            Margin="0,8,0,0"
+                                                            Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
                                                         <StackPanel Orientation="Horizontal">
                                                             <TextBlock Text="&#x2328;" FontSize="9" Foreground="{DynamicResource VSLabel}"
                                                                        VerticalAlignment="Center" Margin="0,-4,5,0"/>
                                                             <TextBlock Text="{Binding HotkeyDisplay}"
-                                                                       FontFamily="Consolas" FontSize="11"
+                                                                       FontFamily="Consolas" FontSize="10"
                                                                        Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                                         </StackPanel>
                                                     </Border>
-                                                    </StackPanel>
                                                 </StackPanel>
                                             </Button>
 
-                                            <!-- Always-visible action strip -->
+                                            <!-- Always-visible action strip. The bottom corner radius (card radius 14 minus the 1px
+                                                 border) keeps the strip's fill from painting square corners over the card's rounded
+                                                 border stroke — without it the orange active border looks cut at the bottom corners. -->
                                             <Border Grid.Row="1" BorderBrush="{DynamicResource VSHairline}" BorderThickness="0,1,0,0"
+                                                    CornerRadius="0,0,13,13"
                                                     Padding="10,7,10,9" Background="{DynamicResource VSStripOverlay}">
                                                 <StackPanel>
-                                                    <!-- Row 1: 5 buttons, space-between -->
+                                                    <!-- Row 1: favorite, app triggers, auto-switch, activate (power, top-right) -->
                                                     <Grid Margin="0,0,0,14">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <!-- 1. Favorite/Pin — filled star -->
+                                                        <ToggleButton Grid.Column="0" HorizontalAlignment="Center"
+                                                                      IsChecked="{Binding IsPinned}"
+                                                                      Style="{StaticResource CardActionToggle}"
+                                                                      ToolTip="Pin to top of list"
+                                                                      AutomationProperties.Name="Pin to top of list">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
+                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </ToggleButton>
+                                                        <!-- 2. App triggers — lightning bolt -->
+                                                        <Button Grid.Column="1" HorizontalAlignment="Center"
+                                                                Command="{Binding OpenAppTriggersCommand}"
+                                                                ToolTip="App launch triggers"
+                                                                AutomationProperties.Name="App launch triggers">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding HasAppTriggers}" Value="True">
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                                                                            <Setter Property="Background"  Value="#1FF5820A"/>
+                                                                            <Setter Property="BorderBrush" Value="#40F5820A"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M10,1.5 L3.5,9.5 H7.5 L6,14.5 L13.5,6.5 H9.5 Z"
+                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                        <!-- 3. Auto-switch — power plug (dim when Recording-only, not supported) -->
+                                                        <ToggleButton Grid.Column="2" HorizontalAlignment="Center"
+                                                                      IsChecked="{Binding TriggerOnConnect}"
+                                                                      ToolTip="Auto-switch on device connect"
+                                                                      AutomationProperties.Name="Auto-switch on device connect">
+                                                            <ToggleButton.Style>
+                                                                <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding TriggerOnConnectVisible}" Value="Collapsed">
+                                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                                            <Setter Property="Opacity" Value="0.28"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ToggleButton.Style>
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Data="M6,1.5 L6,5 M10,1.5 L10,5 M3.5,5 H12.5 V7.5 A4.5,4.5 0 0 1 8,12 A4.5,4.5 0 0 1 3.5,7.5 Z M8,12 L8,14.5 M6,14.5 L10,14.5"
+                                                                          Fill="Transparent"
+                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                          StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </ToggleButton>
+                                                        <!-- 4. Activate — power symbol (top-right) -->
+                                                        <Button Grid.Column="3" HorizontalAlignment="Center"
+                                                                Command="{Binding ActivateCommand}"
+                                                                ToolTip="Activate this profile"
+                                                                AutomationProperties.Name="Activate this profile">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource VSGreen}"/>
+                                                                            <Setter Property="Background"  Value="#1F30D278"/>
+                                                                            <Setter Property="BorderBrush" Value="#4030D278"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Button.Style>
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <!-- Power symbol: broken ring + vertical stroke -->
+                                                                    <Path Data="M11.2,4.1 A5.4,5.4 0 1 1 4.8,4.1 M8,1.2 L8,7.6"
+                                                                          Fill="Transparent"
+                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                          StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                    </Grid>
+                                                    <!-- Row 2: silent, schedule, sound, delete (bottom-right); columns align with row 1 -->
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <!-- 1. Silent — bell with slash -->
+                                                        <!-- 5. Silent — bell with slash -->
                                                         <ToggleButton Grid.Column="0" HorizontalAlignment="Center"
                                                                       IsChecked="{Binding Silent}"
-                                                                      ToolTip="Toggle silent mode">
+                                                                      ToolTip="Toggle silent mode"
+                                                                      AutomationProperties.Name="Toggle silent mode">
                                                             <ToggleButton.Style>
                                                                 <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
                                                                     <Style.Triggers>
@@ -1351,114 +1513,17 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </ToggleButton>
-                                                        <!-- 2. App triggers — lightning bolt -->
+                                                        <!-- 6. Schedule — clock with hands -->
                                                         <Button Grid.Column="1" HorizontalAlignment="Center"
-                                                                Command="{Binding OpenAppTriggersCommand}"
-                                                                ToolTip="App launch triggers">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding HasAppTriggers}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                            <Viewbox Width="18" Height="18">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Path Data="M10,1.5 L3.5,9.5 H7.5 L6,14.5 L13.5,6.5 H9.5 Z"
-                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </Button>
-                                                        <!-- 3. Auto-switch — power plug (dim when Recording-only, not supported) -->
-                                                        <ToggleButton Grid.Column="2" HorizontalAlignment="Center"
-                                                                      IsChecked="{Binding TriggerOnConnect}"
-                                                                      ToolTip="Auto-switch on device connect">
-                                                            <ToggleButton.Style>
-                                                                <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding TriggerOnConnectVisible}" Value="Collapsed">
-                                                                            <Setter Property="IsEnabled" Value="False"/>
-                                                                            <Setter Property="Opacity" Value="0.28"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </ToggleButton.Style>
-                                                            <Viewbox Width="18" Height="18">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Path Data="M6,1.5 L6,5 M10,1.5 L10,5 M3.5,5 H12.5 V7.5 A4.5,4.5 0 0 1 8,12 A4.5,4.5 0 0 1 3.5,7.5 Z M8,12 L8,14.5 M6,14.5 L10,14.5"
-                                                                          Fill="Transparent"
-                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                          StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </ToggleButton>
-                                                        <!-- 4. Favorite/Pin — filled star -->
-                                                        <ToggleButton Grid.Column="3" HorizontalAlignment="Center"
-                                                                      IsChecked="{Binding IsPinned}"
-                                                                      Style="{StaticResource CardActionToggle}"
-                                                                      ToolTip="Pin to top of list">
-                                                            <Viewbox Width="18" Height="18">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
-                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </ToggleButton>
-                                                        <!-- 5. Activate — circle + checkmark -->
-                                                        <Button Grid.Column="4" HorizontalAlignment="Center"
-                                                                Command="{Binding ActivateCommand}"
-                                                                ToolTip="Activate this profile">
-                                                            <Button.Style>
-                                                                <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSGreen}"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Button.Style>
-                                                            <Viewbox Width="18" Height="18">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Ellipse Canvas.Left="1" Canvas.Top="1" Width="14" Height="14"
-                                                                             Fill="Transparent"
-                                                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                             StrokeThickness="1.7"/>
-                                                                    <Path Data="M4.5,8 L7,10.5 L11.5,5.5"
-                                                                          Fill="Transparent"
-                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                          StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </Button>
-                                                    </Grid>
-                                                    <!-- Row 2: 4 buttons, centered with 10px gap -->
-                                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                        <!-- 6. Clone — two overlapping rectangles -->
-                                                        <Button Style="{StaticResource CardActionBtn}" Margin="10,0"
-                                                                Command="{Binding CloneCommand}" ToolTip="Clone this profile">
-                                                            <Viewbox Width="18" Height="18">
-                                                                <Canvas Width="16" Height="16">
-                                                                    <Rectangle Canvas.Left="2" Canvas.Top="5.5" Width="8.5" Height="8.5" RadiusX="2" RadiusY="2"
-                                                                               Fill="Transparent"
-                                                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                               StrokeThickness="1.6"/>
-                                                                    <Rectangle Canvas.Left="5.5" Canvas.Top="2" Width="8.5" Height="8.5" RadiusX="2" RadiusY="2"
-                                                                               Fill="Transparent"
-                                                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                               StrokeThickness="1.6"/>
-                                                                </Canvas>
-                                                            </Viewbox>
-                                                        </Button>
-                                                        <!-- 7. Schedule — clock with hands -->
-                                                        <Button Margin="10,0"
-                                                                Command="{Binding AddScheduleCommand}" ToolTip="Schedule this profile">
+                                                                Command="{Binding AddScheduleCommand}" ToolTip="Schedule this profile"
+                                                                AutomationProperties.Name="Schedule this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding HasSchedules}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSBlue}"/>
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                                                                            <Setter Property="Background"  Value="#1FF5820A"/>
+                                                                            <Setter Property="BorderBrush" Value="#40F5820A"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -1472,14 +1537,17 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 8. Sound — sine wave -->
-                                                        <Button Margin="10,0"
-                                                                Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound">
+                                                        <!-- 7. Sound — music notes -->
+                                                        <Button Grid.Column="2" HorizontalAlignment="Center"
+                                                                Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound"
+                                                                AutomationProperties.Name="Configure switch sound">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                            <Setter Property="Foreground" Value="{DynamicResource VSGreen}"/>
+                                                                            <Setter Property="Foreground"  Value="{DynamicResource Accent}"/>
+                                                                            <Setter Property="Background"  Value="#1FF5820A"/>
+                                                                            <Setter Property="BorderBrush" Value="#40F5820A"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -1493,11 +1561,15 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                        <!-- 9. Delete — trash can -->
-                                                        <Button Margin="10,0"
-                                                                Command="{Binding DeleteCommand}" ToolTip="Delete this profile">
+                                                        <!-- 8. Delete — trash can, always red, bottom-right -->
+                                                        <Button Grid.Column="3" HorizontalAlignment="Center"
+                                                                Command="{Binding DeleteCommand}" ToolTip="Delete this profile"
+                                                                AutomationProperties.Name="Delete this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
+                                                                    <Setter Property="Foreground"  Value="{DynamicResource ErrorText}"/>
+                                                                    <Setter Property="Background"  Value="#1FE13737"/>
+                                                                    <Setter Property="BorderBrush" Value="#40E13737"/>
                                                                     <Style.Triggers>
                                                                         <Trigger Property="IsMouseOver" Value="True">
                                                                             <Setter Property="Foreground" Value="{DynamicResource ErrorText}"/>
@@ -1514,7 +1586,7 @@
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </Button>
-                                                    </StackPanel>
+                                                    </Grid>
                                                 </StackPanel>
                                             </Border>
                                         </Grid>
@@ -1864,7 +1936,7 @@
                 </Border>
 
                 <!-- RIGHT CONTENT -->
-                <ScrollViewer Grid.Column="1" Focusable="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer Grid.Column="1" Focusable="True" IsTabStop="False" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="22,20,22,20">
 
                         <!-- ── Startup ──────────────────────── -->
@@ -1897,6 +1969,20 @@
                                     <Grid Margin="14,10">
                                         <TextBlock Text="Close to tray" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                         <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CloseToTray}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="14,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                            <TextBlock Text="Catch up missed schedules" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                            <TextBlock Text="If a scheduled switch was missed while the PC was off or asleep, fire it on wake or launch (within 2 hours)"
+                                                       FontSize="10.5" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding SchedulerCatchUp}"
                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
@@ -2005,6 +2091,53 @@
                                         </StackPanel>
                                     </Grid>
                                     <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <!-- Logo animation row -->
+                                    <Grid Margin="14,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="Logo animation" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                            <TextBlock Text="Lower it or turn it off to reduce CPU while the window is open" FontSize="10.5" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <RadioButton Content="Full" Tag="Full" GroupName="LogoAnimGroup" Checked="LogoAnimRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource SegmentRadio}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding LogoAnimation}" Value="Full">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                            <RadioButton Content="Reduced" Tag="Reduced" GroupName="LogoAnimGroup" Checked="LogoAnimRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource SegmentRadio}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding LogoAnimation}" Value="Reduced">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                            <RadioButton Content="Static" Tag="Static" Margin="0" GroupName="LogoAnimGroup" Checked="LogoAnimRadio_Checked">
+                                                <RadioButton.Style>
+                                                    <Style TargetType="RadioButton" BasedOn="{StaticResource SegmentRadio}">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding LogoAnimation}" Value="Static">
+                                                                <Setter Property="IsChecked" Value="True"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </RadioButton.Style>
+                                            </RadioButton>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
                                     <Grid Margin="14,10">
                                         <TextBlock Text="Use 24-hour clock" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                         <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding Use24HourClock}"
@@ -2029,8 +2162,16 @@
                             <TextBlock Text="Notifications" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
                             <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
                                 <Grid Margin="14,10">
-                                    <TextBlock Text="Show device switch alerts" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                    <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowNotifications}"
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Show switch &amp; warning alerts" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                        <TextBlock Text="Master switch for tray banners. Per-profile Silent still applies on top when this is on; turning it off also hides device-unavailable warnings."
+                                                   FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowNotifications}"
                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
@@ -2123,6 +2264,39 @@
                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
+
+                            <!-- Tray menu items: choose which optional actions appear in the right-click menu. -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="TRAY MENU ITEMS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBlock Text="Choose which items show in the tray's right-click menu. Settings and Exit are always shown."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="About" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowAbout}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="Help &amp; FAQ" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowFaq}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="Mini Mode" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowMiniMode}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="Open Sound Settings" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowSoundSettings}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
 
                         <!-- ── Shortcuts ─────────────────────── -->
@@ -2154,7 +2328,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2183,14 +2357,18 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Microphone" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteMicSilent}" ToolTip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Microphone banner"/>
+                                        <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteMicHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding MuteMicHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding MuteMicHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2198,8 +2376,8 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </Border>
-                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Mic" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
-                                        <Button Grid.Column="3" Content="✕" Tag="Mic" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                        <Button Grid.Column="3" Content="Set" Style="{StaticResource ActionButton}" Tag="Mic" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="4" Content="✕" Tag="Mic" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
                                                     <Style.Triggers>
@@ -2219,14 +2397,18 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteSpeakersSilent}" ToolTip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Speakers banner"/>
+                                        <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteSpeakersHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding MuteSpeakersHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding MuteSpeakersHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2234,8 +2416,8 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </Border>
-                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Speakers" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
-                                        <Button Grid.Column="3" Content="✕" Tag="Speakers" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                        <Button Grid.Column="3" Content="Set" Style="{StaticResource ActionButton}" Tag="Speakers" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="4" Content="✕" Tag="Speakers" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
                                                     <Style.Triggers>
@@ -2255,14 +2437,18 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Mic + Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                        <Border Grid.Column="1" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
+                                        <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteBothSilent}" ToolTip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Mic and Speakers banner"/>
+                                        <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteBothHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding MuteBothHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding MuteBothHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2270,8 +2456,8 @@
                                                 </TextBlock.Style>
                                             </TextBlock>
                                         </Border>
-                                        <Button Grid.Column="2" Content="Set" Style="{StaticResource ActionButton}" Tag="Both" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
-                                        <Button Grid.Column="3" Content="✕" Tag="Both" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
+                                        <Button Grid.Column="3" Content="Set" Style="{StaticResource ActionButton}" Tag="Both" Margin="6,0,0,0" Click="MuteHotkeyButton_Click"/>
+                                        <Button Grid.Column="4" Content="✕" Tag="Both" Margin="4,0,0,0" Click="MuteHotkeyClear_Click">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
                                                     <Style.Triggers>
@@ -2329,7 +2515,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2465,6 +2651,18 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- Reset settings (keeps profiles and data) -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="RESET SETTINGS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,6"/>
+                                    <TextBlock Text="Returns every app setting to its default — theme, notifications, shortcuts, Mini Mode, and the rest. Your profiles, schedules, app triggers, and device aliases are kept."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <Button Content="Reset settings to defaults…" Style="{StaticResource DangerButton}"
+                                            HorizontalAlignment="Left" Command="{Binding ResetSettingsCommand}"/>
+                                </StackPanel>
+                            </Border>
+
                             <!-- Uninstall (button disabled for portable copies) -->
                             <Border x:Name="UninstallCard" Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
                                 <StackPanel Margin="14,12">
@@ -2490,7 +2688,7 @@
             <ScrollViewer x:Name="MiniPanel"
                           Visibility="Collapsed"
                           VerticalScrollBarVisibility="Auto"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           Padding="10,8,10,4">
                 <Grid>
                 <ItemsControl x:Name="MiniList">
@@ -2527,9 +2725,14 @@
                                     <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
                                                Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis"/>
-                                    <Ellipse Grid.Column="2" Width="8" Height="8" Fill="{DynamicResource Accent}"
-                                             VerticalAlignment="Center" Margin="8,0,2,0"
-                                             Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}"/>
+                                    <!-- This profile's activation hotkey -->
+                                    <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
+                                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,2,0"
+                                            VerticalAlignment="Center"
+                                            Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="Courier New"
+                                                   FontSize="9.5" Foreground="{DynamicResource VSLabel}"/>
+                                    </Border>
                                 </Grid>
                             </Button>
                         </DataTemplate>
@@ -2549,23 +2752,30 @@
                                     Command="{Binding ActivateCommand}"
                                     ToolTip="{Binding Name}"
                                     ToolTipService.ShowOnDisabled="True">
-                                <Grid Width="30" Height="30">
-                                    <Image Source="{Binding IconPreview}" Stretch="Uniform"
-                                           RenderOptions.BitmapScalingMode="HighQuality"
-                                           Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
-                                    <controls:AboutLogoIcon Width="26" Height="26">
-                                        <controls:AboutLogoIcon.Style>
-                                            <Style TargetType="controls:AboutLogoIcon">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </controls:AboutLogoIcon.Style>
-                                    </controls:AboutLogoIcon>
-                                </Grid>
+                                <StackPanel VerticalAlignment="Center">
+                                    <Grid Width="26" Height="26" HorizontalAlignment="Center">
+                                        <Image Source="{Binding IconPreview}" Stretch="Uniform"
+                                               RenderOptions.BitmapScalingMode="HighQuality"
+                                               Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
+                                        <controls:AboutLogoIcon Width="24" Height="24">
+                                            <controls:AboutLogoIcon.Style>
+                                                <Style TargetType="controls:AboutLogoIcon">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasCustomIcon}" Value="False">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </controls:AboutLogoIcon.Style>
+                                        </controls:AboutLogoIcon>
+                                    </Grid>
+                                    <!-- This profile's activation hotkey -->
+                                    <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="Courier New" FontSize="8"
+                                               Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center"
+                                               Margin="0,2,0,0" TextTrimming="CharacterEllipsis" MaxWidth="52"
+                                               Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}"/>
+                                </StackPanel>
                             </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -2576,7 +2786,7 @@
             <!-- ── PANEL C: About ─────────────────────────────────── -->
             <ScrollViewer x:Name="AboutPanel"
                           Visibility="Collapsed"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
@@ -2594,9 +2804,8 @@
                             </Grid.ColumnDefinitions>
                             <controls:AboutLogoIcon Grid.Column="0" Width="84" Height="84" Margin="0,0,20,0"/>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <TextBlock FontSize="20" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}">
-                                    <Run Text="Vibe"/><Run Text="Switcher" Foreground="{DynamicResource Accent}"/>
-                                </TextBlock>
+                                <TextBlock Text="VibeSwitcher" FontSize="20" FontWeight="Bold"
+                                           Foreground="{DynamicResource Accent}"/>
                                 <TextBlock x:Name="AboutVersionText"
                                            FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0"/>
                                 <TextBlock Text="Manage audio device profiles with global hotkeys, schedules, app triggers, and headset auto-detection."
@@ -2611,13 +2820,38 @@
                         <StackPanel>
                             <TextBlock Text="LINKS" FontSize="10" FontWeight="SemiBold"
                                        Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,12"/>
-                            <WrapPanel>
+            <WrapPanel>
+                                <!-- Placeholder until the site exists — set Tag to the URL and
+                                     remove IsEnabled/Opacity to activate. -->
+                                <Button Style="{StaticResource LinkChipStyle}" IsEnabled="False" Opacity="0.45"
+                                        ToolTip="Coming soon" ToolTipService.ShowOnDisabled="True">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Website" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
                                 <Button Style="{StaticResource LinkChipStyle}"
                                         Tag="https://github.com/raphymany/vibeswitcher"
                                         Click="LinkChip_Click">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="GitHub" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher/issues/new/choose"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Report a bug" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource LinkChipStyle}"
+                                        Tag="https://github.com/raphymany/vibeswitcher/blob/main/README.md"
+                                        Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="ReadMe" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Style="{StaticResource LinkChipStyle}"
@@ -2634,14 +2868,6 @@
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
                                         <TextBlock Text="License (MIT)" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Button>
-                                <Button Style="{StaticResource LinkChipStyle}"
-                                        Tag="https://github.com/raphymany/vibeswitcher/issues/new/choose"
-                                        Click="LinkChip_Click">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Report a bug" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </WrapPanel>
@@ -2668,9 +2894,9 @@
                                     <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="NAudio" FontSize="12" FontWeight="SemiBold"
+                                <TextBlock Grid.Column="0" Text="Windows Core Audio" FontSize="12" FontWeight="SemiBold"
                                            Foreground="{DynamicResource PrimaryText}"/>
-                                <TextBlock Grid.Column="1" Text="Audio playback and device management" FontSize="12"
+                                <TextBlock Grid.Column="1" Text="Device switching via IPolicyConfig COM" FontSize="12"
                                            Foreground="{DynamicResource SecondaryText}"/>
                             </Grid>
                             <Grid Margin="0,0,0,6">
@@ -2678,9 +2904,29 @@
                                     <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="CoreAudio" FontSize="12" FontWeight="SemiBold"
+                                <TextBlock Grid.Column="0" Text="System.Media" FontSize="12" FontWeight="SemiBold"
                                            Foreground="{DynamicResource PrimaryText}"/>
-                                <TextBlock Grid.Column="1" Text="Windows audio COM APIs" FontSize="12"
+                                <TextBlock Grid.Column="1" Text="Switch sound playback" FontSize="12"
+                                           Foreground="{DynamicResource SecondaryText}"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="HidSharp" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryText}"/>
+                                <TextBlock Grid.Column="1" Text="Wireless headset detection" FontSize="12"
+                                           Foreground="{DynamicResource SecondaryText}"/>
+                            </Grid>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="H.NotifyIcon" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryText}"/>
+                                <TextBlock Grid.Column="1" Text="System tray icon and notifications" FontSize="12"
                                            Foreground="{DynamicResource SecondaryText}"/>
                             </Grid>
                             <Grid>
@@ -2688,9 +2934,9 @@
                                     <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="HID API" FontSize="12" FontWeight="SemiBold"
+                                <TextBlock Grid.Column="0" Text="Inno Setup" FontSize="12" FontWeight="SemiBold"
                                            Foreground="{DynamicResource PrimaryText}"/>
-                                <TextBlock Grid.Column="1" Text="Wireless headset detection" FontSize="12"
+                                <TextBlock Grid.Column="1" Text="Windows installer" FontSize="12"
                                            Foreground="{DynamicResource SecondaryText}"/>
                             </Grid>
                         </StackPanel>
@@ -2703,8 +2949,16 @@
                                        Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,10"/>
                             <TextBlock Text="Designed and built by" FontSize="11"
                                        Foreground="{DynamicResource SecondaryText}"/>
-                            <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
-                                       Foreground="{DynamicResource PrimaryText}" Margin="0,2,0,10"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                                <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"/>
+                                <Border CornerRadius="6" Background="#1FF5820A" BorderBrush="#40F5820A"
+                                        BorderThickness="1" Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center"
+                                        ToolTip="Pair-programmed with Anthropic's Claude Code">
+                                    <TextBlock Text="with Claude Code" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource Accent}"/>
+                                </Border>
+                            </StackPanel>
                             <TextBlock Text="&#xA9; 2026 Raphael Mansour. All rights reserved."
                                        FontSize="11" Foreground="{DynamicResource DisabledText}"/>
                         </StackPanel>
@@ -2716,7 +2970,7 @@
             <!-- ── PANEL D: FAQ ───────────────────────────────────── -->
             <ScrollViewer x:Name="FaqPanel"
                           Visibility="Collapsed"
-                          Focusable="True"
+                          Focusable="True" IsTabStop="False"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
@@ -2727,7 +2981,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="WHAT IS VIBESWITCHER?" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="WHAT IS VIBESWITCHER?" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 VibeSwitcher is a Windows system tray app that lets you save audio device configurations as profiles and switch between them instantly — using hotkeys, schedules, or a single click.
                             </TextBlock>
@@ -2736,7 +2990,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="SETTING UP PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="SETTING UP PROFILES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Click <Hyperlink Tag="newProfile" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">+ New Profile</Hyperlink> to create a profile. Choose a mode (Playback, Recording, or Both), pick your devices, then give it a name. You can assign a global hotkey to activate it from anywhere.
                             </TextBlock>
@@ -2745,7 +2999,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="CUSTOM PROFILE ICONS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="CUSTOM PROFILE ICONS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,6">
                                 Open <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile</Hyperlink>, click its icon, and choose "Browse from disk" to use your own <Run FontFamily="Consolas">.ico</Run> file. To make one from any picture:
                             </TextBlock>
@@ -2759,7 +3013,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="FILTERING PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="FILTERING PROFILES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Use the <Hyperlink Tag="filters" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">search box and filter chips</Hyperlink> to narrow down your profile list. Filters stack (AND logic). Clear all filters with the ✕ Clear button.
                             </TextBlock>
@@ -2768,7 +3022,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="USING HOTKEYS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="USING HOTKEYS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Click <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to open profile details, then click "Set Hotkey". Press your desired key combination. Hotkeys work globally — even when VibeSwitcher is minimized to the tray. App-wide shortcuts (open/close the window, mute) live in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
                             </TextBlock>
@@ -2777,16 +3031,16 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="SCHEDULED SWITCHING" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="SCHEDULED SWITCHING" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Click the schedule button (&#x231A;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to add a schedule. Choose a time and days of the week. Multiple schedules per profile are supported. The blue dot on a card means at least one schedule is active.
+                                Click the schedule button (&#x231A;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to add a schedule. Choose a time and days of the week. Multiple schedules per profile are supported. The schedule button lights up orange when at least one schedule is set, and the card shows a schedule chip you can click to edit it.
                             </TextBlock>
                         </StackPanel>
                     </Border>
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="AUTO-SWITCH ON CONNECT" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="AUTO-SWITCH ON CONNECT" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Click the auto-switch button (&#x26A1;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> to enable auto-switch. VibeSwitcher will activate this profile whenever its playback device connects. Best for wireless headsets and USB audio interfaces.
                             </TextBlock>
@@ -2795,7 +3049,7 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="MINI MODE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="MINI MODE" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Shrink VibeSwitcher into a small profile switcher that sits in a corner of your screen — perfect over games. Enter it with the shrink button in the title bar, the tray menu, or a hotkey; the expand button brings the full window back. In <Hyperlink Tag="miniSettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Mini Window</Hyperlink> you can pick the layout (rows or icon grid), choose which profiles appear, set the toggle shortcut, keep it always on top, and make it fade when inactive. Or just <Hyperlink Tag="miniTry" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">try Mini Mode now</Hyperlink>.
                             </TextBlock>
@@ -2804,36 +3058,72 @@
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="PANIC / MUTE HOTKEYS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="PANIC / MUTE HOTKEYS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Set global hotkeys to instantly mute your microphone, speakers, or both — from inside any app. While muted, the tray icon (and the mini window) shows a colored badge: red for mic, blue for speakers, purple for both. Press the hotkey again to unmute. Set them up in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
+                                Set global hotkeys to instantly mute your microphone, speakers, or both — from inside any app. Each toggle plays a distinct sound and shows a brief "muted / unmuted" notification (you can silence the banner per shortcut with its bell toggle). Press the hotkey again to unmute. Set them up in <Hyperlink Tag="shortcuts" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Shortcuts</Hyperlink>.
                             </TextBlock>
                         </StackPanel>
                     </Border>
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="APP LAUNCH TRIGGERS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="APP LAUNCH TRIGGERS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Link one or more programs to a profile with the trigger button (&#x25B6;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">its card</Hyperlink> — VibeSwitcher switches to that profile automatically within seconds of any linked app launching, and stays there until you switch yourself.
+                                Link one or more programs to a profile with the trigger button (&#x25B6;) on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink> — VibeSwitcher switches to that profile automatically within seconds of any linked app launching, and stays there until you switch yourself.
                             </TextBlock>
                         </StackPanel>
                     </Border>
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="SWITCH SOUNDS &amp; SILENT PROFILES" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="SWITCH SOUNDS &amp; SILENT PROFILES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
-                                Each profile can play a tone when it activates — choose from 7 built-in tones or your own WAV via the sound button on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">its card</Hyperlink>. Prefer quiet? The silent toggle on a card skips the Windows notification banner for that profile, and app-wide notification options live in <Hyperlink Tag="notifications" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Notifications</Hyperlink>.
+                                Each profile can play a tone when it activates — choose from 7 built-in tones or your own WAV via the sound button on <Hyperlink Tag="profiles" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">a profile card</Hyperlink>. Prefer quiet? The silent toggle on a card skips the Windows notification banner for that profile, and app-wide notification options live in <Hyperlink Tag="notifications" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Notifications</Hyperlink>.
                             </TextBlock>
                         </StackPanel>
                     </Border>
 
                     <Border Style="{StaticResource CardBorder}">
                         <StackPanel>
-                            <TextBlock Text="BACKUP &amp; RESTORE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,8"/>
+                            <TextBlock Text="BACKUP &amp; RESTORE" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
                             <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
                                 Go to <Hyperlink Tag="backup" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Backup &amp; Restore</Hyperlink> to export your config to a JSON file. Import that file on a new machine to restore all your profiles. Config is stored at %APPDATA%\VibeSwitcher\config.json.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="TRAY ICON BASICS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                VibeSwitcher lives in the system tray. Left-click the icon to cycle to the next profile (or open the window instead — choose in <Hyperlink Tag="traySettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Tray</Hyperlink>), and right-click for the full menu with all profiles and quick actions. Hover the icon to see the active profile and your hotkey cheat sheet.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="STARTING WITH WINDOWS" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                In <Hyperlink Tag="startupSettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Startup</Hyperlink> you can have VibeSwitcher launch when Windows starts, begin minimized to the tray, and keep running in the tray when the window is closed — so your hotkeys, schedules, and auto-switching are always active.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="RENAMING DEVICES" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                Windows device names can be a mouthful ("Headphones (3- Logitech PRO X Wireless Gaming Headset)"). Give devices short friendly names like "GoXLR" or "Desk Speakers" in <Hyperlink Tag="deviceAliases" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Devices</Hyperlink> — aliases are shown everywhere in the app instead of the raw names.
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="INSTALL, UPDATES &amp; UNINSTALL" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" Margin="0,0,0,8"/>
+                            <TextBlock FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap">
+                                <Hyperlink Tag="installSettings" Click="FaqAction_Click" Foreground="{DynamicResource Accent}">Settings → Install &amp; Updates</Hyperlink> shows your version, where the app and its data live (with folder sizes), and lets you uninstall from inside the app. Uninstalling keeps your profiles and settings unless you explicitly choose to delete them — so a reinstall picks up right where you left off.
                             </TextBlock>
                         </StackPanel>
                     </Border>
@@ -2859,7 +3149,7 @@
                         Margin="20"
                         Background="{DynamicResource VSModalBg}"
                         CornerRadius="18"
-                        BorderBrush="#29F5820A" BorderThickness="1">
+                        BorderBrush="#66F5820A" BorderThickness="1">
                     <Grid x:Name="ProfileDetailContent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>  <!-- header -->
@@ -2921,35 +3211,12 @@
                                              BorderThickness="0"
                                              Padding="0"
                                              Margin="0,0,0,6"/>
-                                    <Border CornerRadius="10" Padding="8,2.5"
-                                            HorizontalAlignment="Left">
-                                        <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="Background"   Value="#1FF5820A"/>
-                                                <Setter Property="BorderBrush"  Value="#40F5820A"/>
-                                                <Setter Property="BorderThickness" Value="1"/>
-                                                <Style.Triggers>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Visible"/>
-                                                            <Condition Binding="{Binding RecordingVisible}" Value="Collapsed"/>
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="Background"  Value="#1A4AA8FF"/>
-                                                        <Setter Property="BorderBrush" Value="#334AA8FF"/>
-                                                    </MultiDataTrigger>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding PlaybackVisible}" Value="Collapsed"/>
-                                                            <Condition Binding="{Binding RecordingVisible}" Value="Visible"/>
-                                                        </MultiDataTrigger.Conditions>
-                                                        <Setter Property="Background"  Value="#1A30D278"/>
-                                                        <Setter Property="BorderBrush" Value="#3330D278"/>
-                                                    </MultiDataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Border.Style>
+                                    <!-- Mode chip — brand orange for all modes, matching the card chips -->
+                                    <Border CornerRadius="6" Padding="8,3"
+                                            HorizontalAlignment="Left"
+                                            Background="#1FF5820A" BorderBrush="#40F5820A" BorderThickness="1">
                                         <TextBlock Text="{Binding ModeLabel}"
-                                                   FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource Accent}"/>
+                                                   FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Accent}"/>
                                     </Border>
                                 </StackPanel>
 
@@ -3093,6 +3360,12 @@
                                              IsReadOnly="True" IsTabStop="False" Width="120" Margin="0,0,8,0"/>
                                     <Button Style="{StaticResource ActionButton}" Content="Set Hotkey"
                                             Command="{Binding CaptureHotkeyCommand}"/>
+                                    <Button Content="✕" Margin="6,0,0,0"
+                                            Style="{StaticResource ActionButton}"
+                                            Command="{Binding ClearHotkeyCommand}"
+                                            ToolTip="Clear hotkey"
+                                            AutomationProperties.Name="Clear hotkey"
+                                            Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
 
                                 <!-- Icon -->
@@ -3103,6 +3376,12 @@
                                              IsReadOnly="True" IsTabStop="False" Width="160" Margin="0,0,8,0"/>
                                     <Button Content="Pick Icon" Style="{StaticResource ActionButton}"
                                             Command="{Binding PickIconCommand}"/>
+                                    <Button Content="✕" Margin="6,0,0,0"
+                                            Style="{StaticResource ActionButton}"
+                                            Command="{Binding ResetIconCommand}"
+                                            ToolTip="Reset to default icon"
+                                            AutomationProperties.Name="Reset to default icon"
+                                            Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
 
                                 <!-- Validation warning -->
@@ -3138,8 +3417,6 @@
                             <Grid>
                                 <!-- Quick action buttons (left) -->
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Button Style="{StaticResource ActionButton}" Content="Activate"
-                                            Command="{Binding ActivateCommand}" Margin="0,0,6,0"/>
                                     <Button Style="{StaticResource ActionButton}" Content="Clone"
                                             Command="{Binding CloneCommand}" Margin="0,0,6,0"/>
                                     <Button Style="{StaticResource DangerButton}" Content="Delete"
@@ -3158,6 +3435,9 @@
             </Grid>
 
         </Grid><!-- /MainGrid -->
+    
+        <!-- Shared accent window frame (Views/AccentFrame.xaml). -->
+        <views:AccentFrame Grid.RowSpan="99" Grid.ColumnSpan="99" Panel.ZIndex="9999"/>
     </Grid><!-- /outer Grid -->
 </Window>
 

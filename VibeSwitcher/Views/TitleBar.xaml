@@ -89,18 +89,24 @@
                         Style="{StaticResource TitleBtn}"
                         Content="&#x2212;"
                         Visibility="Collapsed"
+                        ToolTip="Minimize"
+                        AutomationProperties.Name="Minimize"
                         WindowChrome.IsHitTestVisibleInChrome="True"
                         Click="Minimize_Click"/>
                 <Button x:Name="MaxBtn"
                         Style="{StaticResource TitleBtn}"
                         FontSize="15"
                         Visibility="Collapsed"
+                        ToolTip="Maximize"
+                        AutomationProperties.Name="Maximize"
                         WindowChrome.IsHitTestVisibleInChrome="True"
                         Click="Maximize_Click">
                     <TextBlock x:Name="MaxBtnText" Text="&#x25A1;" Margin="0,0,0,5"/>
                 </Button>
                 <Button Style="{StaticResource CloseTitleBtn}"
                         Content="&#x2715;"
+                        ToolTip="Close"
+                        AutomationProperties.Name="Close"
                         WindowChrome.IsHitTestVisibleInChrome="True"
                         Click="Close_Click"/>
             </StackPanel>

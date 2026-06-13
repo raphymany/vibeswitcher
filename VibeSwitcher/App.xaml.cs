@@ -38,6 +38,24 @@ public partial class App : Application
         AppLog.Register(_logger);
         AppErrors.Register(_errorTracker);
 
+        // Give the process a stable identity before any UI/notification — fixes taskbar grouping and
+        // makes Windows resolve toast/notification icon attribution to our icon (not a stale cache).
+        try
+        {
+            int hr = WinApi.SetCurrentProcessExplicitAppUserModelID("RaphaelMansour.VibeSwitcher");
+            if (hr != 0)
+                _logger.Warning("App.OnStartup",
+                    $"SetCurrentProcessExplicitAppUserModelID returned 0x{hr:X8} — taskbar grouping / toast attribution may be affected.");
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning("App.OnStartup", $"SetCurrentProcessExplicitAppUserModelID failed: {ex.Message}");
+        }
+
+        // Register the AUMID's display name + icon so toast attribution shows "VibeSwitcher" + our
+        // icon instead of the raw AUMID string (the dev build has no Start Menu shortcut to resolve it).
+        NotificationIdentity.Register(_logger);
+
         // Last-resort handler for exceptions that escape all other catch blocks on the UI thread.
         // Marking Handled=true keeps the app alive for recoverable cases (e.g. a bad tray click).
         // Truly unexpected exceptions are still logged so they appear in the error log.
@@ -74,6 +92,9 @@ public partial class App : Application
         _configService = new ConfigService(_logger, _errorTracker);
         _configService.Load();
 
+        // Apply the saved logo-animation preference before any logo control loads.
+        Controls.LogoAnimator.Mode = Controls.LogoAnimator.Parse(_configService.Current.LogoAnimation);
+
         // 2a. Apply theme before any UI is shown
         _themeService = new ThemeService(_configService);
         _themeService.Apply();
@@ -99,13 +120,27 @@ public partial class App : Application
         _themeService.ThemeApplied += () => _trayService.RebuildMenu();
 
         // 5. Initialise orchestrators
-        var switchSoundService = new SwitchSoundService(_logger);
+        var switchSoundService = new SwitchSoundService(_logger, _configService.SoundsDir);
         _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher, _logger, _errorTracker);
         _muteService = new MuteService(_logger);
-        _muteService.MuteStateChanged += () =>
+        // Show a brief banner when a mute hotkey toggles, unless that shortcut is set to silent.
+        _muteService.MuteToggled += (scope, muted) =>
         {
-            _trayService.UpdateMuteFlash(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
-            _windowManager?.NotifyMuteChanged(_muteService.IsMicMuted, _muteService.IsSpeakersMuted);
+            var cfg = _configService!.Current;
+            bool silent = scope switch
+            {
+                Models.MuteScope.Mic      => cfg.MuteMicSilent,
+                Models.MuteScope.Speakers => cfg.MuteSpeakersSilent,
+                _                         => cfg.MuteBothSilent,
+            };
+            if (silent) return;
+            string what = scope switch
+            {
+                Models.MuteScope.Mic      => "Microphone",
+                Models.MuteScope.Speakers => "Speakers",
+                _                         => "Mic + Speakers",
+            };
+            _trayService!.ShowBalloon("VibeSwitcher", $"{what} {(muted ? "muted" : "unmuted")}", sound: false);
         };
         _windowManager = new AppWindowManager(_configService, _audioService, _hotkeyService, _trayService,
             _logger, _errorTracker, _themeService.Apply,
@@ -137,33 +172,38 @@ public partial class App : Application
 
         var activeProfile = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        if (activeProfile != null)
-            _orchestrator.SwitchToProfile(activeProfile);
 
-        // 8. Refresh tray
-        _trayService.UpdateIcon(activeProfile);
-        _trayService.RebuildMenu();
-
-        // 9. Re-apply active profile when the PC wakes from sleep/hibernate
-        SystemEvents.PowerModeChanged += _orchestrator.OnPowerModeChanged;
-
-        // 9b. Profile scheduler — evaluates on startup and every 10 seconds
+        // 8. Profile scheduler — created and evaluated BEFORE the restore so a schedule that was
+        //    due while the app wasn't running takes precedence over re-applying the last profile
+        //    (otherwise the restore would hold the switch lock and the due schedule would be dropped).
         _schedulerService = new SchedulerService(
             _configService,
             (profile, silent) => _orchestrator.SwitchToProfile(profile, silent),
             (title, msg) => _trayService!.ShowBalloon(title, msg));
-        SystemEvents.PowerModeChanged += _schedulerService.OnPowerModeChanged;
-        _schedulerService.Start();
-        _schedulerService.EvaluateNow();
+        bool scheduleFired = _schedulerService.EvaluateNow();
 
-        // 9c. Device trigger — auto-switch when a profile's device is connected
+        // 9. Restore last active profile only if no due schedule already switched us.
+        if (!scheduleFired && activeProfile != null)
+            _orchestrator.SwitchToProfile(activeProfile);
+
+        // 10. Refresh tray. When a schedule fired, that switch updates the icon itself — setting the
+        //     old active profile's icon here would briefly flash the wrong icon, so skip it.
+        if (!scheduleFired)
+            _trayService.UpdateIcon(activeProfile);
+        _trayService.RebuildMenu();
+
+        // 11. On wake from sleep/hibernate, re-evaluate schedules and re-apply the active profile.
+        //     A single handler keeps the catch-up evaluation and the restore from racing the switch lock.
+        SystemEvents.PowerModeChanged += OnSystemResume;
+
+        // 12. Device trigger — auto-switch when a profile's device is connected
         _deviceTriggerService = new DeviceTriggerService(
             _audioService,
             _configService,
             profile => _orchestrator.SwitchToProfile(profile),
             _logger);
 
-        // 9d. HID headset monitor — detects wireless power-off for supported headsets
+        // 13. HID headset monitor — detects wireless power-off for supported headsets
         //     and triggers the revert that the audio API can't detect on its own.
         _hidHeadsetService = new HidHeadsetService(_logger);
         _hidHeadsetService.DeviceMonitoringStarted +=
@@ -174,7 +214,7 @@ public partial class App : Application
             d => _deviceTriggerService.OnHidWirelessDisconnected(d);
         _hidHeadsetService.Start();
 
-        // 9e. App launch trigger — switches profile when a linked executable launches
+        // 14. App launch trigger — switches profile when a linked executable launches
         _appWatcherService = new AppWatcherService(_logger);
         _appTriggerService = new AppTriggerService(
             _configService,
@@ -182,7 +222,7 @@ public partial class App : Application
             profile => _orchestrator.SwitchToProfile(profile),
             _logger);
 
-        // 10. Show splash screen, then open settings if not start-minimized
+        // 15. Show splash screen, then open settings if not start-minimized
         var splash = new Views.SplashWindow();
         splash.AnimationComplete += (_, _) =>
         {
@@ -195,6 +235,34 @@ public partial class App : Application
             _trayService.RunWhenContextMenuClosed(OpenSettingsWindow);
         };
         splash.Show();
+
+        // Safety net: if the splash animation is interrupted (closed early, storyboard fault),
+        // AnimationComplete may never fire — guarantee the tray icon still appears so the app
+        // can't end up headless. ShowIcon is idempotent.
+        var iconFallback = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+        iconFallback.Tick += (_, _) =>
+        {
+            iconFallback.Stop();
+            _trayService?.ShowIcon();
+        };
+        iconFallback.Start();
+    }
+
+    // Wake handler: SystemEvents.PowerModeChanged fires on a background thread, so marshal to the UI
+    // thread before touching the scheduler/switch path. Evaluate schedules first (a slot may have come
+    // due during sleep); only re-apply the last active profile if none fired — mirroring startup so the
+    // two paths never race the single switch lock.
+    private void OnSystemResume(object? sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode != PowerModes.Resume) return;
+        Dispatcher.InvokeAsync(() =>
+        {
+            bool fired = _schedulerService?.EvaluateNow() ?? false;
+            if (fired) return;
+            var active = _configService?.Current.Profiles
+                .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+            if (active != null) _orchestrator?.SwitchToProfile(active);
+        });
     }
 
     private void RegisterSettingsHotkey()
@@ -265,7 +333,9 @@ public partial class App : Application
 
     // Debounce per-atom to suppress WM_HOTKEY auto-repeat when a key is held down.
     private readonly Dictionary<ushort, long> _hotkeyLastFired = new();
-    private const long HotkeyDebounceTicks = 1000 * TimeSpan.TicksPerMillisecond;
+    // 500ms suppresses key auto-repeat while still allowing a deliberate quick re-press
+    // (e.g. mute then immediately unmute).
+    private const long HotkeyDebounceTicks = 500 * TimeSpan.TicksPerMillisecond;
 
     private bool ShouldHandleHotkey(ushort atomId)
     {
@@ -330,14 +400,13 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
-        // _orchestrator is null when a second instance exits early via Shutdown() before OnStartup completes.
-        if (_orchestrator != null)
-            SystemEvents.PowerModeChanged -= _orchestrator.OnPowerModeChanged;
-        if (_schedulerService != null)
-        {
-            SystemEvents.PowerModeChanged -= _schedulerService.OnPowerModeChanged;
-            _schedulerService.Dispose();
-        }
+        // Flush any pending config synchronously so a SaveDeferred queued just before exit
+        // (e.g. a setting toggled then Exit clicked) isn't lost when the process ends.
+        try { _configService?.SaveImmediate(); } catch { /* best-effort on exit */ }
+
+        // Safe even if OnStartup exited early (second instance) — unsubscribing an unregistered handler is a no-op.
+        SystemEvents.PowerModeChanged -= OnSystemResume;
+        _schedulerService?.Dispose();
         _hidHeadsetService?.Dispose();
         _deviceTriggerService?.Dispose();
         _appTriggerService?.Dispose();

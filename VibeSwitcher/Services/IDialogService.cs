@@ -7,7 +7,14 @@ public interface IDialogService
 {
     HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current);
     bool ShowConfirmDelete(string profileName);
-    bool ShowConfirmClone(string profileName);
+    // Opens the clone wizard. Returns a fully-built copy (new Id) to persist, or null if cancelled.
+    // captureHotkey runs the caller's capture+conflict flow and returns the chosen hotkey (or null).
+    DeviceProfile? ShowCloneWizard(
+        DeviceProfile source,
+        IReadOnlyList<AudioDeviceInfo> playbackDevices,
+        IReadOnlyList<AudioDeviceInfo> recordingDevices,
+        bool use12Hour,
+        Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey);
     string? ShowBrowseIconFile();
     GalleryPickResult? ShowIconGallery();
     void ShowAlert(string title, string message);
@@ -20,4 +27,6 @@ public interface IDialogService
     bool ShowConfirm(string title, string message, string actionLabel);
     bool ShowSupportedHeadsets();
     List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers);
+    // Takes the ProfileCardViewModel as object so the dialog contract stays free of view-model types.
+    void ShowManageSchedules(object profileCard);
 }

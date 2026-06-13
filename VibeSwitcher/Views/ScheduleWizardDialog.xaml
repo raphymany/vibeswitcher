@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:VibeSwitcher.Views"
         Title="VibeSwitcher"
-        Width="420" SizeToContent="Height"
+        Width="470" SizeToContent="Height"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBg}"
@@ -14,44 +14,6 @@
         <WindowChrome CaptionHeight="32" GlassFrameThickness="0"
                       ResizeBorderThickness="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
-
-    <Window.Resources>
-        <!-- Day pill toggle buttons -->
-        <Style x:Key="DayPillStyle" TargetType="ToggleButton">
-            <Setter Property="Background"       Value="{DynamicResource ChipBg}"/>
-            <Setter Property="BorderBrush"      Value="{DynamicResource ChipBorder}"/>
-            <Setter Property="BorderThickness"  Value="1"/>
-            <Setter Property="Foreground"       Value="{DynamicResource ChipText}"/>
-            <Setter Property="FontSize"         Value="11"/>
-            <Setter Property="Cursor"           Value="Hand"/>
-            <Setter Property="Padding"          Value="10,4"/>
-            <Setter Property="Height"           Value="28"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ToggleButton">
-                        <Border x:Name="bg"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="13" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource Accent}"/>
-                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -216,25 +178,40 @@
 
             <!-- ── Footer ────────────────────────────────────── -->
             <DockPanel Margin="0,24,0,0">
-                <Button Content="Cancel" DockPanel.Dock="Left"
-                        Style="{StaticResource ActionButton}"
-                        Padding="16,0"
-                        Click="Cancel_Click"/>
                 <Button x:Name="RemoveBtn" Content="Remove" DockPanel.Dock="Left"
                         Style="{StaticResource DangerButton}"
-                        Padding="16,0" Margin="8,0,0,0"
+                        Padding="16,0"
                         Visibility="Collapsed"
                         Click="Remove_Click"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel" DockPanel.Dock="Left"
+                        Padding="16,0"
+                        Click="Cancel_Click">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource ActionButton}">
+                            <!-- No gap needed when Remove is hidden (adding a new schedule) -->
+                            <Setter Property="Margin" Value="8,0,0,0"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Visibility, ElementName=RemoveBtn}" Value="Collapsed">
+                                    <Setter Property="Margin" Value="0"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <!-- Left margin guarantees a gap to Cancel/Remove even at the widest button set
+                     (editing: Remove + Back + Save + Next). -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,0,0,0">
                     <Button x:Name="BackBtn" Content="← Back"
                             Style="{StaticResource ActionButton}"
                             Padding="14,0" Margin="0,0,8,0"
                             Visibility="Collapsed"
                             Click="Back_Click"/>
-                    <Button x:Name="SkipBtn" Content="Skip"
+                    <!-- Save commits the current step and finishes immediately — no need to walk
+                         the remaining steps just to change one thing. -->
+                    <Button x:Name="SaveBtn" Content="Save"
                             Style="{StaticResource ActionButton}"
                             Padding="14,0" Margin="0,0,8,0"
-                            Click="Skip_Click"/>
+                            Click="Save_Click"/>
                     <Button x:Name="NextBtn" Content="Next →"
                             Style="{StaticResource PrimaryButton}"
                             Padding="18,0"
@@ -243,5 +220,8 @@
             </DockPanel>
 
         </StackPanel>
+    
+        <!-- Shared accent window frame (Views/AccentFrame.xaml). -->
+        <views:AccentFrame Grid.RowSpan="99" Grid.ColumnSpan="99" Panel.ZIndex="9999"/>
     </Grid>
 </Window>

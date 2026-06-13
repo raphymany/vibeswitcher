@@ -1,8 +1,5 @@
 using Microsoft.Win32;
 using System.Windows;
-using System.Windows.Media;
-using System.Windows.Shapes;
-using System.Windows.Controls;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Views;
@@ -12,10 +9,12 @@ namespace VibeSwitcher.Services;
 public class DialogService : IDialogService
 {
     private readonly IAppLogger _logger;
+    private readonly IConfigService _configService;
 
-    public DialogService(IAppLogger logger)
+    public DialogService(IAppLogger logger, IConfigService configService)
     {
         _logger = logger;
+        _configService = configService;
     }
 
     private static Window? OwnerWindow =>
@@ -33,22 +32,16 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true;
     }
 
-    public bool ShowConfirmClone(string profileName)
+    public DeviceProfile? ShowCloneWizard(
+        DeviceProfile source,
+        IReadOnlyList<AudioDeviceInfo> playbackDevices,
+        IReadOnlyList<AudioDeviceInfo> recordingDevices,
+        bool use12Hour,
+        Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey)
     {
-        var badgeBg = Application.Current.TryFindResource("HoverBg") as Brush
-                      ?? new SolidColorBrush(Colors.LightGray);
-        var accent  = Application.Current.TryFindResource("Accent") as Brush
-                      ?? new SolidColorBrush(Color.FromRgb(0xFF, 0x80, 0x00));
-
-        var dialog = new ConfirmDialog(
-            "Clone Profile?",
-            $"Create a copy of \"{profileName}\"?",
-            "Clone",
-            subtitle: "A new profile will be created with the same settings.",
-            iconElement: BuildCopyIcon(accent, Brushes.Black),
-            iconBgResource: "Accent")
+        var dialog = new CloneProfileDialog(source, playbackDevices, recordingDevices, use12Hour, captureHotkey)
         { Owner = OwnerWindow };
-        return dialog.ShowDialog() == true;
+        return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 
     public string? ShowBrowseIconFile()
@@ -64,9 +57,15 @@ public class DialogService : IDialogService
 
     public GalleryPickResult? ShowIconGallery()
     {
-        var dialog = new IconGalleryDialog { Owner = OwnerWindow };
+        var dialog = new IconGalleryDialog(_configService.IconsLibraryDir) { Owner = OwnerWindow };
         if (dialog.ShowDialog() != true) return null;
-        return new GalleryPickResult { Item = dialog.SelectedItem, BrowseFromDisk = dialog.BrowseFromDisk, IconColor = dialog.SelectedColor };
+        return new GalleryPickResult
+        {
+            Item = dialog.SelectedItem,
+            BrowseFromDisk = dialog.BrowseFromDisk,
+            IconColor = dialog.SelectedColor,
+            CustomIconPath = dialog.CustomIconPath,
+        };
     }
 
     public void ShowAlert(string title, string message)
@@ -110,7 +109,7 @@ public class DialogService : IDialogService
 
     public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false, bool isEditing = false)
     {
-        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, _logger, showBanner, isEditing) { Owner = OwnerWindow };
+        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, _logger, _configService.SoundsLibraryDir, showBanner, isEditing) { Owner = OwnerWindow };
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 
@@ -131,34 +130,10 @@ public class DialogService : IDialogService
         return dialog.ShowDialog() == true ? dialog.ResultTriggers : null;
     }
 
-    // Two overlapping rounded rectangles drawn with WPF shapes — the universal copy/clone icon.
-    // The front square's fill matches the badge background so it cleanly occludes the back square.
-    private static UIElement BuildCopyIcon(Brush badgeBg, Brush stroke)
+    public void ShowManageSchedules(object profileCard)
     {
-        var canvas = new Canvas { Width = 16, Height = 16 };
-
-        var back = new Rectangle
-        {
-            Width = 11, Height = 11,
-            Fill = Brushes.Transparent,
-            Stroke = stroke, StrokeThickness = 1.5,
-            RadiusX = 2, RadiusY = 2,
-        };
-        Canvas.SetLeft(back, 5);
-        Canvas.SetTop(back, 0);
-
-        var front = new Rectangle
-        {
-            Width = 11, Height = 11,
-            Fill = badgeBg,
-            Stroke = stroke, StrokeThickness = 1.5,
-            RadiusX = 2, RadiusY = 2,
-        };
-        Canvas.SetLeft(front, 0);
-        Canvas.SetTop(front, 5);
-
-        canvas.Children.Add(back);
-        canvas.Children.Add(front);
-        return canvas;
+        if (profileCard is not ViewModels.ProfileCardViewModel card) return;
+        new ManageSchedulesDialog(card) { Owner = OwnerWindow }.ShowDialog();
     }
+
 }

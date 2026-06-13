@@ -35,7 +35,18 @@ public sealed class AppTriggerService : IDisposable
         _watcher.UpdateWatchList(allPaths);
     }
 
+    // Fires on a ThreadPool thread. Marshal the whole handler to the UI thread so the profile/
+    // trigger-list lookup reads the config on the same thread that mutates it (no torn read).
     private void OnProcessLaunched(string exePath)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null)
+            dispatcher.InvokeAsync(() => HandleLaunch(exePath));
+        else
+            HandleLaunch(exePath);
+    }
+
+    private void HandleLaunch(string exePath)
     {
         var exeName = Path.GetFileNameWithoutExtension(exePath);
 
@@ -47,12 +58,7 @@ public sealed class AppTriggerService : IDisposable
         if (_configService.Current.ActiveProfileId == profile.Id) return;
 
         _logger.Info("AppTriggerService", $"'{exeName}' launched — switching to '{profile.Name}'.");
-
-        var dispatcher = System.Windows.Application.Current?.Dispatcher;
-        if (dispatcher != null)
-            dispatcher.InvokeAsync(() => _switchCallback(profile));
-        else
-            _switchCallback(profile);
+        _switchCallback(profile);
     }
 
     public void Dispose()

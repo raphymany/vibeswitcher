@@ -130,6 +130,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="0,5"
+                                          Style="{StaticResource ThemedCheckBox}"
                                           VerticalContentAlignment="Center"
                                           Checked="ProfileCheck_Changed" Unchecked="ProfileCheck_Changed">
                                     <StackPanel Orientation="Horizontal">
@@ -171,5 +172,8 @@
                         HorizontalAlignment="Right" MinWidth="90" Click="Save_Click"/>
             </Grid>
         </StackPanel>
+    
+        <!-- Shared accent window frame (Views/AccentFrame.xaml). -->
+        <views:AccentFrame Grid.RowSpan="99" Grid.ColumnSpan="99" Panel.ZIndex="9999"/>
     </Grid>
 </Window>

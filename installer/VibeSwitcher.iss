@@ -56,8 +56,10 @@ Name: "startupentry"; Description: "Start {#MyAppName} when Windows starts"; Fla
 Source: "{#SourceDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{userprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{userdesktop}\{#MyAppName}";  Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+; AppUserModelID matches the ID the app sets via SetCurrentProcessExplicitAppUserModelID, so
+; Windows resolves toast/notification icon attribution to the shortcut's (our) icon.
+Name: "{userprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; AppUserModelID: "RaphaelMansour.VibeSwitcher"
+Name: "{userdesktop}\{#MyAppName}";  Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; AppUserModelID: "RaphaelMansour.VibeSwitcher"
 
 [Registry]
 ; Optional install task — writes the exact value name the app's StartupService manages.
@@ -68,6 +70,10 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 ; inside the app (dontcreatekey = writes nothing at install time).
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; \
     ValueName: "VibeSwitcher"; Flags: uninsdeletevalue dontcreatekey
+; The app registers its AppUserModelId (toast/notification attribution) under HKCU at runtime;
+; remove that key on uninstall so nothing is left behind (dontcreatekey = writes nothing at install).
+Root: HKCU; Subkey: "Software\Classes\AppUserModelId\RaphaelMansour.VibeSwitcher"; \
+    Flags: uninsdeletekey dontcreatekey
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; \

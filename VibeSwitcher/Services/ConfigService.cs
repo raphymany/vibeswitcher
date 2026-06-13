@@ -18,6 +18,14 @@ public class ConfigService : IConfigService
     private readonly ISessionErrorTracker _errorTracker;
 
     public string IconsDir { get; }
+    public string SoundsDir { get; }
+
+    // Shared "uploads" libraries: when a user browses for a custom icon/sound, the original is kept
+    // here under its own name so it can be re-picked later without browsing again. These sit inside
+    // IconsDir/SoundsDir so the existing PathSafety guards (which allow anything under those roots)
+    // still cover them.
+    public string IconsLibraryDir  => Path.Combine(IconsDir, "Library");
+    public string SoundsLibraryDir => Path.Combine(SoundsDir, "Library");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -27,6 +35,11 @@ public class ConfigService : IConfigService
 
     private volatile AppConfig _config = new();
     private readonly object _saveLock = new();
+    // Monotonic version stamped on every save request. A background (deferred) write that finishes
+    // out of order is skipped if a newer version already reached disk, so the latest snapshot always
+    // wins regardless of thread-pool scheduling.
+    private long _saveVersion;
+    private long _lastWrittenVersion;
 
     public ConfigService(IAppLogger logger, ISessionErrorTracker errorTracker, string? baseDir = null)
     {
@@ -34,6 +47,7 @@ public class ConfigService : IConfigService
         _errorTracker = errorTracker;
         _configDir    = baseDir ?? DefaultConfigDir;
         IconsDir      = Path.Combine(_configDir, "Icons");
+        SoundsDir     = Path.Combine(_configDir, "Sounds");
         _configPath   = Path.Combine(_configDir, "config.json");
         _configBakPath = Path.Combine(_configDir, "config.json.bak");
         _configTmpPath = Path.Combine(_configDir, "config.json.tmp");
@@ -115,11 +129,82 @@ public class ConfigService : IConfigService
         // v1 used -1 as a sentinel for "window position not yet saved"; v1.0.1+ uses null.
         if (config.WindowLeft == -1) config.WindowLeft = null;
         if (config.WindowTop  == -1) config.WindowTop  = null;
+
+        // Clamp/validate values that come straight from JSON, so a hand-edited or imported
+        // config with out-of-range numbers can't produce a broken enum or a schedule that
+        // silently never fires.
+        foreach (var profile in config.Profiles)
+        {
+            if (!Enum.IsDefined(typeof(ProfileMode), profile.Mode))
+                profile.Mode = ProfileMode.Both;
+
+            profile.Schedules ??= new();
+            foreach (var s in profile.Schedules)
+            {
+                s.Hour   = Math.Clamp(s.Hour, 0, 23);
+                s.Minute = Math.Clamp(s.Minute, 0, 59);
+                s.ReminderMinutes = Math.Clamp(s.ReminderMinutes, 0, 24 * 60 - 1);
+            }
+        }
+
+        // A dangling ActiveProfileId (e.g. from an imported config) is reset so the tray
+        // doesn't show a stale/wrong state.
+        if (config.ActiveProfileId.HasValue &&
+            !config.Profiles.Any(p => p.Id == config.ActiveProfileId.Value))
+            config.ActiveProfileId = null;
+
+        if (config.LogoAnimation is not ("Full" or "Reduced" or "Static"))
+            config.LogoAnimation = "Full";
     }
 
+    // Fully synchronous: serialize + write on the calling thread. Used by startup, import, the exit
+    // flush, and tests that need the file on disk before returning.
     public void SaveImmediate()
     {
-        Save(_config);
+        if (TrySerialize(out var json))
+            WriteJson(json, Interlocked.Increment(ref _saveVersion));
+    }
+
+    // UI-thread callers: serialize a consistent snapshot on the CURRENT thread (where the model
+    // isn't being mutated concurrently), then write the bytes on a background thread. This avoids
+    // "collection was modified" races from serializing the live object graph on a pool thread,
+    // which previously caused saves to be silently skipped.
+    public void SaveDeferred()
+    {
+        if (!TrySerialize(out var json)) return;
+        var version = Interlocked.Increment(ref _saveVersion);
+        _ = Task.Run(() => WriteJson(json, version));
+    }
+
+    private bool TrySerialize(out string json)
+    {
+        try
+        {
+            json = JsonSerializer.Serialize(_config, JsonOptions);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogSaveError(ex);
+            json = "";
+            return false;
+        }
+    }
+
+    // Replaces every setting with its default while preserving the user's data: profiles
+    // (incl. their schedules/sounds/triggers), the active profile, and device aliases.
+    public void ResetSettingsToDefaults()
+    {
+        var cur = _config;
+        _config = new AppConfig
+        {
+            Profiles = cur.Profiles,
+            ActiveProfileId = cur.ActiveProfileId,
+            DeviceAliases = cur.DeviceAliases,
+            CompactIntroShown = cur.CompactIntroShown,       // don't re-show the first-run intro
+            LastSchedulerEvaluation = cur.LastSchedulerEvaluation, // keep catch-up dedup history
+        };
+        SaveImmediate();
     }
 
     public void ExportTo(string destinationPath)
@@ -147,6 +232,11 @@ public class ConfigService : IConfigService
             error = "No file path was provided.";
             return false;
         }
+        if (!LooksLikeVibeSwitcherConfig(sourcePath))
+        {
+            error = "This file isn't a VibeSwitcher configuration.";
+            return false;
+        }
         if (!TryLoad(sourcePath, out var config) || config == null)
         {
             error = "The file could not be read or is not a valid VibeSwitcher configuration.";
@@ -154,16 +244,55 @@ public class ConfigService : IConfigService
         }
         config.Profiles ??= new();
         Migrate(config);
+        // Imported configs are untrusted: a custom switch-sound or icon path must already live inside
+        // the managed Sounds/Icons folder, otherwise drop it so an import can't point the app at an
+        // arbitrary file on disk. The user's own picked files are copied into those folders, so they
+        // survive. (Icon loads are also guarded at read time, but dropping here keeps imports clean.)
+        foreach (var p in config.Profiles)
+        {
+            if (!string.IsNullOrEmpty(p.SoundCustomPath) &&
+                !PathSafety.TryResolveInside(p.SoundCustomPath, SoundsDir, out _))
+                p.SoundCustomPath = null;
+            if (!string.IsNullOrEmpty(p.IconPath) &&
+                !PathSafety.TryResolveInside(p.IconPath, IconsDir, out _))
+                p.IconPath = null;
+        }
         _config = config;
         SaveImmediate();
         error = null;
         return true;
     }
 
-    public void Save(AppConfig config)
+    // Guards against importing arbitrary well-formed JSON (e.g. {} or an unrelated file), which
+    // would otherwise deserialize to a defaults-only AppConfig and silently wipe the user's setup.
+    // Requires a JSON object carrying at least one recognizable VibeSwitcher marker.
+    private bool LooksLikeVibeSwitcherConfig(string path)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+            // Require the VibeSwitcher-specific "ConfigVersion" marker. Every config the app writes
+            // includes it; keying off it (rather than the generic "Profiles") rejects unrelated JSON
+            // files that merely happen to carry a "profiles" property, which would otherwise overwrite
+            // the user's real config on import.
+            foreach (var prop in doc.RootElement.EnumerateObject())
+                if (string.Equals(prop.Name, "ConfigVersion", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void WriteJson(string json, long version)
     {
         lock (_saveLock)
         {
+            // Skip a stale write: a newer save already reached disk while this one was queued.
+            if (version < _lastWrittenVersion) return;
             try
             {
                 Directory.CreateDirectory(_configDir);
@@ -171,15 +300,24 @@ public class ConfigService : IConfigService
                 if (File.Exists(_configPath))
                     File.Copy(_configPath, _configBakPath, overwrite: true);
 
-                var json = JsonSerializer.Serialize(config, JsonOptions);
+                // Delete any pre-existing temp file first so the write always lands in a fresh regular
+                // file — if something planted a symlink at this predictable path, WriteAllText would
+                // otherwise follow it and redirect the write. Deleting removes the link, not its target.
+                if (File.Exists(_configTmpPath)) File.Delete(_configTmpPath);
                 File.WriteAllText(_configTmpPath, json);
                 File.Move(_configTmpPath, _configPath, overwrite: true);
+                _lastWrittenVersion = version;
             }
             catch (Exception ex)
             {
-                _logger.Error("ConfigService.Save", ex);
-                _errorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
+                LogSaveError(ex);
             }
         }
+    }
+
+    private void LogSaveError(Exception ex)
+    {
+        _logger.Error("ConfigService.Save", ex);
+        _errorTracker.Record(ErrorCode.ConfigSaveFailed, "Config Save Failed", ex.Message);
     }
 }

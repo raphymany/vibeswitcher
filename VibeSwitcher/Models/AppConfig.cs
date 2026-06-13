@@ -14,6 +14,12 @@ public class AppConfig
     public bool LeftClickCyclesProfiles { get; set; } = true;
     public bool SettingsCardExpanded { get; set; } = true;
 
+    // Which optional tray-menu action items are shown. Settings and Exit are always present.
+    public bool TrayShowAbout { get; set; } = true;
+    public bool TrayShowFaq { get; set; } = true;
+    public bool TrayShowMiniMode { get; set; } = true;
+    public bool TrayShowSoundSettings { get; set; } = true;
+
     // "Auto" = follow Windows, "Light" = always light, "Dark" = always dark
     public string Theme { get; set; } = "Auto";
 
@@ -39,6 +45,12 @@ public class AppConfig
     public HotkeyDefinition? MuteBothHotkey { get; set; }
     public bool MuteBothHotkeyEnabled { get; set; } = false;
 
+    // Per-shortcut banner suppression for the mute hotkeys (true = no banner when that hotkey fires).
+    // Default false = show the brief "muted/unmuted" banner.
+    public bool MuteMicSilent { get; set; } = false;
+    public bool MuteSpeakersSilent { get; set; } = false;
+    public bool MuteBothSilent { get; set; } = false;
+
     // Mini (compact) mode
     public bool CompactMode { get; set; } = false;
     public HotkeyDefinition? CompactHotkey { get; set; }
@@ -54,4 +66,16 @@ public class AppConfig
     public List<Guid> CompactProfileIds { get; set; } = new();
     // First-time intro dialog has been shown
     public bool CompactIntroShown { get; set; } = false;
+
+    // Wall-clock time of the last scheduler evaluation. Persisted so catch-up only fires schedules
+    // genuinely missed while the app wasn't running — reopening within the catch-up window won't
+    // re-fire a switch that already ran. null = never evaluated (treat everything as catch-up-able).
+    public DateTime? LastSchedulerEvaluation { get; set; }
+
+    // Animated logo: "Full" (60fps), "Reduced" (~24fps, lower CPU), "Static" (no animation).
+    public string LogoAnimation { get; set; } = "Full";
+
+    // When true (default), a scheduled switch missed while the PC was off/asleep fires on
+    // wake or launch (within the scheduler's catch-up window). False = exact-time only.
+    public bool SchedulerCatchUp { get; set; } = true;
 }

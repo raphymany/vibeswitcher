@@ -120,7 +120,21 @@ public partial class AppTriggerDialog : Window
 
     private void FilterChip_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
     {
-        if (sender is not Border chip) return;
+        if (sender is Border chip) ActivateFilterChip(chip);
+    }
+
+    // Keyboard equivalent of clicking a filter chip (the chips are focusable Borders, not Buttons).
+    private void FilterChip_KeyDown(object sender, KeyEventArgs e)
+    {
+        if ((e.Key == Key.Enter || e.Key == Key.Space) && sender is Border chip)
+        {
+            ActivateFilterChip(chip);
+            e.Handled = true;
+        }
+    }
+
+    private void ActivateFilterChip(Border chip)
+    {
         _activeFilter = (chip.Tag as string) switch
         {
             "Running"   => AppFilter.Running,
@@ -144,8 +158,8 @@ public partial class AppTriggerDialog : Window
     {
         if (active)
         {
-            chip.Background  = new SolidColorBrush(Color.FromRgb(0x37, 0x41, 0x51));
-            chip.BorderBrush = new SolidColorBrush(Color.FromRgb(0x37, 0x41, 0x51));
+            chip.SetResourceReference(Border.BackgroundProperty, "Accent");
+            chip.SetResourceReference(Border.BorderBrushProperty, "Accent");
             if (chip.Child is TextBlock tb) tb.Foreground = Brushes.White;
         }
         else
@@ -161,9 +175,13 @@ public partial class AppTriggerDialog : Window
 
     private void LoadRunningAppsAsync()
     {
+        var ct = _loadCts.Token;
         _ = Task.Run(DiscoverRunning).ContinueWith(t =>
             Dispatcher.InvokeAsync(() =>
             {
+                // Bail if the dialog closed or discovery faulted — never touch t.Result on a faulted
+                // task (it would rethrow on the UI thread).
+                if (ct.IsCancellationRequested || t.IsFaulted) return;
                 _runningEntries = t.Result;
                 RebuildAllEntries();
                 ApplyFilter(SearchBox.Text);
@@ -176,7 +194,7 @@ public partial class AppTriggerDialog : Window
         _ = Task.Run(DiscoverInstalled).ContinueWith(t =>
             Dispatcher.InvokeAsync(() =>
             {
-                if (ct.IsCancellationRequested) return;
+                if (ct.IsCancellationRequested || t.IsFaulted) return;
                 _installedEntries = t.Result;
                 RebuildAllEntries();
                 ApplyFilter(SearchBox.Text);
@@ -362,16 +380,31 @@ public partial class AppTriggerDialog : Window
                 if (shellType == null) return;
                 dynamic shell = Activator.CreateInstance(shellType)!;
 
-                foreach (var lnk in lnkFiles)
+                try
                 {
-                    try
+                    foreach (var lnk in lnkFiles)
                     {
-                        dynamic shortcut = shell.CreateShortcut(lnk);
-                        string target = shortcut.TargetPath;
-                        if (!string.IsNullOrEmpty(target))
-                            resolved[lnk] = target;
+                        dynamic? shortcut = null;
+                        try
+                        {
+                            shortcut = shell.CreateShortcut(lnk);
+                            string target = shortcut.TargetPath;
+                            if (!string.IsNullOrEmpty(target))
+                                resolved[lnk] = target;
+                        }
+                        catch { }
+                        finally
+                        {
+                            // Release the out-of-process COM shortcut RCW immediately instead of
+                            // leaving hundreds for the finalizer (one per Start Menu .lnk).
+                            if (shortcut != null)
+                                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shortcut);
+                        }
                     }
-                    catch { }
+                }
+                finally
+                {
+                    System.Runtime.InteropServices.Marshal.FinalReleaseComObject(shell);
                 }
             }
             catch { }
@@ -385,6 +418,8 @@ public partial class AppTriggerDialog : Window
         foreach (var (lnk, target) in resolved)
         {
             if (!target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) continue;
+            // Only watch local executables — skip UNC/network targets.
+            if (target.StartsWith(@"\\")) continue;
             if (!File.Exists(target)) continue;
             if (string.Equals(target, selfPath, StringComparison.OrdinalIgnoreCase)) continue;
             if (!seen.Add(target)) continue;
@@ -505,14 +540,15 @@ public partial class AppTriggerDialog : Window
 
         if (entry.IsRunning)
         {
-            nameBlock.Children.Add(new TextBlock
+            var running = new TextBlock
             {
                 Text = "● Running",
                 FontSize = 9,
                 Margin = new Thickness(0, 1, 0, 0),
                 Opacity = isDisabled ? 0.45 : 1.0,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4CAF50")),
-            });
+            };
+            running.SetResourceReference(ForegroundProperty, "VSGreen");
+            nameBlock.Children.Add(running);
         }
 
         Grid.SetColumn(nameBlock, 1);
@@ -520,13 +556,13 @@ public partial class AppTriggerDialog : Window
 
         if (isLinkedHere)
         {
-            var badge = MakeBadge("Added", "#4CAF50", "#E8F5E9");
+            var badge = MakeBadge("Added", "SuccessBadgeText", "SuccessBadgeBg");
             Grid.SetColumn(badge, 2);
             row.Children.Add(badge);
         }
         else if (entry.ConflictingProfile != null)
         {
-            var badge = MakeBadge($"Used by \"{entry.ConflictingProfile}\"", "#E65C00", "#FFF8E1");
+            var badge = MakeBadge($"Used by \"{entry.ConflictingProfile}\"", "WarningBadgeText", "WarningBadgeBg");
             Grid.SetColumn(badge, 2);
             row.Children.Add(badge);
         }
@@ -559,21 +595,19 @@ public partial class AppTriggerDialog : Window
         return row;
     }
 
-    private static Border MakeBadge(string text, string fgHex, string bgHex)
+    private static Border MakeBadge(string text, string fgKey, string bgKey)
     {
-        return new Border
+        var tb = new TextBlock { Text = text, FontSize = 10 };
+        tb.SetResourceReference(TextBlock.ForegroundProperty, fgKey);
+        var badge = new Border
         {
             CornerRadius = new CornerRadius(4),
             Padding = new Thickness(6, 2, 6, 2),
-            Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bgHex)),
             VerticalAlignment = VerticalAlignment.Center,
-            Child = new TextBlock
-            {
-                Text = text,
-                FontSize = 10,
-                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(fgHex)),
-            },
+            Child = tb,
         };
+        badge.SetResourceReference(Border.BackgroundProperty, bgKey);
+        return badge;
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -597,7 +631,7 @@ public partial class AppTriggerDialog : Window
             if (!File.Exists(exePath)) return null;
             using var icon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
             if (icon == null) return null;
-            var bmp = icon.ToBitmap();
+            using var bmp = icon.ToBitmap();
             using var ms = new System.IO.MemoryStream();
             bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
             ms.Position = 0;

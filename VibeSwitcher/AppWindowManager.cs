@@ -72,12 +72,6 @@ public class AppWindowManager
         window?.RefreshActiveStates();
     }
 
-    public void NotifyMuteChanged(bool micMuted, bool speakersMuted)
-    {
-        var window = Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
-        window?.UpdateMiniMuteBadge(micMuted, speakersMuted);
-    }
-
     public void OpenAbout() => OpenSettingsWindowToPanel(w => w.OpenAboutPanel());
     public void OpenFaq()   => OpenSettingsWindowToPanel(w => w.OpenFaqPanel());
 

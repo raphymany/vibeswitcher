@@ -100,43 +100,54 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                 <Border x:Name="ChipAll" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,0"
                         Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
-                        MouseLeftButtonUp="FilterChip_Click" Tag="All">
+                        Focusable="True" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                        AutomationProperties.Name="Show all apps"
+                        MouseLeftButtonUp="FilterChip_Click" KeyDown="FilterChip_KeyDown" Tag="All">
                     <TextBlock Text="All" FontSize="10" FontWeight="SemiBold"
                                Foreground="{DynamicResource SecondaryText}"/>
                 </Border>
                 <Border x:Name="ChipRunning" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,0"
                         Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
-                        MouseLeftButtonUp="FilterChip_Click" Tag="Running">
+                        Focusable="True" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                        AutomationProperties.Name="Show running apps"
+                        MouseLeftButtonUp="FilterChip_Click" KeyDown="FilterChip_KeyDown" Tag="Running">
                     <TextBlock Text="Running" FontSize="10" FontWeight="SemiBold"
                                Foreground="{DynamicResource SecondaryText}"/>
                 </Border>
                 <Border x:Name="ChipInstalled" BorderThickness="1" CornerRadius="4" Padding="8,3" Margin="0,0,6,0"
                         Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
-                        MouseLeftButtonUp="FilterChip_Click" Tag="Installed">
+                        Focusable="True" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                        AutomationProperties.Name="Show installed apps"
+                        MouseLeftButtonUp="FilterChip_Click" KeyDown="FilterChip_KeyDown" Tag="Installed">
                     <TextBlock Text="Installed" FontSize="10" FontWeight="SemiBold"
                                Foreground="{DynamicResource SecondaryText}"/>
                 </Border>
                 <Border x:Name="ChipInUse" BorderThickness="1" CornerRadius="4" Padding="8,3"
                         Cursor="Hand" BorderBrush="{DynamicResource CardBorderBrush}"
-                        MouseLeftButtonUp="FilterChip_Click" Tag="InUse">
+                        Focusable="True" FocusVisualStyle="{StaticResource AccentFocusVisual}"
+                        AutomationProperties.Name="Show apps in use"
+                        MouseLeftButtonUp="FilterChip_Click" KeyDown="FilterChip_KeyDown" Tag="InUse">
                     <TextBlock Text="In use" FontSize="10" FontWeight="SemiBold"
                                Foreground="{DynamicResource SecondaryText}"/>
                 </Border>
             </StackPanel>
 
-            <!-- App list -->
+            <!-- App list — fixed-height area so the window size is settled up front; without this the
+                 window opens small at the "Loading…" size, centers, then grows and jumps once the
+                 running/installed apps finish loading asynchronously. The loading label overlays the
+                 (initially empty) list rather than adding its own height. -->
             <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1"
                     CornerRadius="6" Margin="0,0,0,8">
-                <StackPanel>
-                    <TextBlock x:Name="LoadingLabel"
-                               Text="Loading installed apps…"
-                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
-                               HorizontalAlignment="Center" Margin="0,8"/>
-                    <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto"
+                <Grid Height="220">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
                         <StackPanel x:Name="RunningPanel" Margin="0,4,0,4"/>
                     </ScrollViewer>
-                </StackPanel>
+                    <TextBlock x:Name="LoadingLabel"
+                               Text="Loading installed apps…"
+                               FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
             </Border>
 
             <!-- Browse button -->
@@ -168,5 +179,8 @@
             </Grid>
 
         </StackPanel>
+    
+        <!-- Shared accent window frame (Views/AccentFrame.xaml). -->
+        <views:AccentFrame Grid.RowSpan="99" Grid.ColumnSpan="99" Panel.ZIndex="9999"/>
     </Grid>
 </Window>

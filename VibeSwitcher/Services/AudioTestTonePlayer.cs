@@ -20,24 +20,31 @@ internal static class AudioTestTonePlayer
                 try
                 {
                     if (client.GetMixFormat(out var fmtPtr) != 0) return;
-                    var fmt = Marshal.PtrToStructure<WAVEFORMATEX>(fmtPtr);
-                    bool isFloat = IsFloatFormat(fmt, fmtPtr);
-                    // Support float32 and PCM-16; skip any other format silently.
-                    if (!isFloat && fmt.wBitsPerSample != 16)
+                    int channels, sampleRate, bytesPerSample, hr;
+                    long defaultPeriod;
+                    bool isFloat;
+                    try
                     {
-                        Ole32.CoTaskMemFree(fmtPtr);
-                        return;
+                        var fmt = Marshal.PtrToStructure<WAVEFORMATEX>(fmtPtr);
+                        isFloat = IsFloatFormat(fmt, fmtPtr);
+                        // Support float32 and PCM-16; skip any other format silently.
+                        if (!isFloat && fmt.wBitsPerSample != 16) return;
+
+                        channels   = fmt.nChannels;
+                        sampleRate = (int)fmt.nSamplesPerSec;
+                        bytesPerSample = isFloat ? 4 : 2;
+
+                        client.GetDevicePeriod(out defaultPeriod, out _);
+
+                        var sessionGuid = Guid.Empty;
+                        hr = client.Initialize(0 /* SHARED */, 0, defaultPeriod * 4, 0, fmtPtr, ref sessionGuid);
                     }
-
-                    int channels   = fmt.nChannels;
-                    int sampleRate = (int)fmt.nSamplesPerSec;
-                    int bytesPerSample = isFloat ? 4 : 2;
-
-                    client.GetDevicePeriod(out long defaultPeriod, out _);
-
-                    var sessionGuid = Guid.Empty;
-                    int hr = client.Initialize(0 /* SHARED */, 0, defaultPeriod * 4, 0, fmtPtr, ref sessionGuid);
-                    Ole32.CoTaskMemFree(fmtPtr);
+                    finally
+                    {
+                        // Free the mix-format buffer on every path, including the early returns above
+                        // and any exception during setup.
+                        Ole32.CoTaskMemFree(fmtPtr);
+                    }
                     if (hr != 0) return;
 
                     client.GetBufferSize(out uint bufferFrames);

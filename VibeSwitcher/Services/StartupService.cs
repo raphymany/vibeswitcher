@@ -95,6 +95,8 @@ public class StartupService : IStartupService
         catch (Exception ex)
         {
             _logger.Warning("StartupService.RefreshRegistryPath", ex.Message);
+            _errorTracker.Record(ErrorCode.StartupRegistryFailed, "Startup Registry Failed",
+                $"Could not refresh the startup registry path: {ex.Message}");
         }
     }
 }

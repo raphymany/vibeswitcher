@@ -9,9 +9,10 @@ namespace VibeSwitcher.Helpers;
 
 public static class IconHelper
 {
-    private static Icon? _defaultIcon;
-    private static IntPtr _balloonIconHandle;
-    private static ImageSource? _appIconImageSource;
+    // volatile so the double-checked-locking reads below see a fully-constructed value.
+    private static volatile Icon? _defaultIcon;
+    private static volatile IntPtr _balloonIconHandle;
+    private static volatile ImageSource? _appIconImageSource;
     private static readonly object _syncRoot = new();
 
     static IconHelper()
@@ -30,16 +31,11 @@ public static class IconHelper
         {
             try
             {
-                // Canonicalize to resolve any ".." traversal before probing the filesystem.
-                var canonical = Path.GetFullPath(iconPath);
-
-                // Reject paths outside the managed icons directory — prevents path traversal.
-                // Check for separator after the prefix so "Icons_sibling" dirs can't slip through.
-                var iconsPrefix = iconsDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                                          + Path.DirectorySeparatorChar;
-                if (!canonical.StartsWith(iconsPrefix, StringComparison.OrdinalIgnoreCase))
+                // Resolve and confirm the path is inside the managed icons directory (handles ".."
+                // traversal). Anything outside is rejected and falls back to the default icon.
+                if (!PathSafety.TryResolveInside(iconPath, iconsDir, out var canonical))
                 {
-                    AppLog.Warning("IconHelper.LoadIcon", $"Rejected icon path outside icons directory: '{canonical}'");
+                    AppLog.Warning("IconHelper.LoadIcon", $"Rejected icon path outside icons directory: '{iconPath}'");
                     AppErrors.Record(ErrorCode.IconLoadFailed, "Icon Path Rejected",
                         $"Icon path '{iconPath}' is outside the expected directory and was not loaded.");
                     return CopyIcon(GetDefaultIcon());

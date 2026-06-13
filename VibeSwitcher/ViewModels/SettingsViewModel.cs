@@ -6,7 +6,7 @@ using VibeSwitcher.Services;
 
 namespace VibeSwitcher.ViewModels;
 
-public class SettingsViewModel : ViewModelBase
+public class SettingsViewModel : ViewModelBase, IDisposable
 {
     private readonly IConfigService _configService;
     private readonly IAudioService _audioService;
@@ -42,8 +42,6 @@ public class SettingsViewModel : ViewModelBase
     public event Action? ProfileDeletedOrCloned;
 
     public bool HasNoProfiles => Profiles.Count == 0;
-    // True when at least one audio device is known — used to show/hide the empty-state label.
-    public bool HasKnownDevices => DeviceAliases.Count > 0;
 
     public bool StartWithWindows
     {
@@ -151,6 +149,59 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    // Tray-menu item visibility. Each setter rebuilds the tray menu so changes show immediately.
+    public bool TrayShowAbout
+    {
+        get => _configService.Current.TrayShowAbout;
+        set
+        {
+            if (_configService.Current.TrayShowAbout == value) return;
+            _configService.Current.TrayShowAbout = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
+    public bool TrayShowFaq
+    {
+        get => _configService.Current.TrayShowFaq;
+        set
+        {
+            if (_configService.Current.TrayShowFaq == value) return;
+            _configService.Current.TrayShowFaq = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
+    public bool TrayShowMiniMode
+    {
+        get => _configService.Current.TrayShowMiniMode;
+        set
+        {
+            if (_configService.Current.TrayShowMiniMode == value) return;
+            _configService.Current.TrayShowMiniMode = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
+    public bool TrayShowSoundSettings
+    {
+        get => _configService.Current.TrayShowSoundSettings;
+        set
+        {
+            if (_configService.Current.TrayShowSoundSettings == value) return;
+            _configService.Current.TrayShowSoundSettings = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
     public static IReadOnlyList<string> ThemeOptions { get; } = ["Follow Windows", "Light", "Dark"];
 
     public bool Use12HourClock
@@ -195,6 +246,20 @@ public class SettingsViewModel : ViewModelBase
             SaveAsync();
             _applyTheme(stored);
             OnPropertyChanged();
+        }
+    }
+
+    // "Full" / "Reduced" / "Static" — bound to the Logo animation radios; applies live.
+    public string LogoAnimation
+    {
+        get => _configService.Current.LogoAnimation;
+        set
+        {
+            if (_configService.Current.LogoAnimation == value) return;
+            _configService.Current.LogoAnimation = value;
+            VibeSwitcher.Controls.LogoAnimator.Mode = VibeSwitcher.Controls.LogoAnimator.Parse(value);
+            SaveAsync();
+            OnPropertyChanged(nameof(LogoAnimation));
         }
     }
 
@@ -500,7 +565,7 @@ public class SettingsViewModel : ViewModelBase
     public string SettingsHotkeyDisplay =>
         _configService.Current.SettingsHotkey is { IsEmpty: false } hk
             ? hk.ToDisplayString()
-            : "None";
+            : "Not set";
 
     public bool SettingsHotkeyIsSet =>
         _configService.Current.SettingsHotkey is { IsEmpty: false };
@@ -557,7 +622,7 @@ public class SettingsViewModel : ViewModelBase
     public string CompactHotkeyDisplay =>
         _configService.Current.CompactHotkey is { IsEmpty: false } hk
             ? hk.ToDisplayString()
-            : "None";
+            : "Not set";
 
     public bool CompactHotkeyIsSet =>
         _configService.Current.CompactHotkey is { IsEmpty: false };
@@ -674,9 +739,9 @@ public class SettingsViewModel : ViewModelBase
     public HotkeyDefinition MuteSpeakersHotkey { get => GetMuteHotkey(Models.MuteScope.Speakers); set => SetMuteHotkey(Models.MuteScope.Speakers, value); }
     public HotkeyDefinition MuteBothHotkey     { get => GetMuteHotkey(Models.MuteScope.Both);     set => SetMuteHotkey(Models.MuteScope.Both, value); }
 
-    public string MuteMicHotkeyDisplay      => GetMuteHotkey(Models.MuteScope.Mic).IsEmpty      ? "None" : GetMuteHotkey(Models.MuteScope.Mic).ToDisplayString();
-    public string MuteSpeakersHotkeyDisplay => GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty ? "None" : GetMuteHotkey(Models.MuteScope.Speakers).ToDisplayString();
-    public string MuteBothHotkeyDisplay     => GetMuteHotkey(Models.MuteScope.Both).IsEmpty     ? "None" : GetMuteHotkey(Models.MuteScope.Both).ToDisplayString();
+    public string MuteMicHotkeyDisplay      => GetMuteHotkey(Models.MuteScope.Mic).IsEmpty      ? "Not set" : GetMuteHotkey(Models.MuteScope.Mic).ToDisplayString();
+    public string MuteSpeakersHotkeyDisplay => GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty ? "Not set" : GetMuteHotkey(Models.MuteScope.Speakers).ToDisplayString();
+    public string MuteBothHotkeyDisplay     => GetMuteHotkey(Models.MuteScope.Both).IsEmpty     ? "Not set" : GetMuteHotkey(Models.MuteScope.Both).ToDisplayString();
 
     public bool MuteMicHotkeyIsSet      => !GetMuteHotkey(Models.MuteScope.Mic).IsEmpty;
     public bool MuteSpeakersHotkeyIsSet => !GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty;
@@ -698,6 +763,32 @@ public class SettingsViewModel : ViewModelBase
         set => SetMuteHotkeyEnabled(Models.MuteScope.Both, value);
     }
 
+    // Per-shortcut banner suppression for the mute hotkeys. Bound to the bell (silent) toggle in the
+    // Shortcuts settings — checked = no "muted/unmuted" banner when that hotkey fires.
+    public bool MuteMicSilent
+    {
+        get => _configService.Current.MuteMicSilent;
+        set { if (_configService.Current.MuteMicSilent == value) return; _configService.Current.MuteMicSilent = value; SaveAsync(); OnPropertyChanged(nameof(MuteMicSilent)); }
+    }
+    public bool MuteSpeakersSilent
+    {
+        get => _configService.Current.MuteSpeakersSilent;
+        set { if (_configService.Current.MuteSpeakersSilent == value) return; _configService.Current.MuteSpeakersSilent = value; SaveAsync(); OnPropertyChanged(nameof(MuteSpeakersSilent)); }
+    }
+    public bool MuteBothSilent
+    {
+        get => _configService.Current.MuteBothSilent;
+        set { if (_configService.Current.MuteBothSilent == value) return; _configService.Current.MuteBothSilent = value; SaveAsync(); OnPropertyChanged(nameof(MuteBothSilent)); }
+    }
+
+    // When on (default), a scheduled switch missed while the PC was off/asleep fires on
+    // wake or launch (within the scheduler's catch-up window). Off = exact-time only.
+    public bool SchedulerCatchUp
+    {
+        get => _configService.Current.SchedulerCatchUp;
+        set { if (_configService.Current.SchedulerCatchUp == value) return; _configService.Current.SchedulerCatchUp = value; SaveAsync(); OnPropertyChanged(nameof(SchedulerCatchUp)); }
+    }
+
     // Called from SettingsWindow when a mute hotkey capture dialog closes.
     internal void SetMuteHotkeyFromDialog(Models.MuteScope scope, HotkeyDefinition captured)
         => SetMuteHotkey(scope, captured);
@@ -705,8 +796,9 @@ public class SettingsViewModel : ViewModelBase
     // ────────────────────────────────────────────────────────────────────────────
 
     public ICommand AddProfileCommand { get; }
+    public ICommand ResetSettingsCommand { get; }
 
-    private void SaveAsync() => Task.Run(_configService.SaveImmediate);
+    private void SaveAsync() => _configService.SaveDeferred();
 
     public SettingsViewModel(
         IConfigService configService,
@@ -758,6 +850,16 @@ public class SettingsViewModel : ViewModelBase
 
         AddProfileCommand = new RelayCommand(AddProfile);
 
+        ResetSettingsCommand = new RelayCommand(() =>
+        {
+            if (!_dialogService.ShowConfirm("Reset Settings?",
+                    "All app settings will return to their defaults. Your profiles, schedules, app triggers, and device aliases are kept.",
+                    "Reset"))
+                return;
+            _configService.ResetSettingsToDefaults();
+            RefreshFromConfig();
+        });
+
         Profiles.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasNoProfiles));
 
         // Refresh device dropdowns whenever a device is plugged in or removed.
@@ -802,10 +904,22 @@ public class SettingsViewModel : ViewModelBase
     private IReadOnlyList<AudioDeviceInfo> FilterDevices(IReadOnlyList<AudioDeviceInfo> devices)
     {
         if (_showDisabledDevices && _showDisconnectedDevices) return devices;
+
+        // Always keep a device that a profile is assigned to, even if it's been disabled/unplugged and
+        // the global filter would otherwise hide it — a profile must never lose sight of its own device.
+        // It still shows with the red (unavailable) dot; the assignment is preserved.
+        var assigned = new HashSet<string>(
+            _configService.Current.Profiles
+                .SelectMany(p => new[] { p.PlaybackDeviceId, p.RecordingDeviceId })
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Select(id => id!),
+            StringComparer.OrdinalIgnoreCase);
+
         return devices.Where(d =>
             d.IsConnected ||
             (d.IsDisabled  && _showDisabledDevices) ||
-            (!d.IsConnected && !d.IsDisabled && _showDisconnectedDevices)
+            (!d.IsConnected && !d.IsDisabled && _showDisconnectedDevices) ||
+            assigned.Contains(d.Id)
         ).ToList();
     }
 
@@ -875,8 +989,6 @@ public class SettingsViewModel : ViewModelBase
             item.AliasChanged += OnAliasChanged;
             DeviceAliases.Add(item);
         }
-
-        OnPropertyChanged(nameof(HasKnownDevices));
     }
 
     private void OnAliasChanged(string deviceId, string alias)
@@ -950,7 +1062,7 @@ public class SettingsViewModel : ViewModelBase
             GetDevicesForDisplay(_recordingDevices),
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card),
-            onClone: card => CloneProfile(card),
+            onClone: (card, clone) => CloneProfile(card, clone),
             onTestSound: deviceId => _audioService.TestSoundAsync(deviceId),
             conflictChecker: entry => GetScheduleConflicts(profile, entry),
             onActivate: card => ActivateProfile(card),
@@ -992,33 +1104,50 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
-    private void CloneProfile(ProfileCardViewModel card)
+    // The clone wizard (opened from the card) builds the new profile; this persists it. The wizard
+    // already decided which fields/schedules carry over and gave it a fresh Id.
+    private void CloneProfile(ProfileCardViewModel card, DeviceProfile clone)
     {
-        var original = card.Model;
-        var clone = new DeviceProfile
-        {
-            Name = original.Name + " (copy)",
-            Mode = original.Mode,
-            PlaybackDeviceId = original.PlaybackDeviceId,
-            RecordingDeviceId = original.RecordingDeviceId,
-            // IconPath intentionally not copied — both profiles sharing the same file path would
-            // cause DeleteOrphanedIcon to delete the icon for whichever profile is deleted first,
-            // silently breaking the other. The user can re-browse the icon on the clone.
-            Notes = original.Notes,
-            Silent = original.Silent,
-            SortOrder = Profiles.Count,
-            // IsPinned intentionally not copied — clone starts unpinned
-            // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
-            // Schedules intentionally not copied — cloned schedules at the same time as the
-            // original would immediately trigger schedule conflicts on every tick
-        };
+        clone.SortOrder = Profiles.Count;
+
+        // If the user chose to copy the custom icon, the wizard set IconPath to the original's file.
+        // Copy that file to a fresh path so the two profiles don't share one .ico — otherwise deleting
+        // one profile would orphan the other's icon (the reason the old clone skipped icons entirely).
+        if (!string.IsNullOrEmpty(clone.IconPath))
+            clone.IconPath = CopyIconForClone(clone.IconPath, clone.Id);
+
         _configService.Current.Profiles.Add(clone);
         SaveAsync();
+
         var newCard = CreateCard(clone);
         newCard.LoadDevices(GetDevicesForDisplay(_playbackDevices), GetDevicesForDisplay(_recordingDevices));
         Profiles.Add(newCard);
         _onProfilesChanged();
+
+        // The clone's hotkey (if the user set one) wasn't registered while the wizard was open.
+        if (!clone.Hotkey.IsEmpty)
+            ReregisterHotkeys();
+
         ProfileDeletedOrCloned?.Invoke();
+    }
+
+    // Copies a profile icon into the app's icons folder under a fresh name keyed to the clone's Id,
+    // so the clone owns its own .ico file. Returns null (fall back to default) if the copy fails.
+    private string? CopyIconForClone(string sourceIcon, Guid cloneId)
+    {
+        try
+        {
+            if (!System.IO.File.Exists(sourceIcon)) return null;
+            System.IO.Directory.CreateDirectory(_configService.IconsDir);
+            var dest = System.IO.Path.Combine(_configService.IconsDir, $"clone-{cloneId:N}.ico");
+            System.IO.File.Copy(sourceIcon, dest, overwrite: true);
+            return dest;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning("SettingsViewModel.CopyIconForClone", ex.Message);
+            return null;
+        }
     }
 
     internal void MoveProfile(ProfileCardViewModel from, ProfileCardViewModel to)
@@ -1075,10 +1204,21 @@ public class SettingsViewModel : ViewModelBase
     internal static void DeleteOrphanedIcon(string? iconPath, string iconsDir, IAppLogger logger, ISessionErrorTracker errorTracker, string? exceptPath = null)
     {
         if (string.IsNullOrEmpty(iconPath)) return;
-        var prefix = iconsDir + System.IO.Path.DirectorySeparatorChar;
-        if (!iconPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return;
-        if (exceptPath != null && string.Equals(iconPath, exceptPath, StringComparison.OrdinalIgnoreCase)) return;
-        try { System.IO.File.Delete(iconPath); }
+
+        // Resolve and confirm the path is inside the icons folder before deleting. Without canonical
+        // resolution, a crafted/imported path like "Icons\..\..\secret.ico" passes a raw prefix check
+        // but File.Delete resolves the ".." and deletes outside the icons folder.
+        if (!PathSafety.TryResolveInside(iconPath, iconsDir, out var canonical)) return;
+        if (exceptPath != null)
+        {
+            try
+            {
+                if (string.Equals(canonical, System.IO.Path.GetFullPath(exceptPath), StringComparison.OrdinalIgnoreCase))
+                    return;
+            }
+            catch { /* fall through — a bad exceptPath shouldn't block deleting a valid orphan */ }
+        }
+        try { System.IO.File.Delete(canonical); }
         catch (Exception ex)
         {
             logger.Warning("SettingsViewModel.DeleteOrphanedIcon", ex.Message);
@@ -1130,7 +1270,14 @@ public class SettingsViewModel : ViewModelBase
     {
         if (!_configService.TryImport(sourcePath, out error))
             return false;
+        RefreshFromConfig();
+        return true;
+    }
 
+    // Re-syncs every binding, hotkey, theme, and dependent service after the underlying
+    // config object has been wholesale replaced (import or reset-to-defaults).
+    private void RefreshFromConfig()
+    {
         RebuildProfiles();
 
         _startWithWindows    = _startupService.IsStartupEnabled();
@@ -1150,6 +1297,10 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(ShowDisabledDevices));
         OnPropertyChanged(nameof(ShowDisconnectedDevices));
         OnPropertyChanged(nameof(LeftClickCyclesProfiles));
+        OnPropertyChanged(nameof(TrayShowAbout));
+        OnPropertyChanged(nameof(TrayShowFaq));
+        OnPropertyChanged(nameof(TrayShowMiniMode));
+        OnPropertyChanged(nameof(TrayShowSoundSettings));
         OnPropertyChanged(nameof(SettingsHotkeyDisplay));
         OnPropertyChanged(nameof(SettingsHotkeyIsSet));
         OnPropertyChanged(nameof(SettingsHotkeyEnabled));
@@ -1157,11 +1308,51 @@ public class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(Theme));
         OnPropertyChanged(nameof(Use12HourClock));
         OnPropertyChanged(nameof(Use24HourClock));
+        // Mini-mode and mute panels read from config too — refresh them after an import.
+        OnPropertyChanged(nameof(CompactHotkey));
+        OnPropertyChanged(nameof(CompactHotkeyDisplay));
+        OnPropertyChanged(nameof(CompactHotkeyIsSet));
+        OnPropertyChanged(nameof(CompactAlwaysOnTop));
+        OnPropertyChanged(nameof(CompactTranslucent));
+        OnPropertyChanged(nameof(MuteMicHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteBothHotkeyDisplay));
+        OnPropertyChanged(nameof(MuteMicHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteBothHotkeyIsSet));
+        OnPropertyChanged(nameof(MuteMicHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteSpeakersHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteBothHotkeyEnabled));
+        OnPropertyChanged(nameof(MuteMicSilent));
+        OnPropertyChanged(nameof(MuteSpeakersSilent));
+        OnPropertyChanged(nameof(MuteBothSilent));
+        OnPropertyChanged(nameof(SchedulerCatchUp));
+        OnPropertyChanged(nameof(LogoAnimation));
+        VibeSwitcher.Controls.LogoAnimator.Mode =
+            VibeSwitcher.Controls.LogoAnimator.Parse(_configService.Current.LogoAnimation);
         _applyTheme(_configService.Current.Theme ?? "Auto");
 
         ReregisterHotkeys();
         _onProfilesChanged();
-        return true;
+        // Replaced app-trigger lists must be (re)watched and removed ones unwatched.
+        _onAppTriggersChanged?.Invoke();
+    }
+
+    public void Dispose()
+    {
+        _audioService.DevicesChanged -= OnDevicesChanged;
+        if (_iconWatcher != null)
+        {
+            _iconWatcher.Deleted -= OnIconFileChanged;
+            _iconWatcher.Renamed -= OnIconFileChanged;
+            _iconWatcher.Dispose();
+            _iconWatcher = null;
+        }
+        _loadCts?.Cancel();
+        _loadCts?.Dispose();
+        _loadCts = null;
+        foreach (var card in Profiles)
+            card.Dispose();
     }
 
     private void RebuildProfiles()

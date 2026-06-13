@@ -123,6 +123,236 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void TryImport_RejectsNonVibeSwitcherJson()
+    {
+        var svc = MakeSvc();
+        svc.Load();
+        svc.Current.Profiles.Add(new DeviceProfile { Name = "Keep" });
+        svc.SaveImmediate();
+
+        var foreign = Path.Combine(_dir, "foreign.json");
+        File.WriteAllText(foreign, """{ "hello": "world", "count": 3 }""");
+
+        bool ok = svc.TryImport(foreign, out var error);
+        Assert.False(ok);
+        Assert.NotNull(error);
+        // The existing config must be untouched.
+        Assert.Single(svc.Current.Profiles);
+        Assert.Equal("Keep", svc.Current.Profiles[0].Name);
+    }
+
+    [Fact]
+    public void TryImport_AcceptsValidExportedConfig()
+    {
+        var src = MakeSvc();
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile { Name = "Imported" });
+        var exportPath = Path.Combine(_dir, "export.json");
+        src.ExportTo(exportPath);
+
+        var dest = MakeSvc(Path.Combine(_dir, "dest"));
+        dest.Load();
+        bool ok = dest.TryImport(exportPath, out var error);
+        Assert.True(ok);
+        Assert.Null(error);
+        Assert.Single(dest.Current.Profiles);
+        Assert.Equal("Imported", dest.Current.Profiles[0].Name);
+    }
+
+    [Fact]
+    public void TryImport_RejectsJsonWithProfilesKeyButNoConfigVersion()
+    {
+        // A foreign file that happens to carry a "profiles" property but lacks the VibeSwitcher
+        // ConfigVersion marker must be rejected — it must not overwrite the user's real config.
+        var svc = MakeSvc();
+        svc.Load();
+        svc.Current.Profiles.Add(new DeviceProfile { Name = "Keep" });
+        svc.SaveImmediate();
+
+        var foreign = Path.Combine(_dir, "foreign2.json");
+        File.WriteAllText(foreign, """{ "profiles": [], "name": "some other tool" }""");
+
+        bool ok = svc.TryImport(foreign, out var error);
+        Assert.False(ok);
+        Assert.NotNull(error);
+        Assert.Single(svc.Current.Profiles);
+        Assert.Equal("Keep", svc.Current.Profiles[0].Name);
+    }
+
+    [Fact]
+    public void ResetSettingsToDefaults_PreservesUserDataButResetsPreferences()
+    {
+        var svc = MakeSvc();
+        svc.Load();
+        var profile = new DeviceProfile { Name = "Keep" };
+        svc.Current.Profiles.Add(profile);
+        svc.Current.ActiveProfileId = profile.Id;
+        svc.Current.DeviceAliases["dev1"] = "My Device";
+        svc.Current.CompactIntroShown = true;
+        var lastEval = new DateTime(2026, 6, 13, 9, 0, 0);
+        svc.Current.LastSchedulerEvaluation = lastEval;
+        // Flip preferences away from their defaults.
+        svc.Current.CloseToTray = false;      // default true
+        svc.Current.SchedulerCatchUp = false; // default true
+        svc.Current.Theme = "Dark";           // default "Auto"
+
+        svc.ResetSettingsToDefaults();
+
+        // User data and dedup/intro state are preserved.
+        Assert.Single(svc.Current.Profiles);
+        Assert.Equal("Keep", svc.Current.Profiles[0].Name);
+        Assert.Equal(profile.Id, svc.Current.ActiveProfileId);
+        Assert.Equal("My Device", svc.Current.DeviceAliases["dev1"]);
+        Assert.True(svc.Current.CompactIntroShown);
+        Assert.Equal(lastEval, svc.Current.LastSchedulerEvaluation);
+        // Preferences return to their defaults.
+        Assert.True(svc.Current.CloseToTray);
+        Assert.True(svc.Current.SchedulerCatchUp);
+        Assert.Equal("Auto", svc.Current.Theme);
+    }
+
+    [Fact]
+    public void TryImport_ClearsCustomSoundPathOutsideManagedFolder()
+    {
+        // An imported config must not be able to point the app at an arbitrary file on disk; a custom
+        // sound path outside the importer's managed Sounds folder is dropped.
+        var src = MakeSvc();
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile
+        {
+            Name = "P",
+            SoundOverride = true,
+            SoundTone = "Custom",
+            SoundCustomPath = @"C:\Windows\Media\ding.wav",
+        });
+        var exportPath = Path.Combine(_dir, "export-sound.json");
+        src.ExportTo(exportPath);
+
+        var dest = MakeSvc(Path.Combine(_dir, "dest-sound"));
+        dest.Load();
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Single(dest.Current.Profiles);
+        Assert.Null(dest.Current.Profiles[0].SoundCustomPath);
+    }
+
+    [Fact]
+    public void TryImport_KeepsCustomSoundPathInsideManagedFolder()
+    {
+        // A sound that already lives in the importer's managed Sounds folder must survive import.
+        var dest = MakeSvc(Path.Combine(_dir, "dest-keep"));
+        dest.Load();
+        Directory.CreateDirectory(dest.SoundsDir);
+        var managed = Path.Combine(dest.SoundsDir, "keep.wav");
+        File.WriteAllBytes(managed, new byte[] { 0x52, 0x49, 0x46, 0x46 });
+
+        var src = MakeSvc(Path.Combine(_dir, "src-keep"));
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile
+        {
+            Name = "P", SoundOverride = true, SoundTone = "Custom", SoundCustomPath = managed,
+        });
+        var exportPath = Path.Combine(_dir, "export-keep.json");
+        src.ExportTo(exportPath);
+
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Equal(managed, dest.Current.Profiles[0].SoundCustomPath);
+    }
+
+    [Fact]
+    public void TryImport_ClearsCustomIconPathOutsideManagedFolder()
+    {
+        // Mirrors the sound guard: an imported icon path outside the managed Icons folder is dropped
+        // so an import can't point the app at an arbitrary file on disk.
+        var src = MakeSvc();
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile
+        {
+            Name = "P",
+            IconPath = @"C:\Windows\System32\shell32.dll",
+        });
+        var exportPath = Path.Combine(_dir, "export-icon.json");
+        src.ExportTo(exportPath);
+
+        var dest = MakeSvc(Path.Combine(_dir, "dest-icon"));
+        dest.Load();
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Single(dest.Current.Profiles);
+        Assert.Null(dest.Current.Profiles[0].IconPath);
+    }
+
+    [Fact]
+    public void TryImport_KeepsCustomIconPathInsideManagedFolder()
+    {
+        // An icon that already lives in the importer's managed Icons folder must survive import.
+        var dest = MakeSvc(Path.Combine(_dir, "dest-icon-keep"));
+        dest.Load();
+        Directory.CreateDirectory(dest.IconsDir);
+        var managed = Path.Combine(dest.IconsDir, "keep.ico");
+        File.WriteAllBytes(managed, new byte[] { 0x00, 0x00, 0x01, 0x00 });
+
+        var src = MakeSvc(Path.Combine(_dir, "src-icon-keep"));
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile { Name = "P", IconPath = managed });
+        var exportPath = Path.Combine(_dir, "export-icon-keep.json");
+        src.ExportTo(exportPath);
+
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Equal(managed, dest.Current.Profiles[0].IconPath);
+    }
+
+    [Fact]
+    public void Load_ClampsOutOfRangeScheduleAndMode()
+    {
+        File.WriteAllText(Path.Combine(_dir, "config.json"),
+            """{ "ConfigVersion": 1, "Profiles": [ { "Name": "P", "Mode": 99, "Schedules": [ { "Hour": 25, "Minute": 70, "ReminderMinutes": 99999 } ] } ] }""");
+
+        var svc = MakeSvc();
+        svc.Load();
+        var p = svc.Current.Profiles[0];
+        Assert.Equal(ProfileMode.Both, p.Mode); // invalid enum value falls back to Both
+        Assert.Equal(23, p.Schedules[0].Hour);
+        Assert.Equal(59, p.Schedules[0].Minute);
+        Assert.True(p.Schedules[0].ReminderMinutes <= 24 * 60 - 1);
+    }
+
+    [Fact]
+    public void Load_NullsDanglingActiveProfileId()
+    {
+        File.WriteAllText(Path.Combine(_dir, "config.json"),
+            """{ "ConfigVersion": 1, "Profiles": [], "ActiveProfileId": "11111111-1111-1111-1111-111111111111" }""");
+
+        var svc = MakeSvc();
+        svc.Load();
+        Assert.Null(svc.Current.ActiveProfileId);
+    }
+
+    [Fact]
+    public void TrayMenuFlags_DefaultTrue_AndRoundTrip()
+    {
+        var svc = MakeSvc();
+        svc.Load();
+        Assert.True(svc.Current.TrayShowAbout);
+        Assert.True(svc.Current.TrayShowFaq);
+        Assert.True(svc.Current.TrayShowMiniMode);
+        Assert.True(svc.Current.TrayShowSoundSettings);
+
+        svc.Current.TrayShowAbout = false;
+        svc.Current.TrayShowSoundSettings = false;
+        svc.SaveImmediate();
+
+        var svc2 = MakeSvc();
+        svc2.Load();
+        Assert.False(svc2.Current.TrayShowAbout);
+        Assert.True(svc2.Current.TrayShowFaq);
+        Assert.True(svc2.Current.TrayShowMiniMode);
+        Assert.False(svc2.Current.TrayShowSoundSettings);
+    }
+
+    [Fact]
     public void Load_CorruptPrimary_FallsBackToBackup()
     {
         var svc = MakeSvc();

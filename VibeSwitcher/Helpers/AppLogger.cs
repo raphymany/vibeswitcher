@@ -12,6 +12,9 @@ public class AppLogger : IAppLogger
     private const int BackupCount = 2;
 
     private readonly string _effectivePath;
+    // Serializes rotation + append across threads (logger is a shared singleton called from
+    // UI, background, COM-notification and HID threads).
+    private readonly object _writeLock = new();
 
     public AppLogger(string? logDir = null)
     {
@@ -47,8 +50,11 @@ public class AppLogger : IAppLogger
 
         try
         {
-            RotateIfNeeded();
-            File.AppendAllText(_effectivePath, line + Environment.NewLine);
+            lock (_writeLock)
+            {
+                RotateIfNeeded();
+                File.AppendAllText(_effectivePath, line + Environment.NewLine);
+            }
         }
         catch { /* log write failure is non-fatal */ }
     }

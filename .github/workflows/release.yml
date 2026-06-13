@@ -37,12 +37,17 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}".TrimStart("v")
           $ver = (Get-Item publish/VibeSwitcher.exe).VersionInfo.ProductVersion
-          if (-not $ver.StartsWith($tag)) {
+          # Exact, normalized comparison — a prefix match (StartsWith) would let tag v2.0 pass
+          # against exe 2.0.0, or v2.0.0 against 2.0.0.5. Strip any "+metadata" and compare as versions.
+          $verNorm = ([version](($ver -split '[-+]')[0])).ToString()
+          $tagNorm = ([version]$tag).ToString()
+          if ($verNorm -ne $tagNorm) {
             throw "Tag $tag does not match the exe version $ver — bump <Version> in VibeSwitcher.csproj before tagging."
           }
 
       - name: Zip artifact
-        run: Compress-Archive -Path publish -DestinationPath VibeSwitcher-${{ github.ref_name }}-win-x64.zip
+        # publish\* (not publish) so the archive root holds VibeSwitcher.exe directly, not a publish\ folder.
+        run: Compress-Archive -Path publish\* -DestinationPath VibeSwitcher-${{ github.ref_name }}-win-x64.zip
 
       - name: Build installer
         shell: pwsh

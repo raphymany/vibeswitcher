@@ -15,7 +15,10 @@ public record ProfileSwitchResult(
     bool PlaybackApplied,
     bool RecordingApplied,
     string? MissingPlaybackId,
-    string? MissingRecordingId);
+    string? MissingRecordingId,
+    // True when the device was present/active but SetDefaultEndpoint failed (distinct from "missing").
+    bool PlaybackSetFailed = false,
+    bool RecordingSetFailed = false);
 
 // Implements IAudioService. Heavy logic lives in the focused helpers:
 //   AudioDeviceEnumerator  — device listing
@@ -77,6 +80,8 @@ public class AudioService : IAudioService
             Marshal.Release(_notifClientPtr);
             _notifClientPtr = IntPtr.Zero;
         }
+        // Cancel/dispose pending debounce timers so a late continuation can't fire after unregister.
+        _notifClient.Dispose();
         Marshal.ReleaseComObject(_notifEnumerator);
     }
 
@@ -116,7 +121,12 @@ public class AudioService : IAudioService
                 Marshal.ReleaseComObject(device);
             }
         }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            _logger.Debug("AudioService.GetAudioEndpointPath",
+                $"Could not read endpoint path for '{audioDeviceId}': {ex.Message}");
+            return null;
+        }
         finally { Marshal.ReleaseComObject(enumerator); }
     }
 }

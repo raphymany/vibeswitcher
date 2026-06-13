@@ -143,49 +143,81 @@ public class SettingsViewModelTests
     }
 
     [Fact]
-    public void CloneProfile_CreatesNewProfileWithCopySuffix()
+    public void CloneProfile_AddsTheWizardResult()
     {
-        var original = new DeviceProfile
+        // The clone wizard builds the new profile; SettingsViewModel persists whatever it returns.
+        var original = new DeviceProfile { Name = "Gaming", SortOrder = 0 };
+        _fakeConfig.Current.Profiles.Add(original);
+        var built = new DeviceProfile
         {
-            Name = "Gaming",
+            Name = "Gaming (copy)",
             Mode = ProfileMode.Playback,
             PlaybackDeviceId = "dev-123",
             Silent = true,
-            SortOrder = 0
         };
-        _fakeConfig.Current.Profiles.Add(original);
-        _fakeDialog.ProfileTypeResult = ProfileMode.Playback;
+        _fakeDialog.CloneWizardResult = built;
         var vm = MakeViewModel();
 
         vm.Profiles[0].CloneCommand.Execute(null);
 
         Assert.Equal(2, vm.Profiles.Count);
-        var clone = vm.Profiles[1];
-        Assert.Equal("Gaming (copy)", clone.Model.Name);
-        Assert.Equal(ProfileMode.Playback, clone.Model.Mode);
-        Assert.Equal("dev-123", clone.Model.PlaybackDeviceId);
-        Assert.True(clone.Model.Silent);
-        Assert.NotEqual(original.Id, clone.Model.Id);
+        var clone = vm.Profiles[1].Model;
+        Assert.Same(built, clone);
+        Assert.Equal("Gaming (copy)", clone.Name);
+        Assert.Equal(ProfileMode.Playback, clone.Mode);
+        Assert.Equal("dev-123", clone.PlaybackDeviceId);
+        Assert.True(clone.Silent);
+        Assert.Equal(1, clone.SortOrder); // assigned from Profiles.Count at clone time
+        Assert.NotEqual(original.Id, clone.Id);
     }
 
     [Fact]
-    public void CloneProfile_DoesNotCopyHotkeyOrIconPath()
+    public void CloneProfile_WizardCancelled_AddsNothing()
     {
-        var original = new DeviceProfile
-        {
-            Name = "Work",
-            Hotkey = new HotkeyDefinition { VirtualKeyCode = 33, UseCtrl = true },
-            IconPath = @"C:\icons\work.ico",
-            SortOrder = 0
-        };
+        var original = new DeviceProfile { Name = "Work", SortOrder = 0 };
         _fakeConfig.Current.Profiles.Add(original);
+        _fakeDialog.CloneWizardResult = null; // user cancelled the wizard
         var vm = MakeViewModel();
 
         vm.Profiles[0].CloneCommand.Execute(null);
 
-        var clone = vm.Profiles[1].Model;
-        Assert.True(clone.Hotkey.IsEmpty);
-        Assert.Null(clone.IconPath);
+        Assert.Single(vm.Profiles);
+    }
+
+    [Fact]
+    public void CloneProfile_MissingIconFile_FallsBackToNull()
+    {
+        // When the wizard requests copying an icon whose file no longer exists, the copy is skipped
+        // and the clone falls back to the default icon (null) rather than pointing at a dead path.
+        var original = new DeviceProfile { Name = "Work", SortOrder = 0 };
+        _fakeConfig.Current.Profiles.Add(original);
+        _fakeDialog.CloneWizardResult = new DeviceProfile
+        {
+            Name = "Work (copy)",
+            IconPath = @"C:\does\not\exist\work.ico",
+        };
+        var vm = MakeViewModel();
+
+        vm.Profiles[0].CloneCommand.Execute(null);
+
+        Assert.Null(vm.Profiles[1].Model.IconPath);
+    }
+
+    [Fact]
+    public void CloneProfile_WithHotkey_RegistersIt()
+    {
+        var original = new DeviceProfile { Name = "Gaming", SortOrder = 0 };
+        _fakeConfig.Current.Profiles.Add(original);
+        _fakeDialog.CloneWizardResult = new DeviceProfile
+        {
+            Name = "Gaming (copy)",
+            Hotkey = new HotkeyDefinition { VirtualKeyCode = 65, UseCtrl = true, UseShift = true },
+        };
+        var vm = MakeViewModel();
+
+        vm.Profiles[0].CloneCommand.Execute(null);
+
+        Assert.Contains(_fakeHotkey.RegisteredProfiles, p => p.Name == "Gaming (copy)");
     }
 
     [Fact]

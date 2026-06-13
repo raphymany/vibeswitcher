@@ -66,6 +66,11 @@ public class ScheduleEntryViewModel : ViewModelBase
                 if (_hasConflict)
                 {
                     _showConflictAlert("Cannot enable — this schedule conflicts with another at the same time. Click 'Edit' to pick a different time.");
+                    // The toggle's binding just wrote 'true'; raise the change (after the current
+                    // binding update) so WPF re-reads the still-false value and snaps the toggle back.
+                    var d = System.Windows.Application.Current?.Dispatcher;
+                    if (d != null) d.BeginInvoke(new Action(() => OnPropertyChanged(nameof(Enabled))));
+                    else OnPropertyChanged(nameof(Enabled));
                     return;
                 }
             }

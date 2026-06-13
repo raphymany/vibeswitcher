@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -15,10 +16,13 @@ public partial class SwitchSoundDialog : Window
     private int _volume;
     private bool _showBanner;
     private readonly IAppLogger _logger;
+    private readonly string _libraryDir;
+
+    public ObservableCollection<LibrarySoundItem> LibraryItems { get; } = new();
 
     public SoundOverrideResult? Result { get; private set; }
 
-    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume, IAppLogger logger, bool showBanner = false, bool isEditing = false)
+    public SwitchSoundDialog(bool enabled, string? tone, string? customPath, int volume, IAppLogger logger, string soundsLibraryDir, bool showBanner = false, bool isEditing = false)
     {
         InitializeComponent();
 
@@ -27,6 +31,7 @@ public partial class SwitchSoundDialog : Window
         _volume     = volume;
         _showBanner = showBanner;
         _logger     = logger;
+        _libraryDir = soundsLibraryDir;
 
         UpdateToneChips();
         CustomPathBox.Text       = customPath ?? "";
@@ -39,6 +44,40 @@ public partial class SwitchSoundDialog : Window
 
         if (isEditing)
             RemoveBtn.Visibility = Visibility.Visible;
+
+        LibraryList.ItemsSource = LibraryItems;
+        LoadLibrary();
+    }
+
+    private void LoadLibrary()
+    {
+        LibraryItems.Clear();
+        foreach (var path in UploadLibrary.List(_libraryDir, "*.wav"))
+            LibraryItems.Add(new LibrarySoundItem(path));
+        LibrarySection.Visibility = LibraryItems.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void LibraryItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button { Tag: LibrarySoundItem item })
+        {
+            _customPath = item.Path;
+            CustomPathBox.Text = item.Path;
+            _tone = "Custom";
+            UpdateToneChips();
+            CustomPathPanel.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void DeleteLibraryItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button { Tag: LibrarySoundItem item })
+        {
+            UploadLibrary.Delete(item.Path);
+            LibraryItems.Remove(item);
+            LibrarySection.Visibility = LibraryItems.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+        e.Handled = true;
     }
 
     private void ToneChip_Click(object sender, RoutedEventArgs e)
@@ -82,6 +121,10 @@ public partial class SwitchSoundDialog : Window
         _tone = "Custom";
         UpdateToneChips();
         CustomPathPanel.Visibility = Visibility.Visible;
+
+        // Keep the original in the user's uploads so it can be re-picked later without browsing.
+        UploadLibrary.Save(dlg.FileName, _libraryDir);
+        LoadLibrary();
     }
 
     private void Volume_Changed(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
@@ -123,4 +166,13 @@ public partial class SwitchSoundDialog : Window
         if (e.Key == Key.Escape) { DialogResult = false; e.Handled = true; }
         if (e.Key == Key.Enter)  { Save_Click(sender, e); e.Handled = true; }
     }
+}
+
+// A previously-uploaded custom switch sound from the user's library.
+public sealed class LibrarySoundItem
+{
+    public string Path { get; }
+    public string Name => System.IO.Path.GetFileNameWithoutExtension(Path);
+
+    public LibrarySoundItem(string path) => Path = path;
 }

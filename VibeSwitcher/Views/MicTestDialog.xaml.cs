@@ -46,8 +46,9 @@ public partial class MicTestDialog : Window
                     });
                 }, _logger);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.Debug("MicTestDialog.RunCaptureAsync", ex.Message);
                 await Dispatcher.InvokeAsync(() =>
                 {
                     SpeakPrompt.Visibility = System.Windows.Visibility.Collapsed;

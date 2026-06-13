@@ -53,7 +53,18 @@ public sealed class DeviceTriggerService : IDisposable
         return ids;
     }
 
+    // Audio device-change callbacks arrive on a background (COM/debounce) thread. Marshal the whole
+    // handler to the UI thread so the profile-list reads below run on the same thread that mutates
+    // config during Settings edits — avoiding a "collection was modified" race that silently drops
+    // the auto-switch.
     private void OnDevicesChanged()
+    {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(HandleDevicesChanged); return; }
+        HandleDevicesChanged();
+    }
+
+    private void HandleDevicesChanged()
     {
         if (_disposed) return;
 
@@ -79,7 +90,7 @@ public sealed class DeviceTriggerService : IDisposable
                 if (triggeredProfile != null && IsTriggeredBy(triggeredProfile, newlyDisconnected) && !ri.Value.IsHidTriggered)
                 {
                     lock (_stateLock) _revertStack.Pop();
-                    RevertToPrevious(ri.Value.PreviousProfileId);
+                    RevertToPrevious(ri.Value.PreviousProfileId, current);
                     return;
                 }
             }
@@ -103,6 +114,13 @@ public sealed class DeviceTriggerService : IDisposable
     // Revert (if applicable) is handled by OnDevicesChanged on actual disconnect.
     private void OnDevicePropertyChanged(string deviceId)
     {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(() => HandleDevicePropertyChanged(deviceId)); return; }
+        HandleDevicePropertyChanged(deviceId);
+    }
+
+    private void HandleDevicePropertyChanged(string deviceId)
+    {
         if (_disposed) return;
 
         var profile = _configService.Current.Profiles
@@ -124,7 +142,10 @@ public sealed class DeviceTriggerService : IDisposable
         DispatchSwitch(profile);
     }
 
-    private void RevertToPrevious(Guid? previousProfileId)
+    // 'connected' is the connected-device snapshot for the event being processed, passed in so
+    // the whole revert cascade reasons over one consistent view rather than re-reading the field
+    // (which another DevicesChanged event could swap underneath it).
+    private void RevertToPrevious(Guid? previousProfileId, HashSet<string> connected)
     {
         if (!previousProfileId.HasValue) return;
         var prev = _configService.Current.Profiles.FirstOrDefault(p => p.Id == previousProfileId);
@@ -134,11 +155,11 @@ public sealed class DeviceTriggerService : IDisposable
         // to the next revert entry. This handles e.g. BT turning off while on Logitech —
         // when Logitech later reverts "to BT", BT is gone, so we fall through to Speaker.
         if (prev.TriggerOnConnect && !IsHidManaged(prev) &&
-            prev.PlaybackDeviceId != null && !_connectedIds.Contains(prev.PlaybackDeviceId))
+            prev.PlaybackDeviceId != null && !connected.Contains(prev.PlaybackDeviceId))
         {
             RevertInfo? next;
             lock (_stateLock) next = _revertStack.Count > 0 ? _revertStack.Pop() : null;
-            RevertToPrevious(next?.PreviousProfileId);
+            RevertToPrevious(next?.PreviousProfileId, connected);
             return;
         }
 
@@ -176,6 +197,13 @@ public sealed class DeviceTriggerService : IDisposable
     // which arrives 3-5 seconds later for LIGHTSPEED dongles.
     public void OnHidWirelessConnected(HidHeadsetDescriptor descriptor)
     {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(() => HandleHidConnected(descriptor)); return; }
+        HandleHidConnected(descriptor);
+    }
+
+    private void HandleHidConnected(HidHeadsetDescriptor descriptor)
+    {
         if (_disposed) return;
 
         var profile = _configService.Current.Profiles
@@ -195,6 +223,13 @@ public sealed class DeviceTriggerService : IDisposable
     // Called by HidHeadsetService when a monitored wireless headset powers off.
     // Triggers the same revert logic as a physical device disconnect.
     public void OnHidWirelessDisconnected(HidHeadsetDescriptor descriptor)
+    {
+        var d = System.Windows.Application.Current?.Dispatcher;
+        if (d != null && !d.CheckAccess()) { d.InvokeAsync(() => HandleHidDisconnected(descriptor)); return; }
+        HandleHidDisconnected(descriptor);
+    }
+
+    private void HandleHidDisconnected(HidHeadsetDescriptor descriptor)
     {
         if (_disposed) return;
 
@@ -235,7 +270,9 @@ public sealed class DeviceTriggerService : IDisposable
         _logger.Info("DeviceTriggerService.HidRevert",
             $"{descriptor.ModelName}: reverting from '{triggeredProfile.Name}'.");
         lock (_stateLock) _revertStack.Pop();
-        RevertToPrevious(ri.Value.PreviousProfileId);
+        // Take a fresh connected-device snapshot for the revert cascade (matching HandleDevicesChanged),
+        // rather than passing the live _connectedIds field which a concurrent change could swap.
+        RevertToPrevious(ri.Value.PreviousProfileId, BuildConnectedSet());
     }
 
     private bool IsProfileForDescriptor(DeviceProfile profile, HidHeadsetDescriptor descriptor)

@@ -27,7 +27,7 @@ public class ProfileCardViewModelTests
             Array.Empty<AudioDeviceInfo>(),
             _ => _changedCount++,
             card => _deletedCard = card,
-            _ => { },
+            (_, _) => { },
             _ => Task.CompletedTask);
     }
 
@@ -60,7 +60,7 @@ public class ProfileCardViewModelTests
         card.CaptureHotkeyCommand.Execute(null);
 
         Assert.True(profile.Hotkey.IsEmpty);
-        Assert.Equal("(none)", card.HotkeyDisplay);
+        Assert.Equal("Not set", card.HotkeyDisplay);
         Assert.Equal(1, _changedCount);
     }
 
@@ -245,6 +245,53 @@ public class ProfileCardViewModelTests
         }
     }
 
+    [Fact]
+    public void PickIcon_Browse_SavesOriginalToUploadsLibrary()
+    {
+        var sourceFile = Path.Combine(Path.GetTempPath(), $"vs-test-{Guid.NewGuid():N}.ico");
+        File.WriteAllBytes(sourceFile, [0x01, 0x02, 0x03]);
+        try
+        {
+            _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { BrowseFromDisk = true };
+            _fakeDialog.BrowseIconFileResult = sourceFile;
+            using var card = MakeCard();
+
+            card.PickIconCommand.Execute(null);
+
+            var libraryFiles = VibeSwitcher.Helpers.UploadLibrary.List(_fakeConfig.IconsLibraryDir, "*.ico");
+            Assert.NotEmpty(libraryFiles);
+        }
+        finally
+        {
+            try { File.Delete(sourceFile); } catch { }
+            try { Directory.Delete(_fakeConfig.IconsLibraryDir, recursive: true); } catch { }
+        }
+    }
+
+    [Fact]
+    public void PickIcon_FromLibrary_CopiesToProfilePath()
+    {
+        Directory.CreateDirectory(_fakeConfig.IconsLibraryDir);
+        var libraryIcon = Path.Combine(_fakeConfig.IconsLibraryDir, "saved.ico");
+        File.WriteAllBytes(libraryIcon, [0x09]);
+        try
+        {
+            _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { CustomIconPath = libraryIcon };
+            using var card = MakeCard();
+
+            card.PickIconCommand.Execute(null);
+
+            Assert.NotNull(card.IconPath);
+            Assert.StartsWith(_fakeConfig.IconsDir, card.IconPath, StringComparison.OrdinalIgnoreCase);
+            // The profile points at its own managed copy, not the shared library file.
+            Assert.NotEqual(libraryIcon, card.IconPath, StringComparer.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            try { Directory.Delete(_fakeConfig.IconsLibraryDir, recursive: true); } catch { }
+        }
+    }
+
     // ── ShowNameSuggestions / ApplyNameSuggestion ────────────────────────────
 
     [Theory]
@@ -323,7 +370,7 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             [], [],
-            _ => changedCount++, _ => { }, _ => { }, _ => Task.CompletedTask);
+            _ => changedCount++, _ => { }, (_, _) => { }, _ => Task.CompletedTask);
 
         var pb = new AudioDeviceInfo[] { new("id1", "Speakers", true) };
         card.LoadDevices(pb, []);
@@ -342,9 +389,9 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             pb, [],
-            _ => changedCount++, _ => { }, _ => { }, _ => Task.CompletedTask);
+            _ => changedCount++, _ => { }, (_, _) => { }, _ => Task.CompletedTask);
 
-        card.SelectedPlaybackDevice = card.PlaybackDevices[1]; // index 0 is (None)
+        card.SelectedPlaybackDevice = card.PlaybackDevices[1]; // index 0 is the "Not set" device
 
         Assert.Equal(1, changedCount);
     }
@@ -383,7 +430,7 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             pb, [],
-            _ => { }, _ => { }, _ => { },
+            _ => { }, _ => { }, (_, _) => { },
             id => { calledWith.Add(id); return Task.CompletedTask; });
 
         card.LoadDevices(pb, []);
@@ -403,7 +450,7 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             [], rec,
-            _ => { }, _ => { }, _ => { }, _ => Task.CompletedTask);
+            _ => { }, _ => { }, (_, _) => { }, _ => Task.CompletedTask);
 
         card.LoadDevices([], rec);
         // ShowMicTest is not invokable in headless tests (no UI thread / WPF window),

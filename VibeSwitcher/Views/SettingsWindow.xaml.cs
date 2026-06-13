@@ -59,7 +59,7 @@ public partial class SettingsWindow : Window
         _errorTracker = errorTracker;
 
         var startupService = new StartupService(logger, errorTracker);
-        var dialogService = new DialogService(logger);
+        var dialogService = new DialogService(logger, configService);
         _viewModel = new SettingsViewModel(
             configService,
             audioService,
@@ -206,6 +206,14 @@ public partial class SettingsWindow : Window
     private void TitleMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     private void TitleMaximize_Click(object sender, RoutedEventArgs e)
         => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    protected override void OnStateChanged(EventArgs e)
+    {
+        base.OnStateChanged(e);
+        // Reflect maximized state in the title-bar glyph (□ ↔ restore ❐). Not shown in mini mode.
+        if (!IsCompact)
+            TitleMaxBtn.Content = WindowState == WindowState.Maximized ? "❐" : "□";
+    }
     private void TitleClose_Click(object sender, RoutedEventArgs e) => Close();
 
     // ── Filter bar toggle ────────────────────────────────────────────
@@ -474,7 +482,7 @@ public partial class SettingsWindow : Window
             cfg.WindowLeft   = Left;
             cfg.WindowTop    = Top;
         }
-        _ = Task.Run(_configService.SaveImmediate);
+        _configService.SaveDeferred();
     }
 
     // ── Mini (compact) mode ─────────────────────────────────────────
@@ -510,7 +518,7 @@ public partial class SettingsWindow : Window
             if (!cfg0.CompactIntroShown)
             {
                 cfg0.CompactIntroShown = true;
-                _ = Task.Run(_configService.SaveImmediate);
+                _configService.SaveDeferred();
 
                 bool customize = new ConfirmDialog(
                     "Welcome to Mini Mode",
@@ -575,12 +583,11 @@ public partial class SettingsWindow : Window
         }
 
         Topmost = cfg.CompactAlwaysOnTop;
-        UpdateMiniMuteBadge(_trayService.MuteState.Mic, _trayService.MuteState.Speakers);
 
         if (!cfg.CompactMode)
         {
             cfg.CompactMode = true;
-            _ = Task.Run(_configService.SaveImmediate);
+            _configService.SaveDeferred();
         }
     }
 
@@ -631,7 +638,7 @@ public partial class SettingsWindow : Window
         if (cfg.CompactMode)
         {
             cfg.CompactMode = false;
-            _ = Task.Run(_configService.SaveImmediate);
+            _configService.SaveDeferred();
         }
     }
 
@@ -647,25 +654,6 @@ public partial class SettingsWindow : Window
             EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
         };
         BeginAnimation(OpacityProperty, anim);
-    }
-
-    // Mirrors the tray mute badge inside the mini title bar (the tray is hidden under fullscreen apps).
-    public void UpdateMiniMuteBadge(bool micMuted, bool speakersMuted)
-    {
-        if (!micMuted && !speakersMuted)
-        {
-            MiniMuteDot.Visibility = Visibility.Collapsed;
-            return;
-        }
-        var (color, tip) = (micMuted, speakersMuted) switch
-        {
-            (true, true)  => (Color.FromRgb(150, 70, 230), "Mic + Speakers muted"),
-            (true, false) => (Color.FromRgb(225, 55, 55),  "Mic muted"),
-            _             => (Color.FromRgb(45, 120, 230), "Speakers muted"),
-        };
-        MiniMuteDot.Fill = new SolidColorBrush(color);
-        MiniMuteDot.ToolTip = tip;
-        MiniMuteDot.Visibility = Visibility.Visible;
     }
 
     private System.Windows.Data.ListCollectionView _miniRowsView = null!;
@@ -724,7 +712,7 @@ public partial class SettingsWindow : Window
 
         cfg.CompactLayout = dialog.SelectedLayout;
         cfg.CompactProfileIds = dialog.SelectedProfileIds;
-        _ = Task.Run(_configService.SaveImmediate);
+        _configService.SaveDeferred();
         RefreshMiniList();
     }
 
@@ -742,6 +730,17 @@ public partial class SettingsWindow : Window
         {
             Application.Current.Shutdown();
         }
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        // Only reached on a real close (Hide cancels OnClosing first), e.g. app exit — tear down
+        // the view-model's device subscription, file watcher, and cards.
+        _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+        _viewModel.ProfileDeletedOrCloned -= CloseProfileDetailOverlay;
+        _errorTracker.ErrorAdded -= _errorAddedHandler;
+        _viewModel.Dispose();
+        base.OnClosed(e);
     }
 
     private void ManageAliasesButton_Click(object sender, RoutedEventArgs e)
@@ -1020,6 +1019,22 @@ public partial class SettingsWindow : Window
             case "miniTry":
                 EnterCompact();
                 break;
+            case "traySettings":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "tray";
+                break;
+            case "startupSettings":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "startup";
+                break;
+            case "deviceAliases":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "devices";
+                break;
+            case "installSettings":
+                ExpandSettings();
+                _viewModel.SelectedCategory = "uninstall";
+                break;
         }
     }
 
@@ -1075,6 +1090,12 @@ public partial class SettingsWindow : Window
     {
         if (sender is System.Windows.Controls.Primitives.ToggleButton rb && rb.Tag is string tag)
             _viewModel.Theme = tag;
+    }
+
+    private void LogoAnimRadio_Checked(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Primitives.ToggleButton rb && rb.Tag is string tag)
+            _viewModel.LogoAnimation = tag;
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)

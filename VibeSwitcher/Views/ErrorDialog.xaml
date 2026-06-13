@@ -5,7 +5,7 @@
         Title="VibeSwitcher"
         Width="400" SizeToContent="Height"
         ResizeMode="NoResize"
-        WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterOwner"
         Background="{DynamicResource AppBg}"
         ShowInTaskbar="False">
 
@@ -56,5 +56,8 @@
             </StackPanel>
 
         </StackPanel>
+    
+        <!-- Shared accent window frame (Views/AccentFrame.xaml). -->
+        <views:AccentFrame Grid.RowSpan="99" Grid.ColumnSpan="99" Panel.ZIndex="9999"/>
     </Grid>
 </Window>
