@@ -34,16 +34,12 @@ public sealed class AppWatcherService : IDisposable
         // Snapshot which of the newly-watched executables are currently running.
         // These will be absorbed into _runningExeNames on the first poll (baseline),
         // but will NOT fire ProcessLaunched — only a close-then-reopen will trigger.
+        var running = GetRunningProcessNames();
         var alreadyRunning = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in paths)
         {
             var exeName = Path.GetFileNameWithoutExtension(path);
-            try
-            {
-                if (Process.GetProcessesByName(exeName).Length > 0)
-                    alreadyRunning.Add(exeName);
-            }
-            catch { }
+            if (running.Contains(exeName)) alreadyRunning.Add(exeName);
         }
 
         Interlocked.Exchange(ref _skipOnNextPoll, alreadyRunning);
@@ -74,19 +70,12 @@ public sealed class AppWatcherService : IDisposable
             return;
         }
 
+        var running = GetRunningProcessNames();
         var nowRunning = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in paths)
         {
             var exeName = Path.GetFileNameWithoutExtension(path);
-            try
-            {
-                if (Process.GetProcessesByName(exeName).Length > 0)
-                    nowRunning.Add(exeName);
-            }
-            catch (Exception ex)
-            {
-                _logger.Warning("AppWatcherService.Poll", $"Process check failed for '{exeName}': {ex.Message}");
-            }
+            if (running.Contains(exeName)) nowRunning.Add(exeName);
         }
 
         // Consume the skip-set atomically. Any names in it were already running at setup time;
@@ -113,6 +102,28 @@ public sealed class AppWatcherService : IDisposable
                 ProcessLaunched?.Invoke(matchedPath);
             }
         }
+    }
+
+    // One process-table enumeration per tick (instead of one per watched exe), with handles disposed.
+    // Returns the set of currently-running process names (no ".exe" extension), matching how
+    // AppTriggers are keyed via Path.GetFileNameWithoutExtension.
+    private HashSet<string> GetRunningProcessNames()
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        Process[] procs;
+        try { procs = Process.GetProcesses(); }
+        catch (Exception ex)
+        {
+            _logger.Warning("AppWatcherService.Poll", $"Process enumeration failed: {ex.Message}");
+            return names;
+        }
+        foreach (var p in procs)
+        {
+            try { names.Add(p.ProcessName); }
+            catch { /* process exited between snapshot and read */ }
+            finally { p.Dispose(); }
+        }
+        return names;
     }
 
     public void Dispose()
