@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-06-12 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0; plus a deep `/code-review` follow-up: scheduler fires only the most-recent due switch, catch-up no longer re-fires on restart, switch feedback crash-guarded, ordered config saves, device/HID triggers marshalled to the UI thread).
+**Last updated:** 2026-06-13 — Branch 53 (`fix/pre-v2-audit`) — PR #112 (final pre-v2.0.0 hardening audit: security/reliability/concurrency fixes, scheduler catch-up, version bump to 2.0.0; plus a deep `/code-review` follow-up: scheduler fires only the most-recent due switch, catch-up no longer re-fires on restart, switch feedback crash-guarded, ordered config saves, device/HID triggers marshalled to the UI thread; plus a final full-audit fix pass — correctness, resource leaks, theme/accessibility, dead code — with non-blocking follow-ups logged under "Deferred — Pre-v2 audit follow-ups" below).
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -160,6 +160,20 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 | F8 / 8.3 | Auto-updater (GitHub Releases check) | Next up — unblocked by the installer (PR #110) |
 | 8.7 | Distribution and discovery — package managers (winget, Chocolatey, Scoop); community posts (Reddit r/Windows + r/Windows11 + r/pcmasterrace, Hacker News Show HN, Product Hunt); AlternativeTo listing; GitHub repo topics; short YouTube demo | Post-v1.0 |
 | 10.8 | Website ("coming soon") | External, not in this repo |
+
+---
+
+### Deferred — Pre-v2 audit follow-ups (from PR #112 review)
+
+Non-blocking items found by the final pre-v2 audit and intentionally left out of the audit-fix commit. None are release blockers.
+
+| # | Item | Why not done in the audit-fix commit |
+|---|------|--------------------------------------|
+| AF1 | Confine custom switch-sound files — copy a user-picked `.wav` into a managed `%APPDATA%\VibeSwitcher\Sounds\` folder and reject paths outside it (mirror the icon handling) | Behavior change: relocates sound storage and needs migration of existing `SoundCustomPath` values, so it deserves its own change. Threat is low — the file is user-picked and already size-capped. |
+| AF2 | Make the App-Trigger dialog filter chips (All / Running / Installed / In Use) keyboard-accessible — convert the mouse-only `Border` chips to focusable `ToggleButton`s | Doable now; held back only to keep the fix diff focused. Restyling carries minor visual-regression risk. |
+| AF3 | CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. |
+| AF4 | XAML de-duplication — shared Window style/base for the accent frame (~18 dialogs), `MuteBannerToggle` → `BasedOn CardActionToggle`, named styles for the orange chips, move `DayPillStyle` + icon geometries to shared resources | Pure refactors with no behavior change; held back to keep the fix diff focused and regression-safe. |
+| AF5 | Doc nits — reconcile CONTRIBUTING.md vs CLAUDE.md on when the changelog is updated; recount the RECORD.md Section 11 summary-table totals | Cosmetic doc bookkeeping. |
 
 ---
 
