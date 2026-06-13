@@ -714,7 +714,7 @@
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="None">
+                                    <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="Not set">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -2307,7 +2307,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding SettingsHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2346,7 +2346,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding MuteMicHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding MuteMicHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2385,7 +2385,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding MuteSpeakersHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding MuteSpeakersHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2424,7 +2424,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding MuteBothHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding MuteBothHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -2491,7 +2491,7 @@
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="None">
+                                                            <DataTrigger Binding="{Binding CompactHotkeyDisplay}" Value="Not set">
                                                                 <Setter Property="Foreground" Value="{DynamicResource DisabledText}"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
@@ -3324,6 +3324,11 @@
                                              IsReadOnly="True" IsTabStop="False" Width="120" Margin="0,0,8,0"/>
                                     <Button Style="{StaticResource ActionButton}" Content="Set Hotkey"
                                             Command="{Binding CaptureHotkeyCommand}"/>
+                                    <Button Content="✕" Margin="6,0,0,0"
+                                            Style="{StaticResource ActionButton}"
+                                            Command="{Binding ClearHotkeyCommand}"
+                                            ToolTip="Clear hotkey"
+                                            Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
 
                                 <!-- Icon -->
@@ -3334,6 +3339,11 @@
                                              IsReadOnly="True" IsTabStop="False" Width="160" Margin="0,0,8,0"/>
                                     <Button Content="Pick Icon" Style="{StaticResource ActionButton}"
                                             Command="{Binding PickIconCommand}"/>
+                                    <Button Content="✕" Margin="6,0,0,0"
+                                            Style="{StaticResource ActionButton}"
+                                            Command="{Binding ResetIconCommand}"
+                                            ToolTip="Reset to default icon"
+                                            Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
 
                                 <!-- Validation warning -->

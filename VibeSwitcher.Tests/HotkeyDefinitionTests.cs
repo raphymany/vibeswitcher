@@ -91,7 +91,7 @@ public class HotkeyDefinitionTests
     [Fact]
     public void ToDisplayString_WhenEmpty_ReturnsNone()
     {
-        Assert.Equal("(none)", new HotkeyDefinition().ToDisplayString());
+        Assert.Equal("Not set", new HotkeyDefinition().ToDisplayString());
     }
 
     [Fact]

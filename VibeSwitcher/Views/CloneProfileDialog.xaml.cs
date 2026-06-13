@@ -110,16 +110,12 @@ public partial class CloneProfileDialog : Window
 
     private void BuildScheduleChecks()
     {
+        var style = (Style?)TryFindResource("CopyCheck");
         foreach (var entry in _source.Schedules)
         {
             var label = $"{ScheduleHelpers.FormatTime(entry.Hour, entry.Minute, _use12Hour)} · {ScheduleHelpers.FormatDays(entry.Days)}";
-            var box = new CheckBox
-            {
-                Content = label,
-                IsChecked = true,
-                Foreground = (Brush?)TryFindResource("PrimaryText") ?? Brushes.Black,
-                Margin = new Thickness(0, 0, 0, 10),
-            };
+            var box = new CheckBox { Content = label, IsChecked = true };
+            if (style != null) box.Style = style;
             _scheduleChecks.Add((entry, box));
             SchedulesPanel.Children.Add(box);
         }

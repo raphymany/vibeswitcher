@@ -9,7 +9,7 @@ namespace VibeSwitcher.ViewModels;
 
 public class ProfileCardViewModel : ViewModelBase, IDisposable
 {
-    private static readonly AudioDeviceInfo NoneDevice = new AudioDeviceInfo("", "(None)", false);
+    private static readonly AudioDeviceInfo NoneDevice = new AudioDeviceInfo("", "Not set", false);
 
     private readonly DeviceProfile _model;
     private readonly IConfigService _configService;
@@ -457,12 +457,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     // The mini list live-sorts on SortOrder, which the model mutates silently during drag reorder.
     internal void NotifySortOrderChanged() => OnPropertyChanged(nameof(SortOrder));
 
-    public bool IsHotkeySet => !string.IsNullOrWhiteSpace(_hotkeyDisplay) &&
-                               _hotkeyDisplay != "—" && _hotkeyDisplay != "None";
+    public bool IsHotkeySet => !_model.Hotkey.IsEmpty;
 
     public ICommand ActivateCommand { get; }
     public ICommand CaptureHotkeyCommand { get; }
+    public ICommand ClearHotkeyCommand { get; }
     public ICommand PickIconCommand { get; }
+    public ICommand ResetIconCommand { get; }
     public ICommand ApplyNameSuggestionCommand { get; }
     public ICommand CloneCommand { get; }
     public ICommand DeleteCommand { get; }
@@ -532,7 +533,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         ActivateCommand = new RelayCommand(() => _onActivate?.Invoke(this), () => !IsActive);
         CaptureHotkeyCommand = new RelayCommand(CaptureHotkey);
+        ClearHotkeyCommand = new RelayCommand(ClearHotkey);
         PickIconCommand = new RelayCommand(PickIcon);
+        ResetIconCommand = new RelayCommand(ResetIcon);
         ApplyNameSuggestionCommand = new RelayCommand(param =>
         {
             if (param is string suggestion) ApplyNameSuggestion(suggestion);
@@ -724,6 +727,24 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
         if (!applied)
             RestoreAllHotkeys();
+    }
+
+    // Clears the profile's hotkey (→ "Not set") and re-registers so the freed combo is released.
+    private void ClearHotkey()
+    {
+        if (_model.Hotkey.IsEmpty) return;
+        _model.Hotkey = new HotkeyDefinition();
+        HotkeyDisplay = _model.Hotkey.ToDisplayString();
+        _onChanged(this);
+    }
+
+    // Resets the profile to the default VibeSwitcher icon and removes its now-orphaned .ico file.
+    private void ResetIcon()
+    {
+        if (string.IsNullOrEmpty(_iconPath)) return;
+        var previous = _iconPath;
+        IconPath = null; // setter updates the preview, raises HasCustomIcon, and persists via _onChanged
+        SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker);
     }
 
     // Re-registers every hotkey (profiles + Settings + Mini Mode + mute) after a capture session

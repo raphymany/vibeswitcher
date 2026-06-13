@@ -512,7 +512,7 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     public string SettingsHotkeyDisplay =>
         _configService.Current.SettingsHotkey is { IsEmpty: false } hk
             ? hk.ToDisplayString()
-            : "None";
+            : "Not set";
 
     public bool SettingsHotkeyIsSet =>
         _configService.Current.SettingsHotkey is { IsEmpty: false };
@@ -569,7 +569,7 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     public string CompactHotkeyDisplay =>
         _configService.Current.CompactHotkey is { IsEmpty: false } hk
             ? hk.ToDisplayString()
-            : "None";
+            : "Not set";
 
     public bool CompactHotkeyIsSet =>
         _configService.Current.CompactHotkey is { IsEmpty: false };
@@ -686,9 +686,9 @@ public class SettingsViewModel : ViewModelBase, IDisposable
     public HotkeyDefinition MuteSpeakersHotkey { get => GetMuteHotkey(Models.MuteScope.Speakers); set => SetMuteHotkey(Models.MuteScope.Speakers, value); }
     public HotkeyDefinition MuteBothHotkey     { get => GetMuteHotkey(Models.MuteScope.Both);     set => SetMuteHotkey(Models.MuteScope.Both, value); }
 
-    public string MuteMicHotkeyDisplay      => GetMuteHotkey(Models.MuteScope.Mic).IsEmpty      ? "None" : GetMuteHotkey(Models.MuteScope.Mic).ToDisplayString();
-    public string MuteSpeakersHotkeyDisplay => GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty ? "None" : GetMuteHotkey(Models.MuteScope.Speakers).ToDisplayString();
-    public string MuteBothHotkeyDisplay     => GetMuteHotkey(Models.MuteScope.Both).IsEmpty     ? "None" : GetMuteHotkey(Models.MuteScope.Both).ToDisplayString();
+    public string MuteMicHotkeyDisplay      => GetMuteHotkey(Models.MuteScope.Mic).IsEmpty      ? "Not set" : GetMuteHotkey(Models.MuteScope.Mic).ToDisplayString();
+    public string MuteSpeakersHotkeyDisplay => GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty ? "Not set" : GetMuteHotkey(Models.MuteScope.Speakers).ToDisplayString();
+    public string MuteBothHotkeyDisplay     => GetMuteHotkey(Models.MuteScope.Both).IsEmpty     ? "Not set" : GetMuteHotkey(Models.MuteScope.Both).ToDisplayString();
 
     public bool MuteMicHotkeyIsSet      => !GetMuteHotkey(Models.MuteScope.Mic).IsEmpty;
     public bool MuteSpeakersHotkeyIsSet => !GetMuteHotkey(Models.MuteScope.Speakers).IsEmpty;

@@ -60,7 +60,7 @@ public class ProfileCardViewModelTests
         card.CaptureHotkeyCommand.Execute(null);
 
         Assert.True(profile.Hotkey.IsEmpty);
-        Assert.Equal("(none)", card.HotkeyDisplay);
+        Assert.Equal("Not set", card.HotkeyDisplay);
         Assert.Equal(1, _changedCount);
     }
 

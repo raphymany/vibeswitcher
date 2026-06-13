@@ -15,6 +15,79 @@
                       ResizeBorderThickness="0" UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
 
+    <Window.Resources>
+        <!-- Segmented "pill" radio for the mode picker — accent fill when selected. -->
+        <Style x:Key="ModePill" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bg" Background="{DynamicResource VSSurface}"
+                                BorderBrush="{DynamicResource VSBorder}" BorderThickness="1"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background"  Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bg" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Themed checkbox — rounded box that fills accent with a white check when ticked. -->
+        <Style x:Key="CopyCheck" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <StackPanel Orientation="Horizontal" Background="Transparent">
+                            <Border x:Name="box" Width="20" Height="20" CornerRadius="5"
+                                    Background="{DynamicResource VSSurface}"
+                                    BorderBrush="{DynamicResource VSBorderStrong}" BorderThickness="1"
+                                    VerticalAlignment="Center">
+                                <Path x:Name="check" Data="M4,10 L8,14 L15,5" Stretch="Uniform" Margin="4"
+                                      Stroke="White" StrokeThickness="2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                      Visibility="Collapsed"/>
+                            </Border>
+                            <ContentPresenter VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="box" Property="Background"  Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="check" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -68,10 +141,7 @@
             <StackPanel x:Name="Step0Panel" MinHeight="120">
                 <TextBlock Text="Profile name" FontSize="11" FontWeight="SemiBold"
                            Foreground="{DynamicResource SecondaryText}" Margin="0,0,0,6"/>
-                <TextBox x:Name="NameBox" FontSize="13" Padding="8,7"
-                         Foreground="{DynamicResource PrimaryText}"
-                         Background="{DynamicResource InputBg}"
-                         BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"/>
+                <TextBox x:Name="NameBox" FontSize="13" Height="32"/>
 
                 <TextBlock Text="Hotkey" FontSize="11" FontWeight="SemiBold"
                            Foreground="{DynamicResource SecondaryText}" Margin="0,16,0,6"/>
@@ -97,14 +167,11 @@
                            Foreground="{DynamicResource SecondaryText}" Margin="0,0,0,6"/>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
                     <RadioButton x:Name="ModePlayback" GroupName="CloneMode" Content="Playback"
-                                 Foreground="{DynamicResource PrimaryText}" Margin="0,0,16,0"
-                                 VerticalContentAlignment="Center" Checked="Mode_Changed"/>
+                                 Style="{StaticResource ModePill}" Checked="Mode_Changed"/>
                     <RadioButton x:Name="ModeRecording" GroupName="CloneMode" Content="Recording"
-                                 Foreground="{DynamicResource PrimaryText}" Margin="0,0,16,0"
-                                 VerticalContentAlignment="Center" Checked="Mode_Changed"/>
+                                 Style="{StaticResource ModePill}" Checked="Mode_Changed"/>
                     <RadioButton x:Name="ModeBoth" GroupName="CloneMode" Content="Both"
-                                 Foreground="{DynamicResource PrimaryText}"
-                                 VerticalContentAlignment="Center" Checked="Mode_Changed"/>
+                                 Style="{StaticResource ModePill}" Checked="Mode_Changed"/>
                 </StackPanel>
 
                 <TextBlock x:Name="PlaybackLabel" Text="Playback device" FontSize="11" FontWeight="SemiBold"
@@ -119,13 +186,13 @@
             <!-- ── Step 2: What to copy ──────────────────────── -->
             <StackPanel x:Name="Step2Panel" Visibility="Collapsed" MinHeight="120">
                 <StackPanel x:Name="CopyOptionsPanel">
-                    <CheckBox x:Name="chkSound"       Content="Switch sound"                  Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,10" Checked="Sound_Toggled" Unchecked="Sound_Toggled"/>
-                    <CheckBox x:Name="chkAppTriggers" Content="App launch triggers"           Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,10"/>
-                    <CheckBox x:Name="chkAutoSwitch"  Content="Auto-switch on device connect" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,10"/>
-                    <CheckBox x:Name="chkFavorite"    Content="Favorite (pinned)"             Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,10"/>
-                    <CheckBox x:Name="chkSilent"      Content="Silent — no notification banner" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,10"/>
-                    <CheckBox x:Name="chkIcon"        Content="Custom icon"                   Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,10"/>
-                    <CheckBox x:Name="chkNotes"       Content="Notes"                         Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,10"/>
+                    <CheckBox x:Name="chkSound"       Style="{StaticResource CopyCheck}" Content="Switch sound"                  Checked="Sound_Toggled" Unchecked="Sound_Toggled"/>
+                    <CheckBox x:Name="chkAppTriggers" Style="{StaticResource CopyCheck}" Content="App launch triggers"/>
+                    <CheckBox x:Name="chkAutoSwitch"  Style="{StaticResource CopyCheck}" Content="Auto-switch on device connect"/>
+                    <CheckBox x:Name="chkFavorite"    Style="{StaticResource CopyCheck}" Content="Favorite (pinned)"/>
+                    <CheckBox x:Name="chkSilent"      Style="{StaticResource CopyCheck}" Content="Silent — no notification banner"/>
+                    <CheckBox x:Name="chkIcon"        Style="{StaticResource CopyCheck}" Content="Custom icon"/>
+                    <CheckBox x:Name="chkNotes"       Style="{StaticResource CopyCheck}" Content="Notes"/>
                 </StackPanel>
                 <TextBlock x:Name="NoCopyOptionsHint"
                            Text="This profile has no extra features to copy."
