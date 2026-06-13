@@ -183,6 +183,7 @@
                     <Button x:Name="NextBtn" Content="Next →"
                             Style="{StaticResource PrimaryButton}"
                             Padding="18,0"
+                            IsDefault="True"
                             Click="Next_Click"/>
                 </StackPanel>
             </DockPanel>

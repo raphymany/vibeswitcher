@@ -162,7 +162,8 @@
                                             </Button>
                                             <Button Grid.Column="1" Tag="{Binding}" Click="DeleteLibraryItem_Click"
                                                     Width="22" Height="22" Padding="0" Cursor="Hand"
-                                                    VerticalAlignment="Center" ToolTip="Remove from your uploads">
+                                                    VerticalAlignment="Center" ToolTip="Remove from your uploads"
+                                                    AutomationProperties.Name="Remove from your uploads">
                                                 <Button.Template>
                                                     <ControlTemplate TargetType="Button">
                                                         <Border x:Name="bg" Background="Transparent" CornerRadius="11">

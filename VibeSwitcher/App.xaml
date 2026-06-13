@@ -262,7 +262,11 @@
         <Style x:Key="VolumeSlider" TargetType="Slider">
             <Setter Property="OverridesDefaultStyle" Value="True"/>
             <Setter Property="Height"    Value="20"/>
-            <Setter Property="Focusable" Value="False"/>
+            <!-- Focusable so keyboard users can tab to it and adjust with arrow keys; the accent
+                 focus ring only appears on keyboard navigation (not on mouse interaction). -->
+            <Setter Property="Focusable" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
+            <Setter Property="AutomationProperties.Name" Value="Volume"/>
             <Setter Property="Cursor"    Value="Hand"/>
             <Setter Property="Template">
                 <Setter.Value>

@@ -691,14 +691,16 @@
                 <!-- Right: shrink-to-mini / pin / expand / min / max / close -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button x:Name="TitleShrinkBtn" Style="{StaticResource TitleBarBtn}"
-                            Click="TitleShrink_Click" ToolTip="Switch to Mini Mode">
+                            Click="TitleShrink_Click" ToolTip="Switch to Mini Mode"
+                            AutomationProperties.Name="Switch to Mini Mode">
                         <Path Data="{StaticResource IcoCompact}" Stretch="Uniform" Width="11" Height="11"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                               StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                               StrokeLineJoin="Round" Fill="Transparent"/>
                     </Button>
                     <Button x:Name="TitlePinBtn" Click="TitlePin_Click" Visibility="Collapsed"
-                            ToolTip="Keep mini window on top">
+                            ToolTip="Keep mini window on top"
+                            AutomationProperties.Name="Keep mini window on top">
                         <Button.Style>
                             <Style TargetType="Button" BasedOn="{StaticResource TitleBarBtn}">
                                 <Style.Triggers>
@@ -715,7 +717,8 @@
                               StrokeLineJoin="Round" Fill="Transparent"/>
                     </Button>
                     <Button x:Name="TitleExpandBtn" Style="{StaticResource TitleBarBtn}"
-                            Click="TitleExpand_Click" Visibility="Collapsed" ToolTip="Back to full window">
+                            Click="TitleExpand_Click" Visibility="Collapsed" ToolTip="Back to full window"
+                            AutomationProperties.Name="Back to full window">
                         <Path Data="{StaticResource IcoExpand}" Stretch="Uniform" Width="11" Height="11"
                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                               StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
@@ -723,12 +726,15 @@
                     </Button>
                     <Button Style="{StaticResource TitleBarBtn}"
                             Content="─" FontSize="11"
+                            AutomationProperties.Name="Minimize" ToolTip="Minimize"
                             Click="TitleMinimize_Click"/>
                     <Button x:Name="TitleMaxBtn" Style="{StaticResource TitleBarBtn}"
                             Content="□"
+                            AutomationProperties.Name="Maximize" ToolTip="Maximize"
                             Click="TitleMaximize_Click"/>
                     <Button Style="{StaticResource TitleBarCloseBtn}"
                             Content="✕"
+                            AutomationProperties.Name="Close" ToolTip="Close"
                             Click="TitleClose_Click"/>
                 </StackPanel>
             </Grid>
@@ -838,6 +844,7 @@
                             Style="{StaticResource NavIconBtn}"
                             Margin="0,0,4,0"
                             ToolTip="About VibeSwitcher"
+                            AutomationProperties.Name="About VibeSwitcher"
                             Click="NavAbout_Click">
                         <Path Data="{StaticResource IcoInfo}" Width="17" Height="17" Stretch="Uniform"
                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -847,6 +854,7 @@
                             Style="{StaticResource NavIconBtn}"
                             Margin="0,0,4,0"
                             ToolTip="Help &amp; FAQ"
+                            AutomationProperties.Name="Help and FAQ"
                             Click="NavFaq_Click">
                         <Path Data="{StaticResource IcoHelp}" Width="17" Height="17" Stretch="Uniform"
                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -856,6 +864,7 @@
                             Style="{StaticResource NavIconBtn}"
                             Margin="0,0,12,0"
                             ToolTip="Settings"
+                            AutomationProperties.Name="Settings"
                             Click="NavSettings_Click">
                         <Path Data="{StaticResource IcoSettings}" Width="17" Height="17" Stretch="Uniform"
                               Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -1382,7 +1391,8 @@
                                                         <ToggleButton Grid.Column="0" HorizontalAlignment="Center"
                                                                       IsChecked="{Binding IsPinned}"
                                                                       Style="{StaticResource CardActionToggle}"
-                                                                      ToolTip="Pin to top of list">
+                                                                      ToolTip="Pin to top of list"
+                                                                      AutomationProperties.Name="Pin to top of list">
                                                             <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
                                                                     <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
@@ -1393,7 +1403,8 @@
                                                         <!-- 2. App triggers — lightning bolt -->
                                                         <Button Grid.Column="1" HorizontalAlignment="Center"
                                                                 Command="{Binding OpenAppTriggersCommand}"
-                                                                ToolTip="App launch triggers">
+                                                                ToolTip="App launch triggers"
+                                                                AutomationProperties.Name="App launch triggers">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
@@ -1415,7 +1426,8 @@
                                                         <!-- 3. Auto-switch — power plug (dim when Recording-only, not supported) -->
                                                         <ToggleButton Grid.Column="2" HorizontalAlignment="Center"
                                                                       IsChecked="{Binding TriggerOnConnect}"
-                                                                      ToolTip="Auto-switch on device connect">
+                                                                      ToolTip="Auto-switch on device connect"
+                                                                      AutomationProperties.Name="Auto-switch on device connect">
                                                             <ToggleButton.Style>
                                                                 <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
                                                                     <Style.Triggers>
@@ -1438,7 +1450,8 @@
                                                         <!-- 4. Activate — power symbol (top-right) -->
                                                         <Button Grid.Column="3" HorizontalAlignment="Center"
                                                                 Command="{Binding ActivateCommand}"
-                                                                ToolTip="Activate this profile">
+                                                                ToolTip="Activate this profile"
+                                                                AutomationProperties.Name="Activate this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
@@ -1472,7 +1485,8 @@
                                                         <!-- 5. Silent — bell with slash -->
                                                         <ToggleButton Grid.Column="0" HorizontalAlignment="Center"
                                                                       IsChecked="{Binding Silent}"
-                                                                      ToolTip="Toggle silent mode">
+                                                                      ToolTip="Toggle silent mode"
+                                                                      AutomationProperties.Name="Toggle silent mode">
                                                             <ToggleButton.Style>
                                                                 <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
                                                                     <Style.Triggers>
@@ -1501,7 +1515,8 @@
                                                         </ToggleButton>
                                                         <!-- 6. Schedule — clock with hands -->
                                                         <Button Grid.Column="1" HorizontalAlignment="Center"
-                                                                Command="{Binding AddScheduleCommand}" ToolTip="Schedule this profile">
+                                                                Command="{Binding AddScheduleCommand}" ToolTip="Schedule this profile"
+                                                                AutomationProperties.Name="Schedule this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
@@ -1524,7 +1539,8 @@
                                                         </Button>
                                                         <!-- 7. Sound — music notes -->
                                                         <Button Grid.Column="2" HorizontalAlignment="Center"
-                                                                Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound">
+                                                                Command="{Binding ConfigureSoundCommand}" ToolTip="Configure switch sound"
+                                                                AutomationProperties.Name="Configure switch sound">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Style.Triggers>
@@ -1547,7 +1563,8 @@
                                                         </Button>
                                                         <!-- 8. Delete — trash can, always red, bottom-right -->
                                                         <Button Grid.Column="3" HorizontalAlignment="Center"
-                                                                Command="{Binding DeleteCommand}" ToolTip="Delete this profile">
+                                                                Command="{Binding DeleteCommand}" ToolTip="Delete this profile"
+                                                                AutomationProperties.Name="Delete this profile">
                                                             <Button.Style>
                                                                 <Style TargetType="Button" BasedOn="{StaticResource CardActionBtn}">
                                                                     <Setter Property="Foreground"  Value="{DynamicResource ErrorText}"/>
@@ -2344,7 +2361,8 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Microphone" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                         <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
-                                                      IsChecked="{Binding MuteMicSilent}" ToolTip="Don't show a notification banner for this shortcut"/>
+                                                      IsChecked="{Binding MuteMicSilent}" ToolTip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Microphone banner"/>
                                         <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteMicHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
@@ -2383,7 +2401,8 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                         <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
-                                                      IsChecked="{Binding MuteSpeakersSilent}" ToolTip="Don't show a notification banner for this shortcut"/>
+                                                      IsChecked="{Binding MuteSpeakersSilent}" ToolTip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Speakers banner"/>
                                         <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteSpeakersHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
@@ -2422,7 +2441,8 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="Mute Mic + Speakers" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
                                         <ToggleButton Grid.Column="1" Style="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
-                                                      IsChecked="{Binding MuteBothSilent}" ToolTip="Don't show a notification banner for this shortcut"/>
+                                                      IsChecked="{Binding MuteBothSilent}" ToolTip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Mic and Speakers banner"/>
                                         <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="5" Padding="9,3" Margin="8,0,0,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding MuteBothHotkeyDisplay}" FontFamily="Courier New" FontSize="11" Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center">
                                                 <TextBlock.Style>
@@ -3344,6 +3364,7 @@
                                             Style="{StaticResource ActionButton}"
                                             Command="{Binding ClearHotkeyCommand}"
                                             ToolTip="Clear hotkey"
+                                            AutomationProperties.Name="Clear hotkey"
                                             Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
 
@@ -3359,6 +3380,7 @@
                                             Style="{StaticResource ActionButton}"
                                             Command="{Binding ResetIconCommand}"
                                             ToolTip="Reset to default icon"
+                                            AutomationProperties.Name="Reset to default icon"
                                             Visibility="{Binding HasCustomIcon, Converter={StaticResource BoolToVis}}"/>
                                 </StackPanel>
 

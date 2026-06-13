@@ -188,7 +188,8 @@
                                         Style="{StaticResource GalleryItemButton}"
                                         Margin="0"
                                         Click="LibraryItem_Click"
-                                        ToolTip="{Binding Name}">
+                                        ToolTip="{Binding Name}"
+                                        AutomationProperties.Name="{Binding Name}">
                                     <Image Source="{Binding Preview}" Width="34" Height="34" Stretch="Uniform"
                                            RenderOptions.BitmapScalingMode="HighQuality"/>
                                 </Button>
@@ -197,7 +198,8 @@
                                         Width="18" Height="18" Padding="0"
                                         HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"
                                         Background="#E04A4A" Foreground="White"
-                                        Cursor="Hand" ToolTip="Remove from your uploads">
+                                        Cursor="Hand" ToolTip="Remove from your uploads"
+                                        AutomationProperties.Name="Remove from your uploads">
                                     <Button.Template>
                                         <ControlTemplate TargetType="Button">
                                             <Border Background="{TemplateBinding Background}" CornerRadius="9">
