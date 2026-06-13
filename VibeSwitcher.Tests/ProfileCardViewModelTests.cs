@@ -27,7 +27,7 @@ public class ProfileCardViewModelTests
             Array.Empty<AudioDeviceInfo>(),
             _ => _changedCount++,
             card => _deletedCard = card,
-            _ => { },
+            (_, _) => { },
             _ => Task.CompletedTask);
     }
 
@@ -323,7 +323,7 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             [], [],
-            _ => changedCount++, _ => { }, _ => { }, _ => Task.CompletedTask);
+            _ => changedCount++, _ => { }, (_, _) => { }, _ => Task.CompletedTask);
 
         var pb = new AudioDeviceInfo[] { new("id1", "Speakers", true) };
         card.LoadDevices(pb, []);
@@ -342,7 +342,7 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             pb, [],
-            _ => changedCount++, _ => { }, _ => { }, _ => Task.CompletedTask);
+            _ => changedCount++, _ => { }, (_, _) => { }, _ => Task.CompletedTask);
 
         card.SelectedPlaybackDevice = card.PlaybackDevices[1]; // index 0 is (None)
 
@@ -383,7 +383,7 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             pb, [],
-            _ => { }, _ => { }, _ => { },
+            _ => { }, _ => { }, (_, _) => { },
             id => { calledWith.Add(id); return Task.CompletedTask; });
 
         card.LoadDevices(pb, []);
@@ -403,7 +403,7 @@ public class ProfileCardViewModelTests
             profile, _fakeConfig, _fakeHotkey, _fakeDialog,
             new FakeAppLogger(), new FakeSessionErrorTracker(),
             [], rec,
-            _ => { }, _ => { }, _ => { }, _ => Task.CompletedTask);
+            _ => { }, _ => { }, (_, _) => { }, _ => Task.CompletedTask);
 
         card.LoadDevices([], rec);
         // ShowMicTest is not invokable in headless tests (no UI thread / WPF window),

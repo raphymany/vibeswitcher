@@ -19,7 +19,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     private readonly ISessionErrorTracker _errorTracker;
     private readonly Action<ProfileCardViewModel> _onChanged;
     private readonly Action<ProfileCardViewModel> _onDelete;
-    private readonly Action<ProfileCardViewModel> _onClone;
+    private readonly Action<ProfileCardViewModel, DeviceProfile> _onClone;
     private readonly Action<ProfileCardViewModel>? _onActivate;
     private readonly Func<string, Task> _onTestSound;
     private readonly Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>> _conflictChecker;
@@ -486,7 +486,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         IReadOnlyList<AudioDeviceInfo> recordingDevices,
         Action<ProfileCardViewModel> onChanged,
         Action<ProfileCardViewModel> onDelete,
-        Action<ProfileCardViewModel> onClone,
+        Action<ProfileCardViewModel, DeviceProfile> onClone,
         Func<string, Task> onTestSound,
         Func<ScheduleEntry, IEnumerable<(string profileName, string conflictDesc)>>? conflictChecker = null,
         Action<ProfileCardViewModel>? onActivate = null,
@@ -723,21 +723,64 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         }
 
         if (!applied)
+            RestoreAllHotkeys();
+    }
+
+    // Re-registers every hotkey (profiles + Settings + Mini Mode + mute) after a capture session
+    // temporarily unregistered them all.
+    private void RestoreAllHotkeys()
+    {
+        var cfg = _configService.Current;
+        _hotkeyService.RegisterAll(cfg.Profiles);
+        if (cfg.SettingsHotkey is { IsEmpty: false } && cfg.SettingsHotkeyEnabled)
+            _hotkeyService.RegisterSettingsHotkey(cfg.SettingsHotkey);
+        if (cfg.CompactHotkeyEnabled && cfg.CompactHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterCompactHotkey(cfg.CompactHotkey);
+        if (cfg.MuteMicHotkeyEnabled && cfg.MuteMicHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Mic, cfg.MuteMicHotkey);
+        if (cfg.MuteSpeakersHotkeyEnabled && cfg.MuteSpeakersHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Speakers, cfg.MuteSpeakersHotkey);
+        if (cfg.MuteBothHotkeyEnabled && cfg.MuteBothHotkey is { IsEmpty: false })
+            _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Both, cfg.MuteBothHotkey);
+    }
+
+    // Used by the clone wizard: capture a hotkey for the NEW profile with the same conflict checks as
+    // the card, then restore all hotkeys (the clone's own hotkey is registered later when it's added).
+    internal HotkeyDefinition? CaptureHotkeyForClone(HotkeyDefinition seed)
+    {
+        _hotkeyService.UnregisterAll();
+        try
         {
-            // Restore all hotkeys (profiles + Settings + Mini Mode + mute) that were unregistered above.
-            _hotkeyService.RegisterAll(_configService.Current.Profiles);
-            var settingsHk = _configService.Current.SettingsHotkey;
-            if (settingsHk is { IsEmpty: false } && _configService.Current.SettingsHotkeyEnabled)
-                _hotkeyService.RegisterSettingsHotkey(settingsHk);
-            var cfg = _configService.Current;
-            if (cfg.CompactHotkeyEnabled && cfg.CompactHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterCompactHotkey(cfg.CompactHotkey);
-            if (cfg.MuteMicHotkeyEnabled && cfg.MuteMicHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Mic, cfg.MuteMicHotkey);
-            if (cfg.MuteSpeakersHotkeyEnabled && cfg.MuteSpeakersHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Speakers, cfg.MuteSpeakersHotkey);
-            if (cfg.MuteBothHotkeyEnabled && cfg.MuteBothHotkey is { IsEmpty: false })
-                _hotkeyService.RegisterMuteHotkey(Models.MuteScope.Both, cfg.MuteBothHotkey);
+            bool shouldRetry = true;
+            HotkeyDefinition? captured;
+            while (shouldRetry && (captured = _dialogService.ShowHotkeyCapture(seed)) != null)
+            {
+                shouldRetry = false;
+                if (!captured.IsEmpty)
+                {
+                    var owner = FindInternalConflictOwner(captured);
+                    if (owner != null)
+                    {
+                        shouldRetry = _dialogService.ShowHotkeyConflictRetry("Hotkey Already in Use",
+                            $"'{captured.ToDisplayString()}' is already assigned to {owner}.");
+                        if (shouldRetry) seed = captured;
+                        continue;
+                    }
+                    if (_hotkeyService.TestHotkey(captured))
+                    {
+                        shouldRetry = _dialogService.ShowHotkeyConflictRetry("Hotkey Conflict",
+                            $"'{captured.ToDisplayString()}' is already in use by another application.");
+                        if (shouldRetry) seed = captured;
+                        continue;
+                    }
+                }
+                return captured;
+            }
+            return null;
+        }
+        finally
+        {
+            RestoreAllHotkeys();
         }
     }
 
@@ -871,8 +914,9 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
 
     private void CloneProfile()
     {
-        if (_dialogService.ShowConfirmClone(_model.Name))
-            _onClone(this);
+        var clone = _dialogService.ShowCloneWizard(
+            _model, PlaybackDevices, RecordingDevices, _use12Hour(), CaptureHotkeyForClone);
+        if (clone != null) _onClone(this, clone);
     }
 
     private void DeleteProfile()

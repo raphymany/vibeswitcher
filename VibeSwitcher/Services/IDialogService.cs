@@ -7,7 +7,14 @@ public interface IDialogService
 {
     HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current);
     bool ShowConfirmDelete(string profileName);
-    bool ShowConfirmClone(string profileName);
+    // Opens the clone wizard. Returns a fully-built copy (new Id) to persist, or null if cancelled.
+    // captureHotkey runs the caller's capture+conflict flow and returns the chosen hotkey (or null).
+    DeviceProfile? ShowCloneWizard(
+        DeviceProfile source,
+        IReadOnlyList<AudioDeviceInfo> playbackDevices,
+        IReadOnlyList<AudioDeviceInfo> recordingDevices,
+        bool use12Hour,
+        Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey);
     string? ShowBrowseIconFile();
     GalleryPickResult? ShowIconGallery();
     void ShowAlert(string title, string message);

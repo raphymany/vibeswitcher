@@ -997,7 +997,7 @@ public class SettingsViewModel : ViewModelBase, IDisposable
             GetDevicesForDisplay(_recordingDevices),
             onChanged: card => OnProfileChanged(card),
             onDelete: card => DeleteProfile(card),
-            onClone: card => CloneProfile(card),
+            onClone: (card, clone) => CloneProfile(card, clone),
             onTestSound: deviceId => _audioService.TestSoundAsync(deviceId),
             conflictChecker: entry => GetScheduleConflicts(profile, entry),
             onActivate: card => ActivateProfile(card),
@@ -1039,33 +1039,50 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private void CloneProfile(ProfileCardViewModel card)
+    // The clone wizard (opened from the card) builds the new profile; this persists it. The wizard
+    // already decided which fields/schedules carry over and gave it a fresh Id.
+    private void CloneProfile(ProfileCardViewModel card, DeviceProfile clone)
     {
-        var original = card.Model;
-        var clone = new DeviceProfile
-        {
-            Name = original.Name + " (copy)",
-            Mode = original.Mode,
-            PlaybackDeviceId = original.PlaybackDeviceId,
-            RecordingDeviceId = original.RecordingDeviceId,
-            // IconPath intentionally not copied — both profiles sharing the same file path would
-            // cause DeleteOrphanedIcon to delete the icon for whichever profile is deleted first,
-            // silently breaking the other. The user can re-browse the icon on the clone.
-            Notes = original.Notes,
-            Silent = original.Silent,
-            SortOrder = Profiles.Count,
-            // IsPinned intentionally not copied — clone starts unpinned
-            // Hotkey intentionally not copied — duplicate hotkeys cause immediate conflicts
-            // Schedules intentionally not copied — cloned schedules at the same time as the
-            // original would immediately trigger schedule conflicts on every tick
-        };
+        clone.SortOrder = Profiles.Count;
+
+        // If the user chose to copy the custom icon, the wizard set IconPath to the original's file.
+        // Copy that file to a fresh path so the two profiles don't share one .ico — otherwise deleting
+        // one profile would orphan the other's icon (the reason the old clone skipped icons entirely).
+        if (!string.IsNullOrEmpty(clone.IconPath))
+            clone.IconPath = CopyIconForClone(clone.IconPath, clone.Id);
+
         _configService.Current.Profiles.Add(clone);
         SaveAsync();
+
         var newCard = CreateCard(clone);
         newCard.LoadDevices(GetDevicesForDisplay(_playbackDevices), GetDevicesForDisplay(_recordingDevices));
         Profiles.Add(newCard);
         _onProfilesChanged();
+
+        // The clone's hotkey (if the user set one) wasn't registered while the wizard was open.
+        if (!clone.Hotkey.IsEmpty)
+            ReregisterHotkeys();
+
         ProfileDeletedOrCloned?.Invoke();
+    }
+
+    // Copies a profile icon into the app's icons folder under a fresh name keyed to the clone's Id,
+    // so the clone owns its own .ico file. Returns null (fall back to default) if the copy fails.
+    private string? CopyIconForClone(string sourceIcon, Guid cloneId)
+    {
+        try
+        {
+            if (!System.IO.File.Exists(sourceIcon)) return null;
+            System.IO.Directory.CreateDirectory(_configService.IconsDir);
+            var dest = System.IO.Path.Combine(_configService.IconsDir, $"clone-{cloneId:N}.ico");
+            System.IO.File.Copy(sourceIcon, dest, overwrite: true);
+            return dest;
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning("SettingsViewModel.CopyIconForClone", ex.Message);
+            return null;
+        }
     }
 
     internal void MoveProfile(ProfileCardViewModel from, ProfileCardViewModel to)

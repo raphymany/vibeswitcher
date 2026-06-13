@@ -7,6 +7,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 ## [2.0.0] - 2026-06-13
 
 ### Added
+- **Clone Profile wizard** — cloning a profile now opens a step-by-step wizard instead of a fixed one-click copy: choose the copy's name and hotkey, its devices and mode, which features carry over (switch sound, app triggers, auto-switch, favorite, silent, custom icon, notes), and which schedules to bring along *(2.0 polish)*
 - **Logo animation setting** — Appearance option for the animated logo's level: Full (60 fps), Reduced (~24 fps, lower CPU), or Static *(2.0 polish)*
 - **Reset settings to defaults** — a button in Install & Updates restores every preference to its default behind a styled confirmation, while keeping profiles, schedules, app triggers, device aliases, and scheduler history *(2.0 polish)*
 - **"Catch up missed schedules" toggle** — a Startup setting (on by default) controlling whether a scheduled switch missed while the PC was asleep/off fires on wake; off = exact-time only *(2.0 polish)*
@@ -134,6 +135,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **Keyboard navigation in Settings** — arrow keys move focus between profile cards; read-only fields are excluded from the Tab order *(PR #28)*
 
 ### Changed
+- **About links reordered** — Website (placeholder) now comes first, followed by GitHub, Report a Bug, ReadMe (new), Changelog, and License *(2.0 polish)*
 - **Profile card action strip → 4+4 grid** — the eight card actions are laid out as two rows of four, with the activate control shown as a power-switch icon (top-right) and delete bottom-right; chip spacing evened out *(2.0 polish)*
 - **Transient mute banner** — the panic/mute hotkeys now show a brief "muted / unmuted" banner instead of a persistent tray dot, with a per-shortcut toggle to silence it *(2.0 polish)*
 - **Schedule wizard Save shortcut** — when editing an existing schedule, a Save button commits without walking every step; Remove sits far-left, then Cancel (new schedules still walk all steps) *(2.0 polish)*
