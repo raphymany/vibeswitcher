@@ -174,7 +174,7 @@ Non-blocking items found by the final pre-v2 audit and intentionally left out of
 | ~~AF2~~ | ~~App-Trigger dialog filter chips keyboard-accessible~~ | ✅ Done — focusable + Enter/Space + automation names (kept as Borders rather than restyling to ToggleButtons) |
 | AF3 | CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. |
 | AF4 | XAML de-duplication | ✅ Mostly done — the accent frame across **19 dialogs** is now a single shared `Views/AccentFrame.xaml` control (`IsHitTestVisible="False"`). Residual micro-dedups left as optional: `MuteBannerToggle` (bakes its own bell icon, so not a clean `BasedOn CardActionToggle`), named orange-chip styles, and moving `DayPillStyle`/icon geometries to shared resources — all single-/two-file, visual-only, low value. |
-| AF5 | Doc nit — recount the RECORD.md Section 11 summary-table totals (the CONTRIBUTING.md vs CLAUDE.md changelog-timing wording was fixed) | Cosmetic doc bookkeeping. |
+| ~~AF5~~ | ~~Doc nits — CONTRIBUTING vs CLAUDE changelog timing + RECORD summary-table recount~~ | ✅ Done — CONTRIBUTING wording aligned with CLAUDE.md; RECORD Section 11 totals recounted to 43/32/3 (117/102/4) during the docs accuracy sweep |
 
 ---
 
