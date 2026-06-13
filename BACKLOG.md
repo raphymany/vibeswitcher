@@ -102,9 +102,10 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F3~~ | ~~"Test sound" button to verify active device plays audio~~ | ✅ Done — PR #61 |
 | ~~F5~~ | ~~Hotkey cheat sheet in tray tooltip~~ | ✅ Done — PR #57 |
 | F8 | Auto-updater with GitHub Releases version check | Deferred |
-| F9 | Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss | Deferred |
+| ~~F9~~ | ~~Full WinRT toast notifications — persist in Action Center, richer formatting, stack/dismiss~~ | Dropped — blocked by Windows App SDK tooling |
 | ~~F10~~ | ~~Per-profile volume level~~ | Dropped — user prefers Windows tray |
 | ~~F11~~ | ~~Profile scheduler — per-profile time + day-of-week schedule with automatic switching; optional pre-switch reminder notification fires X minutes before ("Gaming Setup activates in 5 min") so the user can finish what they're doing or override~~ | ✅ Done — PR #74 |
+| F13 | Portable mode — store config next to the exe when a `portable.txt` marker file is present, instead of `%APPDATA%` (USB/portable installs) | Deferred |
 | ~~F16~~ | ~~Light / dark / high-contrast support — replace hardcoded colours with `SystemColors` brushes so the app follows the Windows OS theme automatically~~ | ✅ Done — PR #70 |
 | ~~F17~~ | ~~Built-in profile icons gallery picker — browse bundled icons instead of a file path~~ | ✅ Done — PR #66 |
 | ~~F18~~ | ~~Field feedback — brief green border flash on a card when a change is saved~~ | ✅ Done — PR #68 |
@@ -125,9 +126,9 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F35~~ | ~~Search / filter in Settings — text box at the top of the profile list; filters cards in real time by profile name, device name, hotkey, mode (Playback/Recording/Both), pinned status, schedule presence, or schedule day-of-week; clears on Escape~~ | ✅ Done — PR #82 |
 | ~~F36~~ | ~~Optional switch sound — global default sound on every profile switch with optional per-profile override; pre-made built-in tones or custom .wav; adjustable volume (0–100%) at global and per-profile level; per-profile silent toggle; pairs with F25 and F30~~ | ✅ Done — PR #84 |
 | ~~F37~~ | ~~Deafen / panic hotkey — global configurable hotkeys (one per scope) that instantly mute system-wide; configurable scope: mic only (tray flashes red), speakers only (tray flashes blue), or both (tray flashes purple); distinct built-in activate/deactivate sounds; press again to unmute~~ | ✅ Done — PR #86 |
-| F38 | Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes | Deferred |
+| ~~F38~~ | ~~Temporary / transient profile switch — optional app-wide feature with configurable keybind; switches temporarily and auto-reverts when a timer expires or a linked app closes~~ | Dropped — not useful enough to prioritize |
 | ~~F39~~ | ~~Auto-switch on device connect — link a specific audio device endpoint to a profile; automatically activates when that device connects (Bluetooth, USB); per-device toggle~~ | ✅ Done — PR #90 |
-| F40 | Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups | Deferred |
+| ~~F40~~ | ~~Monitor / dock awareness — trigger a profile switch when a specific display or dock connects or disconnects (HDMI, USB-C, Thunderbolt); designed for hybrid work setups~~ | Dropped — too broad to scope |
 | ~~F41~~ | ~~App-aware auto-switching — link an executable to a profile; switches when that process launches or gains focus; reverts to previous profile when the app closes; per-rule toggle~~ | ✅ Done — PR #96 |
 | ~~F42~~ | ~~Settings sub-card layout — each settings group (Startup, Notifications, Shortcuts) gets its own inner card within the General Settings card for clearer visual grouping~~ | ✅ Done — PR #68 |
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
@@ -169,7 +170,7 @@ Non-blocking items found by the final pre-v2 audit and intentionally left out of
 
 | # | Item | Why not done in the audit-fix commit |
 |---|------|--------------------------------------|
-| AF1 | Confine custom switch-sound files — copy a user-picked `.wav` into a managed `%APPDATA%\VibeSwitcher\Sounds\` folder and reject paths outside it (mirror the icon handling) | Behavior change: relocates sound storage and needs migration of existing `SoundCustomPath` values, so it deserves its own change. Threat is low — the file is user-picked and already size-capped. |
+| ~~AF1~~ | ~~Confine custom switch-sound files to a managed Sounds folder~~ | ✅ Done — picked `.wav` copied into `%APPDATA%\VibeSwitcher\Sounds\`; import drops any path outside it (PathSafety); +2 tests |
 | ~~AF2~~ | ~~App-Trigger dialog filter chips keyboard-accessible~~ | ✅ Done — focusable + Enter/Space + automation names (kept as Borders rather than restyling to ToggleButtons) |
 | AF3 | CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. |
 | AF4 | XAML de-duplication | ✅ Mostly done — the accent frame across **19 dialogs** is now a single shared `Views/AccentFrame.xaml` control (`IsHitTestVisible="False"`). Residual micro-dedups left as optional: `MuteBannerToggle` (bakes its own bell icon, so not a clean `BasedOn CardActionToggle`), named orange-chip styles, and moving `DayPillStyle`/icon geometries to shared resources — all single-/two-file, visual-only, low value. |
@@ -182,7 +183,6 @@ Non-blocking items found by the final pre-v2 audit and intentionally left out of
 | # | Feature | Why dropped |
 |---|---------|-------------|
 | C3 / 8.2 | Code signing (Authenticode) | No certificate yet |
-| F9 | Full WinRT toast notifications | Blocked by VS tooling requirement for Windows App SDK |
 | — | Mica / Acrylic material for Settings window | Part of planned UI/UX redesign phase |
-| F38 | Temporary / transient profile switch | Not useful enough to prioritize |
-| F40 | Monitor / dock / environment triggers (display, USB device, power source, network location) | Too broad to scope right now |
+
+*(Dropped feature-additions F9, F10, F27, F38, F40 are struck through in the Feature Additions table above.)*

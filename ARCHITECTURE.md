@@ -46,8 +46,8 @@ Supporting subsystems that cut across layers:
 | `SwitchSoundService` | `Services/` | Plays built-in or custom audio cues on profile switch; per-profile and global volume control |
 | `DeviceTriggerService` | `Services/` | Watches `AudioService.DevicesChanged`; auto-switches to a profile when its linked device connects |
 | `HidHeadsetService` | `Services/` | Reads HID packets from USB wireless headset dongles (Logitech, Corsair, SteelSeries, HyperX) to detect headset power-on/off events |
-| `AppTriggerService` | `Services/` | Switches profile when a linked executable launches or gains focus; reverts when the app exits |
-| `AppWatcherService` | `Services/` | Polls running processes and foreground window to support `AppTriggerService` |
+| `AppTriggerService` | `Services/` | Switches profile when a linked executable launches (only if not already on it); no focus tracking or auto-revert |
+| `AppWatcherService` | `Services/` | Polls running process names on a background timer and raises `ProcessLaunched` to support `AppTriggerService` |
 | `AppLogger` | `Helpers/` | File-based logging with rotation; `Debug` level writes to stderr only (never to disk) |
 | `SessionErrorTracker` | `Helpers/` | Per-session structured error accumulation |
 | `IconHelper` | `Helpers/` | ICO loading, image source conversion, security validation |
@@ -67,11 +67,11 @@ Supporting subsystems that cut across layers:
 | `Services/MuteService.cs` | Tracks per-scope mute state; toggles Windows audio endpoints and plays feedback sounds |
 | `Services/SchedulerService.cs` | Fires switch events on time-of-week schedules; emits reminder events N minutes before switch time |
 | `Services/SwitchSoundService.cs` | Resolves and plays profile-switch audio cues using `System.Media.SoundPlayer` |
-| `Services/ThemeService.cs` | Polls the Windows registry for `AppsUseLightTheme`; swaps `LightTheme.xaml` / `DarkTheme.xaml` |
+| `Services/ThemeService.cs` | Listens for `SystemEvents.UserPreferenceChanged` and reads `AppsUseLightTheme` on demand; swaps `LightTheme.xaml` / `DarkTheme.xaml` |
 | `Services/DeviceTriggerService.cs` | Maps audio device IDs to profiles; triggers switch on `AudioService.DevicesChanged` |
 | `Services/HidHeadsetService.cs` | Opens HID streams to wireless dongle devices; parses vendor-specific packets for headset power state |
 | `Services/AppTriggerService.cs` | Maps executable names to profiles; responds to `AppWatcherService` events |
-| `Services/AppWatcherService.cs` | Polls `Process.GetProcesses()` and `GetForegroundWindow()` on a background timer |
+| `Services/AppWatcherService.cs` | Polls `Process.GetProcessesByName()` for each watched executable on a 2s timer; fires `ProcessLaunched` when one appears |
 | `Tray/TrayService.cs` | Owns the `TaskbarIcon`; rebuilds the context menu when profiles change |
 | `ViewModels/SettingsViewModel.cs` | All settings and profile list logic; fires `SaveDeferred` when settings change |
 | `ViewModels/ProfileCardViewModel.cs` | Per-profile bindings, hotkey capture, icon browse, save flash |
@@ -85,8 +85,8 @@ Supporting subsystems that cut across layers:
 3. Hidden `HwndSource` created — receives `WM_HOTKEY` and `WM_TASKBARCREATED` messages.
 4. `AudioService`, `HotkeyService`, `TrayService`, `MuteService`, `SwitchSoundService`, `ThemeService`, `SchedulerService`, `DeviceTriggerService`, `HidHeadsetService`, `AppWatcherService`, `AppTriggerService` initialised.
 5. `HotkeyService.RegisterAll(profiles)` registers the profile hotkeys; the Settings-open, Mini Mode, and mute hotkeys are registered separately.
-6. `SchedulerService.EvaluateNow()` runs first (fires any schedule missed while the app was off); only if none fired is the last active profile re-applied via `ProfileSwitchOrchestrator.SwitchToProfile()`, so the Windows default matches the config. The same evaluate-then-restore order runs on wake from sleep (`OnSystemResume`).
-7. If `IsFirstRun` → `OpenSettingsWindow()`.
+6. A dangling `ActiveProfileId` (set in config but matching no profile) is cleared, then `SchedulerService.EvaluateNow()` runs first (fires any schedule missed while the app was off); only if none fired is the last active profile re-applied via `ProfileSwitchOrchestrator.SwitchToProfile()`, so the Windows default matches the config. The same evaluate-then-restore order runs on wake from sleep (`OnSystemResume`).
+7. After the splash animation completes, the tray icon is registered (`ShowIcon`) and the Settings window opens — always on first run, and on later launches unless `StartMinimized` is set (a 6-second fallback guarantees the icon still appears if the splash is interrupted).
 8. App runs with `ShutdownMode = OnExplicitShutdown`; only the tray Exit item calls `Application.Shutdown()`.
 
 ---
@@ -104,21 +104,23 @@ ProfileSwitchOrchestrator.SwitchToProfile(profile)
   │    ├─ playbackId  → set as default for Console, Multimedia, Communications
   │    └─ recordingId → set as default for Console, Multimedia, Communications
   │         (each role skipped if the device is already its default)
-  ├─ ConfigService: ActiveProfileId = profile.Id → SaveDeferred()
-  ├─ TrayService.SetActiveProfile(profile.Id)       ← fast path, no rebuild
+  ├─ ConfigService: ActiveProfileId = profile.Id
+  ├─ ProfileSwitched event fired               ← an open Settings window refreshes its active indicator
+  ├─ ConfigService.SaveDeferred()
   ├─ TrayService.UpdateIcon(profile)               ← refreshes the tray icon to the active profile
-  │  (switch lock released here — feedback below runs outside it)
+  ├─ TrayService.SetActiveProfile(profile.Id)       ← fast path, no rebuild
+  │  (switch lock released here — all feedback below runs outside it)
   ├─ SwitchSoundService.PlayAsync(profile)         ← optional audio cue
   └─ if ShowNotifications → TrayService.ShowBalloon(…)
 ```
 
-If a device is missing or a role fails to apply, `ApplyProfileAsync` returns partial-success flags; an interactive switch shows an `ErrorDialog`, while a scheduled/background switch shows a balloon instead of a modal.
+If `ApplyProfileAsync` throws (e.g. PolicyConfig unsupported, audio service down), an interactive switch shows an `ErrorDialog` while a scheduled/background switch shows a balloon instead. A partial success — a device that is missing or whose role-set failed — always surfaces as a balloon warning, never a modal.
 
 ---
 
 ## Config file
 
-Stored at `%APPDATA%\VibeSwitcher\config.json`. Written atomically: serialised to `.tmp`, then moved over the primary file; the previous primary is copied to `.bak` first. On load, if the primary is corrupt the backup is tried automatically.
+Stored at `%APPDATA%\VibeSwitcher\config.json`. Written atomically: the previous primary is copied to `.bak`, any pre-existing `.tmp` is deleted first (symlink safety), the new content is serialised to `.tmp`, then moved over the primary file. On load, if the primary is corrupt the backup is tried automatically.
 
 Device identities are stored as Windows endpoint IDs (`{0.0.0.00000000}.{…}`) which are stable across reboots, unlike friendly device names.
 

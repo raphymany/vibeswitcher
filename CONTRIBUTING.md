@@ -40,9 +40,9 @@ Config and logs are written to `%APPDATA%\VibeSwitcher\`.
 
 ## Coding conventions
 
-- **C# 12, .NET 8** — use file-scoped namespaces, primary constructors where they reduce noise, and `nullable enable`.
+- **C# 12 (the .NET 8 SDK default), .NET 8** — use file-scoped namespaces, primary constructors where they reduce noise, and `nullable enable`.
 - **No comments on obvious code** — names should be self-explanatory; add a comment only when the *why* is non-obvious (a Windows quirk, a workaround, a hidden invariant).
-- **Error handling at boundaries** — catch at service/UI call sites, log with `AppLogger`, record structured errors via `SessionErrorTracker.Record(ErrorCode.X, ...)`. Don't swallow exceptions silently.
+- **Error handling at boundaries** — catch at service/UI call sites, log via the injected `_logger` (`IAppLogger`) — or `AppLog` in static contexts — and record structured errors via `_errorTracker.Record(ErrorCode.X, ...)` (`ISessionErrorTracker`), or `AppErrors.Record(...)` from static contexts. Don't swallow exceptions silently.
 - **Atomic config writes** — go through `ConfigService.SaveDeferred()` (UI-thread snapshot + background write) or `SaveImmediate()` (startup, exit flush, import); never write `config.json` directly.
 - **Icon and sound paths** — custom icon and switch-sound files must live inside `ConfigService.IconsDir` / `SoundsDir`; `IconHelper.LoadIcon` and the config-import guard enforce this via `PathSafety`.
 
@@ -69,4 +69,4 @@ Open an issue at [github.com/raphymany/vibeswitcher/issues](https://github.com/r
 Include:
 - Windows version and audio device names
 - Steps to reproduce
-- Relevant entries from `%APPDATA%\VibeSwitcher\error.log`, or open **Settings → Diagnostics → View session log** (no sensitive data is included)
+- Relevant entries from `%APPDATA%\VibeSwitcher\error.log`, or open **Settings → Logs → View session log** (no sensitive data is included)
