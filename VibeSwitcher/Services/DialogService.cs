@@ -9,10 +9,12 @@ namespace VibeSwitcher.Services;
 public class DialogService : IDialogService
 {
     private readonly IAppLogger _logger;
+    private readonly IConfigService _configService;
 
-    public DialogService(IAppLogger logger)
+    public DialogService(IAppLogger logger, IConfigService configService)
     {
         _logger = logger;
+        _configService = configService;
     }
 
     private static Window? OwnerWindow =>
@@ -55,9 +57,15 @@ public class DialogService : IDialogService
 
     public GalleryPickResult? ShowIconGallery()
     {
-        var dialog = new IconGalleryDialog { Owner = OwnerWindow };
+        var dialog = new IconGalleryDialog(_configService.IconsLibraryDir) { Owner = OwnerWindow };
         if (dialog.ShowDialog() != true) return null;
-        return new GalleryPickResult { Item = dialog.SelectedItem, BrowseFromDisk = dialog.BrowseFromDisk, IconColor = dialog.SelectedColor };
+        return new GalleryPickResult
+        {
+            Item = dialog.SelectedItem,
+            BrowseFromDisk = dialog.BrowseFromDisk,
+            IconColor = dialog.SelectedColor,
+            CustomIconPath = dialog.CustomIconPath,
+        };
     }
 
     public void ShowAlert(string title, string message)
@@ -101,7 +109,7 @@ public class DialogService : IDialogService
 
     public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false, bool isEditing = false)
     {
-        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, _logger, showBanner, isEditing) { Owner = OwnerWindow };
+        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, _logger, _configService.SoundsLibraryDir, showBanner, isEditing) { Owner = OwnerWindow };
         return dialog.ShowDialog() == true ? dialog.Result : null;
     }
 

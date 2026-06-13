@@ -14,6 +14,12 @@ public class AppConfig
     public bool LeftClickCyclesProfiles { get; set; } = true;
     public bool SettingsCardExpanded { get; set; } = true;
 
+    // Which optional tray-menu action items are shown. Settings and Exit are always present.
+    public bool TrayShowAbout { get; set; } = true;
+    public bool TrayShowFaq { get; set; } = true;
+    public bool TrayShowMiniMode { get; set; } = true;
+    public bool TrayShowSoundSettings { get; set; } = true;
+
     // "Auto" = follow Windows, "Light" = always light, "Dark" = always dark
     public string Theme { get; set; } = "Auto";
 

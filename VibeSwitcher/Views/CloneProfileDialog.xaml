@@ -110,7 +110,7 @@
                     <Border Background="{DynamicResource HotkeyBg}"
                             BorderBrush="{DynamicResource InputBorder}" BorderThickness="1"
                             CornerRadius="6" Padding="10,6" MinWidth="150" VerticalAlignment="Center">
-                        <TextBlock x:Name="HotkeyLabel" Text="None" FontSize="13"
+                        <TextBlock x:Name="HotkeyLabel" Text="Not set" FontSize="13"
                                    Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"/>
                     </Border>
                     <Button x:Name="SetHotkeyBtn" Content="Set hotkey…" Style="{StaticResource ActionButton}"

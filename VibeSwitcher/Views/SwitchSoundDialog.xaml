@@ -126,6 +126,65 @@
                 <TextBlock Text="Only 16-bit PCM .wav files are supported. MP3 and other formats are not compatible."
                            FontSize="11" Foreground="{DynamicResource SecondaryText}"
                            TextWrapping="Wrap"/>
+
+                <!-- Your uploads: previously-browsed .wav files, re-pick without browsing again. -->
+                <StackPanel x:Name="LibrarySection" Visibility="Collapsed" Margin="0,12,0,0">
+                    <TextBlock Text="YOUR UPLOADS" FontSize="9" FontWeight="Bold"
+                               Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,6"/>
+                    <Border Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
+                            BorderThickness="1" CornerRadius="8">
+                        <ScrollViewer MaxHeight="140" VerticalScrollBarVisibility="Auto" Padding="6,4">
+                            <ItemsControl x:Name="LibraryList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button Grid.Column="0" Tag="{Binding}" Click="LibraryItem_Click"
+                                                    HorizontalContentAlignment="Left" Cursor="Hand"
+                                                    ToolTip="{Binding Name}">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="bg" Background="Transparent" CornerRadius="6" Padding="8,5">
+                                                            <TextBlock Text="{Binding Name}" FontSize="12"
+                                                                       Foreground="{DynamicResource PrimaryText}"
+                                                                       TextTrimming="CharacterEllipsis"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverBg}"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                            <Button Grid.Column="1" Tag="{Binding}" Click="DeleteLibraryItem_Click"
+                                                    Width="22" Height="22" Padding="0" Cursor="Hand"
+                                                    VerticalAlignment="Center" ToolTip="Remove from your uploads">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="bg" Background="Transparent" CornerRadius="11">
+                                                            <TextBlock Text="✕" FontSize="11"
+                                                                       Foreground="{DynamicResource SecondaryText}"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="bg" Property="Background" Value="#E04A4A"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </StackPanel>
             </StackPanel>
 
             <!-- Volume -->

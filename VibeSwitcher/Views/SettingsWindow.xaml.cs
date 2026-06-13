@@ -59,7 +59,7 @@ public partial class SettingsWindow : Window
         _errorTracker = errorTracker;
 
         var startupService = new StartupService(logger, errorTracker);
-        var dialogService = new DialogService(logger);
+        var dialogService = new DialogService(logger, configService);
         _viewModel = new SettingsViewModel(
             configService,
             audioService,

@@ -665,16 +665,14 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Left (mini mode): animated logo + title + mini-mode keybind -->
+                <!-- Left (mini mode): animated logo + mini-mode keybind.
+                     The "VibeSwitcher" wordmark is dropped here so the keybind chip always fits
+                     in the narrow (300px) mini title bar alongside the right-side buttons. -->
                 <StackPanel x:Name="MiniTitleGroup" Grid.Column="0" Orientation="Horizontal"
                             VerticalAlignment="Center" Margin="10,0,0,0" Visibility="Collapsed">
-                    <controls:NavLogoIcon Width="18" Height="18" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                    <TextBlock Text="VibeSwitcher"
-                               FontSize="11.5" FontWeight="SemiBold"
-                               Foreground="{DynamicResource Accent}"
-                               VerticalAlignment="Center"/>
+                    <controls:NavLogoIcon Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
                     <Border Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
-                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0"
+                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="0"
                             VerticalAlignment="Center" ToolTip="Mini Mode shortcut">
                         <Border.Style>
                             <Style TargetType="Border">
@@ -2147,8 +2145,16 @@
                             <TextBlock Text="Notifications" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,16"/>
                             <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10">
                                 <Grid Margin="14,10">
-                                    <TextBlock Text="Show device switch alerts" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
-                                    <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowNotifications}"
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <TextBlock Text="Show switch &amp; warning alerts" FontSize="12.5" Foreground="{DynamicResource VSLabel}"/>
+                                        <TextBlock Text="Master switch for tray banners. Per-profile Silent still applies on top when this is on; turning it off also hides device-unavailable warnings."
+                                                   FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                    <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowNotifications}"
                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </Border>
@@ -2240,6 +2246,39 @@
                                     <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding LeftClickCyclesProfiles}"
                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
+                            </Border>
+
+                            <!-- Tray menu items: choose which optional actions appear in the right-click menu. -->
+                            <Border Background="{DynamicResource CardBg}" BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" CornerRadius="10" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Text="TRAY MENU ITEMS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}"
+                                               Margin="0,0,0,4"/>
+                                    <TextBlock Text="Choose which items show in the tray's right-click menu. Settings and Exit are always shown."
+                                               FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="About" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowAbout}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="Help &amp; FAQ" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowFaq}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="Mini Mode" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowMiniMode}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="{DynamicResource VSSurface}"/>
+                                    <Grid Margin="0,6">
+                                        <TextBlock Text="Open Sound Settings" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"/>
+                                        <CheckBox Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowSoundSettings}"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
                             </Border>
                         </StackPanel>
 

@@ -149,6 +149,59 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         }
     }
 
+    // Tray-menu item visibility. Each setter rebuilds the tray menu so changes show immediately.
+    public bool TrayShowAbout
+    {
+        get => _configService.Current.TrayShowAbout;
+        set
+        {
+            if (_configService.Current.TrayShowAbout == value) return;
+            _configService.Current.TrayShowAbout = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
+    public bool TrayShowFaq
+    {
+        get => _configService.Current.TrayShowFaq;
+        set
+        {
+            if (_configService.Current.TrayShowFaq == value) return;
+            _configService.Current.TrayShowFaq = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
+    public bool TrayShowMiniMode
+    {
+        get => _configService.Current.TrayShowMiniMode;
+        set
+        {
+            if (_configService.Current.TrayShowMiniMode == value) return;
+            _configService.Current.TrayShowMiniMode = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
+    public bool TrayShowSoundSettings
+    {
+        get => _configService.Current.TrayShowSoundSettings;
+        set
+        {
+            if (_configService.Current.TrayShowSoundSettings == value) return;
+            _configService.Current.TrayShowSoundSettings = value;
+            OnPropertyChanged();
+            SaveAsync();
+            _onProfilesChanged();
+        }
+    }
+
     public static IReadOnlyList<string> ThemeOptions { get; } = ["Follow Windows", "Light", "Dark"];
 
     public bool Use12HourClock
@@ -1244,6 +1297,10 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         OnPropertyChanged(nameof(ShowDisabledDevices));
         OnPropertyChanged(nameof(ShowDisconnectedDevices));
         OnPropertyChanged(nameof(LeftClickCyclesProfiles));
+        OnPropertyChanged(nameof(TrayShowAbout));
+        OnPropertyChanged(nameof(TrayShowFaq));
+        OnPropertyChanged(nameof(TrayShowMiniMode));
+        OnPropertyChanged(nameof(TrayShowSoundSettings));
         OnPropertyChanged(nameof(SettingsHotkeyDisplay));
         OnPropertyChanged(nameof(SettingsHotkeyIsSet));
         OnPropertyChanged(nameof(SettingsHotkeyEnabled));

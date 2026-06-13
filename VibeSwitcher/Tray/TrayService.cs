@@ -317,11 +317,12 @@ public class TrayService : IDisposable
             }
         };
 
-        _contextMenu.Items.Add(aboutItem);
-        _contextMenu.Items.Add(faqItem);
-        _contextMenu.Items.Add(settingsItem);
-        _contextMenu.Items.Add(_miniItem);
-        _contextMenu.Items.Add(soundSettingsItem);
+        var cfg = _configService.Current;
+        if (cfg.TrayShowAbout) _contextMenu.Items.Add(aboutItem);
+        if (cfg.TrayShowFaq)   _contextMenu.Items.Add(faqItem);
+        _contextMenu.Items.Add(settingsItem);                       // always available
+        if (cfg.TrayShowMiniMode)      _contextMenu.Items.Add(_miniItem);
+        if (cfg.TrayShowSoundSettings) _contextMenu.Items.Add(soundSettingsItem);
 
         _contextMenu.Items.Add(BuildSeparator());
 

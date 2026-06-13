@@ -245,6 +245,53 @@ public class ProfileCardViewModelTests
         }
     }
 
+    [Fact]
+    public void PickIcon_Browse_SavesOriginalToUploadsLibrary()
+    {
+        var sourceFile = Path.Combine(Path.GetTempPath(), $"vs-test-{Guid.NewGuid():N}.ico");
+        File.WriteAllBytes(sourceFile, [0x01, 0x02, 0x03]);
+        try
+        {
+            _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { BrowseFromDisk = true };
+            _fakeDialog.BrowseIconFileResult = sourceFile;
+            using var card = MakeCard();
+
+            card.PickIconCommand.Execute(null);
+
+            var libraryFiles = VibeSwitcher.Helpers.UploadLibrary.List(_fakeConfig.IconsLibraryDir, "*.ico");
+            Assert.NotEmpty(libraryFiles);
+        }
+        finally
+        {
+            try { File.Delete(sourceFile); } catch { }
+            try { Directory.Delete(_fakeConfig.IconsLibraryDir, recursive: true); } catch { }
+        }
+    }
+
+    [Fact]
+    public void PickIcon_FromLibrary_CopiesToProfilePath()
+    {
+        Directory.CreateDirectory(_fakeConfig.IconsLibraryDir);
+        var libraryIcon = Path.Combine(_fakeConfig.IconsLibraryDir, "saved.ico");
+        File.WriteAllBytes(libraryIcon, [0x09]);
+        try
+        {
+            _fakeDialog.IconGalleryResult = new VibeSwitcher.Helpers.GalleryPickResult { CustomIconPath = libraryIcon };
+            using var card = MakeCard();
+
+            card.PickIconCommand.Execute(null);
+
+            Assert.NotNull(card.IconPath);
+            Assert.StartsWith(_fakeConfig.IconsDir, card.IconPath, StringComparison.OrdinalIgnoreCase);
+            // The profile points at its own managed copy, not the shared library file.
+            Assert.NotEqual(libraryIcon, card.IconPath, StringComparer.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            try { Directory.Delete(_fakeConfig.IconsLibraryDir, recursive: true); } catch { }
+        }
+    }
+
     // ── ShowNameSuggestions / ApplyNameSuggestion ────────────────────────────
 
     [Theory]

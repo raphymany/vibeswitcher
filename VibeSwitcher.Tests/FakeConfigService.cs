@@ -13,6 +13,8 @@ internal sealed class FakeConfigService : IConfigService
         Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Icons");
     public string SoundsDir { get; set; } =
         Path.Combine(Path.GetTempPath(), "VibeSwitcherTests", "Sounds");
+    public string IconsLibraryDir  => Path.Combine(IconsDir, "Library");
+    public string SoundsLibraryDir => Path.Combine(SoundsDir, "Library");
 
     public void Load() { }
     public void SaveImmediate() { }

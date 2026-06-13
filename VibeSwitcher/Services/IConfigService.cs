@@ -8,6 +8,8 @@ public interface IConfigService
     bool IsFirstRun { get; }
     string IconsDir { get; }
     string SoundsDir { get; }
+    string IconsLibraryDir { get; }
+    string SoundsLibraryDir { get; }
     void Load();
     void SaveImmediate();
     void SaveDeferred();

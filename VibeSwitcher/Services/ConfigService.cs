@@ -20,6 +20,13 @@ public class ConfigService : IConfigService
     public string IconsDir { get; }
     public string SoundsDir { get; }
 
+    // Shared "uploads" libraries: when a user browses for a custom icon/sound, the original is kept
+    // here under its own name so it can be re-picked later without browsing again. These sit inside
+    // IconsDir/SoundsDir so the existing PathSafety guards (which allow anything under those roots)
+    // still cover them.
+    public string IconsLibraryDir  => Path.Combine(IconsDir, "Library");
+    public string SoundsLibraryDir => Path.Combine(SoundsDir, "Library");
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         WriteIndented = true,

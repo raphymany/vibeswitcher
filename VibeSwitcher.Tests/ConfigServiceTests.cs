@@ -287,6 +287,28 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void TrayMenuFlags_DefaultTrue_AndRoundTrip()
+    {
+        var svc = MakeSvc();
+        svc.Load();
+        Assert.True(svc.Current.TrayShowAbout);
+        Assert.True(svc.Current.TrayShowFaq);
+        Assert.True(svc.Current.TrayShowMiniMode);
+        Assert.True(svc.Current.TrayShowSoundSettings);
+
+        svc.Current.TrayShowAbout = false;
+        svc.Current.TrayShowSoundSettings = false;
+        svc.SaveImmediate();
+
+        var svc2 = MakeSvc();
+        svc2.Load();
+        Assert.False(svc2.Current.TrayShowAbout);
+        Assert.True(svc2.Current.TrayShowFaq);
+        Assert.True(svc2.Current.TrayShowMiniMode);
+        Assert.False(svc2.Current.TrayShowSoundSettings);
+    }
+
+    [Fact]
     public void Load_CorruptPrimary_FallsBackToBackup()
     {
         var svc = MakeSvc();

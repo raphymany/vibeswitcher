@@ -606,12 +606,14 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
     {
         if (tone != "Custom" || string.IsNullOrWhiteSpace(sourcePath)) return sourcePath;
         var soundsDir = _configService.SoundsDir;
-        if (PathSafety.TryResolveInside(sourcePath, soundsDir, out _)) return sourcePath; // already managed
         if (!System.IO.File.Exists(sourcePath)) return sourcePath; // let the player handle a missing file
 
         var namePrefix = SanitizeName(_model.Name);
         var guidPrefix = _model.Id.ToString("N")[..8];
         var dest = System.IO.Path.Combine(soundsDir, $"{namePrefix}-{guidPrefix}.wav");
+        // Already the managed per-profile copy → nothing to do. (A pick from the uploads library
+        // lives under SoundsDir too, but isn't this profile's copy, so it still gets copied below.)
+        if (string.Equals(sourcePath, dest, StringComparison.OrdinalIgnoreCase)) return sourcePath;
         try
         {
             System.IO.Directory.CreateDirectory(soundsDir);
@@ -839,6 +841,12 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             return;
         }
 
+        if (!string.IsNullOrEmpty(result.CustomIconPath))
+        {
+            ApplyCustomIconFile(result.CustomIconPath); // re-picked from the user's uploads
+            return;
+        }
+
         if (result.Item != null)
             ApplyGalleryIcon(result.Item, result.IconColor);
     }
@@ -894,6 +902,16 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var source = _dialogService.ShowBrowseIconFile();
         if (source == null) return;
 
+        // Keep the original in the user's uploads library so it can be re-picked without browsing.
+        UploadLibrary.Save(source, _configService.IconsLibraryDir);
+
+        ApplyCustomIconFile(source);
+    }
+
+    // Copies a custom .ico (from a disk browse or the uploads library) into this profile's managed
+    // icon path and applies it.
+    private void ApplyCustomIconFile(string source)
+    {
         var namePrefix = SanitizeName(_model.Name);
         var guidPrefix = _model.Id.ToString("N")[..8];
         var dest = System.IO.Path.Combine(_configService.IconsDir, $"{namePrefix}-{guidPrefix}.ico");
@@ -907,7 +925,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.Error("ProfileCardViewModel.BrowseIconFromDisk", ex);
+                _logger.Error("ProfileCardViewModel.ApplyCustomIconFile", ex);
                 _errorTracker.Record(ErrorCode.IconCopyFailed, "Icon Copy Failed",
                     $"Could not copy icon file to app storage: {ex.Message}");
                 _dialogService.ShowAlert("Icon Error", $"Could not copy the icon file:\n{ex.Message}");

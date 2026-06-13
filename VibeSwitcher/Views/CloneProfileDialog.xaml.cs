@@ -184,13 +184,13 @@ public partial class CloneProfileDialog : Window
         var captured = _captureHotkey(_hotkey);
         if (captured == null) return; // cancelled / conflict-abandoned
         _hotkey = captured;
-        HotkeyLabel.Text = _hotkey.IsEmpty ? "None" : _hotkey.ToDisplayString();
+        HotkeyLabel.Text = _hotkey.IsEmpty ? "Not set" : _hotkey.ToDisplayString();
     }
 
     private void ClearHotkey_Click(object sender, RoutedEventArgs e)
     {
         _hotkey = new HotkeyDefinition();
-        HotkeyLabel.Text = "None";
+        HotkeyLabel.Text = "Not set";
     }
 
     // ── Step 1 — mode/device enabling ──────────────────────────────────────────
