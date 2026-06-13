@@ -70,6 +70,10 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 ; inside the app (dontcreatekey = writes nothing at install time).
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; \
     ValueName: "VibeSwitcher"; Flags: uninsdeletevalue dontcreatekey
+; The app registers its AppUserModelId (toast/notification attribution) under HKCU at runtime;
+; remove that key on uninstall so nothing is left behind (dontcreatekey = writes nothing at install).
+Root: HKCU; Subkey: "Software\Classes\AppUserModelId\RaphaelMansour.VibeSwitcher"; \
+    Flags: uninsdeletekey dontcreatekey
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; \
