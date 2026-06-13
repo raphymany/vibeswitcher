@@ -1407,7 +1407,7 @@
                                                     CornerRadius="0,0,13,13"
                                                     Padding="10,7,10,9" Background="{DynamicResource VSStripOverlay}">
                                                 <StackPanel>
-                                                    <!-- Row 1: silent, app triggers, auto-switch, activate (power, top-right) -->
+                                                    <!-- Row 1: favorite, app triggers, auto-switch, activate (power, top-right) -->
                                                     <Grid Margin="0,0,0,14">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
@@ -1415,33 +1415,15 @@
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <!-- 1. Silent — bell with slash -->
+                                                        <!-- 1. Favorite/Pin — filled star -->
                                                         <ToggleButton Grid.Column="0" HorizontalAlignment="Center"
-                                                                      IsChecked="{Binding Silent}"
-                                                                      ToolTip="Toggle silent mode">
-                                                            <ToggleButton.Style>
-                                                                <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding SoundOverride}" Value="True">
-                                                                            <Setter Property="IsEnabled" Value="False"/>
-                                                                            <Setter Property="Opacity" Value="0.35"/>
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </ToggleButton.Style>
+                                                                      IsChecked="{Binding IsPinned}"
+                                                                      Style="{StaticResource CardActionToggle}"
+                                                                      ToolTip="Pin to top of list">
                                                             <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Path Data="M8,2 A5,5 0 0 0 3,7 V10 L2,12 H14 L13,10 V7 A5,5 0 0 0 8,2 Z"
-                                                                          Fill="Transparent"
-                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                          StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
-                                                                    <Path Data="M6.5,13.5 A1.5,1.5 0 0 0 9.5,13.5"
-                                                                          Fill="Transparent"
-                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                          StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-                                                                    <Path Data="M2,2 L14,14"
-                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
-                                                                          StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                                    <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
+                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </ToggleButton>
@@ -1516,7 +1498,7 @@
                                                             </Viewbox>
                                                         </Button>
                                                     </Grid>
-                                                    <!-- Row 2: favorite, schedule, sound, delete (bottom-right); columns align with row 1 -->
+                                                    <!-- Row 2: silent, schedule, sound, delete (bottom-right); columns align with row 1 -->
                                                     <Grid>
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
@@ -1524,15 +1506,33 @@
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <!-- 5. Favorite/Pin — filled star -->
+                                                        <!-- 5. Silent — bell with slash -->
                                                         <ToggleButton Grid.Column="0" HorizontalAlignment="Center"
-                                                                      IsChecked="{Binding IsPinned}"
-                                                                      Style="{StaticResource CardActionToggle}"
-                                                                      ToolTip="Pin to top of list">
+                                                                      IsChecked="{Binding Silent}"
+                                                                      ToolTip="Toggle silent mode">
+                                                            <ToggleButton.Style>
+                                                                <Style TargetType="ToggleButton" BasedOn="{StaticResource CardActionToggle}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding SoundOverride}" Value="True">
+                                                                            <Setter Property="IsEnabled" Value="False"/>
+                                                                            <Setter Property="Opacity" Value="0.35"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ToggleButton.Style>
                                                             <Viewbox Width="18" Height="18">
                                                                 <Canvas Width="16" Height="16">
-                                                                    <Path Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z"
-                                                                          Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                                                                    <Path Data="M8,2 A5,5 0 0 0 3,7 V10 L2,12 H14 L13,10 V7 A5,5 0 0 0 8,2 Z"
+                                                                          Fill="Transparent"
+                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                          StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"/>
+                                                                    <Path Data="M6.5,13.5 A1.5,1.5 0 0 0 9.5,13.5"
+                                                                          Fill="Transparent"
+                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                          StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                                                    <Path Data="M2,2 L14,14"
+                                                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"
+                                                                          StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                                                                 </Canvas>
                                                             </Viewbox>
                                                         </ToggleButton>
