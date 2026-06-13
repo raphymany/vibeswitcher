@@ -1454,6 +1454,9 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Uninstall leftover | ✅ Fixed — installer removes the runtime `AppUserModelId` HKCU key on uninstall |
 | Accessibility / keyboard | ✅ Improved — screen-reader names on icon-only controls; volume slider keyboard-adjustable; Clone wizard Enter-to-advance (focus rings only on keyboard nav); the five content scroll panels (Profiles/Settings/About/FAQ/Mini) were focusable Tab stops with no focus visual (an "invisible" Tab stop before the first card) — now `IsTabStop="False"` so Tab skips them, wheel-scroll unaffected |
 | DPI / installer / leaks / IO / crash-safety / exception handling | ✅ Verified GOOD, no change — PerMonitorV2 manifest; fixed-AppId upgrade + AppMutex detection + opt-in data deletion; SettingsWindow/ViewModel/LogoAnimator disposal; atomic save + corrupt-fallback; documented crash/shutdown guarantees; global exception handlers + best-effort catches |
+| Scheduler / DST | ✅ Verified GOOD, no change — catch-up window covers spring-forward; per-occurrence dedup prevents fall-back double-fire; next-fire always ≤7 days (timer interval in range); multiple-due collapses to most-recent |
+| Audio / COM thread-safety | ✅ Verified GOOD, no change — per-call COM enumerators (no cross-apartment sharing) with `Marshal.Release`/`ReleaseComObject` + `PropVariantClear`; `DeviceNotificationClient` lock-guarded debounce with `_disposed` checks; both `DevicesChanged` subscribers marshal UI/config work to the dispatcher; race-safe CTS via `Interlocked.Exchange` |
+| Dialog initial focus | ✅ Improved — Clone wizard focuses + selects the name field on open (other dialogs rely on `IsDefault`/`IsCancel` + Tab, which is acceptable) |
 
 #### Tests
 | Item | Status |
