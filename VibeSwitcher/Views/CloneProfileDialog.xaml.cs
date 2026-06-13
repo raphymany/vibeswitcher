@@ -67,6 +67,14 @@ public partial class CloneProfileDialog : Window
         Dot3.Visibility = _steps.Contains(3) ? Visibility.Visible : Visibility.Collapsed;
 
         GoTo(0);
+
+        // Land focus on the name field (with its "(copy)" text selected) so a keyboard user can
+        // rename the clone immediately without tabbing to it first.
+        Loaded += (_, _) =>
+        {
+            NameBox.Focus();
+            NameBox.SelectAll();
+        };
     }
 
     private void BuildCopyOptions()
