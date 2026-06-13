@@ -244,14 +244,18 @@ public class ConfigService : IConfigService
         }
         config.Profiles ??= new();
         Migrate(config);
-        // Imported configs are untrusted: a custom switch-sound path must already live inside the
-        // managed Sounds folder, otherwise drop it so an import can't point the app at an arbitrary
-        // file on disk. The user's own picked sounds are copied into that folder, so they survive.
+        // Imported configs are untrusted: a custom switch-sound or icon path must already live inside
+        // the managed Sounds/Icons folder, otherwise drop it so an import can't point the app at an
+        // arbitrary file on disk. The user's own picked files are copied into those folders, so they
+        // survive. (Icon loads are also guarded at read time, but dropping here keeps imports clean.)
         foreach (var p in config.Profiles)
         {
             if (!string.IsNullOrEmpty(p.SoundCustomPath) &&
                 !PathSafety.TryResolveInside(p.SoundCustomPath, SoundsDir, out _))
                 p.SoundCustomPath = null;
+            if (!string.IsNullOrEmpty(p.IconPath) &&
+                !PathSafety.TryResolveInside(p.IconPath, IconsDir, out _))
+                p.IconPath = null;
         }
         _config = config;
         SaveImmediate();

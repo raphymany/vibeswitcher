@@ -7,9 +7,9 @@ VibeSwitcher is a Windows-only desktop utility. Understanding what it accesses h
 - **Windows audio COM APIs** — sets the system default audio device via `IPolicyConfig`. No audio content is read or recorded.
 - **Windows Registry (`HKCU\...\Run`)** — written only when "Start with Windows" is enabled, to add or remove the startup entry.
 - **Windows Registry (`HKCU\Software\Classes\AppUserModelId\...`)** — registered on launch with the app's display name and icon so toast/notification attribution resolves to VibeSwitcher. User-scoped; no sensitive data.
-- **`%APPDATA%\VibeSwitcher\`** — stores `config.json` (profile names, device endpoint IDs, hotkey definitions), `error.log`, and per-profile custom icons (`Icons\`) and switch sounds (`Sounds\`). No passwords or personal data are written.
+- **`%APPDATA%\VibeSwitcher\`** — stores `config.json` (profile names, device endpoint IDs, hotkey definitions), `error.log`, and per-profile custom icons (`Icons\`) and switch sounds (`Sounds\`). Browsed custom files are also kept in `Icons\Library\` / `Sounds\Library\` so they can be re-picked without re-browsing; these sit inside the managed roots and use the same path-safety guards. No passwords or personal data are written.
 - **Global hotkeys** — registers key combinations via `RegisterHotKey` (WinAPI). These are user-configured and can be cleared or disabled at any time.
-- **`.ico` files** — loaded from paths the user explicitly selects via a file picker or the built-in gallery. Paths outside `%APPDATA%\VibeSwitcher\Icons\` are rejected.
+- **`.ico` files** — loaded from paths the user explicitly selects via a file picker or the built-in gallery. Paths outside `%APPDATA%\VibeSwitcher\Icons\` are rejected; when a config is imported, any icon path outside that folder is dropped.
 - **Custom switch sounds (`.wav`)** — a user-picked sound is copied into `%APPDATA%\VibeSwitcher\Sounds\`; when a config is imported, any sound path outside that folder is dropped, so an imported file can't point the app at an arbitrary location on disk.
 
 The app does not make network requests, does not run with elevated privileges, and does not access any other user data.

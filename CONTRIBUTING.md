@@ -44,7 +44,7 @@ Config and logs are written to `%APPDATA%\VibeSwitcher\`.
 - **No comments on obvious code** — names should be self-explanatory; add a comment only when the *why* is non-obvious (a Windows quirk, a workaround, a hidden invariant).
 - **Error handling at boundaries** — catch at service/UI call sites, log via the injected `_logger` (`IAppLogger`) — or `AppLog` in static contexts — and record structured errors via `_errorTracker.Record(ErrorCode.X, ...)` (`ISessionErrorTracker`), or `AppErrors.Record(...)` from static contexts. Don't swallow exceptions silently.
 - **Atomic config writes** — go through `ConfigService.SaveDeferred()` (UI-thread snapshot + background write) or `SaveImmediate()` (startup, exit flush, import); never write `config.json` directly.
-- **Icon and sound paths** — custom icon and switch-sound files must live inside `ConfigService.IconsDir` / `SoundsDir`; `IconHelper.LoadIcon` and the config-import guard enforce this via `PathSafety`.
+- **Icon and sound paths** — custom icon and switch-sound files must live inside `ConfigService.IconsDir` / `SoundsDir`; `IconHelper.LoadIcon` and the config-import guard enforce this via `PathSafety`. Browsed uploads are also kept (via the `UploadLibrary` helper) in the `IconsLibraryDir` / `SoundsLibraryDir` subfolders so they can be re-picked; those stay inside the same roots.
 
 ## Pull request process
 

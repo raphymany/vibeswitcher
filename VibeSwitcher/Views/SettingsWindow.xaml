@@ -2684,7 +2684,6 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid Grid.Column="0" Width="24" Height="24" Margin="0,0,10,0">
                                         <Image Source="{Binding IconPreview}" Stretch="Uniform"
@@ -2708,15 +2707,12 @@
                                                TextTrimming="CharacterEllipsis"/>
                                     <!-- This profile's activation hotkey -->
                                     <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
-                                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,0,0"
+                                            BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,2,0"
                                             VerticalAlignment="Center"
                                             Visibility="{Binding IsHotkeySet, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="Courier New"
                                                    FontSize="9.5" Foreground="{DynamicResource VSLabel}"/>
                                     </Border>
-                                    <Ellipse Grid.Column="3" Width="8" Height="8" Fill="{DynamicResource Accent}"
-                                             VerticalAlignment="Center" Margin="8,0,2,0"
-                                             Visibility="{Binding IsActive, Converter={StaticResource BoolToVis}}"/>
                                 </Grid>
                             </Button>
                         </DataTemplate>
@@ -2811,7 +2807,7 @@
                                         ToolTip="Coming soon" ToolTipService.ShowOnDisabled="True">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="Website — coming soon" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Website" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Style="{StaticResource LinkChipStyle}"

@@ -166,16 +166,12 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 
 ### Deferred — Pre-v2 audit follow-ups (from PR #112 review)
 
-Non-blocking items found by the final pre-v2 audit and intentionally left out of the audit-fix commit. None are release blockers.
+The full audit follow-up table (AF1–AF5 with outcomes) now lives in **RECORD.md → Branch 53 → "Audit follow-ups (AF)"**. Only the items still genuinely open are repeated here.
 
-| # | Item | Why not done in the audit-fix commit |
-|---|------|--------------------------------------|
-| ~~AF1~~ | ~~Confine custom switch-sound files to a managed Sounds folder~~ | ✅ Done — picked `.wav` copied into `%APPDATA%\VibeSwitcher\Sounds\`; import drops any path outside it (PathSafety); +2 tests |
-| ~~AF2~~ | ~~App-Trigger dialog filter chips keyboard-accessible~~ | ✅ Done — focusable + Enter/Space + automation names (kept as Borders rather than restyling to ToggleButtons) |
+| # | Item | Why still open |
+|---|------|---------------|
 | AF3 | CI / release hardening — pin `softprops/action-gh-release` to a SHA, pin the choco Inno Setup version, bump xunit / Test.Sdk / coverlet, add a `--logger trx` test-results artifact | Can't validate workflow changes locally; a wrong pin would break the release pipeline. Belongs in a CI-only PR. |
-| ~~AF4~~ | XAML de-duplication | ✅ Done where clean (accent frame → one shared `Views/AccentFrame.xaml` across 19 dialogs; `DayPillStyle` later unified into `App.xaml` after the size/padding difference was reconciled — user-approved). Remaining items **closed as won't-do**: `MuteBannerToggle` bakes its own icon (not a clean `BasedOn`); the orange accent values are inline trigger setters (magic-number promotion, high churn). Visual-only, no functional benefit. |
 | LP1 | Custom switch-sound orphan cleanup on profile rename | Low. `StoreCustomSound` re-copies to a name-matching `Sounds\{name}-{guid}.wav` after a rename, leaving the old per-profile copy behind (no `DeleteOrphanedSound` exists, unlike icons). Harmless stray file in AppData; deferred to keep the upload-library change focused. |
-| ~~AF5~~ | ~~Doc nits — CONTRIBUTING vs CLAUDE changelog timing + RECORD summary-table recount~~ | ✅ Done — CONTRIBUTING wording aligned with CLAUDE.md; RECORD Section 11 totals recounted to 43/32/3 (117/102/4) during the docs accuracy sweep |
 
 ---
 

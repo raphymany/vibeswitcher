@@ -391,7 +391,7 @@ public class ProfileCardViewModelTests
             pb, [],
             _ => changedCount++, _ => { }, (_, _) => { }, _ => Task.CompletedTask);
 
-        card.SelectedPlaybackDevice = card.PlaybackDevices[1]; // index 0 is (None)
+        card.SelectedPlaybackDevice = card.PlaybackDevices[1]; // index 0 is the "Not set" device
 
         Assert.Equal(1, changedCount);
     }

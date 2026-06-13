@@ -261,6 +261,50 @@ public class ConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void TryImport_ClearsCustomIconPathOutsideManagedFolder()
+    {
+        // Mirrors the sound guard: an imported icon path outside the managed Icons folder is dropped
+        // so an import can't point the app at an arbitrary file on disk.
+        var src = MakeSvc();
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile
+        {
+            Name = "P",
+            IconPath = @"C:\Windows\System32\shell32.dll",
+        });
+        var exportPath = Path.Combine(_dir, "export-icon.json");
+        src.ExportTo(exportPath);
+
+        var dest = MakeSvc(Path.Combine(_dir, "dest-icon"));
+        dest.Load();
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Single(dest.Current.Profiles);
+        Assert.Null(dest.Current.Profiles[0].IconPath);
+    }
+
+    [Fact]
+    public void TryImport_KeepsCustomIconPathInsideManagedFolder()
+    {
+        // An icon that already lives in the importer's managed Icons folder must survive import.
+        var dest = MakeSvc(Path.Combine(_dir, "dest-icon-keep"));
+        dest.Load();
+        Directory.CreateDirectory(dest.IconsDir);
+        var managed = Path.Combine(dest.IconsDir, "keep.ico");
+        File.WriteAllBytes(managed, new byte[] { 0x00, 0x00, 0x01, 0x00 });
+
+        var src = MakeSvc(Path.Combine(_dir, "src-icon-keep"));
+        src.Load();
+        src.Current.Profiles.Add(new DeviceProfile { Name = "P", IconPath = managed });
+        var exportPath = Path.Combine(_dir, "export-icon-keep.json");
+        src.ExportTo(exportPath);
+
+        bool ok = dest.TryImport(exportPath, out _);
+        Assert.True(ok);
+        Assert.Equal(managed, dest.Current.Profiles[0].IconPath);
+    }
+
+    [Fact]
     public void Load_ClampsOutOfRangeScheduleAndMode()
     {
         File.WriteAllText(Path.Combine(_dir, "config.json"),

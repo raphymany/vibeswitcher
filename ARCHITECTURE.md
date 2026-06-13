@@ -51,6 +51,8 @@ Supporting subsystems that cut across layers:
 | `AppLogger` | `Helpers/` | File-based logging with rotation; `Debug` level writes to stderr only (never to disk) |
 | `SessionErrorTracker` | `Helpers/` | Per-session structured error accumulation |
 | `IconHelper` | `Helpers/` | ICO loading, image source conversion, security validation |
+| `GalleryIconHelper` | `Helpers/` | Renders the built-in gallery emoji to monochrome (black/white) `.ico` files; `RenderGlyph` is shared by the save path and the picker's live colour preview |
+| `UploadLibrary` | `Helpers/` | Manages the "your uploads" library of custom icons/sounds under `Icons\Library` / `Sounds\Library` (save/list/delete, dedup by name+size) so files can be re-picked without re-browsing |
 | `PathSafety` | `Helpers/` | Canonicalizes a path and confirms it stays inside an allowed folder (icons, sounds) before a read/write/delete |
 | `WinApi` | `NativeMethods/` | P/Invoke: `RegisterHotKey`, `UnregisterHotKey`, `GlobalAddAtom` |
 
@@ -61,7 +63,8 @@ Supporting subsystems that cut across layers:
 | File | Role |
 |---|---|
 | `App.xaml.cs` | Bootstrap — single-instance check, service wiring, `WM_HOTKEY` / `WM_TASKBARCREATED` message loop |
-| `Services/ConfigService.cs` | Load / atomic save of `config.json`; backup-and-recover on corruption |
+| `Services/ConfigService.cs` | Load / atomic save of `config.json`; backup-and-recover on corruption; exposes `IconsLibraryDir` / `SoundsLibraryDir` for the uploads library |
+| `Services/DialogService.cs` | Owns all modal dialogs (hotkey capture, icon gallery, sound picker, clone wizard, …); takes `IConfigService` so it can pass the uploads-library dirs to the icon/sound pickers |
 | `Services/AudioService.cs` | COM audio device enumeration; sets the Console, Multimedia, and Communications roles on every switch (skipping any already correct) |
 | `Services/HotkeyService.cs` | Registers global hotkeys via `HwndSource`; maps atom IDs back to profiles and feature hotkeys |
 | `Services/MuteService.cs` | Tracks per-scope mute state; toggles Windows audio endpoints and plays feedback sounds |
@@ -72,7 +75,7 @@ Supporting subsystems that cut across layers:
 | `Services/HidHeadsetService.cs` | Opens HID streams to wireless dongle devices; parses vendor-specific packets for headset power state |
 | `Services/AppTriggerService.cs` | Maps executable names to profiles; responds to `AppWatcherService` events |
 | `Services/AppWatcherService.cs` | Polls `Process.GetProcessesByName()` for each watched executable on a 2s timer; fires `ProcessLaunched` when one appears |
-| `Tray/TrayService.cs` | Owns the `TaskbarIcon`; rebuilds the context menu when profiles change |
+| `Tray/TrayService.cs` | Owns the `TaskbarIcon`; rebuilds the context menu when profiles change; honors the per-item visibility flags (`AppConfig.TrayShow*`) for the optional About / Help & FAQ / Mini Mode / Open Sound Settings entries |
 | `ViewModels/SettingsViewModel.cs` | All settings and profile list logic; fires `SaveDeferred` when settings change |
 | `ViewModels/ProfileCardViewModel.cs` | Per-profile bindings, hotkey capture, icon browse, save flash |
 
