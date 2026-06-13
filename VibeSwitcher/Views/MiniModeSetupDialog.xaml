@@ -130,6 +130,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="0,5"
+                                          Style="{StaticResource ThemedCheckBox}"
                                           VerticalContentAlignment="Center"
                                           Checked="ProfileCheck_Changed" Unchecked="ProfileCheck_Changed">
                                     <StackPanel Orientation="Horizontal">

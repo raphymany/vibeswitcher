@@ -110,7 +110,7 @@ public partial class CloneProfileDialog : Window
 
     private void BuildScheduleChecks()
     {
-        var style = (Style?)TryFindResource("CopyCheck");
+        var style = (Style?)TryFindResource("ThemedCheckBox");
         foreach (var entry in _source.Schedules)
         {
             var label = $"{ScheduleHelpers.FormatTime(entry.Hour, entry.Minute, _use12Hour)} · {ScheduleHelpers.FormatDays(entry.Days)}";

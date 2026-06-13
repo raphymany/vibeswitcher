@@ -867,13 +867,20 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var previous = _iconPath;
         SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker, exceptPath: dest);
 
-        // When dest matches _iconPath the file has been overwritten but SetField won't
-        // detect a change (same path) — manually refresh the preview and notify bindings.
+        SetIconPath(dest);
+    }
+
+    // Applies the icon at 'dest'. When the path string is unchanged but the file was overwritten
+    // (e.g. switching a gallery icon → a custom one, or re-picking the same dest), the IconPath
+    // setter's SetField won't fire — so refresh the preview and notify bindings manually.
+    private void SetIconPath(string dest)
+    {
         if (string.Equals(_iconPath, dest, StringComparison.OrdinalIgnoreCase))
         {
             _model.IconPath = dest;
             UpdateIconPreview();
             OnPropertyChanged(nameof(IconPath));
+            OnPropertyChanged(nameof(HasCustomIcon));
             _onChanged(this);
         }
         else
@@ -912,7 +919,7 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         var previous = _iconPath;
         SettingsViewModel.DeleteOrphanedIcon(previous, _configService.IconsDir, _logger, _errorTracker, exceptPath: dest);
 
-        IconPath = dest;
+        SetIconPath(dest);
     }
 
     private void ApplyNameSuggestion(string suggestion)

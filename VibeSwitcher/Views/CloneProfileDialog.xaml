@@ -47,45 +47,6 @@
             </Setter>
         </Style>
 
-        <!-- Themed checkbox — rounded box that fills accent with a white check when ticked. -->
-        <Style x:Key="CopyCheck" TargetType="CheckBox">
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}"/>
-            <Setter Property="Margin" Value="0,0,0,12"/>
-            <Setter Property="FocusVisualStyle" Value="{StaticResource AccentFocusVisual}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="CheckBox">
-                        <StackPanel Orientation="Horizontal" Background="Transparent">
-                            <Border x:Name="box" Width="20" Height="20" CornerRadius="5"
-                                    Background="{DynamicResource VSSurface}"
-                                    BorderBrush="{DynamicResource VSBorderStrong}" BorderThickness="1"
-                                    VerticalAlignment="Center">
-                                <Path x:Name="check" Data="M4,10 L8,14 L15,5" Stretch="Uniform" Margin="4"
-                                      Stroke="White" StrokeThickness="2"
-                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                      Visibility="Collapsed"/>
-                            </Border>
-                            <ContentPresenter VerticalAlignment="Center" Margin="10,0,0,0"/>
-                        </StackPanel>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="box" Property="Background"  Value="{DynamicResource Accent}"/>
-                                <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                <Setter TargetName="check" Property="Visibility" Value="Visible"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="box" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.45"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -186,13 +147,13 @@
             <!-- ── Step 2: What to copy ──────────────────────── -->
             <StackPanel x:Name="Step2Panel" Visibility="Collapsed" MinHeight="120">
                 <StackPanel x:Name="CopyOptionsPanel">
-                    <CheckBox x:Name="chkSound"       Style="{StaticResource CopyCheck}" Content="Switch sound"                  Checked="Sound_Toggled" Unchecked="Sound_Toggled"/>
-                    <CheckBox x:Name="chkAppTriggers" Style="{StaticResource CopyCheck}" Content="App launch triggers"/>
-                    <CheckBox x:Name="chkAutoSwitch"  Style="{StaticResource CopyCheck}" Content="Auto-switch on device connect"/>
-                    <CheckBox x:Name="chkFavorite"    Style="{StaticResource CopyCheck}" Content="Favorite (pinned)"/>
-                    <CheckBox x:Name="chkSilent"      Style="{StaticResource CopyCheck}" Content="Silent — no notification banner"/>
-                    <CheckBox x:Name="chkIcon"        Style="{StaticResource CopyCheck}" Content="Custom icon"/>
-                    <CheckBox x:Name="chkNotes"       Style="{StaticResource CopyCheck}" Content="Notes"/>
+                    <CheckBox x:Name="chkSound"       Style="{StaticResource ThemedCheckBox}" Content="Switch sound"                  Checked="Sound_Toggled" Unchecked="Sound_Toggled"/>
+                    <CheckBox x:Name="chkAppTriggers" Style="{StaticResource ThemedCheckBox}" Content="App launch triggers"/>
+                    <CheckBox x:Name="chkAutoSwitch"  Style="{StaticResource ThemedCheckBox}" Content="Auto-switch on device connect"/>
+                    <CheckBox x:Name="chkFavorite"    Style="{StaticResource ThemedCheckBox}" Content="Favorite (pinned)"/>
+                    <CheckBox x:Name="chkSilent"      Style="{StaticResource ThemedCheckBox}" Content="Silent — no notification banner"/>
+                    <CheckBox x:Name="chkIcon"        Style="{StaticResource ThemedCheckBox}" Content="Custom icon"/>
+                    <CheckBox x:Name="chkNotes"       Style="{StaticResource ThemedCheckBox}" Content="Notes"/>
                 </StackPanel>
                 <TextBlock x:Name="NoCopyOptionsHint"
                            Text="This profile has no extra features to copy."
