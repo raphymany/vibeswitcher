@@ -4,6 +4,16 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- **Profiles no longer lose their devices when Windows re-detects USB audio hardware** — USB devices without a serial number (SPDIF adapters, webcam microphones, many DACs and headset dongles) get a new Windows device ID after moving USB ports, a USB hub reset, or a driver update, which used to leave the profile showing its devices as disconnected until they were re-picked by hand. Profiles now remember each device's name and hardware model and re-bind automatically when it comes back under a new ID, and custom device aliases move with it *(PR #114)*
+- **A tray hiccup can no longer cancel a profile switch** — if Windows briefly refuses a tray tooltip, icon, or notification update (common right after waking from sleep), the switch now completes normally instead of showing "Profile Switch Failed"; the tray retries the update a few seconds later *(PR #114)*
+- **Wireless headset detection reads the device's USB path correctly** — matching previously always fell back to comparing device names *(PR #114)*
+- **Quieter log file** — routine headset-scan and device-matching diagnostics are no longer written to `error.log` *(PR #114)*
+
+---
+
 ## [2.0.0] - 2026-06-13
 
 ### Added

@@ -1463,3 +1463,18 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Item | Status |
 |------|--------|
 | 8 audit tests + final-pass tests (import-guard reject, reset-to-defaults preservation, log-path) + AF1 sound-confinement ×2 + `UploadLibrary` (6) + library icon pick/save (2) + tray-menu flag round-trip (1) + icon-import path-confinement ×2; suite at **251** | ✅ Done |
+
+---
+
+### Branch 54: `fix/device-id-drift` ✅ Done — PR #114
+**Theme:** Post-2.0.0 reliability fixes found in daily use (issue #113). Serial-less USB audio hardware (a USB SPDIF adapter feeding a Sonos, a Logitech BRIO webcam mic) gets a new Windows endpoint ID whenever Windows re-detects it (different port, hub reset, driver update); profiles only stored the ID, so they showed their devices as disconnected until re-picked by hand, and device aliases were stranded on the dead ID. Also: a refused tray tooltip update aborted a whole profile switch, and `error.log` was dominated by harmless noise.
+
+| Item | Status |
+|------|--------|
+| Device fingerprint per profile slot (`PlaybackDeviceName`/`PlaybackDeviceHardwareKey`, same for recording) — Windows friendly name + normalized hardware key from the endpoint's hardware instance path (`AudioDeviceEnumerator.NormalizeHardwareKey`); backfilled automatically while the device is present | ✅ Done |
+| `DeviceRebindService` — rebinds a slot whose ID vanished to the single connected device matching its fingerprint and moves the alias; runs at startup, on every device change (subscribed ahead of `DeviceTriggerService` and Settings), and in `ProfileSwitchOrchestrator` only when a switch reports a missing device (retries the apply once). Conservative: USB keys only, no name-only matches, no ambiguous matches, never onto a device another profile is bound to, never when two different missing devices claim the same new one | ✅ Done |
+| Settings window — fingerprints captured on device pick, clone, and import (backfill only; rebinding stays with the app-level service) | ✅ Done |
+| Tray — tooltip/icon/notification writes refused by Windows (`Shell_NotifyIcon` FALSE → H.NotifyIcon `InvalidOperationException`) are logged and ignored instead of aborting the switch; bounded (3×, 2 s) retry re-pushes the icon + tooltip | ✅ Done |
+| HID headset matching — the "endpoint path" property key was actually `PKEY_AudioEndpoint_ControlPanelPageProvider` (always empty), so matching always fell back to names; now reads the hardware instance path, and the name fallback only runs when the USB path is inconclusive (same vendor or unreadable) | ✅ Done |
+| Log noise — per-model "no HID devices found" scan lines and name-match diagnostics moved to debug output (not written to `error.log`) | ✅ Done |
+| Tests — `DeviceRebindServiceTests` (32 cases), 3 HID path-matching tests, 2 card fingerprint-clearing tests; suite at **292** | ✅ Done |
