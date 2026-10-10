@@ -35,6 +35,28 @@ internal static class AudioDeviceEnumerator
         }
     }
 
+    // Reduces a hardware instance path to the part that identifies the device *model and interface*,
+    // dropping the per-connection instance suffix that changes when Windows re-detects the device:
+    //   "{1}.USB\VID_0BDA&PID_4E27&MI_00\8&404667A&0&0000" → "USB\VID_0BDA&PID_4E27&MI_00"
+    internal static string? NormalizeHardwareKey(string? instancePath)
+    {
+        if (string.IsNullOrWhiteSpace(instancePath)) return null;
+        var path = instancePath.Trim();
+
+        // Strip the "{n}." enumerator prefix.
+        if (path.StartsWith('{'))
+        {
+            int dot = path.IndexOf("}.", StringComparison.Ordinal);
+            if (dot > 0) path = path[(dot + 2)..];
+        }
+
+        // "ENUMERATOR\HARDWARE-ID\INSTANCE" — drop the instance segment.
+        var parts = path.Split('\\');
+        if (parts.Length >= 3) path = string.Join('\\', parts[..^1]);
+
+        return path.Length == 0 ? null : path.ToUpperInvariant();
+    }
+
     private static AudioDeviceInfo? GetDeviceInfo(
         IMMDevice device, bool isPlayback, IAppLogger logger, ISessionErrorTracker errorTracker)
     {
@@ -51,9 +73,19 @@ internal static class AudioDeviceEnumerator
             PropVariant.PropVariantClear(ref pv);
 
             if (name == null) return null;
+
+            var pathKey = PROPERTYKEY.HardwareInstancePath;
+            string? hardwareKey = null;
+            if (store.GetValue(ref pathKey, out var pathPv) == 0)
+            {
+                hardwareKey = NormalizeHardwareKey(pathPv.ToStringValue());
+                PropVariant.PropVariantClear(ref pathPv);
+            }
+
             return new AudioDeviceInfo(id, name, isPlayback,
                 IsConnected: state == AudioDeviceState.Active,
-                IsDisabled: state == AudioDeviceState.Disabled);
+                IsDisabled: state == AudioDeviceState.Disabled,
+                HardwareKey: hardwareKey);
         }
         catch (Exception ex)
         {

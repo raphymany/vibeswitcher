@@ -5,7 +5,8 @@ using VibeSwitcher.NativeMethods;
 
 namespace VibeSwitcher.Services;
 
-public record AudioDeviceInfo(string Id, string FriendlyName, bool IsPlayback, bool IsConnected = true, bool IsDisabled = false)
+public record AudioDeviceInfo(string Id, string FriendlyName, bool IsPlayback, bool IsConnected = true, bool IsDisabled = false,
+    string? HardwareKey = null)
 {
     public bool ShowDot => !string.IsNullOrEmpty(Id);
     public override string ToString() => FriendlyName;
@@ -97,8 +98,8 @@ public class AudioService : IAudioService
     public Task TestSoundAsync(string deviceId) =>
         Task.Run(() => AudioTestTonePlayer.Play(deviceId, _logger));
 
-    // Returns the symbolic device path for the given audio endpoint (e.g.
-    // "\\?\USB#VID_046D&PID_0ABA&MI_00#...") which embeds VID/PID for USB devices.
+    // Returns the hardware instance path for the given audio endpoint (e.g.
+    // "{1}.USB\VID_046D&PID_0ABA&MI_00\7&3B39E24B&0&0000") which embeds VID/PID for USB devices.
     public string? GetAudioEndpointPath(string audioDeviceId)
     {
         var enumerator = (IMMDeviceEnumerator)new MMDeviceEnumerator();
@@ -109,7 +110,7 @@ public class AudioService : IAudioService
             try
             {
                 device.OpenPropertyStore(0, out store);
-                var key = PROPERTYKEY.AudioEndpointPath;
+                var key = PROPERTYKEY.HardwareInstancePath;
                 store.GetValue(ref key, out var pv);
                 var result = pv.ToStringValue();
                 PropVariant.PropVariantClear(ref pv);

@@ -597,6 +597,62 @@ public class DeviceTriggerServiceTests
     }
 
     [Fact]
+    public void Switches_OnHidWirelessConnect_WhenUsbPathMatches_EvenIfNameDoesNot()
+    {
+        // Windows shows a renamed endpoint, but its hardware path still carries the headset's VID/PID.
+        var audio = new FakeAudioService { PlaybackResult = [Connected("dev-headset")] };
+        audio.EndpointPaths["dev-headset"] = @"{1}.USB\VID_046D&PID_0ABA&MI_00\7&3B39E24B&0&0000";
+
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [headsetProfile] });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
+
+        svc.OnHidWirelessConnected(ProXDescriptor);
+
+        Assert.Equal(headsetProfile, switched);
+    }
+
+    [Fact]
+    public void Switches_OnHidWirelessConnect_WhenSameVendorDifferentPid_AndNameMatches()
+    {
+        // Some headsets expose audio and HID under different PIDs — same vendor still allows the name match.
+        var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-headset")] };
+        audio.EndpointPaths["dev-headset"] = @"{1}.USB\VID_046D&PID_0ABB&MI_00\7&1&0&0000";
+
+        var headsetProfile = PlaybackProfile("dev-headset");
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [headsetProfile] });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
+
+        svc.OnHidWirelessConnected(ProXDescriptor);
+
+        Assert.Equal(headsetProfile, switched);
+    }
+
+    [Fact]
+    public void DoesNotSwitch_OnHidWirelessConnect_WhenUsbPathIsOtherVendor_EvenIfNameMatches()
+    {
+        // The name contains the model, but the USB path proves it's another vendor's device — no name guessing.
+        var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-other")] };
+        audio.EndpointPaths["dev-other"] = @"{1}.USB\VID_0BDA&PID_4E27&MI_00\8&404667A&0&0000";
+
+        var config = new FakeConfigService();
+        config.SetConfig(new AppConfig { Profiles = [PlaybackProfile("dev-other")] });
+
+        DeviceProfile? switched = null;
+        using var svc = new DeviceTriggerService(audio, config, p => switched = p, new FakeAppLogger());
+
+        svc.OnHidWirelessConnected(ProXDescriptor);
+
+        Assert.Null(switched);
+    }
+
+    [Fact]
     public void Switches_OnHidWirelessConnect_WhenProfileMatchesDescriptor()
     {
         var audio = new FakeAudioService { PlaybackResult = [ProXAudioDevice("dev-headset")] };

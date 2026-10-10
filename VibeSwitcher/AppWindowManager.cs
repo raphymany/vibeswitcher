@@ -72,6 +72,13 @@ public class AppWindowManager
         window?.RefreshActiveStates();
     }
 
+    // A profile was re-bound to a device's new Windows ID — reload the cards' device dropdowns.
+    public void NotifyDevicesRebound()
+    {
+        var window = System.Windows.Application.Current.Windows.OfType<SettingsWindow>().FirstOrDefault();
+        window?.RefreshDevices();
+    }
+
     public void OpenAbout() => OpenSettingsWindowToPanel(w => w.OpenAboutPanel());
     public void OpenFaq()   => OpenSettingsWindowToPanel(w => w.OpenFaqPanel());
 

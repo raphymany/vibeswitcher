@@ -172,8 +172,9 @@ public class TrayService : IDisposable
             icon.Save(ms);
             _trayIconBytesCache[activeProfile.Id] = ms.ToArray();
         }
-        _taskbarIcon.Icon = icon;
-        _taskbarIcon.ToolTipText = BuildTooltip(activeProfile);
+        bool ok = TrySetTray("icon", () => _taskbarIcon.Icon = icon);
+        ok &= TrySetToolTip(BuildTooltip(activeProfile));
+        if (ok) _trayRetryCount = 0;
     }
 
     private string BuildTooltip(DeviceProfile? activeProfile)
@@ -333,7 +334,7 @@ public class TrayService : IDisposable
         // Refresh tooltip so hotkey cheat-sheet stays in sync when profiles change.
         var active = _configService.Current.Profiles
             .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        _taskbarIcon.ToolTipText = BuildTooltip(active);
+        TrySetToolTip(BuildTooltip(active));
 
         // Deliberately NO warm-up here: the first-open cost is per-process and already
         // absorbed once in ShowIcon. Re-priming every rebuilt menu is what used to flash
@@ -359,26 +360,29 @@ public class TrayService : IDisposable
             _pendingBalloons.Add((title, message, sound));
             return;
         }
-        _taskbarIcon.ShowNotification(
-            title,
-            message,
-            icon: NotificationIcon.None,
-            customIconHandle: IconHelper.GetBalloonIconHandle(),
-            largeIcon: true,
-            sound: sound);
+        if (!TrySetTray("notification", () => _taskbarIcon.ShowNotification(
+                title,
+                message,
+                icon: NotificationIcon.None,
+                customIconHandle: IconHelper.GetBalloonIconHandle(),
+                largeIcon: true,
+                sound: sound),
+            retry: false)) // a stale banner shown seconds later would be confusing — just drop it
+            return;
 
         // Known H.NotifyIcon 2.0.x bug (fixed upstream in PR #239, unreleased): the
         // notification's NIM_MODIFY omits NIF_SHOWTIP, which flips the icon out of
         // standard-tooltip mode — the hover tooltip silently stops appearing after any
         // balloon. Re-asserting the tooltip text sends a NIM_MODIFY that restores it.
-        var tip = _taskbarIcon.ToolTipText;
-        _taskbarIcon.ToolTipText = "";
-        _taskbarIcon.ToolTipText = tip;
+        var tip = _taskbarIcon.ToolTipText ?? "";
+        TrySetToolTip("");
+        TrySetToolTip(tip);
     }
 
     public void RecreateIcon()
     {
         if (!_iconShown) return; // Explorer restarted before the icon was ever shown
+        _trayRetryCount = 0;
         try
         {
             _taskbarIcon.ForceCreate(false);
@@ -393,7 +397,58 @@ public class TrayService : IDisposable
 
     public void SetSwitchingTooltip(string profileName)
     {
-        _taskbarIcon.ToolTipText = $"Switching to {profileName}...";
+        TrySetToolTip($"Switching to {profileName}...");
+    }
+
+    private bool TrySetToolTip(string text) => TrySetTray("tooltip", () => _taskbarIcon.ToolTipText = text);
+
+    // Windows can refuse a tray update (Shell_NotifyIcon returns FALSE) while Explorer is busy —
+    // typically just after wake — and H.NotifyIcon surfaces that as InvalidOperationException.
+    // Tray updates are cosmetic, so a refusal must never abort the caller: it once cancelled a
+    // whole profile switch and showed the "Profile Switch Failed" dialog.
+    // The refused value is still stored on the control, and re-setting the same value sends nothing,
+    // so a refused icon/tooltip is re-pushed shortly after (see RetryTrayState).
+    private bool TrySetTray(string what, Action update, bool retry = true)
+    {
+        try
+        {
+            update();
+            return true;
+        }
+        // Only swallow on the UI thread — a wrong-thread write is a coding error and must stay visible.
+        catch (InvalidOperationException ex) when (_taskbarIcon.Dispatcher.CheckAccess())
+        {
+            _logger.Warning("TrayService", $"Windows declined a tray {what} update: {ex.Message}");
+            if (retry) ScheduleTrayRetry();
+            return false;
+        }
+    }
+
+    private const int MaxTrayRetries = 3;
+    private int _trayRetryCount;
+    private System.Windows.Threading.DispatcherTimer? _trayRetryTimer;
+
+    private void ScheduleTrayRetry()
+    {
+        // Bounded so a tray that stays broken (Explorer gone) can't log a warning every few seconds;
+        // Explorer coming back raises TaskbarCreated → RecreateIcon, which resets the budget.
+        if (_trayRetryCount >= MaxTrayRetries) return;
+        _trayRetryTimer ??= new System.Windows.Threading.DispatcherTimer(
+            TimeSpan.FromSeconds(2), System.Windows.Threading.DispatcherPriority.Background,
+            (_, _) => RetryTrayState(), _taskbarIcon.Dispatcher);
+        if (_trayRetryTimer.IsEnabled) return;
+        _trayRetryCount++;
+        _trayRetryTimer.Start();
+    }
+
+    private void RetryTrayState()
+    {
+        _trayRetryTimer?.Stop();
+        var active = _configService.Current.Profiles
+            .FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+        // Clear first so the real tooltip is a value change again; UpdateIcon builds a fresh Icon.
+        TrySetTray("tooltip", () => _taskbarIcon.ToolTipText = "", retry: false);
+        UpdateIcon(active);
     }
 
     private static void OpenSettings()
@@ -600,6 +655,7 @@ public class TrayService : IDisposable
 
     public void Dispose()
     {
+        _trayRetryTimer?.Stop();
         _taskbarIcon.Dispose();
     }
 }

@@ -156,7 +156,15 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         {
             if (SetField(ref _selectedPlaybackDevice, value) && !_loadingDevices)
             {
-                _model.PlaybackDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
+                var id = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
+                if (!string.Equals(_model.PlaybackDeviceId, id, StringComparison.OrdinalIgnoreCase))
+                {
+                    // The fingerprint described the old device — drop it; DeviceRebindService
+                    // re-captures it from the raw (un-aliased) device list.
+                    _model.PlaybackDeviceName = null;
+                    _model.PlaybackDeviceHardwareKey = null;
+                }
+                _model.PlaybackDeviceId = id;
                 _onChanged(this);
                 OnPropertyChanged(nameof(IsPlaybackDeviceSet));
             }
@@ -170,7 +178,13 @@ public class ProfileCardViewModel : ViewModelBase, IDisposable
         {
             if (SetField(ref _selectedRecordingDevice, value) && !_loadingDevices)
             {
-                _model.RecordingDeviceId = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
+                var id = string.IsNullOrEmpty(value?.Id) ? null : value.Id;
+                if (!string.Equals(_model.RecordingDeviceId, id, StringComparison.OrdinalIgnoreCase))
+                {
+                    _model.RecordingDeviceName = null;
+                    _model.RecordingDeviceHardwareKey = null;
+                }
+                _model.RecordingDeviceId = id;
                 _onChanged(this);
                 OnPropertyChanged(nameof(IsRecordingDeviceSet));
             }

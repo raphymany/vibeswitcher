@@ -279,7 +279,7 @@ public sealed class DeviceTriggerService : IDisposable
     {
         var vidPid = $"VID_{descriptor.VendorId:X4}&PID_{descriptor.ProductId:X4}";
 
-        // Try path-based matching first (PKEY_AudioEndpoint_Path contains VID/PID for USB devices).
+        // Try path-based matching first (the endpoint's hardware instance path contains VID/PID for USB devices).
         var pbPath = profile.PlaybackDeviceId != null
             ? _audioService.GetAudioEndpointPath(profile.PlaybackDeviceId) : null;
         var recPath = profile.RecordingDeviceId != null
@@ -289,10 +289,22 @@ public sealed class DeviceTriggerService : IDisposable
             (recPath != null && recPath.Contains(vidPid, StringComparison.OrdinalIgnoreCase)))
             return true;
 
+        // Every assigned device is USB hardware from a different vendor — it can't be this headset, so
+        // skip the name guess. (Same vendor but a different PID still falls through: some headsets
+        // expose audio and HID under different PIDs. So does a device whose path can't be read.)
+        // Runs for every profile on every device event.
+        var vid = $"VID_{descriptor.VendorId:X4}";
+        bool RulesOut(string? deviceId, string? path) => deviceId == null
+            || (path != null
+                && path.Contains("VID_", StringComparison.OrdinalIgnoreCase)
+                && !path.Contains(vid, StringComparison.OrdinalIgnoreCase));
+        if (RulesOut(profile.PlaybackDeviceId, pbPath) && RulesOut(profile.RecordingDeviceId, recPath))
+            return false;
+
         // Fallback: Windows names USB audio devices using the product string, which typically
         // matches or contains the HID model name (e.g. "Headphones (Logitech PRO X Wireless)").
-        _logger.Info("DeviceTriggerService.HidRevert",
-            $"Path not available for '{profile.Name}' — falling back to friendly name match for '{descriptor.ModelName}'.");
+        _logger.Debug("DeviceTriggerService.HidMatch",
+            $"No conclusive USB path for '{profile.Name}' — falling back to friendly name match for '{descriptor.ModelName}'.");
         return FriendlyNameMatchesModel(profile.PlaybackDeviceId, descriptor.ModelName)
             || FriendlyNameMatchesModel(profile.RecordingDeviceId, descriptor.ModelName);
     }
@@ -304,7 +316,7 @@ public sealed class DeviceTriggerService : IDisposable
             .Concat(_audioService.GetRecordingDevices())
             .FirstOrDefault(d => string.Equals(d.Id, audioDeviceId, StringComparison.OrdinalIgnoreCase));
         if (device == null) return false;
-        _logger.Info("DeviceTriggerService.HidRevert",
+        _logger.Debug("DeviceTriggerService.HidMatch",
             $"  Audio device name=[{device.FriendlyName}] vs model=[{modelName}]");
         // Match if the Windows name contains the model name or vice versa.
         return device.FriendlyName.Contains(modelName, StringComparison.OrdinalIgnoreCase)

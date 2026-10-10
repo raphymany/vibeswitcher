@@ -25,6 +25,7 @@ public partial class App : Application
     private SchedulerService? _schedulerService;
     private MuteService? _muteService;
     private DeviceTriggerService? _deviceTriggerService;
+    private DeviceRebindService? _deviceRebindService;
     private HidHeadsetService? _hidHeadsetService;
     private AppWatcherService? _appWatcherService;
     private AppTriggerService? _appTriggerService;
@@ -115,13 +116,22 @@ public partial class App : Application
 
         // 4. Initialise services
         _audioService = new AudioService(_logger, _errorTracker);
+        // Re-bind profiles whose device came back under a new Windows ID. Subscribed before the
+        // device-trigger service and the Settings window so, on a device change, the rebind is queued
+        // on the UI thread first and they see the updated IDs. Run once now to backfill fingerprints
+        // and heal anything that changed while the app wasn't running.
+        _deviceRebindService = new DeviceRebindService(_audioService, _configService, _logger);
+        _audioService.DevicesChanged += () => Dispatcher.InvokeAsync(() => _deviceRebindService.Reconcile());
+        _deviceRebindService.DevicesRebound += () => _windowManager?.NotifyDevicesRebound();
+        _deviceRebindService.Reconcile();
         _hotkeyService = new HotkeyService(_hwndSource.Handle, _logger, _errorTracker);
         _trayService = new TrayService(_configService, _logger, _errorTracker);
         _themeService.ThemeApplied += () => _trayService.RebuildMenu();
 
         // 5. Initialise orchestrators
         var switchSoundService = new SwitchSoundService(_logger, _configService.SoundsDir);
-        _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher, _logger, _errorTracker);
+        _orchestrator = new ProfileSwitchOrchestrator(_configService, _audioService, _trayService, switchSoundService, Dispatcher, _logger, _errorTracker,
+            rebindDevices: _deviceRebindService.Reconcile);
         _muteService = new MuteService(_logger);
         // Show a brief banner when a mute hotkey toggles, unless that shortcut is set to silent.
         _muteService.MuteToggled += (scope, muted) =>
