@@ -4,7 +4,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ---
 
-## [Unreleased]
+## [2.0.1] - 2026-10-10
 
 ### Fixed
 - **Profiles no longer lose their devices when Windows re-detects USB audio hardware** — USB devices without a serial number (SPDIF adapters, webcam microphones, many DACs and headset dongles) get a new Windows device ID after moving USB ports, a USB hub reset, or a driver update, which used to leave the profile showing its devices as disconnected until they were re-picked by hand. Profiles now remember each device's name and hardware model and re-bind automatically when it comes back under a new ID, and custom device aliases move with it *(PR #114)*

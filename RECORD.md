@@ -1478,3 +1478,4 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | HID headset matching — the "endpoint path" property key was actually `PKEY_AudioEndpoint_ControlPanelPageProvider` (always empty), so matching always fell back to names; now reads the hardware instance path, and the name fallback only runs when the USB path is inconclusive (same vendor or unreadable) | ✅ Done |
 | Log noise — per-model "no HID devices found" scan lines and name-match diagnostics moved to debug output (not written to `error.log`) | ✅ Done |
 | Tests — `DeviceRebindServiceTests` (32 cases), 3 HID path-matching tests, 2 card fingerprint-clearing tests; suite at **292** | ✅ Done |
+| Version bumped to **2.0.1** (`VibeSwitcher.csproj`); CHANGELOG `[2.0.1]` | ✅ Done |
