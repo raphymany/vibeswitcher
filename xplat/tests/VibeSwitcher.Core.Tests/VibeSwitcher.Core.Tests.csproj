@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runs on Windows, Linux and macOS. Most tests here are the Windows app's own test files,
+       LINKED unchanged, so the shared logic is held to exactly the same expectations on every OS. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VibeSwitcher.Core\VibeSwitcher.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Linked from VibeSwitcher.Tests (unchanged) -->
+  <ItemGroup>
+    <Compile Include="$(WinTests)AssemblyConfig.cs"            Link="Linked\AssemblyConfig.cs" />
+    <Compile Include="$(WinTests)FakeAppLogger.cs"             Link="Linked\FakeAppLogger.cs" />
+    <Compile Include="$(WinTests)FakeAudioService.cs"          Link="Linked\FakeAudioService.cs" />
+    <Compile Include="$(WinTests)FakeConfigService.cs"         Link="Linked\FakeConfigService.cs" />
+    <Compile Include="$(WinTests)FakeHotkeyService.cs"         Link="Linked\FakeHotkeyService.cs" />
+    <Compile Include="$(WinTests)FakeSessionErrorTracker.cs"   Link="Linked\FakeSessionErrorTracker.cs" />
+    <Compile Include="$(WinTests)FakeStartupService.cs"        Link="Linked\FakeStartupService.cs" />
+    <Compile Include="$(WinTests)AppLoggerTests.cs"            Link="Linked\AppLoggerTests.cs" />
+    <Compile Include="$(WinTests)ConfigServiceTests.cs"        Link="Linked\ConfigServiceTests.cs" />
+    <Compile Include="$(WinTests)DeviceRebindServiceTests.cs"  Link="Linked\DeviceRebindServiceTests.cs" />
+    <Compile Include="$(WinTests)DeviceTriggerServiceTests.cs" Link="Linked\DeviceTriggerServiceTests.cs" />
+    <Compile Include="$(WinTests)ErrorCodeTests.cs"            Link="Linked\ErrorCodeTests.cs" />
+    <Compile Include="$(WinTests)SchedulerServiceTests.cs"     Link="Linked\SchedulerServiceTests.cs" />
+    <Compile Include="$(WinTests)SessionErrorTrackerTests.cs"  Link="Linked\SessionErrorTrackerTests.cs" />
+    <Compile Include="$(WinTests)SwitchSoundTests.cs"          Link="Linked\SwitchSoundTests.cs" />
+    <Compile Include="$(WinTests)UploadLibraryTests.cs"        Link="Linked\UploadLibraryTests.cs" />
+  </ItemGroup>
+</Project>

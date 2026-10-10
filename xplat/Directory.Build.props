@@ -1,0 +1,15 @@
+<Project>
+  <!-- Shared settings for every project under xplat/ (the macOS + Linux app). The Windows app
+       at the repo root is not affected: MSBuild stops at the first Directory.Build.props it finds. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Same C# version as the Windows app (CONTRIBUTING.md), so linked files compile under identical rules. -->
+    <LangVersion>12</LangVersion>
+    <RootNamespace>VibeSwitcher</RootNamespace>
+    <!-- Root of the Windows app's sources, for linking shared files (read-only). -->
+    <WinSrc>$(MSBuildThisFileDirectory)..\VibeSwitcher\</WinSrc>
+    <WinTests>$(MSBuildThisFileDirectory)..\VibeSwitcher.Tests\</WinTests>
+  </PropertyGroup>
+</Project>

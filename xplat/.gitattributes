@@ -1,0 +1,7 @@
+# The repo root forces CRLF for Windows; files under xplat/ that run on macOS/Linux need LF.
+*.sh       text eol=lf
+*.desktop  text eol=lf
+*.rules    text eol=lf
+*.plist    text eol=lf
+AppRun     text eol=lf
+forks.txt  text eol=lf

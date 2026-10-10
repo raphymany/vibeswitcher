@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- UI-free core of the macOS + Linux app. Most of it is the Windows app's own logic, LINKED
+       (compiled from the original files, never copied) so a fix in one lands in both. Files that
+       touch WPF/Win32 directly are either linked through the shims in Compat/ or forked into this
+       project — every fork is listed in xplat/forks.txt so upstream changes get flagged. -->
+  <PropertyGroup>
+    <AssemblyName>VibeSwitcher.Core</AssemblyName>
+  </PropertyGroup>
+
+  <!-- The WPF project's implicit usings don't include these; keep linked files compiling under the
+       same rules so a missing using on Windows can't hide behind the xplat build. -->
+  <ItemGroup>
+    <Using Remove="System.IO" />
+    <Using Remove="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HidSharp" Version="2.6.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="VibeSwitcher.Core.Tests" />
+    <InternalsVisibleTo Include="VibeSwitcher.App" />
+  </ItemGroup>
+
+  <!-- Linked as-is -->
+  <ItemGroup>
+    <Compile Include="$(WinSrc)Models\AppConfig.cs"            Link="Linked\Models\AppConfig.cs" />
+    <Compile Include="$(WinSrc)Models\DeviceProfile.cs"        Link="Linked\Models\DeviceProfile.cs" />
+    <Compile Include="$(WinSrc)Models\MuteScope.cs"            Link="Linked\Models\MuteScope.cs" />
+    <Compile Include="$(WinSrc)Models\ScheduleEntry.cs"        Link="Linked\Models\ScheduleEntry.cs" />
+    <Compile Include="$(WinSrc)Models\ScheduleWizardOutcome.cs" Link="Linked\Models\ScheduleWizardOutcome.cs" />
+    <Compile Include="$(WinSrc)Models\SoundOverrideResult.cs"  Link="Linked\Models\SoundOverrideResult.cs" />
+    <Compile Include="$(WinSrc)Helpers\AppError.cs"            Link="Linked\Helpers\AppError.cs" />
+    <Compile Include="$(WinSrc)Helpers\AppLog.cs"              Link="Linked\Helpers\AppLog.cs" />
+    <Compile Include="$(WinSrc)Helpers\AppLogger.cs"           Link="Linked\Helpers\AppLogger.cs" />
+    <Compile Include="$(WinSrc)Helpers\IAppLogger.cs"          Link="Linked\Helpers\IAppLogger.cs" />
+    <Compile Include="$(WinSrc)Helpers\PathSafety.cs"          Link="Linked\Helpers\PathSafety.cs" />
+    <Compile Include="$(WinSrc)Helpers\ScheduleHelpers.cs"     Link="Linked\Helpers\ScheduleHelpers.cs" />
+    <Compile Include="$(WinSrc)Helpers\UploadLibrary.cs"       Link="Linked\Helpers\UploadLibrary.cs" />
+    <Compile Include="$(WinSrc)Services\ConfigService.cs"      Link="Linked\Services\ConfigService.cs" />
+    <Compile Include="$(WinSrc)Services\IConfigService.cs"     Link="Linked\Services\IConfigService.cs" />
+    <Compile Include="$(WinSrc)Services\IAudioService.cs"      Link="Linked\Services\IAudioService.cs" />
+    <Compile Include="$(WinSrc)Services\IHotkeyService.cs"     Link="Linked\Services\IHotkeyService.cs" />
+    <Compile Include="$(WinSrc)Services\IStartupService.cs"    Link="Linked\Services\IStartupService.cs" />
+    <Compile Include="$(WinSrc)Services\ISwitchSoundService.cs" Link="Linked\Services\ISwitchSoundService.cs" />
+    <Compile Include="$(WinSrc)Services\KnownHidHeadsets.cs"   Link="Linked\Services\KnownHidHeadsets.cs" />
+    <Compile Include="$(WinSrc)Services\HidHeadsetService.cs"  Link="Linked\Services\HidHeadsetService.cs" />
+    <Compile Include="$(WinSrc)Services\DeviceRebindService.cs" Link="Linked\Services\DeviceRebindService.cs" />
+    <Compile Include="$(WinSrc)ViewModels\ViewModelBase.cs"    Link="Linked\ViewModels\ViewModelBase.cs" />
+    <Compile Include="$(WinSrc)ViewModels\DayChip.cs"          Link="Linked\ViewModels\DayChip.cs" />
+    <Compile Include="$(WinSrc)ViewModels\DeviceAliasItem.cs"  Link="Linked\ViewModels\DeviceAliasItem.cs" />
+    <Compile Include="$(WinSrc)ViewModels\ProfileFilter.cs"    Link="Linked\ViewModels\ProfileFilter.cs" />
+  </ItemGroup>
+
+  <!-- Linked through the WPF-API shims in Compat/WpfShims.cs -->
+  <ItemGroup>
+    <Compile Include="$(WinSrc)Helpers\RelayCommand.cs"             Link="Linked\Helpers\RelayCommand.cs" />
+    <Compile Include="$(WinSrc)Services\DeviceTriggerService.cs"    Link="Linked\Services\DeviceTriggerService.cs" />
+    <Compile Include="$(WinSrc)Services\SchedulerService.cs"        Link="Linked\Services\SchedulerService.cs" />
+    <Compile Include="$(WinSrc)Services\SwitchSoundService.cs"      Link="Linked\Services\SwitchSoundService.cs" />
+    <Compile Include="$(WinSrc)ViewModels\ScheduleEntryViewModel.cs" Link="Linked\ViewModels\ScheduleEntryViewModel.cs" />
+  </ItemGroup>
+</Project>
