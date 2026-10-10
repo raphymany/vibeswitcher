@@ -894,6 +894,9 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         });
     }
 
+    // Re-enumerates and reloads every card's dropdowns (e.g. after a profile was re-bound to a new device ID).
+    public void RefreshDevices() => _ = LoadDevicesAsync();
+
     private void OnDevicesChanged()
     {
         // Called from a thread-pool thread via DeviceNotificationClient's debounce.
@@ -1117,6 +1120,7 @@ public class SettingsViewModel : ViewModelBase, IDisposable
             clone.IconPath = CopyIconForClone(clone.IconPath, clone.Id);
 
         _configService.Current.Profiles.Add(clone);
+        BackfillDeviceFingerprints();
         SaveAsync();
 
         var newCard = CreateCard(clone);
@@ -1227,8 +1231,17 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         }
     }
 
+    // Captures the fingerprint of newly assigned devices straight away (from the raw, un-aliased list)
+    // so they can be found again if Windows re-issues their IDs before the next device change.
+    // Fingerprints only — rebinding is left to the app-level DeviceRebindService, which enumerates
+    // fresh; this window's cached list can briefly lag behind Windows. Caller saves.
+    private bool BackfillDeviceFingerprints() =>
+        DeviceRebindService.Reconcile(_configService.Current, _playbackDevices, _recordingDevices, _logger,
+            allowRebind: false).ConfigChanged;
+
     private void OnProfileChanged(ProfileCardViewModel card)
     {
+        BackfillDeviceFingerprints();
         SaveAsync();
         card.TriggerSaveFlash();
         ReregisterHotkeys();
@@ -1271,6 +1284,8 @@ public class SettingsViewModel : ViewModelBase, IDisposable
         if (!_configService.TryImport(sourcePath, out error))
             return false;
         RefreshFromConfig();
+        // Configs exported before fingerprints existed carry none — capture them now.
+        if (BackfillDeviceFingerprints()) SaveAsync();
         return true;
     }
 

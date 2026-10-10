@@ -458,4 +458,40 @@ public class ProfileCardViewModelTests
         // Integration coverage comes from manual testing.
         Assert.True(card.IsRecordingDeviceSet);
     }
+
+    // ── device fingerprint ───────────────────────────────────────────────────
+
+    [Fact]
+    public void SelectingDifferentPlaybackDevice_ClearsOldFingerprint()
+    {
+        var profile = new DeviceProfile
+        {
+            Name = "Test", PlaybackDeviceId = "pb-1",
+            PlaybackDeviceName = "Old device", PlaybackDeviceHardwareKey = @"USB\VID_0001&PID_0001",
+        };
+        using var card = MakeCard(profile);
+
+        card.SelectedPlaybackDevice = new AudioDeviceInfo("pb-2", "New device", IsPlayback: true);
+
+        Assert.Equal("pb-2", profile.PlaybackDeviceId);
+        Assert.Null(profile.PlaybackDeviceName);
+        Assert.Null(profile.PlaybackDeviceHardwareKey);
+    }
+
+    [Fact]
+    public void SelectingDifferentRecordingDevice_ClearsOldFingerprint()
+    {
+        var profile = new DeviceProfile
+        {
+            Name = "Test", RecordingDeviceId = "rec-1",
+            RecordingDeviceName = "Old mic", RecordingDeviceHardwareKey = @"USB\VID_0001&PID_0002",
+        };
+        using var card = MakeCard(profile);
+
+        card.SelectedRecordingDevice = new AudioDeviceInfo("rec-2", "New mic", IsPlayback: false);
+
+        Assert.Equal("rec-2", profile.RecordingDeviceId);
+        Assert.Null(profile.RecordingDeviceName);
+        Assert.Null(profile.RecordingDeviceHardwareKey);
+    }
 }

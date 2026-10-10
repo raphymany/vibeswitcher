@@ -41,7 +41,8 @@ public sealed class HidHeadsetService : IDisposable
 
         if (candidates.Count == 0)
         {
-            _logger.Info("HidHeadsetService",
+            // Expected for every supported model the user doesn't own — debug-only, not the log file.
+            _logger.Debug("HidHeadsetService",
                 $"{descriptor.ModelName}: no HID devices found for " +
                 $"VID={descriptor.VendorId:X4} PID={descriptor.ProductId:X4}.");
             return;

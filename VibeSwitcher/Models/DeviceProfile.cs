@@ -31,6 +31,16 @@ public class DeviceProfile
     public string? PlaybackDeviceId { get; set; }
     public string? RecordingDeviceId { get; set; }
 
+    // Fingerprint of each assigned device (Windows friendly name + hardware key, see
+    // AudioDeviceEnumerator.NormalizeHardwareKey). Windows assigns a brand-new endpoint ID when
+    // serial-less USB hardware is re-detected (different port, hub reset, driver update); the
+    // fingerprint lets DeviceRebindService find the device again under its new ID.
+    // Backfilled automatically while the device is present; null = not yet known.
+    public string? PlaybackDeviceName { get; set; }
+    public string? PlaybackDeviceHardwareKey { get; set; }
+    public string? RecordingDeviceName { get; set; }
+    public string? RecordingDeviceHardwareKey { get; set; }
+
     public ProfileMode Mode { get; set; } = ProfileMode.Both;
 
     public HotkeyDefinition Hotkey { get; set; } = new();

@@ -163,6 +163,7 @@ public partial class SettingsWindow : Window
     }
 
     public void RefreshActiveStates() => _viewModel.RefreshActiveStates();
+    public void RefreshDevices() => _viewModel.RefreshDevices();
 
     public void ExpandSettings()
     {

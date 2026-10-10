@@ -18,6 +18,8 @@ public class ProfileSwitchOrchestrator : IDisposable
     private readonly IAppLogger _logger;
     private readonly ISessionErrorTracker _errorTracker;
     private readonly SemaphoreSlim _switchLock = new(1, 1);
+    // Re-resolves profiles whose device came back under a new Windows ID; true = something rebound.
+    private readonly Func<bool>? _rebindDevices;
 
     public event Action? ProfileSwitched;
 
@@ -28,8 +30,10 @@ public class ProfileSwitchOrchestrator : IDisposable
         ISwitchSoundService soundService,
         Dispatcher dispatcher,
         IAppLogger logger,
-        ISessionErrorTracker errorTracker)
+        ISessionErrorTracker errorTracker,
+        Func<bool>? rebindDevices = null)
     {
+        _rebindDevices = rebindDevices;
         _configService = configService;
         _audioService = audioService;
         _trayService = trayService;
@@ -60,6 +64,13 @@ public class ProfileSwitchOrchestrator : IDisposable
             // background thread (SystemEvents callbacks run off the UI thread).
             await _dispatcher.InvokeAsync(() => _trayService.SetSwitchingTooltip(profile.Name));
             result = await _audioService.ApplyProfileAsync(profile);
+            // A device reported missing may just have a new Windows ID. Rebind on the UI thread (it
+            // mutates shared profiles) and retry once. Only runs on a miss, so normal switches pay nothing.
+            if (_rebindDevices != null && (result.MissingPlaybackId != null || result.MissingRecordingId != null)
+                && await _dispatcher.InvokeAsync(_rebindDevices))
+            {
+                result = await _audioService.ApplyProfileAsync(profile);
+            }
             await _dispatcher.InvokeAsync(() =>
             {
                 _configService.Current.ActiveProfileId = profile.Id;

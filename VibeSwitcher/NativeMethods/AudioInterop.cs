@@ -25,12 +25,15 @@ public struct PROPERTYKEY
         pid = 14
     };
 
-    // PKEY_AudioEndpoint_Path — symbolic link of the audio device interface.
-    // For USB/HID hardware, includes the device path with VID/PID embedded.
-    public static readonly PROPERTYKEY AudioEndpointPath = new()
+    // Instance ID of the hardware device that owns the endpoint, e.g.
+    // "{1}.USB\VID_046D&PID_0ABA&MI_00\7&3B39E24B&0&0000". Undocumented but stable since Vista
+    // (it's what the Sound control panel and tools like SoundVolumeView read). For USB hardware it
+    // embeds the VID/PID. (The previous key here, {1DA5D803…},1, is PKEY_AudioEndpoint_ControlPanelPageProvider
+    // — never a path — so every lookup used to come back empty.)
+    public static readonly PROPERTYKEY HardwareInstancePath = new()
     {
-        fmtid = new Guid("1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E"),
-        pid = 1
+        fmtid = new Guid("B3F8FA53-0004-438E-9003-51A46E139BFC"),
+        pid = 2
     };
 }
 
