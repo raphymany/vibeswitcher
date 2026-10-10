@@ -572,6 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phase 1 PR #116 |
 
 ---
 
@@ -585,10 +586,10 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | Low | 23 | 22 | 0 |
 | Technical Debt | 7 | 7 | 0 |
 | Refactoring Opportunities | 6 | 6 | 0 |
-| Feature Additions | 43 | 32 | 3 |
-| **Total** | **117** | **102** | **4** |
+| Feature Additions | 44 | 32 | 4 |
+| **Total** | **118** | **102** | **5** |
 
-*Totals count every tracked item. Remaining open feature additions are F8, F13, and F22. The 11-item difference between Total and Fixed + Remaining is reclassified work: M1 → F16, M11 → F2, and L17 → F16 (moved to Feature Additions); F4, F12, F14 (removed); and F10, F27, F9, F38, F40 (dropped).*
+*Totals count every tracked item. Remaining open feature additions are F8, F13, F22, and F46 (macOS + Linux, in progress). The 11-item difference between Total and Fixed + Remaining is reclassified work: M1 → F16, M11 → F2, and L17 → F16 (moved to Feature Additions); F4, F12, F14 (removed); and F10, F27, F9, F38, F40 (dropped).*
 
 ---
 
@@ -1479,3 +1480,17 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Log noise — per-model "no HID devices found" scan lines and name-match diagnostics moved to debug output (not written to `error.log`) | ✅ Done |
 | Tests — `DeviceRebindServiceTests` (32 cases), 3 HID path-matching tests, 2 card fingerprint-clearing tests; suite at **292** | ✅ Done |
 | Version bumped to **2.0.1** (`VibeSwitcher.csproj`); CHANGELOG `[2.0.1]` | ✅ Done |
+
+---
+
+### Branch 55: `xplat/core-scaffold` ✅ Done — PR #116
+**Theme:** F46 phase 1 of 11 (issue #115). Foundation for the macOS + Linux app. No visible app yet, and no file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Design: `xplat/docs/ADR-001-xplat.md`; per-OS differences: `xplat/docs/PARITY.md`; full plan: phases listed in BACKLOG → Planned Branches.
+
+| Item | Status |
+|------|--------|
+| `xplat/` tree on .NET 10 with its own solution (`VibeSwitcher.XPlat.sln`), `xplat/global.json` (SDK 10), `Directory.Build.props` (C# 12 to match the Windows app), LF `.gitattributes` for scripts; root `global.json` pins the Windows app to SDK 8.0.4xx so installing SDK 10 changes nothing for it | ✅ Done |
+| `VibeSwitcher.Core` — links 31 Windows source files unchanged (models, config, logging, schedules, rebind, HID headsets, device triggers, switch sounds, small view models) | ✅ Done |
+| WPF-API shims (`Compat/`) — minimal internal `Application`/`Dispatcher`/`DispatcherTimer`/`CommandManager`/`SoundPlayer` stand-ins forwarding to an injected UI dispatcher and WAV player; inline without a dispatcher (tests); timers started early bind on registration; stale ticks after Stop dropped; batched command refresh | ✅ Done |
+| Forks — `AudioDeviceInfo`/`ProfileSwitchResult`/`NormalizeHardwareKey`, `HotkeyConflictException`, `HotkeyDefinition` (per-OS labels: Windows text, macOS ⌃⌥⇧⌘, Linux "Super"; VK→name table generated from WPF, `tools/gen-virtualkeymap.ps1`); tracked in `forks.txt` with upstream git hashes; `scripts/check-forks.sh` drift guard | ✅ Done |
+| CI — `.github/workflows/ci-xplat.yml`: build + test on ubuntu-24.04, macos-15 (Apple Silicon), macos-15-intel, windows-latest; fork-drift job. Existing `ci.yml`/`release.yml` untouched | ✅ Done |
+| Tests — 175 linked Windows tests + 37 new (hotkey fork, shims, scheduler end-to-end through a UI timer, device-trigger marshalling); **212** passing on Windows and Linux (WSL Ubuntu 24.04) | ✅ Done |

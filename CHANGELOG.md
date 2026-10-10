@@ -4,6 +4,13 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Groundwork for VibeSwitcher on macOS and Linux** — a new cross-platform app is being built in `xplat/` alongside the unchanged Windows app. This first step adds its shared core library, which reuses the Windows app's own logic files, and runs their tests on Windows, Linux and macOS. Nothing user-visible yet *(PR #116)*
+
+---
+
 ## [2.0.1] - 2026-10-10
 
 ### Fixed
