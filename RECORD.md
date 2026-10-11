@@ -1484,7 +1484,7 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 ---
 
 ### Branch 55: `xplat/core-scaffold` ✅ Done — PR #116
-**Theme:** F46 phase 1 of 11 (issue #115). Foundation for the macOS + Linux app. No visible app yet, and no file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Design: `xplat/docs/ADR-001-xplat.md`; per-OS differences: `xplat/docs/PARITY.md`; full plan: phases listed in BACKLOG → Planned Branches.
+**Theme:** F46 phase 1 of 11 (issue #115). Foundation for the macOS + Linux app. No visible app yet, and no file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Design: `xplat/docs/ADR-001-xplat.md`; per-OS differences: `xplat/docs/PARITY.md`; full plan: phases listed in BACKLOG → Planned Branches. Merged into the F46 holding branch `xplat/dev` (not `main`): every phase lands there, and one final PR brings the first tested Mac/Linux version into `main`.
 
 | Item | Status |
 |------|--------|
@@ -1492,5 +1492,5 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | `VibeSwitcher.Core` — links 31 Windows source files unchanged (models, config, logging, schedules, rebind, HID headsets, device triggers, switch sounds, small view models) | ✅ Done |
 | WPF-API shims (`Compat/`) — minimal internal `Application`/`Dispatcher`/`DispatcherTimer`/`CommandManager`/`SoundPlayer` stand-ins forwarding to an injected UI dispatcher and WAV player; inline without a dispatcher (tests); timers started early bind on registration; stale ticks after Stop dropped; batched command refresh | ✅ Done |
 | Forks — `AudioDeviceInfo`/`ProfileSwitchResult`/`NormalizeHardwareKey`, `HotkeyConflictException`, `HotkeyDefinition` (per-OS labels: Windows text, macOS ⌃⌥⇧⌘, Linux "Super"; VK→name table generated from WPF, `tools/gen-virtualkeymap.ps1`); tracked in `forks.txt` with upstream git hashes; `scripts/check-forks.sh` drift guard | ✅ Done |
-| CI — `.github/workflows/ci-xplat.yml`: build + test on ubuntu-24.04, macos-15 (Apple Silicon), macos-15-intel, windows-latest; fork-drift job. Existing `ci.yml`/`release.yml` untouched | ✅ Done |
+| CI — `.github/workflows/ci-xplat.yml`: build + test on ubuntu-24.04, macos-15 (Apple Silicon), macos-15-intel, windows-latest; fork-drift job; runs on pushes/PRs to `main` and `xplat/dev`. Existing `ci.yml`/`release.yml` untouched | ✅ Done |
 | Tests — 175 linked Windows tests + 37 new (hotkey fork, shims, scheduler end-to-end through a UI timer, device-trigger marshalling); **212** passing on Windows and Linux (WSL Ubuntu 24.04) | ✅ Done |

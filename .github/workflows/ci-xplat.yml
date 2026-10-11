@@ -3,12 +3,13 @@ name: CI (macOS + Linux app)
 # Builds and tests the cross-platform app in xplat/ on every OS it supports. It also runs when the
 # Windows app's sources change, because xplat/ links many of those files — a Windows-side change can
 # break (or need porting to) the macOS/Linux app, and this makes that visible on the Windows PR.
+# xplat/dev is the holding branch the Mac/Linux phases merge into until the first version ships to main.
 on:
   push:
-    branches: [ main ]
+    branches: [ main, xplat/dev ]
     paths: [ 'xplat/**', 'VibeSwitcher/**', 'VibeSwitcher.Tests/**', '.github/workflows/ci-xplat.yml' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, xplat/dev ]
     paths: [ 'xplat/**', 'VibeSwitcher/**', 'VibeSwitcher.Tests/**', '.github/workflows/ci-xplat.yml' ]
 
 permissions:

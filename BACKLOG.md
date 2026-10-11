@@ -158,6 +158,7 @@ Grouped by shared UI surface or implementation concern. Features within each bra
 ### F46 — macOS + Linux app (`xplat/`, Avalonia) — in progress
 
 Plan approved 2026-10-10. One phase per branch/PR; Windows app untouched throughout. Design: `xplat/docs/ADR-001-xplat.md`.
+Phase PRs merge into the holding branch `xplat/dev`, not `main`; one final PR brings it into `main` once the first Mac/Linux version is complete and friend-tested.
 
 | Phase | Branch | Contents | Status |
 |---|---|---|---|
