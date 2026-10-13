@@ -56,7 +56,7 @@ public sealed class MacAudioService : IPlatformAudioService
     public event Action<string>? DevicePropertyChanged;
 
     public MacAudioService(IAppLogger logger, ISessionErrorTracker errorTracker)
-        : this(logger, errorTracker, new CoreAudioSystem(), new AudioQueueStreams(), listenForChanges: true) { }
+        : this(logger, errorTracker, new CoreAudioSystem(msg => logger.Warning("CoreAudio", msg)), new AudioQueueStreams(), listenForChanges: true) { }
 
     internal MacAudioService(IAppLogger logger, ISessionErrorTracker errorTracker, ICoreAudioSystem audio,
         IMacAudioStreams streams, bool listenForChanges, TimeSpan? debounce = null)
@@ -79,8 +79,11 @@ public sealed class MacAudioService : IPlatformAudioService
                 $"Could not subscribe to device change events: {ex.Message}. The device list will not refresh automatically.");
         }
         // Baseline for diffing, off the caller's (startup) thread: it may scan the IO registry.
-        Task.Run(DiffAndRaise);
+        Baseline = Task.Run(DiffAndRaise);
     }
+
+    // Completes once the change-detection baseline has been recorded (tests wait on it).
+    internal Task Baseline { get; } = Task.CompletedTask;
 
     private bool Disposed => Volatile.Read(ref _disposed) != 0;
 
@@ -123,15 +126,15 @@ public sealed class MacAudioService : IPlatformAudioService
     private static IEnumerable<MacDevice> Offered(IReadOnlyList<MacDevice> devices, bool output) =>
         devices.Where(d => !d.Hidden && (output ? d.CanBeDefaultOutput : d.CanBeDefaultInput));
 
-    private string? PathOf(MacDevice d) => MacHardwareKey.InstancePath(d, location => UsbIds(d.Uid, location));
+    private string? PathOf(MacDevice d) => MacHardwareKey.InstancePath(d, (location, product) => UsbIds(d.Uid, location, product));
 
-    private (ushort Vendor, ushort Product)? UsbIds(string uid, uint location)
+    private (ushort Vendor, ushort Product)? UsbIds(string uid, uint location, string? product)
     {
         if (_usbIds.TryGetValue(uid, out var ids)) return ids;
         if (_usbMisses.TryGetValue(uid, out var missedAt) && DateTime.UtcNow - missedAt < UsbMissRetry) return null;
         try
         {
-            if (_audio.UsbIdsForLocation(location) is { } found)
+            if (_audio.UsbIdsForLocation(location, product) is { } found)
             {
                 _usbMisses.TryRemove(uid, out _);
                 return _usbIds[uid] = found;
@@ -219,14 +222,14 @@ public sealed class MacAudioService : IPlatformAudioService
         }
     });
 
-    // Meters every input channel together (RMS over all samples, as the Windows meter does), so an
-    // interface whose microphone is on input 2 still shows a level.
+    // Meters every input channel and shows the loudest, so an interface whose microphone is on input 2
+    // (of many) shows its level at full strength.
     public void RunMicLevelMonitor(string deviceId, CancellationToken ct, Action<float> onLevel)
     {
         try
         {
-            int channels = _audio.GetDevices().FirstOrDefault(d => d.Uid == deviceId)?.InputChannels ?? 1;
-            _streams.Capture(deviceId, MicRate, Math.Max(channels, 1), ct, block => onLevel(AudioLevel.Rms(block)));
+            int channels = Math.Max(_audio.GetDevices().FirstOrDefault(d => d.Uid == deviceId)?.InputChannels ?? 1, 1);
+            _streams.Capture(deviceId, MicRate, channels, ct, block => onLevel(AudioLevel.LoudestChannelRms(block, channels)));
         }
         catch (Exception ex) when (!ct.IsCancellationRequested)
         {

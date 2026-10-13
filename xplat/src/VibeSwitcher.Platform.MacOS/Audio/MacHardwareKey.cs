@@ -20,14 +20,14 @@ internal static partial class MacHardwareKey
 {
     private const string AppleUsbPrefix = "AppleUSBAudioEngine:";
 
-    internal static string? InstancePath(MacDevice d, Func<uint, (ushort Vendor, ushort Product)?>? usbLookup)
+    internal static string? InstancePath(MacDevice d, Func<uint, string?, (ushort Vendor, ushort Product)?>? usbLookup)
     {
         if (d.TransportType == CoreAudio.TransportUSB)
         {
             if (!d.Uid.StartsWith(AppleUsbPrefix, StringComparison.Ordinal)) return null;
             var ids = FromModelUid(d.ModelUid);
             if (ids == null && usbLookup != null && LocationFromUid(d.Uid) is uint location)
-                ids = usbLookup(location);
+                ids = usbLookup(location, ProductFromUid(d.Uid));
             return ids is var (vid, pid) ? $@"USB\VID_{vid:X4}&PID_{pid:X4}\{Instance(d.Uid)}" : null;
         }
         if (d.TransportType == CoreAudio.TransportBluetooth || d.TransportType == CoreAudio.TransportBluetoothLE)
@@ -61,6 +61,14 @@ internal static partial class MacHardwareKey
             && uint.TryParse(field, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var loc) && loc != 0
             ? loc
             : null;
+    }
+
+    // The product name in an Apple USB audio UID's 3rd field.
+    internal static string? ProductFromUid(string uid)
+    {
+        if (!uid.StartsWith(AppleUsbPrefix, StringComparison.Ordinal)) return null;
+        var parts = uid.Split(':');
+        return parts.Length >= 5 && parts[2].Trim().Length > 0 ? parts[2] : null;
     }
 
     private static ushort? Hex16(string s) =>

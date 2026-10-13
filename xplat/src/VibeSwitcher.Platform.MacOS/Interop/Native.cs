@@ -90,6 +90,7 @@ internal static class CoreAudio
     public static readonly uint CanBeDefaultSystemDevice = FourCC.Of("sflt");
     public static readonly uint StreamConfiguration = FourCC.Of("slay");
     public static readonly uint VolumeScalar = FourCC.Of("volm");
+    public static readonly uint VolumeRangeDecibels = FourCC.Of("vdb#");
     public static readonly uint Mute = FourCC.Of("mute");
     public static readonly uint JackIsConnected = FourCC.Of("jack");
 

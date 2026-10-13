@@ -40,7 +40,7 @@ public class MacHardwareKeyTests
     {
         var d = FakeCoreAudio.Device(1, "AppleUSBAudioEngine:a:b:14200000:1", "A", transport: FakeCoreAudio.Usb, model: "A:0BDA:4E27");
         int lookups = 0;
-        (ushort, ushort)? Lookup(uint _) { lookups++; return (0x1111, 0x2222); }
+        (ushort, ushort)? Lookup(uint _, string? product) { lookups++; Assert.Equal("b", product); return (0x1111, 0x2222); }
 
         Assert.Equal(@"USB\VID_0BDA&PID_4E27\APPLEUSBAUDIOENGINE:A:B:14200000:1", MacHardwareKey.InstancePath(d, Lookup));
         Assert.Equal(0, lookups);
@@ -51,11 +51,17 @@ public class MacHardwareKeyTests
         Assert.Null(MacHardwareKey.InstancePath(noModel, null));
     }
 
+    [Theory]
+    [InlineData("AppleUSBAudioEngine:Generic:USB Audio:14200000:2,1", "USB Audio")]
+    [InlineData("AppleUSBAudioEngine:Maker::14200000:1", null)]
+    [InlineData("BuiltInSpeakerDevice", null)]
+    public void Product_FromUid(string uid, string? expected) => Assert.Equal(expected, MacHardwareKey.ProductFromUid(uid));
+
     [Fact]
     public void ThirdPartyUsbDriver_NoGuessedKey()
     {
         var d = FakeCoreAudio.Device(1, "com.vendor.driver.uid:1", "Pro Interface", transport: FakeCoreAudio.Usb, model: "com.vendor.driver:2:1");
-        Assert.Null(MacHardwareKey.InstancePath(d, _ => (0x1234, 0x5678)));
+        Assert.Null(MacHardwareKey.InstancePath(d, (_, _) => (0x1234, 0x5678)));
     }
 
     [Fact]

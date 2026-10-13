@@ -78,6 +78,7 @@ public class MacAudioServiceTests
         using var svc = Service();
 
         Assert.Equal(@"USB\VID_046D&PID_0ABA", svc.GetPlaybackDevices().Single(d => d.Id == Headset).HardwareKey);
+        Assert.Equal("USB Audio", _ca.LastProductName); // the registry match is checked against the product name
         svc.GetRecordingDevices();
         svc.GetPlaybackDevices();
         Assert.Equal(1, _ca.UsbLookups); // cached by location
@@ -258,10 +259,8 @@ public class MacAudioServiceTests
     // A listening service records its baseline in the background; wait for it before changing anything.
     private async Task<MacAudioService> ListeningService()
     {
-        int before = Volatile.Read(ref _ca.GetDevicesCalls);
         var svc = Service(listen: true);
-        Assert.True(await WaitFor(() => Volatile.Read(ref _ca.GetDevicesCalls) > before), "no baseline");
-        await Task.Delay(50);
+        await svc.Baseline;
         return svc;
     }
 

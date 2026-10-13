@@ -8,28 +8,37 @@ namespace VibeSwitcher.Platform.MacOS.Audio;
 // The real Core Audio (macOS only — every call here P/Invokes into CoreAudio.framework).
 internal sealed class CoreAudioSystem : ICoreAudioSystem
 {
-    private static int _halThreadSet;
+    private static readonly object HalGate = new();
+    private static bool _halThreadSet;
 
-    // Volumes saved when a device without a mute control was "muted" by setting its volume to 0.
-    private readonly ConcurrentDictionary<(uint Id, bool Input), float> _savedVolumes = new();
+    private readonly Action<string>? _warn;
 
-    public CoreAudioSystem() => UseHalThread();
+    public CoreAudioSystem(Action<string>? warn = null)
+    {
+        _warn = warn;
+        UseHalThread(warn);
+    }
 
     // By default the HAL delivers property notifications on the process's main run loop, which a
     // process that never runs one (the test host; any non-Cocoa thread) never services — so
     // listeners would never fire. Setting the HAL's run loop to NULL makes it use its own thread.
     // Must happen before the first listener is added; doing it once per process is enough.
-    private static void UseHalThread()
+    private static void UseHalThread(Action<string>? warn)
     {
-        if (Interlocked.Exchange(ref _halThreadSet, 1) == 1) return;
-        var address = new AudioObjectPropertyAddress(HardwareRunLoop, ScopeGlobal, ElementMain);
-        var data = Marshal.AllocHGlobal(IntPtr.Size);
-        try
+        lock (HalGate)
         {
-            Marshal.WriteIntPtr(data, IntPtr.Zero);
-            AudioObjectSetPropertyData(SystemObject, ref address, 0, IntPtr.Zero, (uint)IntPtr.Size, data);
+            if (_halThreadSet) return;
+            var address = new AudioObjectPropertyAddress(HardwareRunLoop, ScopeGlobal, ElementMain);
+            var data = Marshal.AllocHGlobal(IntPtr.Size);
+            try
+            {
+                Marshal.WriteIntPtr(data, IntPtr.Zero);
+                int status = AudioObjectSetPropertyData(SystemObject, ref address, 0, IntPtr.Zero, (uint)IntPtr.Size, data);
+                if (status != 0) warn?.Invoke($"Could not move Core Audio notifications to their own thread (OSStatus {status}); device changes may not be noticed.");
+                _halThreadSet = true;
+            }
+            finally { Marshal.FreeHGlobal(data); }
         }
-        finally { Marshal.FreeHGlobal(data); }
     }
 
     public IReadOnlyList<MacDevice> GetDevices()
@@ -99,50 +108,98 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
     // device in software; here a device without a mute control is muted by setting its volume to 0
     // and unmuted by restoring the volume it had.
 
+    // Only a mute control that can be changed counts — the same rule SetMute uses — so a device whose
+    // mute is read-only is consistently handled through its volume (otherwise a toggle would read
+    // "unmuted" forever and never unmute).
     public bool? GetMute(uint objectId, bool input)
     {
         uint scope = input ? ScopeInput : ScopeOutput;
-        foreach (var element in new uint[] { ElementMain, 1 })
+        foreach (var element in MuteElements(objectId, scope))
             if (GetUInt(objectId, Mute, scope, element) is uint v) return v != 0;
-        return GetVolume(objectId, scope) is float vol ? vol <= 0f : null;
+        return GetVolumes(objectId, scope) is { Count: > 0 } vols ? vols.Values.All(v => v <= 0f) : null;
     }
 
     public bool SetMute(uint objectId, bool input, bool mute)
     {
         uint scope = input ? ScopeInput : ScopeOutput;
-        if (TrySetUInt(objectId, Mute, scope, ElementMain, mute ? 1u : 0u)) return true;
-        bool any = false;
-        foreach (var ch in Channels(objectId, Mute, scope))
-            any |= TrySetUInt(objectId, Mute, scope, ch, mute ? 1u : 0u);
-        if (any) return true;
+        var muteElements = MuteElements(objectId, scope);
+        if (muteElements.Count > 0)
+        {
+            bool any = false;
+            foreach (var element in muteElements) any |= TrySetUInt(objectId, Mute, scope, element, mute ? 1u : 0u);
+            return any;
+        }
 
-        // No mute control: use the volume.
+        // No usable mute control: use the volume, remembering each channel's level (keeps the balance).
         var key = (objectId, input);
+        var volumes = GetVolumes(objectId, scope);
+        if (volumes is not { Count: > 0 }) return false;
         if (mute)
         {
-            if (GetVolume(objectId, scope) is not float current) return false;
-            if (current > 0f) _savedVolumes[key] = current;
-            return SetVolume(objectId, scope, 0f);
+            if (volumes.Values.Any(v => v > 0f)) _savedVolumes[key] = volumes;
+            if (MinDecibels(objectId, scope) is double db && db > -96)
+                _warn?.Invoke($"This device has no mute control and its lowest volume is {db:0} dB, not silence — " +
+                              "it was turned all the way down, but may still be faintly audible.");
+            return SetVolumes(objectId, scope, volumes.Keys.ToDictionary(k => k, _ => 0f));
         }
-        float restore = _savedVolumes.TryRemove(key, out var saved) ? saved : 0.5f;
-        return GetVolume(objectId, scope) is float now && now > 0f ? true : SetVolume(objectId, scope, restore);
+        if (volumes.Values.Any(v => v > 0f)) { _savedVolumes.TryRemove(key, out _); return true; } // already audible
+        var restore = _savedVolumes.TryRemove(key, out var saved) ? saved : volumes.Keys.ToDictionary(k => k, _ => 0.5f);
+        return SetVolumes(objectId, scope, restore);
     }
 
-    private static float? GetVolume(uint id, uint scope)
+    // Per-channel volumes saved when a device without a mute control was "muted" by setting its
+    // volume to 0. (In memory only: after a restart while muted that way, unmuting restores a middle volume.)
+    private readonly ConcurrentDictionary<(uint Id, bool Input), Dictionary<uint, float>> _savedVolumes = new();
+
+    // The settable mute elements: the main one if it exists and can be set, else each channel's.
+    private static List<uint> MuteElements(uint id, uint scope)
     {
-        if (GetFloat(id, VolumeScalar, scope, ElementMain) is float main) return main;
-        float? max = null;
+        if (IsSettable(id, Mute, scope, ElementMain)) return [ElementMain];
+        return Channels(id, Mute, scope).Where(ch => IsSettable(id, Mute, scope, ch)).ToList();
+    }
+
+    // Volume per element (the main element, or each channel when there's no main volume).
+    private static Dictionary<uint, float>? GetVolumes(uint id, uint scope)
+    {
+        if (IsSettable(id, VolumeScalar, scope, ElementMain) && GetFloat(id, VolumeScalar, scope, ElementMain) is float main)
+            return new() { [ElementMain] = main };
+        var result = new Dictionary<uint, float>();
         foreach (var ch in Channels(id, VolumeScalar, scope))
-            if (GetFloat(id, VolumeScalar, scope, ch) is float v) max = Math.Max(max ?? 0f, v);
-        return max;
+            if (IsSettable(id, VolumeScalar, scope, ch) && GetFloat(id, VolumeScalar, scope, ch) is float v) result[ch] = v;
+        return result;
     }
 
-    private static bool SetVolume(uint id, uint scope, float value)
+    private static bool SetVolumes(uint id, uint scope, IReadOnlyDictionary<uint, float> values)
     {
-        if (TrySetFloat(id, VolumeScalar, scope, ElementMain, value)) return true;
         bool any = false;
-        foreach (var ch in Channels(id, VolumeScalar, scope)) any |= TrySetFloat(id, VolumeScalar, scope, ch, value);
+        foreach (var (element, value) in values) any |= TrySetFloat(id, VolumeScalar, scope, element, value);
         return any;
+    }
+
+    // The bottom of the device's volume range in dB (AudioValueRange { Float64 min; Float64 max; }).
+    private static double? MinDecibels(uint id, uint scope)
+    {
+        foreach (var element in new uint[] { ElementMain, 1 })
+        {
+            var a = new AudioObjectPropertyAddress(VolumeRangeDecibels, scope, element);
+            if (AudioObjectHasProperty(id, ref a) == 0) continue;
+            var buf = Marshal.AllocHGlobal(16);
+            try
+            {
+                uint size = 16;
+                if (AudioObjectGetPropertyData(id, ref a, 0, IntPtr.Zero, ref size, buf) == 0 && size == 16)
+                    return BitConverter.Int64BitsToDouble(Marshal.ReadInt64(buf));
+            }
+            finally { Marshal.FreeHGlobal(buf); }
+        }
+        return null;
+    }
+
+    private static bool IsSettable(uint id, uint selector, uint scope, uint element)
+    {
+        var a = new AudioObjectPropertyAddress(selector, scope, element);
+        return AudioObjectHasProperty(id, ref a) != 0
+            && AudioObjectIsPropertySettable(id, ref a, out var settable) == 0 && settable != 0;
     }
 
     // The per-channel elements (1…n) that have the property.
@@ -273,8 +330,9 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
 
     // ── IO registry (USB ids) ───────────────────────────────────────────────────────────────────
 
-    public (ushort Vendor, ushort Product)? UsbIdsForLocation(uint locationId)
+    public (ushort Vendor, ushort Product)? UsbIdsForLocation(uint locationId, string? productName)
     {
+        var keyName = CoreFoundation.Create("USB Product Name");
         var keyLocation = CoreFoundation.Create("locationID");
         var keyVendor = CoreFoundation.Create("idVendor");
         var keyProduct = CoreFoundation.Create("idProduct");
@@ -296,6 +354,8 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
                             // locationID is usually stored as a signed 32-bit number, so high locations
                             // (0xFA…, 0xFD… on Intel Macs) read back negative: compare the low 32 bits.
                             if (Number(entry, keyLocation) is not long loc || unchecked((uint)loc) != locationId) continue;
+                            if (productName != null && Text(entry, keyName) is { } name
+                                && !string.Equals(name.Trim(), productName.Trim(), StringComparison.OrdinalIgnoreCase)) continue;
                             if (Number(entry, keyVendor) is long v && Number(entry, keyProduct) is long p)
                                 return (unchecked((ushort)v), unchecked((ushort)p));
                         }
@@ -308,10 +368,22 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
         }
         finally
         {
+            CoreFoundation.CFRelease(keyName);
             CoreFoundation.CFRelease(keyLocation);
             CoreFoundation.CFRelease(keyVendor);
             CoreFoundation.CFRelease(keyProduct);
         }
+    }
+
+    private static string? Text(uint entry, IntPtr key)
+    {
+        var value = IOKit.IORegistryEntryCreateCFProperty(entry, key, IntPtr.Zero, 0);
+        if (value == IntPtr.Zero) return null;
+        try
+        {
+            return CoreFoundation.CFGetTypeID(value) == CoreFoundation.CFStringGetTypeID() ? CoreFoundation.ToManaged(value) : null;
+        }
+        finally { CoreFoundation.CFRelease(value); }
     }
 
     private static long? Number(uint entry, IntPtr key)

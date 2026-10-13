@@ -117,6 +117,7 @@ public sealed class MacAudioIntegrationTests : IDisposable
         {
             if (svc.GetDefaultDeviceMute(playback) == null) continue; // neither a mute nor a volume control
             tested++;
+            bool unmuted;
             try
             {
                 Assert.True(svc.SetDefaultDeviceMute(playback, true));
@@ -124,9 +125,11 @@ public sealed class MacAudioIntegrationTests : IDisposable
             }
             finally
             {
-                // Never leave BlackHole muted: the tone tests use it.
-                Assert.True(svc.SetDefaultDeviceMute(playback, false));
+                // Never leave BlackHole muted: the tone tests use it. (Asserted below, so a failure
+                // above isn't hidden by one here.)
+                unmuted = svc.SetDefaultDeviceMute(playback, false);
             }
+            Assert.True(unmuted);
             Assert.True(await WaitFor(() => svc.GetDefaultDeviceMute(playback) == false));
         }
         Assert.True(tested > 0, "BlackHole exposes mute/volume controls; none were found");
@@ -150,10 +153,14 @@ public sealed class MacAudioIntegrationTests : IDisposable
         using var svc = Service();
         var blip = TestTone.RenderPcm16(48000, 2)[..(48000 * 2 * 2 / 10)]; // the first 0.1 s
         var streams = new AudioQueueStreams();
-        var sw = System.Diagnostics.Stopwatch.StartNew();
+        TimeSpan played = default;
         var (_, peak) = await MeasureWhile(svc, bh2.Uid, () => Task.Run(() =>
-            streams.PlayPcm(bh2.Uid, blip, WavSampleFormat.S16, 48000, 2)));
-        Assert.True(sw.Elapsed >= TimeSpan.FromMilliseconds(100), "returned before the sound could have played");
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            streams.PlayPcm(bh2.Uid, blip, WavSampleFormat.S16, 48000, 2);
+            played = sw.Elapsed;
+        }));
+        Assert.True(played >= TimeSpan.FromMilliseconds(100), $"PlayPcm returned after {played.TotalMilliseconds:0} ms, before the sound could have played");
         AssertHeard(peak, min: 0.02f);
     }
 
@@ -163,6 +170,17 @@ public sealed class MacAudioIntegrationTests : IDisposable
     {
         Assert.True(peak > 0f, "The input delivered pure silence: the test process probably lacks macOS microphone permission (TCC).");
         Assert.InRange(peak, min, 0.5f);
+    }
+
+    [MacAudioFact]
+    public async Task MicMeter_ManyChannelDevice_ReadsTheLoudestChannel()
+    {
+        // BlackHole 16ch: the stereo tone lands on the first two of its 16 inputs.
+        var bh16 = BlackHole("16ch");
+        Assert.Equal(16, bh16.InputChannels);
+        using var svc = Service();
+        var (_, peak) = await MeasureWhile(svc, bh16.Uid, () => svc.TestSoundAsync(bh16.Uid));
+        AssertHeard(peak);
     }
 
     [MacAudioFact]
@@ -178,7 +196,7 @@ public sealed class MacAudioIntegrationTests : IDisposable
     }
 
     [MacAudioFact]
-    public void IoRegistryLookup_UnknownLocation_IsNull() => Assert.Null(_ca.UsbIdsForLocation(0xFFFFFFFF));
+    public void IoRegistryLookup_UnknownLocation_IsNull() => Assert.Null(_ca.UsbIdsForLocation(0xFFFFFFFF, null));
 
     [MacAudioFact]
     public async Task DisposeWhileListening_IsClean()

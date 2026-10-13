@@ -79,9 +79,12 @@ internal sealed class FakeCoreAudio : ICoreAudioSystem
         foreach (var l in ls) l();
     }
 
-    public (ushort Vendor, ushort Product)? UsbIdsForLocation(uint locationId)
+    public string? LastProductName;
+
+    public (ushort Vendor, ushort Product)? UsbIdsForLocation(uint locationId, string? productName)
     {
         Interlocked.Increment(ref UsbLookups);
+        LastProductName = productName;
         lock (_gate) return UsbByLocation.TryGetValue(locationId, out var v) ? v : null;
     }
 

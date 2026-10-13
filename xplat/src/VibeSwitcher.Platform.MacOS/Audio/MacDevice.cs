@@ -34,8 +34,10 @@ internal interface ICoreAudioSystem
     // Calls onChange (on a Core Audio thread) whenever the device list, a default, or a device's
     // streams, name or jack state may have changed. Dispose to stop.
     IDisposable Listen(Action onChange);
-    // USB vendor/product for the device behind a Core Audio USB location id, from the IO registry.
-    (ushort Vendor, ushort Product)? UsbIdsForLocation(uint locationId);
+    // USB vendor/product for the device at a USB location id, from the IO registry. When productName
+    // is given, a registry entry whose product name differs doesn't count (guards against a numeric
+    // serial number in a device UID being mistaken for a location).
+    (ushort Vendor, ushort Product)? UsbIdsForLocation(uint locationId, string? productName);
 }
 
 // Playback/capture through Audio Queues. The real one is AudioQueueStreams; tests use a fake.

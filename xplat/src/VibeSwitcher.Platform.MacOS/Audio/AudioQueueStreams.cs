@@ -24,8 +24,11 @@ internal sealed class AudioQueueStreams : IMacAudioStreams
     // How long past the sound's own length playback may take before it's abandoned.
     internal TimeSpan PlaybackSlack { get; init; } = TimeSpan.FromSeconds(5);
 
-    // An input that delivers nothing for this long has stopped (e.g. the device was unplugged).
+    // An input that delivers nothing for this long has stopped (e.g. the device was unplugged)…
     internal TimeSpan InputStallTimeout { get; init; } = TimeSpan.FromSeconds(3);
+    // …but the first audio may take a while: a Bluetooth headset switches to its call profile when
+    // its microphone opens, and a device may still be waking from sleep.
+    internal TimeSpan InputStartTimeout { get; init; } = TimeSpan.FromSeconds(10);
 
     public void PlayPcm(string? deviceUid, ArraySegment<byte> pcm, WavSampleFormat format, int rate, int channels)
     {
@@ -61,9 +64,9 @@ internal sealed class AudioQueueStreams : IMacAudioStreams
             bool seenRunning = false;
             while (true)
             {
-                bool running = IsRunning(queue);
-                if (running) seenRunning = true;
-                else if (seenRunning) break;
+                bool? running = IsRunning(queue); // null = couldn't tell this time: keep waiting
+                if (running == true) seenRunning = true;
+                else if (running == false && seenRunning) break;
                 if (sw.Elapsed > deadline)
                 {
                     AudioQueueStop(queue, 1);
@@ -84,6 +87,7 @@ internal sealed class AudioQueueStreams : IMacAudioStreams
         // Not disposed: a late callback must never touch a disposed object from a native thread.
         var failed = new ManualResetEventSlim();
         long lastCallback = Stopwatch.GetTimestamp();
+        int gotAudio = 0;
 
         InputCallback callback = (_, queue, buffer, _, _, _) =>
         {
@@ -93,6 +97,7 @@ internal sealed class AudioQueueStreams : IMacAudioStreams
                 var b = Marshal.PtrToStructure<AudioQueueBuffer>(buffer);
                 if (b.AudioDataByteSize >= 4 && !ct.IsCancellationRequested)
                 {
+                    Volatile.Write(ref gotAudio, 1);
                     var samples = new float[b.AudioDataByteSize / 4];
                     Marshal.Copy(b.AudioData, samples, 0, samples.Length);
                     onBlock(samples);
@@ -126,8 +131,11 @@ internal sealed class AudioQueueStreams : IMacAudioStreams
             {
                 if (WaitHandle.WaitAny([ct.WaitHandle, failed.WaitHandle], 250) == 1)
                     throw new InvalidOperationException("Mic level callback failed.", callbackError);
-                if (Stopwatch.GetElapsedTime(Volatile.Read(ref lastCallback)) > InputStallTimeout && !ct.IsCancellationRequested)
-                    throw new InvalidOperationException("The input device stopped delivering audio (was it unplugged?).");
+                var limit = Volatile.Read(ref gotAudio) == 1 ? InputStallTimeout : InputStartTimeout;
+                if (Stopwatch.GetElapsedTime(Volatile.Read(ref lastCallback)) > limit && !ct.IsCancellationRequested)
+                    throw new InvalidOperationException(Volatile.Read(ref gotAudio) == 1
+                        ? "The input device stopped delivering audio (was it unplugged?)."
+                        : "The input device never started delivering audio.");
             }
         }
         finally
@@ -156,13 +164,13 @@ internal sealed class AudioQueueStreams : IMacAudioStreams
         }
     }
 
-    private static bool IsRunning(IntPtr queue)
+    private static bool? IsRunning(IntPtr queue)
     {
         var buf = Marshal.AllocHGlobal(4);
         try
         {
             uint size = 4;
-            return AudioQueueGetProperty(queue, QueuePropertyIsRunning, buf, ref size) == 0 && Marshal.ReadInt32(buf) != 0;
+            return AudioQueueGetProperty(queue, QueuePropertyIsRunning, buf, ref size) == 0 ? Marshal.ReadInt32(buf) != 0 : null;
         }
         finally { Marshal.FreeHGlobal(buf); }
     }
