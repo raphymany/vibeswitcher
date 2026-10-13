@@ -572,7 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–2 done (PR #116, #118) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–3 done (PR #116, #118, #120) |
 
 ---
 
@@ -1509,3 +1509,17 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | CI `linux-audio` job: real-server integration tests on PipeWire (24.04), PulseAudio (24.04) and Ubuntu 22.04 in forced text mode; `scripts/run-linux-audio-tests.sh` (private throwaway server), `scripts/wsl-test.sh` (WSL, no sudo) | ✅ Done |
 | Forks tracked: `TestTone` ← `AudioTestTonePlayer`; `LinuxAudioService` ← `AudioProfileApplier`, `AudioDeviceEnumerator`, `DeviceNotificationClient`, `AudioMicMonitor`, `MuteService` | ✅ Done |
 | Tests — 86 Linux-platform unit tests (fake pactl/pacat/parec) + 20 Core audio tests; **318** passing on Windows and Linux (WSL); 8/8 real-server tests on PulseAudio 16.1 in JSON and text mode | ✅ Done |
+
+### Branch 57: `xplat/macos-audio` ✅ Done — PR #120
+**Theme:** F46 phase 3 of 11 (issue #119). The macOS audio engine (`xplat/src/VibeSwitcher.Platform.MacOS`), hand-written P/Invoke to Core Audio, Audio Queues, CoreFoundation and IOKit — verified on GitHub's Apple Silicon and Intel Macs with the BlackHole virtual audio driver. No visible app yet; no file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Merged into `xplat/dev`.
+
+| Item | Status |
+|------|--------|
+| `MacAudioService` (`IPlatformAudioService`): outputs/inputs by streams (one device in both lists), hidden / can't-be-default devices not offered, switching sets output + sound-effects output (where the device allows, `'sflt'`) + input with Windows' already-set skip, missing vs set-failed, Windows-equivalent session error codes | ✅ Done |
+| Change detection: HAL notifications moved to the HAL's own thread (`'rnlp'` = NULL — otherwise listeners never fire outside a Cocoa main run loop); crash-safe static listener with an id table; device list, defaults, streams, name and jack listeners; 500 ms debounce + snapshot diff (headphone jack plug-in → `DevicePropertyChanged`) | ✅ Done |
+| Mute: settable mute control (main or per channel), else per-channel volume to 0 with saved levels restored on unmute; warns when the device's minimum isn't silent | ✅ Done |
+| Audio Queues: test tone / sounds played in full (seen-running then stopped, 150 ms silent tail, deadline), mic meter over every input channel (loudest-channel RMS, shared `Core/Audio/AudioLevel`), Bluetooth-friendly start timeout and unplug watchdog | ✅ Done |
+| USB fingerprints for Apple's USB audio driver from the model UID or the IO registry (location from the UID's 4th field incl. unpadded Apple Silicon ids, product-name check, signed `locationID` handled), cached per device UID with a negative cache; other drivers get no guessed key | ✅ Done |
+| CI `macos-audio` job (macos-15 arm64, macos-15-intel): BlackHole 2ch/16ch loopback; 10 real-Core-Audio tests incl. switching read-back, the listener firing, mute, tone/WAV/0.1 s blip heard through the loopback, 16-channel meter; microphone-permission diagnostics | ✅ Done |
+| Native binding checks (FourCCs, struct layouts/offsets, audio formats); forks tracked (`MacAudioService` ← 5 Windows audio files, `AudioQueueStreams` ← `AudioTestTonePlayer`, both hardware-key files ← `AudioService`); PARITY macOS notes | ✅ Done |
+| Tests — 60 macOS unit tests (fake Core Audio, all OSes) + Core audio-level tests; **380** passing on Windows/Linux; 10/10 real-Mac tests on Apple Silicon and Intel | ✅ Done |
