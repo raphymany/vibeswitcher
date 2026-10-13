@@ -32,6 +32,32 @@ public class TestToneTests
         Assert.Throws<ArgumentOutOfRangeException>(() => TestTone.RenderPcm16(rate, channels));
 }
 
+public class AudioLevelTests
+{
+    [Fact]
+    public void Rms_MatchesTheWindowsMeter()
+    {
+        Assert.Equal(0f, AudioLevel.Rms([]));
+        Assert.Equal(0f, AudioLevel.Rms([0f, 0f]));
+        Assert.Equal(0.5f, AudioLevel.Rms([0.5f, -0.5f, 0.5f, -0.5f]), 5);
+        // A full-scale sine has an RMS of 1/√2.
+        var sine = Enumerable.Range(0, 4800).Select(i => (float)Math.Sin(2 * Math.PI * 440 * i / 48000)).ToArray();
+        Assert.Equal(1 / MathF.Sqrt(2), AudioLevel.Rms(sine), 3);
+    }
+
+    [Fact]
+    public void LoudestChannelRms_OneMicOnAManyInputInterface_ReadsFullStrength()
+    {
+        // 16 interleaved channels, signal (0.5) only on channel 2.
+        var block = new float[16 * 100];
+        for (int f = 0; f < 100; f++) block[f * 16 + 1] = f % 2 == 0 ? 0.5f : -0.5f;
+        Assert.Equal(0.5f, AudioLevel.LoudestChannelRms(block, 16), 4);
+        Assert.Equal(0.125f, AudioLevel.Rms(block), 4); // what an all-channel RMS would show
+        Assert.Equal(AudioLevel.Rms([0.25f, -0.25f]), AudioLevel.LoudestChannelRms([0.25f, -0.25f], 1));
+        Assert.Equal(0f, AudioLevel.LoudestChannelRms([0.5f], 2)); // less than one frame
+    }
+}
+
 public class WavDataTests
 {
     private static byte[] Wav(ushort tag, int bits, int channels = 2, int rate = 44100, int dataBytes = 16,

@@ -4,7 +4,8 @@ The cross-platform VibeSwitcher app, built with Avalonia on .NET 10. The Windows
 is unaffected by anything here. Design: [`docs/ADR-001-xplat.md`](docs/ADR-001-xplat.md). Per-OS differences:
 [`docs/PARITY.md`](docs/PARITY.md).
 
-**Status:** in progress. Done so far: the shared core library, and the Linux audio engine (`src/VibeSwitcher.Platform.Linux`). The app itself arrives in later phases.
+**Status:** in progress. Done so far: the shared core library, and the Linux and macOS audio engines
+(`src/VibeSwitcher.Platform.Linux`, `src/VibeSwitcher.Platform.MacOS`). The app itself arrives in later phases.
 
 ## Build and test
 
@@ -25,7 +26,8 @@ On Windows, run the same commands from Git Bash or PowerShell. To run on Linux f
 server (downloaded into your home folder if it isn't installed — no sudo needed).
 
 CI (`.github/workflows/ci-xplat.yml`) runs everything on Ubuntu, macOS (Apple Silicon and Intel) and Windows, plus the
-Linux audio tests against PipeWire, PulseAudio, and Ubuntu 22.04 using pactl's text output (`scripts/run-linux-audio-tests.sh`).
+Linux audio tests against PipeWire, PulseAudio, and Ubuntu 22.04 using pactl's text output (`scripts/run-linux-audio-tests.sh`),
+and the macOS audio tests against real Core Audio on Apple Silicon and Intel, with the BlackHole virtual audio devices.
 
 ## Branches
 
