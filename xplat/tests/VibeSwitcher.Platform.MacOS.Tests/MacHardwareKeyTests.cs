@@ -58,6 +58,31 @@ public class MacHardwareKeyTests
     public void Product_FromUid(string uid, string? expected) => Assert.Equal(expected, MacHardwareKey.ProductFromUid(uid));
 
     [Fact]
+    public void ColonInTheProductName_DoesNotShiftTheFields()
+    {
+        const string uid = "AppleUSBAudioEngine:Maker:Studio: Pro 2:14200000:2,1";
+        Assert.Equal(0x14200000u, MacHardwareKey.LocationFromUid(uid));
+        Assert.Equal("Studio: Pro 2", MacHardwareKey.ProductFromUid(uid));
+    }
+
+    [Fact]
+    public void RegistryMatch_OneDeviceAtTheLocation_TrustedEvenIfNamedDifferently()
+    {
+        Assert.Equal(((ushort)0x0BDA, (ushort)0x4E27),
+            CoreAudioSystem.PickByLocation([("USB2.0 Device", 0x0BDA, 0x4E27)], "USB Audio"));
+    }
+
+    [Fact]
+    public void RegistryMatch_SeveralAtTheLocation_NameDecides_OrNothing()
+    {
+        (string?, ushort, ushort)[] two = [("Hub", 0x05E3, 0x0610), ("USB Audio", 0x0BDA, 0x4E27)];
+        Assert.Equal(((ushort)0x0BDA, (ushort)0x4E27), CoreAudioSystem.PickByLocation(two, "usb audio"));
+        Assert.Null(CoreAudioSystem.PickByLocation(two, "Something Else"));
+        Assert.Null(CoreAudioSystem.PickByLocation(two, null));
+        Assert.Null(CoreAudioSystem.PickByLocation([], "USB Audio"));
+    }
+
+    [Fact]
     public void ThirdPartyUsbDriver_NoGuessedKey()
     {
         var d = FakeCoreAudio.Device(1, "com.vendor.driver.uid:1", "Pro Interface", transport: FakeCoreAudio.Usb, model: "com.vendor.driver:2:1");

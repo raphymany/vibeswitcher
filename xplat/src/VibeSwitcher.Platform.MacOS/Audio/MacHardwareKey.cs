@@ -51,24 +51,28 @@ internal static partial class MacHardwareKey
     // The location id in an Apple USB audio UID's 4th field: "AppleUSBAudioEngine:Generic:USB Audio:14200000:2,1"
     // → 0x14200000. Apple Silicon locations may print without leading zeros ("100000"), so 5–8 hex
     // digits count; a serial number in that field (letters beyond F, or other lengths) doesn't.
+    // Read from the back: location and interfaces are always the last two fields, so a colon inside
+    // the product name can't shift them.
     internal static uint? LocationFromUid(string uid)
     {
         if (!uid.StartsWith(AppleUsbPrefix, StringComparison.Ordinal)) return null;
         var parts = uid.Split(':');
         if (parts.Length < 5) return null;
-        var field = parts[3];
+        var field = parts[^2];
         return field.Length is >= 5 and <= 8
             && uint.TryParse(field, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var loc) && loc != 0
             ? loc
             : null;
     }
 
-    // The product name in an Apple USB audio UID's 3rd field.
+    // The product name: everything between the maker (2nd field) and the last two fields.
     internal static string? ProductFromUid(string uid)
     {
         if (!uid.StartsWith(AppleUsbPrefix, StringComparison.Ordinal)) return null;
         var parts = uid.Split(':');
-        return parts.Length >= 5 && parts[2].Trim().Length > 0 ? parts[2] : null;
+        if (parts.Length < 5) return null;
+        var product = string.Join(':', parts[2..^2]);
+        return product.Trim().Length > 0 ? product : null;
     }
 
     private static ushort? Hex16(string s) =>

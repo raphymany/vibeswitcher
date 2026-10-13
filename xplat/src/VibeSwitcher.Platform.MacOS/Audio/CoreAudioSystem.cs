@@ -137,7 +137,7 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
         if (mute)
         {
             if (volumes.Values.Any(v => v > 0f)) _savedVolumes[key] = volumes;
-            if (MinDecibels(objectId, scope) is double db && db > -96)
+            if (MinDecibels(objectId, scope) is double db && db > -96 && _warnedNotSilent.TryAdd(key, 0))
                 _warn?.Invoke($"This device has no mute control and its lowest volume is {db:0} dB, not silence — " +
                               "it was turned all the way down, but may still be faintly audible.");
             return SetVolumes(objectId, scope, volumes.Keys.ToDictionary(k => k, _ => 0f));
@@ -150,6 +150,7 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
     // Per-channel volumes saved when a device without a mute control was "muted" by setting its
     // volume to 0. (In memory only: after a restart while muted that way, unmuting restores a middle volume.)
     private readonly ConcurrentDictionary<(uint Id, bool Input), Dictionary<uint, float>> _savedVolumes = new();
+    private readonly ConcurrentDictionary<(uint Id, bool Input), byte> _warnedNotSilent = new(); // warn once per device
 
     // The settable mute elements: the main one if it exists and can be set, else each channel's.
     private static List<uint> MuteElements(uint id, uint scope)
@@ -338,8 +339,10 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
         var keyProduct = CoreFoundation.Create("idProduct");
         try
         {
+            var matches = new List<(string? Name, ushort Vendor, ushort Product)>();
             foreach (var cls in new[] { "IOUSBHostDevice", "IOUSBDevice" })
             {
+                if (matches.Count > 0) break; // the older class name is only a fallback
                 var matching = IOKit.IOServiceMatching(cls);
                 if (matching == IntPtr.Zero) continue;
                 // (Consumes `matching` whether or not it succeeds.)
@@ -354,17 +357,15 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
                             // locationID is usually stored as a signed 32-bit number, so high locations
                             // (0xFA…, 0xFD… on Intel Macs) read back negative: compare the low 32 bits.
                             if (Number(entry, keyLocation) is not long loc || unchecked((uint)loc) != locationId) continue;
-                            if (productName != null && Text(entry, keyName) is { } name
-                                && !string.Equals(name.Trim(), productName.Trim(), StringComparison.OrdinalIgnoreCase)) continue;
                             if (Number(entry, keyVendor) is long v && Number(entry, keyProduct) is long p)
-                                return (unchecked((ushort)v), unchecked((ushort)p));
+                                matches.Add((Text(entry, keyName), unchecked((ushort)v), unchecked((ushort)p)));
                         }
                         finally { IOKit.IOObjectRelease(entry); }
                     }
                 }
                 finally { IOKit.IOObjectRelease(iterator); }
             }
-            return null;
+            return PickByLocation(matches, productName);
         }
         finally
         {
@@ -373,6 +374,19 @@ internal sealed class CoreAudioSystem : ICoreAudioSystem
             CoreFoundation.CFRelease(keyVendor);
             CoreFoundation.CFRelease(keyProduct);
         }
+    }
+
+    // One device at the location: that's it (the driver's product name in the UID may not match the
+    // registry's exactly). Several (a hub with the same location reported twice, or a stale entry):
+    // the product name decides, and with no name match it's not trusted.
+    internal static (ushort Vendor, ushort Product)? PickByLocation(
+        IReadOnlyList<(string? Name, ushort Vendor, ushort Product)> matches, string? productName)
+    {
+        if (matches.Count == 1) return (matches[0].Vendor, matches[0].Product);
+        if (productName == null) return null;
+        var named = matches.Where(m => m.Name != null &&
+            string.Equals(m.Name.Trim(), productName.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+        return named.Count == 1 ? (named[0].Vendor, named[0].Product) : null;
     }
 
     private static string? Text(uint entry, IntPtr key)
