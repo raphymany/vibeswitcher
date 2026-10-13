@@ -1,0 +1,54 @@
+name: CI (macOS + Linux app)
+
+# Builds and tests the cross-platform app in xplat/ on every OS it supports. It also runs when the
+# Windows app's sources change, because xplat/ links many of those files — a Windows-side change can
+# break (or need porting to) the macOS/Linux app, and this makes that visible on the Windows PR.
+# xplat/dev is the holding branch the Mac/Linux phases merge into until the first version ships to main.
+on:
+  push:
+    branches: [ main, xplat/dev ]
+    paths: [ 'xplat/**', 'VibeSwitcher/**', 'VibeSwitcher.Tests/**', '.github/workflows/ci-xplat.yml' ]
+  pull_request:
+    branches: [ main, xplat/dev ]
+    paths: [ 'xplat/**', 'VibeSwitcher/**', 'VibeSwitcher.Tests/**', '.github/workflows/ci-xplat.yml' ]
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build-and-test:
+    name: Build + test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # macos-15 = Apple Silicon, macos-15-intel = Intel.
+        os: [ ubuntu-24.04, macos-15, macos-15-intel, windows-latest ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: xplat/global.json
+
+      - name: Build
+        working-directory: xplat
+        run: dotnet build VibeSwitcher.XPlat.sln -c Release
+
+      - name: Test
+        working-directory: xplat
+        run: dotnet test VibeSwitcher.XPlat.sln -c Release --no-build --logger "console;verbosity=normal"
+
+  fork-drift:
+    name: Forked files in sync with Windows originals
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check forks
+        run: bash xplat/scripts/check-forks.sh
