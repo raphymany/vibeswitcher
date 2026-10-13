@@ -33,7 +33,7 @@ public sealed record InstallInfo(InstallKind Kind, string Location, string Versi
             int i = processPath.IndexOf(".app/Contents/MacOS/", StringComparison.Ordinal);
             if (i > 0)
                 return new(InstallKind.MacApp, processPath[..(i + 4)], version,
-                    Translocated: processPath.Contains("/AppTranslocation/", StringComparison.Ordinal));
+                    Translocated: IsTranslocatedPath(processPath));
         }
         else
         {
@@ -44,6 +44,8 @@ public sealed record InstallInfo(InstallKind Kind, string Location, string Versi
         }
         return new(InstallKind.Development, Path.GetDirectoryName(processPath) ?? processPath, version);
     }
+
+    public static bool IsTranslocatedPath(string path) => path.Contains("/AppTranslocation/", StringComparison.Ordinal);
 
     // The AppImage file this process runs from, or null. $APPIMAGE alone isn't enough: child
     // processes inherit it, so VibeSwitcher started from a terminal or editor that is itself an

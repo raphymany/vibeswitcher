@@ -11,9 +11,11 @@ namespace VibeSwitcher.Platform.MacOS.OS;
 // the app on every launch if it has moved.
 //
 // macOS 13+ lists it under System Settings › General › Login Items › "Allow in the Background"
-// (with a one-time "Background Items Added" notice), named after the app thanks to
-// AssociatedBundleIdentifiers. If the user switches it off there, macOS ignores the agent even though
-// the file exists — VibeSwitcher can't see that switch without the newer Service Management API.
+// (with a one-time "Background Items Added" notice). AssociatedBundleIdentifiers asks macOS to show
+// it under the app's name; macOS only honours that when app and agent are signed by the same
+// developer, and BundleId must match the bundle's Info.plist (written by the packaging step). If the
+// user switches it off there, macOS ignores the agent even though the file exists — VibeSwitcher
+// can't see that switch without the newer Service Management API (planned for app wiring).
 public sealed class MacStartupService : IStartupService
 {
     internal const string BundleId = "com.raphymany.vibeswitcher";
@@ -127,7 +129,7 @@ public sealed class MacStartupService : IStartupService
         }
     }
 
-    internal static bool IsTranslocated(string path) => path.Contains("/AppTranslocation/", StringComparison.Ordinal);
+    internal static bool IsTranslocated(string path) => Platform.InstallInfo.IsTranslocatedPath(path);
 
     // An app bundle is opened through Launch Services (`open -a <bundle>`), the way the Dock or
     // Finder start it; a bare executable (development builds) is run directly.
@@ -164,6 +166,6 @@ public sealed class MacStartupService : IStartupService
             </dict>
             </plist>
 
-            """;
+            """.ReplaceLineEndings("\n"); // the source may be checked out with Windows line endings
     }
 }

@@ -16,8 +16,8 @@ public class AppPathsTests
         var p = AppPaths.Resolve(false, Env(), "/home/ann");
         Assert.Equal(Path.Combine("/home/ann", ".config", "VibeSwitcher"), p.ConfigDir);
         Assert.Equal(p.ConfigDir, p.LogDir);
-        Assert.Equal(Path.Combine(p.ConfigDir, "vibeswitcher.lock"), p.InstanceLock);
-        Assert.Equal(Path.Combine(p.ConfigDir, "vibeswitcher.sock"), p.InstanceSocket);
+        Assert.Equal(Path.Combine(p.ConfigDir, $"instance-{p.Host}.lock"), p.InstanceLock);
+        Assert.Equal(Path.Combine(p.ConfigDir, $"instance-{p.Host}.sock"), p.InstanceSocket);
 
         p = AppPaths.Resolve(false, Env(("XDG_CONFIG_HOME", "/cfg"), ("XDG_RUNTIME_DIR", "/run/user/1000")), "/home/ann");
         Assert.Equal(Path.Combine("/cfg", "VibeSwitcher"), p.ConfigDir); // never the (cleanable, per-session) runtime dir
@@ -32,6 +32,14 @@ public class AppPathsTests
     public void MacOS_ApplicationSupport() =>
         Assert.Equal(Path.Combine("/Users/ann", "Library", "Application Support", "VibeSwitcher"),
             AppPaths.Resolve(true, Env(("TMPDIR", "/var/folders/ab/cd/T/")), "/Users/ann").ConfigDir);
+
+    [Theory]
+    [InlineData("Anns-MacBook-Pro", "anns-macbook-pro")]
+    [InlineData("lab.cs.example.edu", "lab_cs_example_edu")]
+    [InlineData("", "local")]
+    [InlineData(null, "local")]
+    [InlineData("a-very-long-host-name-for-a-shared-cluster-node-17", "a-very-long-host-name-fo")]
+    public void PerMachineFileNames(string? host, string expected) => Assert.Equal(expected, AppPaths.SafeHost(host));
 
     [Fact]
     public void SocketLimit_CountsBytesNotCharacters()
@@ -167,6 +175,7 @@ public sealed class SingleInstanceTests : IDisposable
     [Fact]
     public async Task StartingUp_TheCommandWaitsForTheChannel()
     {
+        SingleInstance.ConnectWindow = TimeSpan.FromSeconds(5); // plenty of slack on a slow runner
         // The lock is held but the listener isn't up yet (launched twice at the same moment).
         var send = SingleInstance.SendAsync(Paths, AppCommand.Open);
         await Task.Delay(100);
@@ -234,7 +243,9 @@ public sealed class SingleInstanceTests : IDisposable
         first.TryAcquire(_ => { called = true; return Task.FromResult("ok"); });
         using var s = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.Unix, System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Unspecified);
         await s.ConnectAsync(new System.Net.Sockets.UnixDomainSocketEndPoint(Paths.InstanceSocket));
-        await s.SendAsync(new byte[10_000].Select(_ => (byte)'x').ToArray(), System.Net.Sockets.SocketFlags.None);
+        // A full 4 KB with no end of line: the server stops reading there, so send exactly that much
+        // (anything more would hit a closed connection on the client side).
+        await s.SendAsync(Enumerable.Repeat((byte)'x', 4096).ToArray(), System.Net.Sockets.SocketFlags.None);
         var buf = new byte[256];
         int n = await s.ReceiveAsync(buf, System.Net.Sockets.SocketFlags.None).WaitAsync(TimeSpan.FromSeconds(10));
         Assert.StartsWith("error:", System.Text.Encoding.UTF8.GetString(buf, 0, n));

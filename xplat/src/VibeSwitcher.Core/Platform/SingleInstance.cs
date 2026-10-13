@@ -28,6 +28,7 @@ public sealed class SingleInstance : IDisposable
     private CancellationTokenSource? _cts;
     private Task? _acceptLoop;
     private int _disposed;
+    private bool _socketCreated;
 
     public SingleInstance(AppPaths paths, Action<string>? warn = null)
     {
@@ -40,7 +41,11 @@ public sealed class SingleInstance : IDisposable
     // Throws InvalidOperationException when the lock can't be used at all (with the reason).
     public bool TryAcquire(Func<AppCommand, Task<string>> handle)
     {
-        Directory.CreateDirectory(_paths.ConfigDir);
+        try { Directory.CreateDirectory(_paths.ConfigDir); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            throw new InvalidOperationException($"VibeSwitcher can't create its settings folder '{_paths.ConfigDir}': {ex.Message}", ex);
+        }
         try { Restrict(_paths.ConfigDir, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -99,6 +104,7 @@ public sealed class SingleInstance : IDisposable
         }
         _listener = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
         _listener.Bind(new UnixDomainSocketEndPoint(_paths.InstanceSocket));
+        _socketCreated = true;
         Restrict(_paths.InstanceSocket, UnixFileMode.UserRead | UnixFileMode.UserWrite);
         _listener.Listen(8);
 
@@ -115,14 +121,18 @@ public sealed class SingleInstance : IDisposable
         return OperatingSystem.IsWindows() ? code is 32 or 33 : code is 11 or 35;
     }
 
+    // A wedged listener (e.g. a stopped process with a full queue) mustn't hang startup: give up after
+    // a second and count it as alive — safer than deleting a socket that might still be in use.
     private static bool CanConnect(string socketPath)
     {
+        using var probe = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(1));
         try
         {
-            using var probe = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
-            probe.Connect(new UnixDomainSocketEndPoint(socketPath));
+            probe.ConnectAsync(new UnixDomainSocketEndPoint(socketPath), timeout.Token).AsTask().GetAwaiter().GetResult();
             return true;
         }
+        catch (OperationCanceledException) { return true; }
         catch (SocketException) { return false; }
     }
 
@@ -240,11 +250,11 @@ public sealed class SingleInstance : IDisposable
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) == 1) return;
-        bool hadChannel = _listener != null;
         CloseListener();
         if (_lock != null)
         {
-            if (hadChannel) try { File.Delete(_paths.InstanceSocket); } catch (Exception) { }
+            // Only a socket file this instance created (while holding the lock) is removed.
+            if (_socketCreated) try { File.Delete(_paths.InstanceSocket); } catch (Exception) { }
             _lock.Dispose();
             _lock = null;
         }

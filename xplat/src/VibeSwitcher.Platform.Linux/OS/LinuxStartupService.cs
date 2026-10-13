@@ -136,6 +136,8 @@ public sealed class LinuxStartupService : IStartupService
         }
     }
 
+    // (Normalised to "\n": the source may be checked out with Windows line endings, and the raw
+    // string would carry them into the file.)
     internal static string Entry(string path) =>
         $"""
         [Desktop Entry]
@@ -147,7 +149,7 @@ public sealed class LinuxStartupService : IStartupService
         Terminal=false
         X-GNOME-Autostart-enabled=true
 
-        """;
+        """.ReplaceLineEndings("\n");
 
     // The desktop-entry Exec rules: an argument with reserved characters is double-quoted, with
     // " ` $ \ backslash-escaped inside the quotes; then, because the value is also a desktop-file

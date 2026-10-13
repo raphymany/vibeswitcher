@@ -48,8 +48,9 @@ public sealed class LinuxNotifier : IDesktopNotifier, IDisposable
         {
             var connection = await ConnectAsync().ConfigureAwait(false);
             if (connection == null) return false;
-            _bodyMarkup ??= await SupportsBodyMarkup(connection).ConfigureAwait(false);
-            var body = _bodyMarkup == true ? Escape(message) : message;
+            // Asked once per connection; if the question itself fails, escape this time and ask again next time.
+            bool markup = _bodyMarkup ?? (_bodyMarkup = await SupportsBodyMarkup(connection).ConfigureAwait(false)) ?? true;
+            var body = markup ? Escape(message) : message;
             _lastId = await connection.CallMethodAsync(Notify(connection, title, body, _lastId),
                 static (Message m, object? _) => m.GetBodyReader().ReadUInt32(), null)
                 .WaitAsync(CallTimeout).ConfigureAwait(false);
@@ -98,7 +99,7 @@ public sealed class LinuxNotifier : IDesktopNotifier, IDisposable
 
     // GetCapabilities() → as. Servers without "body-markup" show text literally, so escaping there
     // would put "&amp;" on screen.
-    private static async Task<bool> SupportsBodyMarkup(Connection connection)
+    private static async Task<bool?> SupportsBodyMarkup(Connection connection)
     {
         try
         {
@@ -107,7 +108,7 @@ public sealed class LinuxNotifier : IDesktopNotifier, IDisposable
                 .WaitAsync(CallTimeout).ConfigureAwait(false);
             return caps.Contains("body-markup");
         }
-        catch (Exception) { return true; } // can't tell: escaping is the safe choice
+        catch (Exception) { return null; } // can't tell (yet)
     }
 
     private static MessageBuffer GetCapabilities(Connection connection)
