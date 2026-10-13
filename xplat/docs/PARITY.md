@@ -22,6 +22,23 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
 
+## System integration notes
+
+- **Files** live in `~/Library/Application Support/VibeSwitcher` (macOS) or `~/.config/VibeSwitcher` (Linux, or
+  `$XDG_CONFIG_HOME/VibeSwitcher`) with the same layout as `%APPDATA%\VibeSwitcher` on Windows, so a config exported
+  on one system imports on another (devices then need re-picking, since device ids differ per system).
+- **Launching it again** brings the running VibeSwitcher's Settings forward, as on Windows.
+- **Command line (new on macOS/Linux).** `vibeswitcher --switch "<profile>"`, `--mute mic|speakers|both` and
+  `--open` drive the running app. Linux needs this so keyboard shortcuts set up in the desktop's own settings can
+  control VibeSwitcher on Wayland, where apps can't listen for global keys themselves. Windows doesn't need it.
+- **Waking from sleep** re-checks schedules and re-applies the active profile, as on Windows.
+- **Start at login** is a login item on macOS (a LaunchAgent) and an autostart entry on Linux. Like the Windows
+  startup entry, it follows the app if it's moved (for an AppImage, the AppImage file itself is what starts).
+  On macOS 13+ it appears under System Settings › General › Login Items › "Allow in the Background"; if it's switched
+  off *there*, VibeSwitcher's own setting can still read "on" (planned: use Apple's newer login-item API in the app
+  wiring step). A Mac app that hasn't been moved out of Downloads runs from a temporary copy; VibeSwitcher then asks to
+  be moved to Applications before it can start at login.
+
 ## macOS audio notes
 
 - **Built on Core Audio**, the system's own audio API, so there's nothing extra to install.

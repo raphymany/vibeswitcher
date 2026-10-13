@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-10-14 — Branch 57 (`xplat/macos-audio`) — PR #120 (F46 phase 3: macOS audio engine on Core Audio and Audio Queues, verified on Apple Silicon and Intel Macs in CI). Previous: Branch 56 (`xplat/linux-audio`) — PR #118.
+**Last updated:** 2026-10-14 — Branch 58 (`xplat/os-services`) — PR #122 (F46 phase 4a: OS services — file locations, single instance + command line, sleep/resume, start at login, notifications, mute, install info). Previous: Branch 57 (`xplat/macos-audio`) — PR #120.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -134,7 +134,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for redesigned UI — profile cards, action strips, overlays, and icon frames use hardcoded dark hex values from the G HUB-inspired redesign; needs theme-aware resource keys for each~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–3 done (PR #116, #118, #120) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4a done (PR #116, #118, #120, #122) |
 
 ---
 
@@ -165,14 +165,14 @@ Phase PRs merge into the holding branch `xplat/dev`, not `main`; one final PR br
 | 1 | `xplat/core-scaffold` | Foundation: solution, shared core (linked files + shims + forks), tests on every OS, drift guard | ✅ PR #116 |
 | 2 | `xplat/linux-audio` | Linux audio (pactl): list/default/mute/events, tone, mic meter, sounds; PulseAudio + PipeWire CI | ✅ PR #118 |
 | 3 | `xplat/macos-audio` | macOS audio (CoreAudio/AudioToolbox); virtual-device CI on Apple Silicon + Intel | ✅ PR #120 |
-| 4a | `xplat/os-services` | Paths, single instance + CLI, resume detection, start at login, notifications, mute, install info | Planned |
+| 4a | `xplat/os-services` | Paths, single instance + CLI, resume detection, start at login, notifications, mute, install info | ✅ PR #122 |
 | 4b | `xplat/hotkeys` | X11, macOS Carbon, Wayland portal + GNOME bridge | Planned |
 | 4c | `xplat/triggers-hid` | App-launch triggers + app pickers, HID headsets, Linux udev rule | Planned |
 | 5 | `xplat/ui-foundation` | Avalonia shell, themes, styles, fonts, window chrome, async dialogs, screenshot parity harness | Planned |
 | 6 | `xplat/packaging` | `.dmg`, AppImage, `.deb`, package smoke tests, prerelease workflow | Planned |
 | 7 | `xplat/ui-settings` | Settings window, view models, Mini Mode | Planned |
 | 8 | `xplat/ui-dialogs` | Remaining dialogs, splash, animated logo | Planned |
-| 9 | `xplat/app-wiring` | Startup orchestration, tray/menu bar, `--selftest`, diagnostics, per-OS install/uninstall | Planned |
+| 9 | `xplat/app-wiring` | Startup orchestration, tray/menu bar, `--selftest`, diagnostics, per-OS install/uninstall. Carried over: macOS login item via SMAppService (reads the System Settings toggle), handle the macOS "reopen" event (relaunch from Finder/Dock → show Settings), start-at-login for dev builds run via the `dotnet` host, Linux logind `PrepareForSleep` as the primary wake signal | Planned |
 | 10 | `xplat/rc1` | Parity review vs Windows → friend test session 1 | Planned |
 | 11 | `xplat/rc1-fixes` | Fixes from session 1 → friend session 2 → release | Planned |
 
