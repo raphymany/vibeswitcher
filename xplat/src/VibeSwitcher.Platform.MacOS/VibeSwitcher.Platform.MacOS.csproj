@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- macOS-only services for the macOS + Linux app. Builds (and its unit tests run) on every OS:
+       the Apple APIs are bound with DllImport, which only resolves when called on a Mac. -->
+  <PropertyGroup>
+    <AssemblyName>VibeSwitcher.Platform.MacOS</AssemblyName>
+    <RootNamespace>VibeSwitcher.Platform.MacOS</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VibeSwitcher.Core\VibeSwitcher.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="VibeSwitcher.Platform.MacOS.Tests" />
+    <InternalsVisibleTo Include="VibeSwitcher.App" />
+  </ItemGroup>
+</Project>

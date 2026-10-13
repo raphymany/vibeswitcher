@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Unit tests run on every OS against a fake Core Audio. The [MacAudioFact] tests use the real
+       Core Audio and only run on macOS with VS_MAC_AUDIO_IT=1 (CI installs the BlackHole virtual
+       audio driver for them). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>VibeSwitcher.Platform.MacOS.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VibeSwitcher.Core\VibeSwitcher.Core.csproj" />
+    <ProjectReference Include="..\..\src\VibeSwitcher.Platform.MacOS\VibeSwitcher.Platform.MacOS.csproj" />
+  </ItemGroup>
+
+  <!-- The Windows test fakes, linked unchanged -->
+  <ItemGroup>
+    <Compile Include="$(WinTests)FakeAppLogger.cs"           Link="Linked\FakeAppLogger.cs" />
+    <Compile Include="$(WinTests)FakeSessionErrorTracker.cs" Link="Linked\FakeSessionErrorTracker.cs" />
+  </ItemGroup>
+</Project>

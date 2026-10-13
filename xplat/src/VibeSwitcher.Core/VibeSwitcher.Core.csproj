@@ -23,6 +23,8 @@
     <InternalsVisibleTo Include="VibeSwitcher.App" />
     <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux" />
     <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux.Tests" />
+    <InternalsVisibleTo Include="VibeSwitcher.Platform.MacOS" />
+    <InternalsVisibleTo Include="VibeSwitcher.Platform.MacOS.Tests" />
   </ItemGroup>
 
   <!-- Linked as-is -->

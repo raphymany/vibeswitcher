@@ -32,6 +32,20 @@ public class TestToneTests
         Assert.Throws<ArgumentOutOfRangeException>(() => TestTone.RenderPcm16(rate, channels));
 }
 
+public class AudioLevelTests
+{
+    [Fact]
+    public void Rms_MatchesTheWindowsMeter()
+    {
+        Assert.Equal(0f, AudioLevel.Rms([]));
+        Assert.Equal(0f, AudioLevel.Rms([0f, 0f]));
+        Assert.Equal(0.5f, AudioLevel.Rms([0.5f, -0.5f, 0.5f, -0.5f]), 5);
+        // A full-scale sine has an RMS of 1/√2.
+        var sine = Enumerable.Range(0, 4800).Select(i => (float)Math.Sin(2 * Math.PI * 440 * i / 48000)).ToArray();
+        Assert.Equal(1 / MathF.Sqrt(2), AudioLevel.Rms(sine), 3);
+    }
+}
+
 public class WavDataTests
 {
     private static byte[] Wav(ushort tag, int bits, int channels = 2, int rate = 44100, int dataBytes = 16,

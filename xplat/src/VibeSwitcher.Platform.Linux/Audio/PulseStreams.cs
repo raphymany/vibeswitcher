@@ -115,13 +115,7 @@ internal sealed class PulseStreams(IProcessRunner runner)
     };
 
     // RMS of a block, the same measure the Windows mic meter shows.
-    internal static float Rms(ReadOnlySpan<float> block)
-    {
-        if (block.Length == 0) return 0;
-        double sum = 0;
-        foreach (var s in block) sum += s * s;
-        return (float)Math.Sqrt(sum / block.Length);
-    }
+    internal static float Rms(ReadOnlySpan<float> block) => AudioLevel.Rms(block);
 }
 
 // Plays the app's in-memory sounds (switch sounds, mute blips) on the default output — what

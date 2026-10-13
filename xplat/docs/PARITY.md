@@ -22,6 +22,27 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
 
+## macOS audio notes
+
+- **Built on Core Audio**, the system's own audio API, so there's nothing extra to install.
+- **Switching a profile sets the default output, the "play sound effects through" output, and the default input.**
+  Windows has three default roles per device and VibeSwitcher sets all of them; macOS splits output into "output" and
+  "sound effects", and VibeSwitcher sets both so alerts follow the profile the same way.
+- **Device ids are Core Audio device UIDs.** A USB device's UID includes the port it's plugged into, so moving a headset
+  to another USB port gives it a new UID; the same automatic re-binding as on Windows reconnects the profile, because
+  macOS devices report the same USB vendor/product fingerprint (`USB\VID_xxxx&PID_xxxx`).
+- **One device, two lists.** A USB headset is usually one macOS device with both output and input; it appears in both
+  lists under the same name, as Windows shows its two endpoints.
+- **No "unplugged" or "disabled" devices.** macOS only lists devices that are present.
+- **Mute works on every device that has a volume.** Windows can mute any device in software. On macOS many microphones
+  (including most built-in ones) have a volume but no mute switch; VibeSwitcher mutes those by setting the volume to
+  zero and restores the previous volume on unmute. A device with neither can't be muted (the session log says so).
+- **Headphones: Apple Silicon vs Intel.** On Apple Silicon Macs, plugged-in headphones appear as their own device, so
+  auto-switch on plug-in *and* switching back on unplug work exactly as on Windows. On Intel Macs the headphones share
+  the built-in device; plugging them in is that device's "changed" signal (plug-in only, as on Linux).
+- **Microphone permission.** The mic meter needs macOS's microphone permission; macOS asks the first time it's used
+  (the app bundle declares why it needs it). Without permission macOS gives silence rather than an error.
+
 ## Linux audio notes
 
 - **Works with PipeWire and PulseAudio.** VibeSwitcher talks to the sound server through the standard `pactl`, `pacat`
