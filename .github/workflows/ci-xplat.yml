@@ -45,6 +45,14 @@ jobs:
         working-directory: xplat
         run: dotnet test VibeSwitcher.XPlat.sln -c Release --no-build --logger "console;verbosity=normal"
 
+      - name: Desktop-bus tests (Linux)
+        # Notifications against a stand-in notification service on a real, private D-Bus session.
+        if: runner.os == 'Linux'
+        working-directory: xplat
+        run: |
+          command -v dbus-run-session >/dev/null || { sudo apt-get update -q && sudo apt-get install -y -q dbus-bin dbus-daemon; }
+          VS_DBUS_IT=1 dbus-run-session -- dotnet test tests/VibeSwitcher.Platform.Linux.Tests/VibeSwitcher.Platform.Linux.Tests.csproj -c Release --no-build --filter "Category=DBus" --logger "console;verbosity=normal"
+
   linux-audio:
     # The Linux audio engine against real sound servers: what modern distros run (PipeWire), classic
     # PulseAudio, and Ubuntu 22.04 with pactl's text output forced (what pactl before 15.99 prints).

@@ -4,8 +4,9 @@ The cross-platform VibeSwitcher app, built with Avalonia on .NET 10. The Windows
 is unaffected by anything here. Design: [`docs/ADR-001-xplat.md`](docs/ADR-001-xplat.md). Per-OS differences:
 [`docs/PARITY.md`](docs/PARITY.md).
 
-**Status:** in progress. Done so far: the shared core library, and the Linux and macOS audio engines
-(`src/VibeSwitcher.Platform.Linux`, `src/VibeSwitcher.Platform.MacOS`). The app itself arrives in later phases.
+**Status:** in progress. Done so far: the shared core library, the Linux and macOS audio engines
+(`src/VibeSwitcher.Platform.Linux`, `src/VibeSwitcher.Platform.MacOS`), and the OS services (file locations, single
+instance + command line, sleep/resume, start at login, notifications, mute). The app itself arrives in later phases.
 
 ## Build and test
 

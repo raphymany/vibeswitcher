@@ -21,3 +21,7 @@ src/VibeSwitcher.Platform.MacOS/Audio/MacAudioService.cs VibeSwitcher/Services/M
 src/VibeSwitcher.Platform.MacOS/Audio/AudioQueueStreams.cs VibeSwitcher/Services/AudioTestTonePlayer.cs     3874222559fadcc6935fb01e195f55b13e9d4eeb
 src/VibeSwitcher.Platform.MacOS/Audio/MacHardwareKey.cs  VibeSwitcher/Services/AudioService.cs            afdd6c74f2789ebe126d33e4609913280a3eab2d
 src/VibeSwitcher.Platform.Linux/Audio/LinuxHardwareKey.cs VibeSwitcher/Services/AudioService.cs            afdd6c74f2789ebe126d33e4609913280a3eab2d
+src/VibeSwitcher.Core/Services/MuteService.cs            VibeSwitcher/Services/MuteService.cs             8f285539145d402a81ec964011b1176a0333140d
+src/VibeSwitcher.Core/Platform/SingleInstance.cs         VibeSwitcher/Helpers/SingleInstanceHelper.cs     513b7b75ac0c60ae1e9369016a259d9d92e78ee3
+src/VibeSwitcher.Platform.Linux/OS/LinuxStartupService.cs VibeSwitcher/Services/StartupService.cs          d3207ef4200497c3ba171c48cf0e43c8474fb818
+src/VibeSwitcher.Platform.MacOS/OS/MacStartupService.cs  VibeSwitcher/Services/StartupService.cs          d3207ef4200497c3ba171c48cf0e43c8474fb818

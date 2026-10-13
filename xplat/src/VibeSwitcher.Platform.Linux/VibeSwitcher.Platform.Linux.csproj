@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- The same version Avalonia 11.3 uses for its own D-Bus work (Avalonia.FreeDesktop), so they never clash. -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\VibeSwitcher.Core\VibeSwitcher.Core.csproj" />
   </ItemGroup>
 
