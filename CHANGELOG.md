@@ -8,6 +8,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 
 ### Added
 - **Groundwork for VibeSwitcher on macOS and Linux** — a new cross-platform app is being built in `xplat/` alongside the unchanged Windows app. This first step adds its shared core library, which reuses the Windows app's own logic files, and runs their tests on Windows, Linux and macOS. Nothing user-visible yet *(PR #116)*
+- **macOS/Linux groundwork: Linux audio engine** — the Linux version can now list, switch, mute and watch audio devices, play the test tone and switch sounds, and run the microphone meter, with the same behaviour as Windows. Works with both PipeWire and PulseAudio, and is tested against real sound servers. Not yet user-visible *(PR #118)*
 
 ---
 

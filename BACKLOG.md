@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-10-10 — Branch 55 (`xplat/core-scaffold`) — PR #116 (F46 phase 1: foundation for the macOS + Linux app — shared core library linking the Windows logic unchanged, tests on every OS, drift guard). Previous: Branch 54 (`fix/device-id-drift`) — PR #114, released as v2.0.1.
+**Last updated:** 2026-10-14 — Branch 56 (`xplat/linux-audio`) — PR #118 (F46 phase 2: Linux audio engine — devices, switching, change events, mute, test tone, mic meter, sounds; tested against real PipeWire and PulseAudio). Previous: Branch 55 (`xplat/core-scaffold`) — PR #116.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -134,7 +134,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for redesigned UI — profile cards, action strips, overlays, and icon frames use hardcoded dark hex values from the G HUB-inspired redesign; needs theme-aware resource keys for each~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phase 1 PR #116 |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–2 done (PR #116, #118) |
 
 ---
 
@@ -163,7 +163,7 @@ Phase PRs merge into the holding branch `xplat/dev`, not `main`; one final PR br
 | Phase | Branch | Contents | Status |
 |---|---|---|---|
 | 1 | `xplat/core-scaffold` | Foundation: solution, shared core (linked files + shims + forks), tests on every OS, drift guard | ✅ PR #116 |
-| 2 | `xplat/linux-audio` | Linux audio (pactl): list/default/mute/events, tone, mic meter, sounds; PulseAudio + PipeWire CI | Planned |
+| 2 | `xplat/linux-audio` | Linux audio (pactl): list/default/mute/events, tone, mic meter, sounds; PulseAudio + PipeWire CI | ✅ PR #118 |
 | 3 | `xplat/macos-audio` | macOS audio (CoreAudio/AudioToolbox); virtual-device CI on Apple Silicon + Intel | Planned |
 | 4a | `xplat/os-services` | Paths, single instance + CLI, resume detection, start at login, notifications, mute, install info | Planned |
 | 4b | `xplat/hotkeys` | X11, macOS Carbon, Wayland portal + GNOME bridge | Planned |
