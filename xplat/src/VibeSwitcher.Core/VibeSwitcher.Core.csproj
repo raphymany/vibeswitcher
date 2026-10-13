@@ -21,6 +21,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="VibeSwitcher.Core.Tests" />
     <InternalsVisibleTo Include="VibeSwitcher.App" />
+    <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux" />
+    <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux.Tests" />
   </ItemGroup>
 
   <!-- Linked as-is -->

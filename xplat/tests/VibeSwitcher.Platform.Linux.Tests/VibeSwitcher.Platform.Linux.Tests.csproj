@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Unit tests run on every OS against a fake pactl/pacat/parec. The [LinuxAudioFact] tests talk to a
+       real PulseAudio/PipeWire server and only run when VS_LINUX_AUDIO_IT=1 (scripts/run-linux-audio-tests.sh). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>VibeSwitcher.Platform.Linux.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VibeSwitcher.Core\VibeSwitcher.Core.csproj" />
+    <ProjectReference Include="..\..\src\VibeSwitcher.Platform.Linux\VibeSwitcher.Platform.Linux.csproj" />
+  </ItemGroup>
+
+  <!-- The Windows test fakes, linked unchanged -->
+  <ItemGroup>
+    <Compile Include="$(WinTests)FakeAppLogger.cs"           Link="Linked\FakeAppLogger.cs" />
+    <Compile Include="$(WinTests)FakeSessionErrorTracker.cs" Link="Linked\FakeSessionErrorTracker.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

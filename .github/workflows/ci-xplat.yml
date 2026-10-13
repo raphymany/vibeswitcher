@@ -45,6 +45,44 @@ jobs:
         working-directory: xplat
         run: dotnet test VibeSwitcher.XPlat.sln -c Release --no-build --logger "console;verbosity=normal"
 
+  linux-audio:
+    # The Linux audio engine against real sound servers: what modern distros run (PipeWire), classic
+    # PulseAudio, and Ubuntu 22.04 with pactl's text output forced (what pactl before 15.99 prints).
+    name: Linux audio (${{ matrix.server }}${{ matrix.text == '1' && ', text output' || '' }}, ${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, server: pipewire,   text: "0", packages: "pipewire pipewire-pulse wireplumber pulseaudio-utils dbus" }
+          - { os: ubuntu-24.04, server: pulseaudio, text: "0", packages: "pulseaudio pulseaudio-utils" }
+          - { os: ubuntu-22.04, server: pulseaudio, text: "1", packages: "pulseaudio pulseaudio-utils" }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      VS_PACTL_TEXT: ${{ matrix.text }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: xplat/global.json
+
+      - name: Install sound server
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends ${{ matrix.packages }}
+
+      - name: Integration tests
+        working-directory: xplat
+        run: |
+          if [ "${{ matrix.server }}" = pipewire ]; then
+            dbus-run-session -- bash scripts/run-linux-audio-tests.sh pipewire
+          else
+            bash scripts/run-linux-audio-tests.sh pulseaudio
+          fi
+
   fork-drift:
     name: Forked files in sync with Windows originals
     runs-on: ubuntu-24.04

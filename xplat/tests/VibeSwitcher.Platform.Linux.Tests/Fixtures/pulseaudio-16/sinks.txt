@@ -1,0 +1,26 @@
+Sink #0
+	State: IDLE
+	Name: vs_usb
+	Description: USB Headset
+	Driver: module-null-sink.c
+	Sample Specification: s16le 2ch 44100Hz
+	Channel Map: front-left,front-right
+	Owner Module: 1
+	Mute: no
+	Volume: front-left: 65536 / 100% / 0.00 dB,   front-right: 65536 / 100% / 0.00 dB
+	        balance 0.00
+	Base Volume: 65536 / 100% / 0.00 dB
+	Monitor Source: vs_usb.monitor
+	Latency: 359848 usec, configured 2000000 usec
+	Flags: DECIBEL_VOLUME LATENCY SET_FORMATS 
+	Properties:
+		device.description = "USB Headset"
+		device.class = "abstract"
+		device.bus = "usb"
+		device.vendor.id = "0bda"
+		device.product.id = "4e27"
+		device.serial = "Generic_USB_Audio"
+		device.bus_path = "pci-0000:00:14.0-usb-0:2:1.0"
+		device.icon_name = "audio-card-usb"
+	Formats:
+		pcm
