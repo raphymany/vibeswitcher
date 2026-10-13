@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Linux-only services for the macOS + Linux app. Builds (and its unit tests run) on every OS:
+       it shells out to standard Linux tools rather than linking Linux libraries, so nothing here
+       needs Linux to compile. -->
+  <PropertyGroup>
+    <AssemblyName>VibeSwitcher.Platform.Linux</AssemblyName>
+    <RootNamespace>VibeSwitcher.Platform.Linux</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VibeSwitcher.Core\VibeSwitcher.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux.Tests" />
+    <InternalsVisibleTo Include="VibeSwitcher.App" />
+  </ItemGroup>
+</Project>

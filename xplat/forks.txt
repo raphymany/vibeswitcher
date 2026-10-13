@@ -1,4 +1,4 @@
-# Files in xplat/ that are COPIES of Windows-app files (they couldn't be linked because the original
+# Files in xplat/ that COPY or RE-IMPLEMENT Windows-app files (they couldn't be linked because the original
 # uses WPF/Win32). Each line: <fork, relative to xplat/>  <upstream, relative to repo root>  <upstream
 # git blob hash the fork was last synced with>. scripts/check-forks.sh fails when an upstream file has
 # changed since — port the change into the fork (or confirm it doesn't apply), then run it with --update.
@@ -7,3 +7,9 @@ src/VibeSwitcher.Core/Contracts/AudioContracts.cs        VibeSwitcher/Services/A
 src/VibeSwitcher.Core/Contracts/HotkeyContracts.cs       VibeSwitcher/Services/HotkeyService.cs           792e244bc1f39eb8b46f19a0fe8fb16adf2cdd91
 src/VibeSwitcher.Core/Models/HotkeyDefinition.cs         VibeSwitcher/Models/HotkeyDefinition.cs          326f7f2bb59a19a706b6f5600e6fe4c97175d7a7
 tests/VibeSwitcher.Core.Tests/HotkeyDefinitionTests.cs   VibeSwitcher.Tests/HotkeyDefinitionTests.cs      3af98a67c8f4088c2b6f92497ab168faaad8dc3e
+src/VibeSwitcher.Core/Audio/TestTone.cs                  VibeSwitcher/Services/AudioTestTonePlayer.cs     3874222559fadcc6935fb01e195f55b13e9d4eeb
+src/VibeSwitcher.Platform.Linux/Audio/LinuxAudioService.cs VibeSwitcher/Services/AudioProfileApplier.cs     074430ad94943fbb93ee764b20bdff4337a9416c
+src/VibeSwitcher.Platform.Linux/Audio/LinuxAudioService.cs VibeSwitcher/Services/DeviceNotificationClient.cs f76ba34b863a87e4c1ffc8f12240080c0c948c46
+src/VibeSwitcher.Platform.Linux/Audio/LinuxAudioService.cs VibeSwitcher/Services/AudioMicMonitor.cs         4f05b55dd4463b38e38acc731092aab9abc01cc6
+src/VibeSwitcher.Platform.Linux/Audio/LinuxAudioService.cs VibeSwitcher/Services/MuteService.cs             8f285539145d402a81ec964011b1176a0333140d
+src/VibeSwitcher.Platform.Linux/Audio/LinuxAudioService.cs VibeSwitcher/Services/AudioDeviceEnumerator.cs   799e52efa97a95cf7c5cedd071f241705fef0b66

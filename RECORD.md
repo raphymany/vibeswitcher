@@ -572,7 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phase 1 PR #116 |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–2 done (PR #116, #118) |
 
 ---
 
@@ -1494,3 +1494,18 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Forks — `AudioDeviceInfo`/`ProfileSwitchResult`/`NormalizeHardwareKey`, `HotkeyConflictException`, `HotkeyDefinition` (per-OS labels: Windows text, macOS ⌃⌥⇧⌘, Linux "Super"; VK→name table generated from WPF, `tools/gen-virtualkeymap.ps1`); tracked in `forks.txt` with upstream git hashes; `scripts/check-forks.sh` drift guard | ✅ Done |
 | CI — `.github/workflows/ci-xplat.yml`: build + test on ubuntu-24.04, macos-15 (Apple Silicon), macos-15-intel, windows-latest; fork-drift job; runs on pushes/PRs to `main` and `xplat/dev`. Existing `ci.yml`/`release.yml` untouched | ✅ Done |
 | Tests — 175 linked Windows tests + 37 new (hotkey fork, shims, scheduler end-to-end through a UI timer, device-trigger marshalling); **212** passing on Windows and Linux (WSL Ubuntu 24.04) | ✅ Done |
+
+### Branch 56: `xplat/linux-audio` ✅ Done — PR #118
+**Theme:** F46 phase 2 of 11 (issue #117). The Linux audio engine (`xplat/src/VibeSwitcher.Platform.Linux`), built on `pactl`/`pacat`/`parec` so it works with PipeWire and PulseAudio. No visible app yet; no file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Merged into `xplat/dev`.
+
+| Item | Status |
+|------|--------|
+| `LinuxAudioService` (implements the new Core `IPlatformAudioService` = `IAudioService` + mic meter + default-device mute): connected-first lists, unplugged = every jack-sensing port "not available", monitor/dummy sources hidden, apply always sets the default (PipeWire reports the effective default), missing vs set-failed results, Windows-equivalent session error codes | ✅ Done |
+| Change events — `pactl subscribe` watcher with restart/backoff (reported only after 3 consecutive failures), 500 ms debounce, snapshot diff: `DevicesChanged` on add/remove/availability, `DevicePropertyChanged` when a jack is plugged in (port not-available → available) | ✅ Done |
+| Windows-shaped hardware keys (`USB\VID_xxxx&PID_xxxx&MI_xx\…`, Bluetooth, PCI) from pactl properties or sysfs (relative-link-safe realpath), so the linked rebind and HID-headset logic works unchanged | ✅ Done |
+| Parsing — pactl JSON (incl. pactl 16 `monitor_source` quirk, PipeWire 0x ids / `device.bus-path`) and text (older pactl / broken JSON; UCM port names); LC_ALL=C for every tool | ✅ Done |
+| Test tone (`Core/Audio/TestTone`, same sound as Windows), mic meter (parec float RMS, same scale), WAV playback for switch/mute sounds (`Core/Audio/WavData` + `PulseWavPlayer`) | ✅ Done |
+| Robustness — process timeouts that can't hang on inherited pipes, 3 s fail-fast after "server unavailable" (cleared by background refreshes), pacat write/play deadline with kill, ENOENT-only "not installed" message, leading-`-` device names refused (pactl rejects `--`) | ✅ Done |
+| CI `linux-audio` job: real-server integration tests on PipeWire (24.04), PulseAudio (24.04) and Ubuntu 22.04 in forced text mode; `scripts/run-linux-audio-tests.sh` (private throwaway server), `scripts/wsl-test.sh` (WSL, no sudo) | ✅ Done |
+| Forks tracked: `TestTone` ← `AudioTestTonePlayer`; `LinuxAudioService` ← `AudioProfileApplier`, `AudioDeviceEnumerator`, `DeviceNotificationClient`, `AudioMicMonitor`, `MuteService` | ✅ Done |
+| Tests — 86 Linux-platform unit tests (fake pactl/pacat/parec) + 20 Core audio tests; **318** passing on Windows and Linux (WSL); 8/8 real-server tests on PulseAudio 16.1 in JSON and text mode | ✅ Done |

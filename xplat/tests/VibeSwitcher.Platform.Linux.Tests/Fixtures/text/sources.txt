@@ -1,0 +1,31 @@
+Source #0
+	State: SUSPENDED
+	Name: alsa_output.pci-0000_00_1f.3.analog-stereo.monitor
+	Description: Monitor of Built-in Audio Analog Stereo
+	Driver: module-alsa-card.c
+	Mute: no
+	Monitor of Sink: alsa_output.pci-0000_00_1f.3.analog-stereo
+	Properties:
+		device.description = "Monitor of Built-in Audio Analog Stereo"
+		device.class = "monitor"
+	Formats:
+		pcm
+
+Source #1
+	State: SUSPENDED
+	Name: alsa_input.pci-0000_00_1f.3.analog-stereo
+	Description: Built-in Audio Analog Stereo
+	Driver: module-alsa-card.c
+	Mute: no
+	Monitor of Sink: n/a
+	Properties:
+		device.bus = "pci"
+		device.vendor.id = "8086"
+		device.product.id = "a0c8"
+		device.description = "Built-in Audio Analog Stereo"
+	Ports:
+		analog-input-internal-mic: Internal Microphone (type: Mic, priority: 8900, availability group: Legacy 1, availability unknown)
+		analog-input-mic: Microphone (type: Mic, priority: 8700, availability group: Legacy 2, not available)
+	Active Port: analog-input-internal-mic
+	Formats:
+		pcm

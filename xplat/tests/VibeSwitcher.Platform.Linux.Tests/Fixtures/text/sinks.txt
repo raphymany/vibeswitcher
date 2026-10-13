@@ -1,0 +1,70 @@
+Sink #0
+	State: SUSPENDED
+	Name: alsa_output.pci-0000_00_1f.3.analog-stereo
+	Description: Built-in Audio Analog Stereo
+	Driver: module-alsa-card.c
+	Sample Specification: s16le 2ch 44100Hz
+	Channel Map: front-left,front-right
+	Owner Module: 7
+	Mute: no
+	Volume: front-left: 52429 /  80% / -5.81 dB,   front-right: 52429 /  80% / -5.81 dB
+	        balance 0.00
+	Base Volume: 65536 / 100% / 0.00 dB
+	Monitor Source: alsa_output.pci-0000_00_1f.3.analog-stereo.monitor
+	Latency: 0 usec, configured 0 usec
+	Flags: HARDWARE HW_MUTE_CTRL HW_VOLUME_CTRL DECIBEL_VOLUME LATENCY
+	Properties:
+		alsa.resolution_bits = "16"
+		device.api = "alsa"
+		device.class = "sound"
+		alsa.card = "0"
+		alsa.card_name = "HDA Intel PCH"
+		alsa.long_card_name = "HDA Intel PCH at 0xf7f10000 irq 130"
+		device.bus_path = "pci-0000:00:1f.3"
+		sysfs.path = "/devices/pci0000:00/0000:00:1f.3/sound/card0"
+		device.bus = "pci"
+		device.vendor.id = "8086"
+		device.vendor.name = "Intel Corporation"
+		device.product.id = "a0c8"
+		device.form_factor = "internal"
+		device.string = "front:0"
+		device.description = "Built-in Audio Analog Stereo"
+		alsa.mixer_name = "Realtek ALC256"
+		module-udev-detect.discovered = "1"
+		device.icon_name = "audio-card-pci"
+	Ports:
+		analog-output-speaker: Speakers (type: Speaker, priority: 10000, availability group: Legacy 1, availability unknown)
+		analog-output-headphones: Headphones (Front) (type: Headphones, priority: 9900, availability group: Legacy 2, not available)
+	Active Port: analog-output-speaker
+	Formats:
+		pcm
+
+Sink #1
+	State: IDLE
+	Name: alsa_output.usb-Logitech_G_PRO_X_Wireless_Gaming_Headset-00.analog-stereo
+	Description: PRO X Wireless Gaming Headset "Stereo"
+	Driver: module-alsa-card.c
+	Sample Specification: s16le 2ch 48000Hz
+	Channel Map: front-left,front-right
+	Owner Module: 26
+	Mute: yes
+	Volume: front-left: 65536 / 100% / 0.00 dB,   front-right: 65536 / 100% / 0.00 dB
+	        balance 0.00
+	Base Volume: 65536 / 100% / 0.00 dB
+	Monitor Source: alsa_output.usb-Logitech_G_PRO_X_Wireless_Gaming_Headset-00.analog-stereo.monitor
+	Latency: 0 usec, configured 0 usec
+	Flags: HARDWARE HW_MUTE_CTRL HW_VOLUME_CTRL DECIBEL_VOLUME LATENCY
+	Properties:
+		alsa.card = "3"
+		device.bus_path = "pci-0000:00:14.0-usb-0:4:1.0"
+		device.bus = "usb"
+		device.vendor.id = "046d"
+		device.product.id = "0aba"
+		device.serial = "Logitech_PRO_X_Wireless_Gaming_Headset"
+		device.description = "PRO X Wireless Gaming Headset \"Stereo\""
+		device.icon_name = "audio-card-usb"
+	Ports:
+		analog-output: Analog Output (type: Analog, priority: 9900, availability unknown)
+	Active Port: analog-output
+	Formats:
+		pcm
