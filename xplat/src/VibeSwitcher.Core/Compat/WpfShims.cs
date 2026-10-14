@@ -1,7 +1,9 @@
 // Minimal stand-ins for the handful of WPF / System.Media APIs that the linked Windows files call
-// by name, so those files compile here unchanged. Deliberately tiny and internal: essentially only
-// what the linked code uses exists, so if a Windows file starts using another WPF API the xplat
-// build fails — drift shows up as a compile error instead of a silent behaviour difference.
+// by name, so those files compile here unchanged. Deliberately tiny and internal (except the two
+// types the linked view models expose publicly — Visibility and ImageSource; no xplat project may
+// reference WPF's WindowsBase, or they would clash): essentially only what the linked code uses
+// exists, so if a Windows file starts using another WPF API the xplat build fails — drift shows up
+// as a compile error instead of a silent behaviour difference.
 
 using VibeSwitcher.Compat;
 
@@ -21,6 +23,17 @@ namespace System.Windows
 
         public Threading.Dispatcher Dispatcher { get; }
     }
+
+    // What the linked view models expose for showing/hiding parts of a view (public: they're public
+    // properties). The views map it: Hidden keeps its space, as in WPF.
+    public enum Visibility { Visible, Hidden, Collapsed }
+}
+
+namespace System.Windows.Media
+{
+    // What the linked view models hold a picture as; the app supplies the real (Avalonia) image
+    // through IconHelper.ImageFactory.
+    public abstract class ImageSource { }
 }
 
 namespace System.Windows.Threading

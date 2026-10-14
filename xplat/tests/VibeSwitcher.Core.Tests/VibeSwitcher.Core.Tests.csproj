@@ -39,5 +39,11 @@
     <Compile Include="$(WinTests)SessionErrorTrackerTests.cs"  Link="Linked\SessionErrorTrackerTests.cs" />
     <Compile Include="$(WinTests)SwitchSoundTests.cs"          Link="Linked\SwitchSoundTests.cs" />
     <Compile Include="$(WinTests)UploadLibraryTests.cs"        Link="Linked\UploadLibraryTests.cs" />
+    <Compile Include="$(WinTests)FakeDialogService.cs"         Link="Linked\FakeDialogService.cs" />
+    <Compile Include="$(WinTests)SettingsViewModelTests.cs"    Link="Linked\SettingsViewModelTests.cs" />
+    <Compile Include="$(WinTests)ProfileCardViewModelTests.cs" Link="Linked\ProfileCardViewModelTests.cs" />
+    <Compile Include="$(WinTests)SettingsSearchTests.cs"       Link="Linked\SettingsSearchTests.cs" />
+    <Compile Include="$(WinTests)DeviceAliasTests.cs"          Link="Linked\DeviceAliasTests.cs" />
+    <Compile Include="$(WinTests)IconHelperTests.cs"           Link="Linked\IconHelperTests.cs" />
   </ItemGroup>
 </Project>

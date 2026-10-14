@@ -46,3 +46,6 @@ src/VibeSwitcher.App/Controls/TitleBar.axaml.cs          VibeSwitcher/Views/Titl
 src/VibeSwitcher.App/Controls/AccentFrame.cs             VibeSwitcher/Views/AccentFrame.xaml              d20584befa6ef701824400e3b26eacf4ce86fe3c
 src/VibeSwitcher.App/Styles/Controls.axaml               VibeSwitcher/App.xaml                            a451917870a3253b27ad5e954edd5d15480c63f4
 src/VibeSwitcher.App/Dialogs/DialogService.cs            VibeSwitcher/Services/DialogService.cs           4189f8f9dbcbc46146c0421ea07308a2bdc300e7
+src/VibeSwitcher.Core/Helpers/IconHelper.cs              VibeSwitcher/Helpers/IconHelper.cs               dd48fb081b8779d07931d95b9b115df9535e7b3b
+src/VibeSwitcher.Core/Helpers/GalleryIconHelper.cs       VibeSwitcher/Helpers/GalleryIconHelper.cs        1c76f05a9fe050866a9b83fe51a62bb61fc64d85
+src/VibeSwitcher.Core/Controls/LogoAnimator.cs           VibeSwitcher/Controls/LogoAnimator.cs            619bd409c2d5e1fdf13d86e77d90036d551f2236

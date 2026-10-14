@@ -20,7 +20,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="VibeSwitcher.Core.Tests" />
-    <InternalsVisibleTo Include="VibeSwitcher.App" />
+    <InternalsVisibleTo Include="VibeSwitcher" /><!-- the app (VibeSwitcher.App builds as VibeSwitcher) -->
+    <InternalsVisibleTo Include="VibeSwitcher.App.Tests" />
     <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux" />
     <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux.Tests" />
     <InternalsVisibleTo Include="VibeSwitcher.Platform.MacOS" />
@@ -64,5 +65,16 @@
     <Compile Include="$(WinSrc)Services\SchedulerService.cs"        Link="Linked\Services\SchedulerService.cs" />
     <Compile Include="$(WinSrc)Services\SwitchSoundService.cs"      Link="Linked\Services\SwitchSoundService.cs" />
     <Compile Include="$(WinSrc)ViewModels\ScheduleEntryViewModel.cs" Link="Linked\ViewModels\ScheduleEntryViewModel.cs" />
+    <!-- The Settings logic. Its dialogs are synchronous as on Windows (the app waits for the answer
+         without blocking the screen, like WPF's ShowDialog); its icons go through the forks of
+         IconHelper / GalleryIconHelper in Helpers/. -->
+    <Compile Include="$(WinSrc)Services\IDialogService.cs"           Link="Linked\Services\IDialogService.cs" />
+    <Compile Include="$(WinSrc)ViewModels\SettingsViewModel.cs"      Link="Linked\ViewModels\SettingsViewModel.cs" />
+    <Compile Include="$(WinSrc)ViewModels\ProfileCardViewModel.cs"   Link="Linked\ViewModels\ProfileCardViewModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The default profile icon, as on Windows. -->
+    <EmbeddedResource Include="$(WinSrc)Resources\Icons\vs-icon.ico" Link="Linked\Icons\vs-icon.ico" LogicalName="VibeSwitcher.Icons.vs-icon.ico" />
   </ItemGroup>
 </Project>
