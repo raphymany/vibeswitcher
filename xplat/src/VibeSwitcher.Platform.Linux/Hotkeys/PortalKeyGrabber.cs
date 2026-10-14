@@ -178,11 +178,9 @@ public sealed class PortalKeyGrabber : IGlobalKeyGrabber
     public void Unregister(ushort id)
     {
         bool removed;
-        lock (_lock)
-        {
-            removed = _registered.Remove(id);
-            _described.Remove(id); // (ids aren't reused: it would only grow)
-        }
+        // (Its description is kept: the hotkey service registers an id again after testing a key,
+        // without describing it again.)
+        lock (_lock) removed = _registered.Remove(id);
         if (removed) Schedule();
     }
 
