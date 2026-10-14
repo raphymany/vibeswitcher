@@ -1,0 +1,359 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Port of the Windows App.xaml styles. Keyed WPF styles become control themes with the same
+         keys (Style="{StaticResource ActionButton}" → Theme="{StaticResource ActionButton}"); WPF
+         triggers become :pointerover / :pressed / :focus / :checked states, in the same order, so
+         the later ones win the same way. Colours are the Windows theme's own keys. -->
+
+    <Styles.Resources>
+
+        <!-- ── Rounded buttons (RoundedButtonTemplate) ── -->
+        <!-- The Windows AccentFocusVisual: a 2-pixel accent outline on keyboard focus, for the controls
+             that use it there; the others show focus themselves (buttons: an accent border; the
+             toggle switch: its own ring). -->
+        <FocusAdornerTemplate x:Key="AccentFocusVisual">
+            <Border BorderThickness="2" BorderBrush="{DynamicResource Accent}" CornerRadius="7" Margin="-2" />
+        </FocusAdornerTemplate>
+
+        <ControlTheme x:Key="VsRoundedButton" TargetType="Button">
+            <Setter Property="FocusAdorner" Value="{x:Null}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="7"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <ControlTheme x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource VsRoundedButton}">
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Background" Value="{DynamicResource CardBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource PressedBg}" />
+            </Style>
+            <Style Selector="^:focus">
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource VsRoundedButton}">
+            <Setter Property="Padding" Value="12,0" />
+            <Setter Property="Foreground" Value="{DynamicResource ErrorText}" />
+            <Setter Property="Background" Value="{DynamicResource ErrorBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ErrorBorder}" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource ErrorBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorText}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource ErrorBorder}" />
+            </Style>
+            <Style Selector="^:focus">
+                <Setter Property="BorderBrush" Value="{DynamicResource ErrorText}" />
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource VsRoundedButton}">
+            <Setter Property="Padding" Value="20,0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource AccentPressed}" />
+            </Style>
+            <Style Selector="^:focus">
+                <Setter Property="BorderBrush" Value="White" />
+                <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="DeleteButton" TargetType="Button" BasedOn="{StaticResource VsRoundedButton}">
+            <Setter Property="Padding" Value="20,0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="{DynamicResource DangerBtnBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource DangerBtnBorder}" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource DangerBtnHover}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DangerBtnPressed}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource DangerBtnPressed}" />
+            </Style>
+            <Style Selector="^:focus">
+                <Setter Property="BorderBrush" Value="White" />
+            </Style>
+        </ControlTheme>
+
+        <!-- ── Toggle switch (CheckBox): pill track, sliding thumb, 0.18 s ease-out ── -->
+        <ControlTheme x:Key="ToggleSwitchStyle" TargetType="CheckBox">
+            <Setter Property="FocusAdorner" Value="{x:Null}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Background="Transparent">
+                        <Border Name="FocusRing" CornerRadius="11" BorderThickness="2" BorderBrush="Transparent"
+                                Margin="0,0,6,0" VerticalAlignment="Center">
+                            <Border Name="Track" Width="34" Height="18" CornerRadius="9">
+                                <Border.Background>
+                                    <SolidColorBrush Color="{DynamicResource ToggleOffColor}" />
+                                </Border.Background>
+                                <Border.Transitions>
+                                    <Transitions>
+                                        <BrushTransition Property="Background" Duration="0:0:0.18" />
+                                    </Transitions>
+                                </Border.Transitions>
+                                <Border Name="Thumb" Width="12" Height="12" CornerRadius="6" Background="White"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3,0,0,0">
+                                    <Border.Transitions>
+                                        <Transitions>
+                                            <ThicknessTransition Property="Margin" Duration="0:0:0.18" Easing="CubicEaseOut" />
+                                        </Transitions>
+                                    </Border.Transitions>
+                                </Border>
+                            </Border>
+                        </Border>
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          VerticalAlignment="Center" />
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+            <!-- (Windows animates to {StaticResource AccentColor}, which resolves to App.xaml's #FF8000
+                 in both themes.) -->
+            <Style Selector="^:checked /template/ Border#Track">
+                <Setter Property="Background" Value="#FF8000" />
+            </Style>
+            <Style Selector="^:checked /template/ Border#Thumb">
+                <Setter Property="Margin" Value="19,0,0,0" />
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#Track">
+                <Setter Property="Opacity" Value="0.85" />
+            </Style>
+            <Style Selector="^:focus-visible /template/ Border#FocusRing">
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- ── Themed check box: rounded box, accent fill + white tick ── -->
+        <ControlTheme x:Key="ThemedCheckBox" TargetType="CheckBox">
+            <Setter Property="FocusAdorner" Value="{StaticResource AccentFocusVisual}" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel Orientation="Horizontal" Background="Transparent">
+                        <Border Name="box" Width="20" Height="20" CornerRadius="5"
+                                Background="{DynamicResource VSSurface}"
+                                BorderBrush="{DynamicResource VSBorderStrong}" BorderThickness="1"
+                                VerticalAlignment="Center">
+                            <Path Name="check" Data="M4,10 L8,14 L15,5" Stretch="Uniform" Margin="4"
+                                  Stroke="White" StrokeThickness="2"
+                                  StrokeLineCap="Round" StrokeJoin="Round" IsVisible="False" />
+                        </Border>
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          VerticalAlignment="Center" Margin="10,0,0,0" />
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:checked /template/ Border#box">
+                <Setter Property="Background" Value="{DynamicResource Accent}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:checked /template/ Path#check">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <Style Selector="^:pointerover /template/ Border#box">
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.45" />
+            </Style>
+        </ControlTheme>
+
+        <!-- ── Day-of-week pill (ToggleButton) ── -->
+        <ControlTheme x:Key="DayPillStyle" TargetType="ToggleButton">
+            <Setter Property="FocusAdorner" Value="{StaticResource AccentFocusVisual}" />
+            <Setter Property="Background" Value="{DynamicResource ChipBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ChipBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource ChipText}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="12"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:checked">
+                <Setter Property="Background" Value="{DynamicResource Accent}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                <Setter Property="Foreground" Value="White" />
+            </Style>
+            <Style Selector="^:pointerover">
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- ── Volume slider: accent-filled track, round white thumb with a soft shadow ── -->
+        <ControlTheme x:Key="VolumeSliderThumb" TargetType="Thumb">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Ellipse Name="dot" Width="16" Height="16" Fill="White"
+                             Stroke="{DynamicResource Accent}" StrokeThickness="2">
+                        <Ellipse.Effect>
+                            <DropShadowEffect OffsetX="0" OffsetY="1" BlurRadius="4" Opacity="0.18" Color="Black" />
+                        </Ellipse.Effect>
+                    </Ellipse>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Ellipse#dot">
+                <Setter Property="Stroke" Value="{DynamicResource AccentHover}" />
+            </Style>
+            <Style Selector="^:pressed /template/ Ellipse#dot">
+                <Setter Property="Stroke" Value="{DynamicResource AccentHover}" />
+                <Setter Property="Width" Value="18" />
+                <Setter Property="Height" Value="18" />
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="VolumeSlider" TargetType="Slider">
+            <Setter Property="FocusAdorner" Value="{StaticResource AccentFocusVisual}" />
+            <Setter Property="Height" Value="20" />
+            <Setter Property="Focusable" Value="True" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="AutomationProperties.Name" Value="Volume" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid VerticalAlignment="Center" Background="Transparent">
+                        <Border Height="6" CornerRadius="3" Background="{DynamicResource InputBorder}" VerticalAlignment="Center" />
+                        <Track Name="PART_Track"
+                               Minimum="{TemplateBinding Minimum}"
+                               Maximum="{TemplateBinding Maximum}"
+                               Value="{TemplateBinding Value, Mode=TwoWay}"
+                               IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                               Orientation="Horizontal">
+                            <Track.DecreaseButton>
+                                <RepeatButton Name="PART_DecreaseButton" Focusable="False" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate>
+                                            <Border Height="6" CornerRadius="3,0,0,3" Background="{DynamicResource Accent}" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseButton>
+                            <Track.IncreaseButton>
+                                <RepeatButton Name="PART_IncreaseButton" Focusable="False" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate>
+                                            <Border Background="Transparent" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseButton>
+                            <Thumb Name="thumb" Theme="{StaticResource VolumeSliderThumb}" />
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+    </Styles.Resources>
+
+    <!-- ── Implicit styles (Windows App.xaml TextBox / ToolTip / ComboBox): sizes and corners on top
+         of the Fluent controls, whose colours come from the theme (Theming/WpfResources.cs). ── -->
+    <Style Selector="TextBox">
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="8,0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBox[IsReadOnly=True]">
+        <Setter Property="Background" Value="{DynamicResource ReadOnlyBg}" />
+        <Setter Property="Foreground" Value="{DynamicResource ReadOnlyText}" />
+    </Style>
+    <!-- (Fluent repaints the box on hover/focus; a read-only one keeps its background, as on Windows.) -->
+    <Style Selector="TextBox[IsReadOnly=True]:pointerover /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ReadOnlyBg}" />
+    </Style>
+    <Style Selector="TextBox[IsReadOnly=True]:focus /template/ Border#PART_BorderElement">
+        <Setter Property="Background" Value="{DynamicResource ReadOnlyBg}" />
+    </Style>
+
+    <!-- Text is 12 px unless a control says otherwise, as WPF's default (Fluent's is 14). -->
+    <Style Selector="Window">
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="8,0,0,0" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="ComboBoxItem">
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Margin" Value="2,1" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="ToolTip">
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+</Styles>

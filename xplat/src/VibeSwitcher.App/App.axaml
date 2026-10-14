@@ -1,0 +1,11 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VibeSwitcher.App.App"
+             RequestedThemeVariant="Default">
+    <!-- Theme colours and icons are added in code (Theming/WpfResources.cs): they're read from the
+         Windows app's own files. The styles below port the Windows App.xaml styles one for one. -->
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://VibeSwitcher/Styles/Controls.axaml" />
+    </Application.Styles>
+</Application>
