@@ -146,7 +146,7 @@ internal static class Uninstaller
     private static readonly HashSet<string> OwnNames =
     [
         "config.json", "config.json.bak", "config.json.tmp", "Icons", "Sounds",
-        "no-tray-explained", "headset-access-offered", "xplat.json", ".DS_Store",
+        "no-tray-explained", "headset-access-offered", "xplat.json", "xplat.json.tmp", ".DS_Store",
     ];
 
     private static bool IsOwn(string name) =>

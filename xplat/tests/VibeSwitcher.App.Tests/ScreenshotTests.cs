@@ -96,6 +96,10 @@ public class ScreenshotTests
                 var settings = (VibeSwitcher.App.Settings.SettingsWindow)window;
                 SettingsCatalog.WaitForDevices(settings);
                 SettingsCatalog.FixInstall(settings, chrome == "mac");
+                // (Linux: as on GNOME before 48, where the shortcuts wait for the user's OK.)
+                if (name == "settings-shortcuts" && chrome != "mac")
+                    settings.Shortcuts = VibeSwitcher.App.Settings.Wording.Shortcuts(VibeSwitcher.App.Hosting.ShortcutsWay.GnomeNeedsConsent,
+                        VibeSwitcher.Platform.Linux.Hotkeys.LinuxHotkeys.GnomeConsent);
                 if (SettingsCatalog.Pages.TryGetValue(name, out var page))
                 {
                     settings.ExpandSettings();

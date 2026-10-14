@@ -575,3 +575,58 @@ public sealed class MuteServiceTests : IDisposable
         Assert.Equal(["mic=True"], _audio.Calls);
     }
 }
+
+public class SwitchableKeyGrabberTests
+{
+    private sealed class Grabber : IGlobalKeyGrabber
+    {
+        public List<string> Calls { get; } = [];
+        public bool Disposed { get; private set; }
+        public event Action<ushort>? Pressed;
+        public GrabResult Register(ushort id, int modifiers, int virtualKey, out string? error)
+        {
+            error = null;
+            Calls.Add($"register {id}");
+            return GrabResult.Ok;
+        }
+        public void Unregister(ushort id) => Calls.Add($"unregister {id}");
+        public void Describe(ushort id, string name, string description) => Calls.Add($"describe {id} {name}");
+        public void Press(ushort id) => Pressed?.Invoke(id);
+        public void Dispose() => Disposed = true;
+    }
+
+    [Fact]
+    public void Everything_GoesToTheCurrentWay_AndPressesComeOnlyFromIt()
+    {
+        var first = new Grabber();
+        var second = new Grabber();
+        using var grabber = new SwitchableKeyGrabber(first);
+        var pressed = new List<ushort>();
+        grabber.Pressed += pressed.Add;
+
+        grabber.Describe(1, "settings", "Open settings");
+        Assert.Equal(GrabResult.Ok, grabber.Register(1, 0, 0x53, out _));
+        first.Press(1);
+        Assert.Same(first, grabber.Swap(second));
+        Assert.Same(second, grabber.Inner);
+        Assert.False(first.Disposed); // (the caller disposes it)
+        grabber.Unregister(1);
+        first.Press(2); // (the old way: no longer heard)
+        second.Press(3);
+
+        Assert.Equal(["describe 1 settings", "register 1"], first.Calls);
+        Assert.Equal(["unregister 1"], second.Calls);
+        Assert.Equal([1, 3], pressed);
+    }
+
+    [Fact]
+    public void Disposing_DisposesTheCurrentWay()
+    {
+        var inner = new Grabber();
+        var grabber = new SwitchableKeyGrabber(inner);
+        grabber.Dispose();
+        Assert.True(inner.Disposed);
+        Assert.Throws<ObjectDisposedException>(() => grabber.Swap(new Grabber()));
+        grabber.Dispose(); // (twice: fine)
+    }
+}
