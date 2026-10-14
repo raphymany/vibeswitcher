@@ -51,6 +51,36 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
     desktop's own settings.
   - In all three cases there's no "is it used by another app?" check: the desktop decides.
 
+## App launch trigger notes
+
+- **Checked every 2 seconds, like Windows.** An app that's already running when it's linked to a profile doesn't
+  switch until it's closed and opened again, as on Windows.
+- **Matched more precisely than on Windows.** Windows recognises an app by its program name. macOS and Linux
+  recognise it by what it really is: a Mac app (including its helper processes), the program file on Linux, a
+  Flatpak or Snap app by its app ID, or the AppImage file it was started from. Program names are still the fallback,
+  so apps linked in a config imported from Windows (e.g. `Discord.exe`) are recognised by name.
+- **The app picker lists** the Mac apps in the Applications folders (including one folder deep, like
+  "Microsoft Office"), or on Linux every app in the app menu (desktop entries, Flatpak and Snap apps included), plus
+  the apps running right now. Browsing to a file works too: anything inside a Mac app picks the app; on Linux a
+  `.desktop` file picks its app.
+- **Games on Linux.** A Steam, Lutris or Heroic game shortcut in the app menu only opens a link in the launcher, so it
+  isn't offered; start the game once and pick it from the running apps instead. Windows games running through
+  Wine/Proton are recognised by their `.exe` name, as on Windows.
+- **Script-based Linux apps** (Python, Java and the like) are recognised by their script, not the interpreter.
+- **One launch, one switch.** If two profiles list the same app in different forms, the first profile in the list wins,
+  as on Windows.
+
+## Headset notes
+
+- **Same supported headsets** (Logitech, Corsair, SteelSeries, HyperX), detected the same way, on both systems.
+- **Linux needs a permission rule** to talk to the headset's USB dongle. It covers exactly the supported headset
+  models (never keyboards, mice or other devices, which could otherwise be read by any program). The `.deb` installs
+  it; the AppImage offers to install it with one administrator password prompt. It applies straight away; if a headset
+  that was already plugged in still isn't detected, unplugging and replugging its dongle once fixes it.
+- **USB dongles only on Linux.** A headset connected over Bluetooth instead of its USB dongle can't be detected on
+  Linux (the same as the dongle being unplugged).
+- **macOS needs no permission** for this.
+
 ## System integration notes
 
 - **Files** live in `~/Library/Application Support/VibeSwitcher` (macOS) or `~/.config/VibeSwitcher` (Linux, or

@@ -26,3 +26,5 @@ src/VibeSwitcher.Core/Platform/SingleInstance.cs         VibeSwitcher/Helpers/Si
 src/VibeSwitcher.Platform.Linux/OS/LinuxStartupService.cs VibeSwitcher/Services/StartupService.cs          d3207ef4200497c3ba171c48cf0e43c8474fb818
 src/VibeSwitcher.Platform.MacOS/OS/MacStartupService.cs  VibeSwitcher/Services/StartupService.cs          d3207ef4200497c3ba171c48cf0e43c8474fb818
 src/VibeSwitcher.Core/Services/HotkeyService.cs          VibeSwitcher/Services/HotkeyService.cs           792e244bc1f39eb8b46f19a0fe8fb16adf2cdd91
+src/VibeSwitcher.Core/Services/AppWatcherService.cs      VibeSwitcher/Services/AppWatcherService.cs       1e08dc21c1abe3cdef99e20217799b7e1a8b5bce
+src/VibeSwitcher.Core/Services/AppTriggerService.cs      VibeSwitcher/Services/AppTriggerService.cs       e4b58670cb1b91ebf6dfa40fe235d1525a87eba0

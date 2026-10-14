@@ -12,3 +12,6 @@
 *.jpg binary
 *.exe binary
 *.dll binary
+
+# Linux system files the macOS/Linux packages install: must keep LF line endings everywhere
+xplat/packaging/linux/*.rules text eol=lf
