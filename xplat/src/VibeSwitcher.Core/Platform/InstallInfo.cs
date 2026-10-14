@@ -20,10 +20,17 @@ public enum InstallKind
 public sealed record InstallInfo(InstallKind Kind, string Location, string Version, bool Translocated = false)
 {
     public static InstallInfo Current() => Detect(
-        Environment.ProcessPath ?? AppContext.BaseDirectory,
+        AppPath(Environment.ProcessPath, AppContext.BaseDirectory),
         TrustedAppImage(Environment.GetEnvironmentVariable, Environment.ProcessPath),
         OperatingSystem.IsMacOS(),
         AppVersion());
+
+    // The app's own program file. A build started as `dotnet VibeSwitcher.dll` runs in the dotnet
+    // program, which lives elsewhere; the app's files are then in the base directory.
+    internal static string AppPath(string? processPath, string baseDirectory) =>
+        processPath != null && !Path.GetFileNameWithoutExtension(processPath).Equals("dotnet", StringComparison.OrdinalIgnoreCase)
+            ? processPath
+            : Path.Combine(baseDirectory, "VibeSwitcher");
 
     internal static InstallInfo Detect(string processPath, string? appImage, bool macOS, string version)
     {

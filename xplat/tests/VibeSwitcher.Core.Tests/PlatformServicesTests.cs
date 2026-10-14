@@ -439,6 +439,16 @@ public class InstallInfoTests
     }
 
     [Fact]
+    public void ABuildRunThroughDotnet_IsWhereItsFilesAre_NotWhereDotnetIs()
+    {
+        Assert.Equal("/opt/vibeswitcher/VibeSwitcher", InstallInfo.AppPath("/opt/vibeswitcher/VibeSwitcher", "/opt/vibeswitcher/"));
+        var viaDotnet = InstallInfo.AppPath("/usr/share/dotnet/dotnet", "/home/ann/src/bin/");
+        Assert.Equal(Path.Combine("/home/ann/src/bin/", "VibeSwitcher"), viaDotnet);
+        Assert.Equal("/home/ann/src/bin", InstallInfo.Detect(viaDotnet, null, false, "1").Location.Replace('\\', '/'));
+        Assert.Equal(Path.Combine("/b/", "VibeSwitcher"), InstallInfo.AppPath(null, "/b/"));
+    }
+
+    [Fact]
     public void Version_IsMajorMinorBuild() => Assert.Matches(@"^\d+\.\d+\.\d+$", InstallInfo.AppVersion());
 }
 

@@ -16,6 +16,7 @@ namespace VibeSwitcher.App.Tests;
 // look can't change unnoticed. After an intended change: VS_UPDATE_SCREENSHOTS=1 on Linux rewrites
 // the baselines (review them before committing; scripts/wsl-test.sh works on a copy of the repo, so
 // copy ~/vs-src/xplat/tests/VibeSwitcher.App.Tests/Baselines back from there).
+[Collection("Shared UI settings")] // (changes Wording.Mac, the logo mode and hotkey labels; so do the Settings tests)
 public class ScreenshotTests
 {
     public static TheoryData<string, string, string> Cases()
@@ -44,24 +45,42 @@ public class ScreenshotTests
         Capture(name, theme, chrome, () => DialogCatalog.Create(name), _ => { });
 
     // The Settings window: the Profiles page, with the filter bar open, with a profile's popup open,
-    // and with no profiles. (The logo is shown at rest, so every run draws the same picture.)
+    // and with no profiles; each Settings page, About and the FAQ — in the system's own words (the
+    // macOS ones with the Mac frame). (The logo is shown at rest, so every run draws the same picture.)
     [AvaloniaTheory]
     [MemberData(nameof(SettingsCases))]
     public void Settings(string name, string theme, string chrome)
     {
         var oldMode = VibeSwitcher.Controls.LogoAnimator.Mode;
         var oldLabels = VibeSwitcher.Models.HotkeyDefinition.LabelStyle;
+        var oldWording = VibeSwitcher.App.Settings.Wording.Mac;
         VibeSwitcher.Controls.LogoAnimator.Mode = VibeSwitcher.Controls.LogoAnimator.AnimMode.Static;
         VibeSwitcher.Models.HotkeyDefinition.LabelStyle = chrome == "mac"
             ? VibeSwitcher.Models.HotkeyLabelStyle.MacOS : VibeSwitcher.Models.HotkeyLabelStyle.Linux;
+        VibeSwitcher.App.Settings.Wording.Mac = chrome == "mac";
         try
         {
             var setup = name == "settings-empty" ? new SettingsCatalog.Setup() : SettingsCatalog.WithProfiles();
             setup.Config.Current.CloseToTray = false;
+            if (name == "settings-shortcuts")
+            {
+                // One shortcut of each kind set (one with its banner silenced), the others not.
+                setup.Config.Current.SettingsHotkey = new VibeSwitcher.Models.HotkeyDefinition { VirtualKeyCode = 0x56, UseCtrl = true, UseAlt = true };
+                setup.Config.Current.MuteMicHotkey = new VibeSwitcher.Models.HotkeyDefinition { VirtualKeyCode = 0x4D, UseCtrl = true, UseShift = true };
+                setup.Config.Current.MuteMicSilent = true;
+            }
             Capture(name, theme, chrome, setup.Window, window =>
             {
                 var settings = (VibeSwitcher.App.Settings.SettingsWindow)window;
                 SettingsCatalog.WaitForDevices(settings);
+                SettingsCatalog.FixInstall(settings, chrome == "mac");
+                if (SettingsCatalog.Pages.TryGetValue(name, out var page))
+                {
+                    settings.ExpandSettings();
+                    settings.ViewModel.SelectedCategory = page;
+                }
+                if (name == "settings-about") settings.OpenAboutPanel();
+                if (name == "settings-faq") settings.OpenFaqPanel();
                 if (name == "settings-filters")
                 {
                     settings.FindControl<Avalonia.Controls.Button>("FiltersToggleBtn")!
@@ -81,6 +100,7 @@ public class ScreenshotTests
         {
             VibeSwitcher.Controls.LogoAnimator.Mode = oldMode;
             VibeSwitcher.Models.HotkeyDefinition.LabelStyle = oldLabels;
+            VibeSwitcher.App.Settings.Wording.Mac = oldWording;
         }
     }
 

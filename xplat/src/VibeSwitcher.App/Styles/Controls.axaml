@@ -303,7 +303,158 @@
             </Setter>
         </ControlTheme>
 
+        <!-- ── Context menu (rounded, with a shadow) ── -->
+        <ControlTheme x:Key="{x:Type ContextMenu}" TargetType="ContextMenu">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Padding="10" Background="Transparent">
+                        <Border Background="{DynamicResource MenuBg}" CornerRadius="10"
+                                BorderBrush="{DynamicResource MenuBorder}" BorderThickness="1"
+                                BoxShadow="0 0 11 0 #33000000">
+                            <ItemsPresenter Name="PART_ItemsPresenter" Margin="0,5"
+                                            KeyboardNavigation.TabNavigation="Continue" />
+                        </Border>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <!-- Menu item: hover highlight + orange left bar when checked (the active profile). -->
+        <ControlTheme x:Key="{x:Type MenuItem}" TargetType="MenuItem">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="12,8,16,8" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel>
+                        <Rectangle Name="ActiveBar" Width="3" RadiusX="2" RadiusY="2" HorizontalAlignment="Left"
+                                   Fill="{DynamicResource Accent}" IsVisible="False" />
+                        <Border Name="Bg" Margin="5,1" CornerRadius="6" Padding="{TemplateBinding Padding}"
+                                Background="Transparent">
+                            <ContentPresenter Name="PART_HeaderPresenter" Content="{TemplateBinding Header}"
+                                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              RecognizesAccessKey="True" VerticalAlignment="Center" />
+                        </Border>
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:selected /template/ Border#Bg">
+                <Setter Property="Background" Value="{DynamicResource MenuItemHoverBg}" />
+            </Style>
+            <Style Selector="^:checked /template/ Rectangle#ActiveBar">
+                <Setter Property="IsVisible" Value="True" />
+            </Style>
+            <Style Selector="^:selected:checked /template/ Border#Bg">
+                <Setter Property="Background" Value="{DynamicResource MenuItemSelHoverBg}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Foreground" Value="{DynamicResource DisabledText}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Style>
+            <Style Selector="^[Tag=sep] /template/ Border#Bg">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="CornerRadius" Value="0" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Thin subtle separator -->
+        <ControlTheme x:Key="{x:Type Separator}" TargetType="Separator">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Height="1" Background="{DynamicResource SeparatorBrush}" Margin="0,4" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <!-- ── Scrollbar: always shown while there's something to scroll, 20 px, rounded thumb, no
+             arrows (ScrollViewers leave room for it — see the ScrollViewer style below). ── -->
+        <ControlTheme x:Key="ScrollBarThumbStyle" TargetType="Thumb">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg" CornerRadius="6" Background="{DynamicResource ScrollBarThumb}" Margin="4" />
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource ScrollBarThumbHover}" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource ScrollBarThumbPressed}" />
+            </Style>
+        </ControlTheme>
+
+        <!-- Transparent page-click button (replaces sharp track fill) -->
+        <ControlTheme x:Key="ScrollBarPageButton" TargetType="RepeatButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="Transparent" />
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+
+        <ControlTheme x:Key="{x:Type ScrollBar}" TargetType="ScrollBar">
+            <Setter Property="Cursor" Value="Arrow" />
+            <Style Selector="^:vertical">
+                <Setter Property="Width" Value="20" />
+                <Setter Property="MinWidth" Value="20" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Panel>
+                            <Border CornerRadius="4" Background="{DynamicResource ScrollBarTrack}" />
+                            <Track Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                                   Value="{TemplateBinding Value, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}"
+                                   Orientation="{TemplateBinding Orientation}" IsDirectionReversed="True">
+                                <Track.DecreaseButton>
+                                    <RepeatButton Name="PART_PageUpButton" Theme="{StaticResource ScrollBarPageButton}" />
+                                </Track.DecreaseButton>
+                                <Track.IncreaseButton>
+                                    <RepeatButton Name="PART_PageDownButton" Theme="{StaticResource ScrollBarPageButton}" />
+                                </Track.IncreaseButton>
+                                <Track.Thumb>
+                                    <Thumb Theme="{StaticResource ScrollBarThumbStyle}" />
+                                </Track.Thumb>
+                            </Track>
+                        </Panel>
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+            <Style Selector="^:horizontal">
+                <Setter Property="Height" Value="20" />
+                <Setter Property="MinHeight" Value="20" />
+                <Setter Property="Template">
+                    <ControlTemplate>
+                        <Panel>
+                            <Border CornerRadius="4" Background="{DynamicResource ScrollBarTrack}" />
+                            <Track Minimum="{TemplateBinding Minimum}" Maximum="{TemplateBinding Maximum}"
+                                   Value="{TemplateBinding Value, Mode=TwoWay}" ViewportSize="{TemplateBinding ViewportSize}"
+                                   Orientation="{TemplateBinding Orientation}">
+                                <Track.DecreaseButton>
+                                    <RepeatButton Name="PART_PageUpButton" Theme="{StaticResource ScrollBarPageButton}" />
+                                </Track.DecreaseButton>
+                                <Track.IncreaseButton>
+                                    <RepeatButton Name="PART_PageDownButton" Theme="{StaticResource ScrollBarPageButton}" />
+                                </Track.IncreaseButton>
+                                <Track.Thumb>
+                                    <Thumb Theme="{StaticResource ScrollBarThumbStyle}" />
+                                </Track.Thumb>
+                            </Track>
+                        </Panel>
+                    </ControlTemplate>
+                </Setter>
+            </Style>
+        </ControlTheme>
+
     </Styles.Resources>
+
+    <!-- WPF scroll bars never hide or float over the content: the content stops where the bar starts. -->
+    <Style Selector="ScrollViewer">
+        <Setter Property="AllowAutoHide" Value="False" />
+    </Style>
 
     <!-- ── Implicit styles (Windows App.xaml TextBox / ToolTip / ComboBox): sizes and corners on top
          of the Fluent controls, whose colours come from the theme (Theming/WpfResources.cs). ── -->

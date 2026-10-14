@@ -4,6 +4,7 @@
         xmlns:svc="using:VibeSwitcher.Services"
         xmlns:c="using:VibeSwitcher.App.Controls"
         xmlns:img="using:VibeSwitcher.App.Imaging"
+        xmlns:s="using:VibeSwitcher.App.Settings"
         x:Class="VibeSwitcher.App.Settings.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="VibeSwitcher"
@@ -11,8 +12,9 @@
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBg}">
     <!-- Port of Views/SettingsWindow.xaml: the window frame, the top bar, the filter bar, the
-         Profiles page and the profile popup. The Settings / About / FAQ pages and Mini Mode fill
-         their panels in the next steps. -->
+         Profiles page, the Settings / About / FAQ pages and the profile popup. Texts that name
+         Windows things come from Wording (each system's words). Mini Mode fills its panel in the
+         next step. -->
 
     <Window.Resources>
         <ResourceDictionary>
@@ -136,6 +138,105 @@
         </Style>
         <Style Selector="Ellipse.dot.disconnected">
             <Setter Property="Fill" Value="{DynamicResource ErrorDot}" />
+        </Style>
+
+        <!-- ── Settings page (the Windows XAML repeats these values on every row) ── -->
+        <Style Selector="Button Ellipse.fg">
+            <Setter Property="Stroke" Value="{Binding $parent[Button].Foreground}" />
+        </Style>
+        <Style Selector="Button Ellipse.fill">
+            <Setter Property="Fill" Value="{Binding $parent[Button].Foreground}" />
+        </Style>
+        <Style Selector="TextBlock.pageTitle">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+        <Style Selector="Border.section">
+            <Setter Property="Background" Value="{DynamicResource CardBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+        <Style Selector="Border.rowLine">
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Background" Value="{DynamicResource VSSurface}" />
+        </Style>
+        <Style Selector="TextBlock.rowLabel">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.rowHint">
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style Selector="TextBlock.cardLabel">
+            <Setter Property="FontSize" Value="9" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Foreground" Value="{DynamicResource SectionLabelText}" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+        <Style Selector="TextBlock.cardHint">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+        <Style Selector="CheckBox.switch">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- A shortcut's keys, in a small box; dimmed while there's none. -->
+        <Style Selector="Border.hkBox">
+            <Setter Property="Background" Value="{DynamicResource VSInsetBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Padding" Value="9,3" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.hkBox > TextBlock">
+            <Setter Property="FontFamily" Value="fonts:VibeSwitcher#Cousine" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource VSLabel}" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Border.hkBox > TextBlock.unset">
+            <Setter Property="Foreground" Value="{DynamicResource DisabledText}" />
+        </Style>
+        <Style Selector="TextBlock.storageValue">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+        </Style>
+        <Style Selector="TextBlock.storagePath">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontFamily" Value="fonts:VibeSwitcher#Cascadia Mono" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="Margin" Value="0,0,0,10" />
+        </Style>
+
+        <!-- ── About / FAQ ── -->
+        <Style Selector="TextBlock.aboutLabel">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SectionLabelText}" />
+        </Style>
+        <Style Selector="TextBlock.faqHead">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+        <Style Selector="TextBlock.faq">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
     </Window.Styles>
 
@@ -641,10 +742,760 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- ── Settings / About / FAQ / Mini Mode (next steps) ── -->
-            <Grid Name="SettingsBodyScrollViewer" IsVisible="False" />
-            <Grid Name="AboutPanel" IsVisible="False" />
-            <Grid Name="FaqPanel" IsVisible="False" />
+            <!-- ══ PANEL B: Settings ══ -->
+            <Grid Name="SettingsBodyScrollViewer" IsVisible="False" ColumnDefinitions="168,*">
+
+                <!-- LEFT SIDEBAR -->
+                <Border Grid.Column="0" Background="{DynamicResource AppBg}" BorderBrush="{DynamicResource SeparatorBrush}"
+                        BorderThickness="0,0,1,0">
+                    <Grid RowDefinitions="*,Auto">
+                        <StackPanel Grid.Row="0" Margin="8,12,8,0">
+                            <TextBlock Text="GENERAL" Theme="{StaticResource SettingsNavLabelStyle}" />
+
+                            <Button Name="NavStartup" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsStartupSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="startup">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.6"
+                                                  Data="M 8,1.5 c 0,0 4,2.5 4,7.5 a 4,4 0 0 1 -8,0 c 0,-5 4,-7.5 4,-7.5 Z M 8,14 L 8,12 M 5.5,13 L 5.5,11.2 M 10.5,13 L 10.5,11.2" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Startup" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="NavAppear" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsAppearSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="appear">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Ellipse Classes="fg" Canvas.Left="5" Canvas.Top="5" Width="6" Height="6"
+                                                     StrokeThickness="1.6" Fill="Transparent" />
+                                            <Path Classes="fg" StrokeThickness="1.6"
+                                                  Data="M 8,1.5 L 8,2.5 M 8,13.5 L 8,14.5 M 1.5,8 L 2.5,8 M 13.5,8 L 14.5,8 M 3.3,3.3 L 4,4 M 12,12 L 12.7,12.7 M 12,3.3 L 11.3,4 M 4,12 L 3.3,12.7" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Appearance" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="NavNotif" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsNotifSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="notif">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.6"
+                                                  Data="M 8,2 a 5,5 0 0 0 -5,5 v 3 l -1,2 h 12 l -1,-2 V 7 a 5,5 0 0 0 -5,-5 Z M 6.5,13.5 a 1.5,1.5 0 0 0 3,0" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Notifications" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="NavDevices" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsDevicesSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="devices">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.6"
+                                                  Data="M 5,6 H 3 a 1,1 0 0 0 -1,1 v 2 a 1,1 0 0 0 1,1 h 2 l 3.5,2.5 V 3.5 Z M 10.5,6 a 2.5,2.5 0 0 1 0,4" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Devices" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="NavTray" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsTraySelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="tray">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.6"
+                                                  Data="M 4.5,1.5 H 11.5 A 3,3 0 0 1 14.5,4.5 V 11.5 A 3,3 0 0 1 11.5,14.5 H 4.5 A 3,3 0 0 1 1.5,11.5 V 4.5 A 3,3 0 0 1 4.5,1.5 Z M 1.5,10.5 H 14.5" />
+                                            <Ellipse Classes="fill" Canvas.Left="4.2" Canvas.Top="11.7" Width="1.6" Height="1.6" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="{x:Static s:Wording.TrayNav}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="NavShortcuts" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsShortcutsSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="shortcuts">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.5"
+                                                  Data="M 3,3.5 H 13 A 2,2 0 0 1 15,5.5 V 11.5 A 2,2 0 0 1 13,13.5 H 3 A 2,2 0 0 1 1,11.5 V 5.5 A 2,2 0 0 1 3,3.5 Z M 4,11 L 12,11" />
+                                            <Path Classes="fg" StrokeThickness="2" Data="M 4,8 L 4.01,8 M 7.5,8 L 7.51,8 M 11,8 L 11.01,8" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Shortcuts" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="NavCompact" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsCompactSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="compact">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.6" Data="{DynamicResource IcoCompact}" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Mini Window" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="NavLogs" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsLogsSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="logs">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.6" Data="M 2,3 H 14 M 2,7 H 10 M 2,11 H 12" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Logs" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Name="UninstallNavBtn" Theme="{StaticResource SettingsNavItemStyle}" Classes.selected="{Binding IsUninstallSelected}"
+                                    Command="{Binding SelectCategoryCommand}" CommandParameter="uninstall">
+                                <StackPanel Orientation="Horizontal">
+                                    <Viewbox Width="14" Height="14">
+                                        <Canvas Width="16" Height="16">
+                                            <Path Classes="fg" StrokeThickness="1.6" Data="{DynamicResource IcoTrash}" />
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="Install &amp; Updates" Margin="8,0,0,0" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Back button at bottom of sidebar -->
+                        <Button Name="SettingsBackBtn" Grid.Row="1" Theme="{StaticResource SettingsNavItemStyle}" Margin="8,4,8,14"
+                                Click="NavProfiles_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <Viewbox Width="13" Height="13">
+                                    <Canvas Width="14" Height="14">
+                                        <Path Classes="fg" StrokeThickness="2" Data="M 9,2 L 4,7 L 9,12" />
+                                    </Canvas>
+                                </Viewbox>
+                                <TextBlock Text="Back" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- RIGHT CONTENT -->
+                <ScrollViewer Name="SettingsScroll" Grid.Column="1" Focusable="True" IsTabStop="False"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="22,20,22,20">
+
+                        <!-- ── Startup ── -->
+                        <StackPanel Name="StartupSection" IsVisible="{Binding IsStartupSelected}">
+                            <TextBlock Classes="pageTitle" Text="Startup" />
+                            <Border Classes="section">
+                                <StackPanel>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Classes="rowLabel" Text="{x:Static s:Wording.StartAtLogin}" />
+                                        <CheckBox Name="StartAtLoginToggle" Classes="switch" Theme="{StaticResource ToggleSwitchStyle}"
+                                                  IsChecked="{Binding StartWithWindows}" c:Wpf.RereadIsChecked="True" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="14,10">
+                                        <TextBlock Classes="rowLabel" Text="{x:Static s:Wording.StartMinimized}" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding StartMinimized}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="14,10">
+                                        <TextBlock Classes="rowLabel" Text="{x:Static s:Wording.CloseToTray}" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CloseToTray}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="14,10" ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                            <TextBlock Classes="rowLabel" Text="Catch up missed schedules" />
+                                            <TextBlock Classes="rowHint" Text="{x:Static s:Wording.CatchUpDetail}" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding SchedulerCatchUp}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Appearance ── -->
+                        <StackPanel Name="AppearSection" IsVisible="{Binding IsAppearSelected}">
+                            <TextBlock Classes="pageTitle" Text="Appearance" />
+                            <Border Classes="section">
+                                <StackPanel>
+                                    <Grid Margin="14,10" ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0" Classes="rowLabel" Text="Theme" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <RadioButton Name="ThemeAuto" Theme="{StaticResource SegmentRadio}" GroupName="ThemeGroup2"
+                                                         Content="{x:Static s:Wording.FollowSystem}"
+                                                         IsChecked="{Binding Theme, Converter={x:Static c:Converters.IsValue}, ConverterParameter='Follow Windows'}" />
+                                            <RadioButton Name="ThemeLight" Theme="{StaticResource SegmentRadio}" GroupName="ThemeGroup2" Content="Light"
+                                                         IsChecked="{Binding Theme, Converter={x:Static c:Converters.IsValue}, ConverterParameter=Light}" />
+                                            <RadioButton Name="ThemeDark" Theme="{StaticResource SegmentRadio}" GroupName="ThemeGroup2" Content="Dark" Margin="0"
+                                                         IsChecked="{Binding Theme, Converter={x:Static c:Converters.IsValue}, ConverterParameter=Dark}" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="14,10" ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Classes="rowLabel" Text="Logo animation" />
+                                            <TextBlock Classes="rowHint" Margin="0,2,0,0"
+                                                       Text="Lower it or turn it off to reduce CPU while the window is open" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <RadioButton Name="LogoFull" Theme="{StaticResource SegmentRadio}" GroupName="LogoAnimGroup" Content="Full"
+                                                         IsChecked="{Binding LogoAnimation, Converter={x:Static c:Converters.IsValue}, ConverterParameter=Full}" />
+                                            <RadioButton Name="LogoReduced" Theme="{StaticResource SegmentRadio}" GroupName="LogoAnimGroup" Content="Reduced"
+                                                         IsChecked="{Binding LogoAnimation, Converter={x:Static c:Converters.IsValue}, ConverterParameter=Reduced}" />
+                                            <RadioButton Name="LogoStatic" Theme="{StaticResource SegmentRadio}" GroupName="LogoAnimGroup" Content="Static" Margin="0"
+                                                         IsChecked="{Binding LogoAnimation, Converter={x:Static c:Converters.IsValue}, ConverterParameter=Static}" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="14,10">
+                                        <TextBlock Classes="rowLabel" Text="Use 24-hour clock" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding Use24HourClock}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Notifications ── -->
+                        <StackPanel Name="NotifSection" IsVisible="{Binding IsNotifSelected}">
+                            <TextBlock Classes="pageTitle" Text="Notifications" />
+                            <Border Classes="section">
+                                <Grid Margin="14,10" ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                                        <TextBlock Classes="rowLabel" Text="Show switch &amp; warning alerts" />
+                                        <TextBlock Classes="rowHint" FontSize="11" Margin="0,3,0,0" Text="{x:Static s:Wording.NotificationsDetail}" />
+                                    </StackPanel>
+                                    <CheckBox Grid.Column="1" Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowNotifications}" />
+                                </Grid>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Devices ── -->
+                        <!-- (Windows' "Use legacy sound panel" and "Show disabled devices" rows are left out:
+                             macOS and Linux have neither — see docs/PARITY.md.) -->
+                        <StackPanel Name="DevicesSection" IsVisible="{Binding IsDevicesSelected}">
+                            <TextBlock Classes="pageTitle" Text="Devices" />
+                            <Border Classes="section">
+                                <StackPanel>
+                                    <Grid Margin="14,10">
+                                        <TextBlock Classes="rowLabel" Text="Show disconnected devices in dropdowns" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowDisconnectedDevices}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <StackPanel Margin="14,10">
+                                        <Button Content="Open Sound Settings" Theme="{StaticResource ActionButton}"
+                                                HorizontalAlignment="Left" Click="OpenSoundSettings_Click" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Device Aliases -->
+                            <Border Classes="section" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="DEVICE ALIASES" />
+                                    <TextBlock Classes="cardHint" Text="Give your audio devices custom display names to make profiles easier to read." />
+                                    <Button Content="Manage Aliases…" Theme="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="ManageAliasesButton_Click" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Backup & Restore -->
+                            <Border Classes="section" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="BACKUP &amp; RESTORE" />
+                                    <TextBlock Classes="cardHint" Text="Save your profiles to a file, or restore from a previous backup." />
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Name="ExportBtn" Content="Export Config" Theme="{StaticResource ActionButton}" Margin="0,0,8,0" Click="ExportButton_Click" />
+                                        <Button Name="ImportBtn" Content="Import Config" Theme="{StaticResource ActionButton}" Click="ImportButton_Click" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Tray (macOS: Menu Bar) ── -->
+                        <StackPanel Name="TraySection" IsVisible="{Binding IsTraySelected}">
+                            <TextBlock Classes="pageTitle" Text="{x:Static s:Wording.TrayNav}" />
+                            <Border Classes="section">
+                                <Grid Margin="14,10">
+                                    <TextBlock Classes="rowLabel" Text="{x:Static s:Wording.LeftClickCycles}" />
+                                    <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding LeftClickCyclesProfiles}" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Menu items: which optional actions appear in the icon's menu. -->
+                            <Border Classes="section" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="{x:Static s:Wording.TrayMenuHeader}" Margin="0,0,0,4" />
+                                    <TextBlock Classes="cardHint" Text="{x:Static s:Wording.TrayMenuDetail}" Margin="0,0,0,8" />
+                                    <Grid Margin="0,6">
+                                        <TextBlock Classes="rowLabel" Text="About" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowAbout}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="0,6">
+                                        <TextBlock Classes="rowLabel" Text="Help &amp; FAQ" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowFaq}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="0,6">
+                                        <TextBlock Classes="rowLabel" Text="Mini Mode" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowMiniMode}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <Grid Margin="0,6">
+                                        <TextBlock Classes="rowLabel" Text="Open Sound Settings" />
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding TrayShowSoundSettings}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Shortcuts ── -->
+                        <StackPanel Name="ShortcutsSection" IsVisible="{Binding IsShortcutsSelected}">
+                            <TextBlock Classes="pageTitle" Text="Shortcuts" />
+                            <Border Classes="section">
+                                <StackPanel>
+                                    <!-- Open / Close VibeSwitcher -->
+                                    <Grid Margin="14,9" ColumnDefinitions="*,Auto,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Classes="rowLabel" Text="Open / Close VibeSwitcher" />
+                                        <Border Grid.Column="1" Classes="hkBox">
+                                            <TextBlock Name="SettingsHotkeyText" Text="{Binding SettingsHotkeyDisplay}" Classes.unset="{Binding !SettingsHotkeyIsSet}" />
+                                        </Border>
+                                        <Button Grid.Column="2" Name="SettingsHotkeySetBtn" Content="Set" Theme="{StaticResource ActionButton}" Margin="6,0,0,0"
+                                                Click="SettingsHotkeyButton_Click" />
+                                        <Button Grid.Column="3" Name="SettingsHotkeyClearBtn" Content="✕" Theme="{StaticResource ActionButton}" Margin="4,0,0,0"
+                                                IsVisible="{Binding SettingsHotkeyIsSet}" Click="SettingsHotkeyClear_Click" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <!-- Mute Microphone -->
+                                    <Grid Margin="14,9" ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Classes="rowLabel" Text="Mute Microphone" />
+                                        <ToggleButton Grid.Column="1" Theme="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteMicSilent}" ToolTip.Tip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Microphone banner" />
+                                        <Border Grid.Column="2" Classes="hkBox">
+                                            <TextBlock Text="{Binding MuteMicHotkeyDisplay}" Classes.unset="{Binding !MuteMicHotkeyIsSet}" />
+                                        </Border>
+                                        <Button Grid.Column="3" Name="MuteMicSetBtn" Content="Set" Theme="{StaticResource ActionButton}" Tag="Mic" Margin="6,0,0,0"
+                                                Click="MuteHotkeyButton_Click" />
+                                        <Button Grid.Column="4" Content="✕" Theme="{StaticResource ActionButton}" Tag="Mic" Margin="4,0,0,0"
+                                                IsVisible="{Binding MuteMicHotkeyIsSet}" Click="MuteHotkeyClear_Click" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <!-- Mute Speakers -->
+                                    <Grid Margin="14,9" ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Classes="rowLabel" Text="Mute Speakers" />
+                                        <ToggleButton Grid.Column="1" Theme="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteSpeakersSilent}" ToolTip.Tip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Speakers banner" />
+                                        <Border Grid.Column="2" Classes="hkBox">
+                                            <TextBlock Text="{Binding MuteSpeakersHotkeyDisplay}" Classes.unset="{Binding !MuteSpeakersHotkeyIsSet}" />
+                                        </Border>
+                                        <Button Grid.Column="3" Name="MuteSpeakersSetBtn" Content="Set" Theme="{StaticResource ActionButton}" Tag="Speakers" Margin="6,0,0,0"
+                                                Click="MuteHotkeyButton_Click" />
+                                        <Button Grid.Column="4" Content="✕" Theme="{StaticResource ActionButton}" Tag="Speakers" Margin="4,0,0,0"
+                                                IsVisible="{Binding MuteSpeakersHotkeyIsSet}" Click="MuteHotkeyClear_Click" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <!-- Mute All -->
+                                    <Grid Margin="14,9" ColumnDefinitions="*,Auto,Auto,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Classes="rowLabel" Text="Mute Mic + Speakers" />
+                                        <ToggleButton Grid.Column="1" Theme="{StaticResource MuteBannerToggle}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                      IsChecked="{Binding MuteBothSilent}" ToolTip.Tip="Don't show a notification banner for this shortcut"
+                                                      AutomationProperties.Name="Silence the Mute Mic and Speakers banner" />
+                                        <Border Grid.Column="2" Classes="hkBox">
+                                            <TextBlock Text="{Binding MuteBothHotkeyDisplay}" Classes.unset="{Binding !MuteBothHotkeyIsSet}" />
+                                        </Border>
+                                        <Button Grid.Column="3" Name="MuteBothSetBtn" Content="Set" Theme="{StaticResource ActionButton}" Tag="Both" Margin="6,0,0,0"
+                                                Click="MuteHotkeyButton_Click" />
+                                        <Button Grid.Column="4" Content="✕" Theme="{StaticResource ActionButton}" Tag="Both" Margin="4,0,0,0"
+                                                IsVisible="{Binding MuteBothHotkeyIsSet}" Click="MuteHotkeyClear_Click" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Mini Window ── -->
+                        <StackPanel Name="CompactSection" IsVisible="{Binding IsCompactSelected}">
+                            <TextBlock Classes="pageTitle" Text="Mini Window" Margin="0,0,0,6" />
+                            <TextBlock Classes="cardHint" Text="{x:Static s:Wording.MiniDetail}" Margin="0,0,0,14" />
+                            <Border Classes="section">
+                                <StackPanel>
+                                    <!-- Profiles & layout wizard -->
+                                    <Grid Margin="14,10">
+                                        <StackPanel>
+                                            <TextBlock Classes="rowLabel" Text="Profiles &amp; layout" />
+                                            <TextBlock Classes="rowHint" Margin="0,3,110,0"
+                                                       Text="Pick which profiles appear in Mini Mode and switch between the row list and a compact icon grid." />
+                                        </StackPanel>
+                                        <Button Content="Customize…" Theme="{StaticResource ActionButton}"
+                                                HorizontalAlignment="Right" VerticalAlignment="Center" Click="CompactCustomize_Click" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <!-- Toggle Mini Mode shortcut -->
+                                    <Grid Margin="14,9" ColumnDefinitions="*,Auto,Auto,Auto">
+                                        <TextBlock Grid.Column="0" Classes="rowLabel" Text="Toggle Mini Mode" />
+                                        <Border Grid.Column="1" Classes="hkBox">
+                                            <TextBlock Text="{Binding CompactHotkeyDisplay}" Classes.unset="{Binding !CompactHotkeyIsSet}" />
+                                        </Border>
+                                        <Button Grid.Column="2" Name="CompactHotkeySetBtn" Content="Set" Theme="{StaticResource ActionButton}" Margin="6,0,0,0"
+                                                Click="CompactHotkeyButton_Click" />
+                                        <Button Grid.Column="3" Content="✕" Theme="{StaticResource ActionButton}" Margin="4,0,0,0"
+                                                IsVisible="{Binding CompactHotkeyIsSet}" Click="CompactHotkeyClear_Click" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <!-- Always on top -->
+                                    <Grid Margin="14,10">
+                                        <StackPanel>
+                                            <TextBlock Classes="rowLabel" Text="Always on top" />
+                                            <TextBlock Classes="rowHint" Margin="0,3,46,0"
+                                                       Text="Keeps the mini window above games and other apps. Also toggled by the pin in the mini title bar." />
+                                        </StackPanel>
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CompactAlwaysOnTop}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <!-- Translucent when inactive -->
+                                    <Grid Margin="14,10">
+                                        <StackPanel>
+                                            <TextBlock Classes="rowLabel" Text="Translucent when inactive" />
+                                            <TextBlock Classes="rowHint" Margin="0,3,46,0"
+                                                       Text="The mini window fades slightly when another app has focus, so it stays out of the way." />
+                                        </StackPanel>
+                                        <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding CompactTranslucent}" />
+                                    </Grid>
+                                    <Border Classes="rowLine" />
+                                    <!-- Try it -->
+                                    <StackPanel Margin="14,12">
+                                        <Button Content="Switch to Mini Mode now" Theme="{StaticResource ActionButton}"
+                                                HorizontalAlignment="Left" Click="TitleShrink_Click" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Logs ── -->
+                        <StackPanel Name="LogsSection" IsVisible="{Binding IsLogsSelected}">
+                            <TextBlock Classes="pageTitle" Text="Logs" />
+                            <Border Classes="section">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="SESSION LOG" />
+                                    <TextBlock Classes="cardHint" Text="View a log of audio device switches and events from this session." />
+                                    <Button Content="View session log" Theme="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="LogsButton_Click" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── Install & Updates ── -->
+                        <StackPanel Name="UninstallSection" IsVisible="{Binding IsUninstallSelected}">
+                            <TextBlock Classes="pageTitle" Text="Install / Update / Uninstall" />
+
+                            <!-- App location -->
+                            <Border Classes="section">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="THIS INSTALLATION" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="rowLabel" Text="Version" />
+                                        <TextBlock Name="InstallVersionText" Classes="storageValue" />
+                                        <TextBlock Classes="rowLabel" Text="•" Margin="10,0" />
+                                        <TextBlock Classes="rowLabel" Text="Size" />
+                                        <TextBlock Name="InstallSizeText" Classes="storageValue" />
+                                    </StackPanel>
+                                    <TextBlock Classes="rowLabel" Text="Location" Margin="0,4,0,2" />
+                                    <TextBlock Name="InstallLocationText" Classes="storagePath" ToolTip.Tip="{Binding $self.Text}" />
+                                    <Button Name="BrowseInstallBtn" Content="{x:Static s:Wording.BrowseInstall}" Theme="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="BrowseInstallFolder_Click" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- App data -->
+                            <Border Classes="section" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="APP DATA" />
+                                    <TextBlock Classes="cardHint" Margin="0,0,0,8"
+                                               Text="Your profiles, settings, custom icons, and the error log live in the app's data folder. This is also what Backup &amp; Restore exports." />
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Classes="rowLabel" Text="Size" />
+                                        <TextBlock Name="DataSizeText" Classes="storageValue" />
+                                    </StackPanel>
+                                    <TextBlock Classes="rowLabel" Text="Location" Margin="0,4,0,2" />
+                                    <TextBlock Name="DataLocationText" Classes="storagePath" ToolTip.Tip="{Binding $self.Text}" />
+                                    <Button Content="Open data folder" Theme="{StaticResource ActionButton}"
+                                            HorizontalAlignment="Left" Click="OpenDataFolder_Click" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Reset settings (keeps profiles and data) -->
+                            <Border Classes="section" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="RESET SETTINGS" />
+                                    <TextBlock Classes="cardHint"
+                                               Text="Returns every app setting to its default — theme, notifications, shortcuts, Mini Mode, and the rest. Your profiles, schedules, app triggers, and device aliases are kept." />
+                                    <Button Content="Reset settings to defaults…" Theme="{StaticResource DangerButton}"
+                                            HorizontalAlignment="Left" Command="{Binding ResetSettingsCommand}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Uninstall (button off for builds that can't uninstall themselves) -->
+                            <Border Name="UninstallCard" Classes="section" Margin="0,12,0,0">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="UNINSTALL VIBESWITCHER" />
+                                    <TextBlock Name="UninstallDetailText" Classes="cardHint" />
+                                    <TextBlock Name="UninstallBlockedNote" IsVisible="False" FontSize="10.5" Foreground="{DynamicResource WarningText}"
+                                               TextWrapping="Wrap" Margin="0,0,0,10" />
+                                    <Button Name="UninstallBtn" Content="Uninstall VibeSwitcher…" Theme="{StaticResource DeleteButton}"
+                                            HorizontalAlignment="Left" Click="UninstallButton_Click" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- ══ PANEL C: About ══ -->
+            <ScrollViewer Name="AboutPanel" IsVisible="False" Focusable="True" IsTabStop="False"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                        <Button Theme="{StaticResource BackButton}" Content="&#x2190;" FontSize="14" Click="NavProfiles_Click" />
+                        <TextBlock Text="About" Theme="{StaticResource PanelTitle}" />
+                    </StackPanel>
+
+                    <!-- App identity card -->
+                    <Border Theme="{StaticResource CardBorder}">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <c:LogoIcon Grid.Column="0" IsAbout="True" Width="84" Height="84" Margin="0,0,20,0" />
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="VibeSwitcher" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource Accent}" />
+                                <TextBlock Name="AboutVersionText" FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                                <TextBlock Text="Manage audio device profiles with global hotkeys, schedules, app triggers, and headset auto-detection."
+                                           FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,6,0,0" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Links -->
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="aboutLabel" Text="LINKS" Margin="0,0,0,12" />
+                            <WrapPanel>
+                                <!-- Placeholder until the site exists — set Tag to the URL and remove
+                                     IsEnabled/Opacity to activate. -->
+                                <Button Theme="{StaticResource LinkChipStyle}" IsEnabled="False" Opacity="0.45"
+                                        ToolTip.Tip="Coming soon" ToolTip.ShowOnDisabled="True">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Website" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Theme="{StaticResource LinkChipStyle}" Tag="https://github.com/raphymany/vibeswitcher" Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="GitHub" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Theme="{StaticResource LinkChipStyle}" Tag="https://github.com/raphymany/vibeswitcher/issues/new/choose" Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Report a bug" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Theme="{StaticResource LinkChipStyle}" Tag="https://github.com/raphymany/vibeswitcher/blob/main/README.md" Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="ReadMe" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Theme="{StaticResource LinkChipStyle}" Tag="https://github.com/raphymany/vibeswitcher/blob/main/CHANGELOG.md" Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="Changelog" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Theme="{StaticResource LinkChipStyle}" Tag="https://github.com/raphymany/vibeswitcher/blob/main/LICENSE" Click="LinkChip_Click">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="↗" FontSize="9" Margin="0,0,5,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="License (MIT)" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Button>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Built with -->
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="aboutLabel" Text="BUILT WITH" Margin="0,0,0,10" />
+                            <ItemsControl ItemsSource="{x:Static s:Wording.BuiltWith}" Margin="0,0,0,-6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="s:BuiltWithItem">
+                                        <Grid ColumnDefinitions="130,*" Margin="0,0,0,6">
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource PrimaryText}" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="12"
+                                                       Foreground="{DynamicResource SecondaryText}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Credits -->
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="aboutLabel" Text="DEVELOPMENT" Margin="0,0,0,10" />
+                            <TextBlock Text="Designed and built by" FontSize="11" Foreground="{DynamicResource SecondaryText}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,10">
+                                <TextBlock Text="Raphael Mansour" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center" />
+                                <Border CornerRadius="6" Background="#1FF5820A" BorderBrush="#40F5820A" BorderThickness="1"
+                                        Padding="7,2" Margin="10,0,0,0" VerticalAlignment="Center"
+                                        ToolTip.Tip="Pair-programmed with Anthropic's Claude Code">
+                                    <TextBlock Text="with Claude Code" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="&#xA9; 2026 Raphael Mansour. All rights reserved." FontSize="11" Foreground="{DynamicResource DisabledText}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ══ PANEL D: FAQ ══ -->
+            <!-- (WPF Hyperlinks → FaqLink buttons inside the text.) -->
+            <ScrollViewer Name="FaqPanel" IsVisible="False" Focusable="True" IsTabStop="False"
+                          HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                <StackPanel MaxWidth="720" HorizontalAlignment="Center" Margin="22,18,22,18">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+                        <Button Theme="{StaticResource BackButton}" Content="←" FontSize="14" Click="NavProfiles_Click" />
+                        <TextBlock Text="Help &amp; FAQ" Theme="{StaticResource PanelTitle}" />
+                    </StackPanel>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="WHAT IS VIBESWITCHER?" />
+                            <TextBlock Classes="faq"><Run Text="VibeSwitcher is " /><Run Text="{x:Static s:Wording.AppKind}" /><Run Text=" that lets you save audio device configurations as profiles and switch between them instantly — using hotkeys, schedules, or a single click." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="SETTING UP PROFILES" />
+                            <TextBlock Classes="faq"><Run Text="Click " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="newProfile" Click="FaqAction_Click" Content="+ New Profile" /></InlineUIContainer><Run Text=" to create a profile. Choose a mode (Playback, Recording, or Both), pick your devices, then give it a name. You can assign a global hotkey to activate it from anywhere." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="CUSTOM PROFILE ICONS" />
+                            <TextBlock Classes="faq" Margin="0,0,0,6"><Run Text="Open " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="profiles" Click="FaqAction_Click" Content="a profile" /></InlineUIContainer><Run Text=", click its icon, and choose &quot;Browse from disk&quot; to use your own " /><Run FontFamily="fonts:VibeSwitcher#Cascadia Mono" Text=".ico" /><Run Text=" file. To make one from any picture:" /></TextBlock>
+                            <TextBlock Classes="faq" LineHeight="21"><Run Text="1.&#160; Save the picture you want to use." /><LineBreak /><Run Text="2.&#160; (Optional) Remove its background with " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="https://www.pixelcut.ai/background-remover/png" Click="FaqUrl_Click" Content="Pixelcut Background Remover" /></InlineUIContainer><Run Text="." /><LineBreak /><Run Text="3.&#160; Convert the image to " /><Run FontFamily="fonts:VibeSwitcher#Cascadia Mono" Text=".ico" /><Run Text=" with " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="https://image.online-convert.com/convert-to-ico" Click="FaqUrl_Click" Content="Online&#8209;Convert" /></InlineUIContainer><Run Text=". If your file is a PNG, JPEG, or other format, just pick the matching conversion (e.g. PNG&#160;&#8594;&#160;ICO)." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="FILTERING PROFILES" />
+                            <TextBlock Classes="faq"><Run Text="Use the " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="filters" Click="FaqAction_Click" Content="search box and filter chips" /></InlineUIContainer><Run Text=" to narrow down your profile list. Filters stack (AND logic). Clear all filters with the ✕ Clear button." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="USING HOTKEYS" />
+                            <TextBlock Classes="faq"><Run Text="Click " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="profiles" Click="FaqAction_Click" Content="a profile card" /></InlineUIContainer><Run Text=" to open profile details, then click &quot;Set Hotkey&quot;. Press your desired key combination. " /><Run Text="{x:Static s:Wording.HotkeysWorkWhen}" /><Run Text="App-wide shortcuts (open/close the window, mute) live in " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="shortcuts" Click="FaqAction_Click" Content="Settings → Shortcuts" /></InlineUIContainer><Run Text="." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="SCHEDULED SWITCHING" />
+                            <TextBlock Classes="faq"><Run Text="Click the schedule button (&#x231A;) on " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="profiles" Click="FaqAction_Click" Content="a profile card" /></InlineUIContainer><Run Text=" to add a schedule. Choose a time and days of the week. Multiple schedules per profile are supported. The schedule button lights up orange when at least one schedule is set, and the card shows a schedule chip you can click to edit it." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="AUTO-SWITCH ON CONNECT" />
+                            <TextBlock Classes="faq"><Run Text="Click the auto-switch button (&#x26A1;) on " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="profiles" Click="FaqAction_Click" Content="a profile card" /></InlineUIContainer><Run Text=" to enable auto-switch. VibeSwitcher will activate this profile whenever its playback device connects. Best for wireless headsets and USB audio interfaces." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="MINI MODE" />
+                            <TextBlock Classes="faq"><Run Text="Shrink VibeSwitcher into a small profile switcher that sits in a corner of your screen — perfect over games. Enter it with the shrink button in the title bar, the " /><Run Text="{x:Static s:Wording.TrayMenu}" /><Run Text=", or a hotkey; the expand button brings the full window back. In " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="miniSettings" Click="FaqAction_Click" Content="Settings → Mini Window" /></InlineUIContainer><Run Text=" you can pick the layout (rows or icon grid), choose which profiles appear, set the toggle shortcut, keep it always on top, and make it fade when inactive. Or just " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="miniTry" Click="FaqAction_Click" Content="try Mini Mode now" /></InlineUIContainer><Run Text="." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="PANIC / MUTE HOTKEYS" />
+                            <TextBlock Classes="faq"><Run Text="Set global hotkeys to instantly mute your microphone, speakers, or both — from inside any app. Each toggle plays a distinct sound and shows a brief &quot;muted / unmuted&quot; notification (you can silence the banner per shortcut with its bell toggle). Press the hotkey again to unmute. Set them up in " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="shortcuts" Click="FaqAction_Click" Content="Settings → Shortcuts" /></InlineUIContainer><Run Text="." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="APP LAUNCH TRIGGERS" />
+                            <TextBlock Classes="faq"><Run Text="Link one or more programs to a profile with the trigger button (&#x25B6;) on " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="profiles" Click="FaqAction_Click" Content="a profile card" /></InlineUIContainer><Run Text=" — VibeSwitcher switches to that profile automatically within seconds of any linked app launching, and stays there until you switch yourself." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="SWITCH SOUNDS &amp; SILENT PROFILES" />
+                            <TextBlock Classes="faq"><Run Text="Each profile can play a tone when it activates — choose from 7 built-in tones or your own WAV via the sound button on " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="profiles" Click="FaqAction_Click" Content="a profile card" /></InlineUIContainer><Run Text=". Prefer quiet? The silent toggle on a card skips the notification banner for that profile, and app-wide notification options live in " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="notifications" Click="FaqAction_Click" Content="Settings → Notifications" /></InlineUIContainer><Run Text="." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="BACKUP &amp; RESTORE" />
+                            <TextBlock Classes="faq"><Run Text="Go to " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="backup" Click="FaqAction_Click" Content="Settings → Backup &amp; Restore" /></InlineUIContainer><Run Text=" to export your config to a JSON file. Import that file on a new machine to restore all your profiles. Config is stored at " /><Run Text="{x:Static s:Wording.ConfigPath}" /><Run Text="." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="{x:Static s:Wording.TrayFaqHeader}" />
+                            <TextBlock Classes="faq"><Run Text="{x:Static s:Wording.LivesIn}" /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="traySettings" Click="FaqAction_Click" Content="{x:Static s:Wording.TrayLink}" /></InlineUIContainer><Run Text="), and right-click for the full menu with all profiles and quick actions. Hover the icon to see the active profile and your hotkey cheat sheet." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="STARTING AT LOGIN" />
+                            <TextBlock Classes="faq"><Run Text="In " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="startupSettings" Click="FaqAction_Click" Content="Settings → Startup" /></InlineUIContainer><Run Text="{x:Static s:Wording.StartupFaq}" /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="RENAMING DEVICES" />
+                            <TextBlock Classes="faq"><Run Text="{x:Static s:Wording.DeviceNamesIntro}" /><Run Text="Give devices short friendly names like &quot;GoXLR&quot; or &quot;Desk Speakers&quot; in " /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="deviceAliases" Click="FaqAction_Click" Content="Settings → Devices" /></InlineUIContainer><Run Text=" — aliases are shown everywhere in the app instead of the raw names." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Theme="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Classes="faqHead" Text="INSTALL, UPDATES &amp; UNINSTALL" />
+                            <TextBlock Classes="faq"><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="installSettings" Click="FaqAction_Click" Content="Settings → Install &amp; Updates" /></InlineUIContainer><Run Text=" shows your version, where the app and its data live (with folder sizes), and lets you uninstall from inside the app. Uninstalling keeps your profiles and settings unless you explicitly choose to delete them — so a reinstall picks up right where you left off." /></TextBlock>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
             <Grid Name="MiniPanel" IsVisible="False" />
 
             <!-- ══ Profile popup ══ -->

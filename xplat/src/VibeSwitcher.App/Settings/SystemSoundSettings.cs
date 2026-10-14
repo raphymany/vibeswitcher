@@ -50,13 +50,20 @@ internal static class SystemSoundSettings
         yield return ("systemsettings", ["kcm_pulseaudio"]);
     }
 
-    private static string? FindOnPath(string program)
+    // A program in the PATH's folders. Relative entries (".", an empty one) are skipped — they'd find a
+    // file of that name in whatever folder the app was started from — and so are files that can't run.
+    internal static string? FindOnPath(string program)
     {
         foreach (var dir in (Environment.GetEnvironmentVariable("PATH") ?? "").Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
+            if (!Path.IsPathRooted(dir)) continue;
             var candidate = Path.Combine(dir, program);
-            if (File.Exists(candidate)) return candidate;
+            if (File.Exists(candidate) && (OperatingSystem.IsWindows() || CanRun(candidate))) return candidate;
         }
         return null;
     }
+
+    [System.Runtime.Versioning.UnsupportedOSPlatform("windows")]
+    private static bool CanRun(string file) =>
+        (File.GetUnixFileMode(file) & (UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute)) != 0;
 }

@@ -56,6 +56,12 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
         NotYet<List<string>>(nameof(ShowAppTriggerWizard));
     public void ShowManageSchedules(object profileCard) => NotYet<object>(nameof(ShowManageSchedules));
 
+    // Settings' own dialogs (the Windows window opens these itself): an app shortcut with the row's
+    // wording, and the device aliases. Ported with the remaining dialogs (next step).
+    public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current, string subtitle) => NotYet<HotkeyDefinition>(nameof(ShowHotkeyCapture));
+    public void ShowDeviceAliases(System.Collections.ObjectModel.ObservableCollection<ViewModels.DeviceAliasItem> aliases) =>
+        NotYet<object>(nameof(ShowDeviceAliases));
+
     private static T? NotYet<T>(string dialog) where T : class
     {
         AppLog.Warning("DialogService", $"{dialog}: this dialog isn't available on macOS/Linux yet.");
@@ -102,6 +108,55 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
             ],
         });
         return files.Count == 1 ? files[0].TryGetLocalPath() : null;
+    }
+
+    // Backup & Restore: the system's save and open pickers for a .json config file (Windows:
+    // SaveFileDialog / OpenFileDialog). Null when cancelled or when no window is showing.
+    private static readonly FilePickerFileType JsonFiles = new("JSON Files")
+    {
+        Patterns = ["*.json", "*.JSON"],
+        MimeTypes = ["application/json"],
+        AppleUniformTypeIdentifiers = ["public.json"],
+    };
+
+    public async Task<string?> PickSaveJsonAsync(string title, string suggestedName)
+    {
+        if (Owner() is not { } parent) return null;
+        using var _ = DisableWindows(except: null);
+        var file = await parent.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = title,
+            SuggestedFileName = suggestedName,
+            DefaultExtension = "json",
+            FileTypeChoices = [JsonFiles],
+            ShowOverwritePrompt = true,
+        });
+        if (file == null) return null;
+        // (Some Linux pickers keep a name typed without ".json" as it is; Windows adds it.)
+        var path = LocalPath(file);
+        return path != null && !System.IO.Path.HasExtension(path) ? path + ".json" : path;
+    }
+
+    // The picked file's path — null (and logged) for one that isn't on this computer's disk (e.g. a
+    // network location the picker offers), which the config can't be written to or read from.
+    private static string? LocalPath(IStorageItem item)
+    {
+        var path = item.TryGetLocalPath();
+        if (path == null) AppLog.Warning("DialogService", $"'{item.Name}' isn't a file on this computer, so it can't be used.");
+        return path;
+    }
+
+    public async Task<string?> PickOpenJsonAsync(string title)
+    {
+        if (Owner() is not { } parent) return null;
+        using var _ = DisableWindows(except: null);
+        var files = await parent.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false,
+            FileTypeFilter = [JsonFiles],
+        });
+        return files.Count == 1 ? LocalPath(files[0]) : null;
     }
 
     // The dialogs open right now, innermost last: a dialog opened from a dialog (the clone wizard's

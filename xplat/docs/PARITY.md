@@ -21,6 +21,7 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | Gallery emoji icons | Slightly different artwork (a different emoji font) | Same as macOS | Same as macOS |
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | "Sound Settings" button | Opens System Settings › Sound | Opens the desktop's own sound settings (GNOME, KDE, Cinnamon, MATE), or the PulseAudio volume control (`pavucontrol`) where there are none; the Windows-only "legacy sound panel" option doesn't apply | Same as X11 |
+| Settings, About and FAQ wording | Mac terms where Windows is named: "Open at login", "menu bar", "Show in Finder", the config path under `~/Library/Application Support`; About lists the Mac building blocks | "Start at login", "tray", the config path under `~/.config` (or `$XDG_CONFIG_HOME`); About lists the Linux building blocks | Same as X11 |
 | Profile cards' drag-and-drop | Not offered (as on Windows: the Windows app has drop handlers but never starts a drag) | Same | Same |
 | Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
 
