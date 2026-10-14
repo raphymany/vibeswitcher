@@ -134,7 +134,15 @@ public sealed class LinuxHidAccess
         var path = InstallDir + "/" + RuleFileName;
         if (_readFile(path) is not { } text || !text.StartsWith("# VibeSwitcher:", StringComparison.Ordinal))
             return RuleInstallResult.Installed; // nothing of ours there
-        return RunPrivileged(["/bin/rm", "-f", path]);
+        // (udev reloads its rules and applies them again, so a dongle that's plugged in loses access
+        // now rather than at the next restart.)
+        const string script = """
+            rm -f "$1" || exit 1
+            if command -v udevadm >/dev/null; then
+              udevadm control --reload-rules && udevadm trigger --subsystem-match=hidraw --action=change || true
+            fi
+            """;
+        return RunPrivileged(["/bin/sh", "-c", script.ReplaceLineEndings("\n"), "vibeswitcher", path]);
     }
 
     private RuleInstallResult RunPrivileged(string[] args)

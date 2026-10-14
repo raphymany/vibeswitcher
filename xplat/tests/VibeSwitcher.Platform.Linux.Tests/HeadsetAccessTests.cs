@@ -123,7 +123,11 @@ public sealed class HeadsetAccessTests : IDisposable
     {
         _files["/etc/udev/rules.d/" + LinuxHidAccess.RuleFileName] = "# VibeSwitcher: an older version\n";
         Assert.Equal(RuleInstallResult.Installed, Access().Remove());
-        Assert.Equal(["/bin/rm", "-f", "/etc/udev/rules.d/" + LinuxHidAccess.RuleFileName], Assert.Single(_runner.Calls).Args);
+        var args = Assert.Single(_runner.Calls).Args;
+        Assert.Equal("/bin/sh", args[0]);
+        Assert.Contains("udevadm control --reload-rules", args[2]); // (a plugged-in dongle loses access now)
+        Assert.Contains("udevadm trigger --subsystem-match=hidraw --action=change", args[2]);
+        Assert.Equal("/etc/udev/rules.d/" + LinuxHidAccess.RuleFileName, args[^1]); // (an argument, never in the script)
     }
 
     [Fact]

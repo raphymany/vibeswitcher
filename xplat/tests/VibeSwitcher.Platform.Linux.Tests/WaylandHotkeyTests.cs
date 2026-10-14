@@ -184,6 +184,12 @@ public class GnomeShortcutBridgeTests
         Assert.True(_bridge.RemoveAll());
         Assert.Equal([OtherEntry], GnomeShortcutBridge.ParseGVariantStringArray(_gs.List));
         Assert.Null(_gs.Entry(stale, "binding"));
+
+        // A pending update (a shortcut changed just before) can't write them back afterwards.
+        Add(2, ShortcutNames.Probe, 0x48);
+        Assert.True(_bridge.RemoveAll());
+        _bridge.Flush();
+        Assert.Equal([OtherEntry], GnomeShortcutBridge.ParseGVariantStringArray(_gs.List));
     }
 
     [Fact]

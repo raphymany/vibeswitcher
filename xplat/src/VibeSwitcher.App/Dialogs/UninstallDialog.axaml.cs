@@ -17,13 +17,23 @@ public sealed record UninstallText(string Subtitle, string Body, string DataNote
 
     public static readonly UninstallText LinuxAppImage = new(
         "The app will close and its AppImage file will be deleted.",
-        "VibeSwitcher's AppImage file will be deleted, along with its start-at-login entry and its app-menu entry.",
+        "VibeSwitcher's AppImage file will be deleted, along with its start-at-login entry, any app-menu entry for it, and the headset permission rule if it set one up (that asks for your password).",
         "Deletes the app's data folder (~/.config/VibeSwitcher)." + KeepNote);
 
     public static readonly UninstallText LinuxPackage = new(
         "The app will close and the system will remove it.",
         "VibeSwitcher will be removed by the system's package manager, along with its start-at-login entry. You'll be asked for your password.",
         "Deletes the app's data folder (~/.config/VibeSwitcher)." + KeepNote);
+
+    // The note naming the folder this copy really uses (XDG_CONFIG_HOME can move it), with the home
+    // folder written as "~".
+    public UninstallText WithDataFolder(string folder)
+    {
+        if (string.IsNullOrEmpty(folder)) return this;
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile).TrimEnd('/', '\\');
+        var shown = home.Length > 0 && folder.StartsWith(home + "/", StringComparison.Ordinal) ? "~" + folder[home.Length..] : folder;
+        return this with { DataNote = $"Deletes the app's data folder ({shown})." + KeepNote };
+    }
 }
 
 // Port of Views/UninstallDialog.xaml.cs.

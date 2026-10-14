@@ -225,6 +225,14 @@ jobs:
           dpkg -L vibeswitcher | grep -q /usr/lib/udev/rules.d/70-vibeswitcher-headsets.rules
           dpkg -L vibeswitcher | grep -q /usr/share/applications/com.raphymany.vibeswitcher.desktop
           desktop-file-validate /usr/share/applications/com.raphymany.vibeswitcher.desktop
+          # Uninstalling from Settings: a copy of the app removes its own folder and its data (in a
+          # scratch folder), then must finish and quit cleanly with its files gone.
+          cp -a /opt/vibeswitcher "$RUNNER_TEMP/vscopy"
+          check="$RUNNER_TEMP/uninstall.txt"
+          rc=0; XDG_CONFIG_HOME="$RUNNER_TEMP/xdg" VS_UNINSTALL_CHECK="$check" timeout 90 xvfb-run -a "$RUNNER_TEMP/vscopy/VibeSwitcher" > "$RUNNER_TEMP/uninstall.log" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/uninstall.log"; cat "$check" || true; echo
+          test "$rc" -eq 0; grep -qx uninstalled "$check"
+          test ! -e "$RUNNER_TEMP/vscopy"; test ! -e "$RUNNER_TEMP/xdg/VibeSwitcher"
           sudo apt-get remove -y -q vibeswitcher
           test ! -e /usr/lib/udev/rules.d/70-vibeswitcher-headsets.rules
 
@@ -335,6 +343,17 @@ jobs:
           "$app/Contents/MacOS/VibeSwitcher" --diagnostics "$RUNNER_TEMP/diag.zip"
           unzip -l "$RUNNER_TEMP/diag.zip" | grep -q report.txt
           unzip -l "$RUNNER_TEMP/diag.zip" | grep -q screenshots/settings-profiles.png
+          # Uninstalling from Settings (see the Linux job): a copy moves itself to the Trash and
+          # deletes its data, then must finish and quit cleanly from there.
+          ditto "$app" "$RUNNER_TEMP/copy/VibeSwitcher.app"
+          check="$RUNNER_TEMP/uninstall.txt"
+          VS_UNINSTALL_CHECK="$check" "$RUNNER_TEMP/copy/VibeSwitcher.app/Contents/MacOS/VibeSwitcher" > "$RUNNER_TEMP/uninstall.log" 2>&1 & pid=$!
+          for i in $(seq 1 60); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+          if kill -0 "$pid" 2>/dev/null; then kill "$pid"; fi
+          rc=0; wait "$pid" || rc=$?
+          cat "$RUNNER_TEMP/uninstall.log"; cat "$check" || true; echo
+          test "$rc" -eq 0; grep -qx uninstalled "$check"
+          test ! -e "$RUNNER_TEMP/copy/VibeSwitcher.app"; test ! -e "$HOME/Library/Application Support/VibeSwitcher"
           codesign --verify --deep --strict "$app"
           plutil -extract CFBundleIdentifier raw "$app/Contents/Info.plist" | grep -qx com.raphymany.vibeswitcher
           plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist"

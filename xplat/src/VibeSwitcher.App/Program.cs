@@ -52,7 +52,15 @@ internal static class Program
         // A tray / menu-bar app: it keeps running with no window open, until Quit.
         try
         {
-            return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, ShutdownMode.OnExplicitShutdown);
+            var result = BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, ShutdownMode.OnExplicitShutdown);
+            // Uninstalled with "delete my data": the settings folder goes now that nothing can write to
+            // it — while this copy still holds the lock (inside it), so no copy started meanwhile can
+            // set itself up there.
+            if (host.DataToDelete is { } data)
+                Hosting.Uninstaller.DeleteData(data, warn: message => Console.Error.WriteLine($"VibeSwitcher: {message}"));
+            if (Environment.GetEnvironmentVariable("VS_UNINSTALL_CHECK") is { Length: > 0 } check)
+                File.WriteAllText(check, host.DataToDelete != null && !Directory.Exists(host.DataToDelete) ? "uninstalled" : "data kept");
+            return result;
         }
         catch (Exception ex) when (host.Logger == null)
         {
