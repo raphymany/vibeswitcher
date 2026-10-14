@@ -1,0 +1,168 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            x:Class="VibeSwitcher.App.Dialogs.ScheduleWizardDialog"
+            Width="470">
+    <!-- Port of Views/ScheduleWizardDialog.xaml. -->
+    <c:VsDialog.Styles>
+        <Style Selector="Ellipse.dot">
+            <Setter Property="Width" Value="9" />
+            <Setter Property="Height" Value="9" />
+            <Setter Property="Margin" Value="5,0" />
+            <Setter Property="Fill" Value="{DynamicResource ChipBorder}" />
+        </Style>
+        <Style Selector="Ellipse.dot.on">
+            <Setter Property="Fill" Value="{DynamicResource Accent}" />
+        </Style>
+        <!-- The big hour / minute pickers. -->
+        <Style Selector="ComboBox.time">
+            <Setter Property="Width" Value="76" />
+            <Setter Property="Height" Value="46" />
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ComboBox.reminderTime">
+            <Setter Property="Width" Value="76" />
+            <Setter Property="Height" Value="42" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.unit">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+        </Style>
+        <Style Selector="ToggleButton.day">
+            <Setter Property="Margin" Value="4" />
+        </Style>
+    </c:VsDialog.Styles>
+
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="28,18,28,24">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoAlarm}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5" StrokeJoin="Round" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Name="HeaderTitle" Text="Add Schedule" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Switch to this profile automatically at a set time" FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Step progress dots -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,20">
+                <Ellipse Name="Dot0" Classes="dot" />
+                <Ellipse Name="Dot1" Classes="dot" />
+                <Ellipse Name="Dot2" Classes="dot" />
+                <Ellipse Name="Dot3" Classes="dot" />
+            </StackPanel>
+
+            <!-- Step title and subtitle -->
+            <TextBlock Name="StepTitle" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" Margin="0,0,0,4" />
+            <TextBlock Name="StepSubtitle" FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                       TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,20" />
+
+            <!-- ── Step 0: Time ── -->
+            <StackPanel Name="Step0Panel" MinHeight="80">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <StackPanel>
+                        <ComboBox Name="HourCombo" Classes="time" />
+                        <TextBlock Classes="unit" Text="hour" Margin="0,5,0,0" />
+                    </StackPanel>
+                    <TextBlock Text=":" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}"
+                               VerticalAlignment="Top" Margin="10,8,10,0" />
+                    <StackPanel>
+                        <ComboBox Name="MinuteCombo" Classes="time" />
+                        <TextBlock Classes="unit" Text="min" Margin="0,5,0,0" />
+                    </StackPanel>
+                    <Button Name="AmPmButton" Width="58" Height="46" FontSize="13" FontWeight="SemiBold" Margin="12,0,0,0"
+                            VerticalAlignment="Top" Theme="{StaticResource ActionButton}" Click="AmPm_Click" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ── Step 1: Days ── -->
+            <StackPanel Name="Step1Panel" IsVisible="False" MinHeight="80">
+                <WrapPanel HorizontalAlignment="Center">
+                    <ToggleButton Name="MonBtn" Classes="day" Content="Mon" Theme="{StaticResource DayPillStyle}" Click="DayBtn_Changed" />
+                    <ToggleButton Name="TueBtn" Classes="day" Content="Tue" Theme="{StaticResource DayPillStyle}" Click="DayBtn_Changed" />
+                    <ToggleButton Name="WedBtn" Classes="day" Content="Wed" Theme="{StaticResource DayPillStyle}" Click="DayBtn_Changed" />
+                    <ToggleButton Name="ThuBtn" Classes="day" Content="Thu" Theme="{StaticResource DayPillStyle}" Click="DayBtn_Changed" />
+                    <ToggleButton Name="FriBtn" Classes="day" Content="Fri" Theme="{StaticResource DayPillStyle}" Click="DayBtn_Changed" />
+                    <ToggleButton Name="SatBtn" Classes="day" Content="Sat" Theme="{StaticResource DayPillStyle}" Click="DayBtn_Changed" />
+                    <ToggleButton Name="SunBtn" Classes="day" Content="Sun" Theme="{StaticResource DayPillStyle}" Click="DayBtn_Changed" />
+                </WrapPanel>
+                <TextBlock Name="NoDaysHint" Text="No days selected — this schedule won't activate" FontSize="11"
+                           HorizontalAlignment="Center" Foreground="{DynamicResource WarningText}" Margin="0,12,0,0" IsVisible="False" />
+            </StackPanel>
+
+            <!-- ── Step 2: Reminder ── -->
+            <StackPanel Name="Step2Panel" IsVisible="False" MinHeight="80">
+                <ComboBox Name="ReminderCombo" HorizontalAlignment="Center" Width="210" SelectionChanged="ReminderCombo_Changed" />
+                <!-- Custom reminder HR:MIN pickers (shown only for the Custom option) -->
+                <StackPanel Name="CustomReminderPanel" IsVisible="False" Margin="0,18,0,0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <StackPanel>
+                            <ComboBox Name="ReminderHrCombo" Classes="reminderTime" SelectionChanged="ReminderDropdowns_Changed" />
+                            <TextBlock Classes="unit" Text="hours" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <TextBlock Text=":" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource PrimaryText}"
+                                   VerticalAlignment="Top" Margin="10,5,10,0" />
+                        <StackPanel>
+                            <ComboBox Name="ReminderMinCombo" Classes="reminderTime" SelectionChanged="ReminderDropdowns_Changed" />
+                            <TextBlock Classes="unit" Text="minutes" Margin="0,4,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <TextBlock Name="ReminderTotalHint" FontSize="11" HorizontalAlignment="Center"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,10,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ── Step 3: Silent ── -->
+            <StackPanel Name="Step3Panel" IsVisible="False" MinHeight="80">
+                <Border Background="{DynamicResource InnerCardBg}" BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                        BorderThickness="1" CornerRadius="12" Padding="20,16">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                            <TextBlock Text="Silent schedule" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                            <TextBlock Text="Hides the notification banner and reminder for this scheduled switch. To silence manual switches instead, use the Silent toggle on the profile card."
+                                       FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" LineHeight="16" Margin="0,4,0,0" />
+                        </StackPanel>
+                        <CheckBox Name="SilentCheck" Grid.Column="1" Theme="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- ── Footer ── -->
+            <DockPanel Margin="0,24,0,0">
+                <Button Name="RemoveBtn" Content="Remove" DockPanel.Dock="Left" Theme="{StaticResource DangerButton}" Padding="16,0"
+                        IsVisible="False" Click="Remove_Click" />
+                <!-- (A gap after Remove only when Remove shows — editing.) -->
+                <Button Name="CancelBtn" Content="Cancel" DockPanel.Dock="Left" Theme="{StaticResource ActionButton}" Padding="16,0"
+                        Margin="0" Click="Cancel_Click" />
+                <!-- Left margin guarantees a gap to Cancel/Remove even at the widest button set (editing:
+                     Remove + Back + Save + Next). -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="16,0,0,0">
+                    <Button Name="BackBtn" Content="← Back" Theme="{StaticResource ActionButton}" Padding="14,0" Margin="0,0,8,0"
+                            IsVisible="False" Click="Back_Click" />
+                    <!-- Save commits the current step and finishes immediately — no need to walk the
+                         remaining steps just to change one thing. -->
+                    <Button Name="SaveBtn" Content="Save" Theme="{StaticResource ActionButton}" Padding="14,0" Margin="0,0,8,0" Click="Save_Click" />
+                    <Button Name="NextBtn" Content="Next →" Theme="{StaticResource PrimaryButton}" Padding="18,0" Click="Next_Click" />
+                </StackPanel>
+            </DockPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

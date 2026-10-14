@@ -77,7 +77,7 @@ public partial class SettingsWindow : Window
         _hotkeyService = hotkeyService;
         _logger = logger;
         _errorTracker = errorTracker;
-        _dialogs = new DialogService(() => this) { Audio = audioService as IPlatformAudioService, Logger = logger };
+        _dialogs = new DialogService(() => this) { Audio = audioService as IPlatformAudioService, Logger = logger, Config = configService };
         CaptureHotkey = _dialogs.ShowHotkeyCapture;
         HasFocus = () => IsActive;
         CanFade = () => ActualTransparencyLevel != WindowTransparencyLevel.None;

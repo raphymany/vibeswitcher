@@ -467,6 +467,16 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
+    <!-- Selected text: the Windows app sets no colour, so WPF uses the system highlight — a light blue
+         over the text, which keeps its own colour. -->
+    <Style Selector="TextBox">
+        <Setter Property="SelectionBrush" Value="#660078D7" />
+        <Setter Property="SelectionForegroundBrush" Value="{Binding $self.Foreground}" />
+    </Style>
+    <Style Selector="SelectableTextBlock">
+        <Setter Property="SelectionBrush" Value="#660078D7" />
+        <Setter Property="SelectionForegroundBrush" Value="{Binding $self.Foreground}" />
+    </Style>
     <Style Selector="TextBox[IsReadOnly=True]">
         <Setter Property="Background" Value="{DynamicResource ReadOnlyBg}" />
         <Setter Property="Foreground" Value="{DynamicResource ReadOnlyText}" />
@@ -491,6 +501,15 @@
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Padding" Value="8,0,0,0" />
         <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <!-- The Windows arrow: a small 7 × 4 chevron, 10 px from the right edge (Fluent's is 12 × 12).
+         (Fluent sets its size inside the template, which outranks a plain style; a style with a
+         condition outranks the template — hence the :not(.fluentGlyph), which also lets a ComboBox
+         keep Fluent's own arrow by taking the class fluentGlyph.) -->
+    <Style Selector="ComboBox:not(.fluentGlyph) /template/ PathIcon#DropDownGlyph">
+        <Setter Property="Width" Value="7" />
+        <Setter Property="Height" Value="4" />
+        <Setter Property="Margin" Value="0,0,10,0" />
     </Style>
     <Style Selector="ComboBoxItem">
         <Setter Property="Padding" Value="10,6" />

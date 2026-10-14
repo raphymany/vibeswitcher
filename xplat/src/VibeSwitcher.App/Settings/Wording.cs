@@ -67,6 +67,11 @@ public static class Wording
     public static string HeadsetsDongles =>
         $"The list below covers wireless headsets whose USB dongle stays plugged in permanently. {SystemName} can't detect when these headsets power on or off, so VibeSwitcher reads the dongle's HID packets directly to catch the exact moment the headset turns on.";
 
+    // ── Icon gallery ── (where the profile icon shows: the taskbar on Windows)
+    public static string IconColorHint => Mac
+        ? "Black works best on light menu bars · White works best on dark menu bars"
+        : "Black works best on light panels · White works best on dark panels";
+
     // ── About ──
     public static string Platform => Mac ? "macOS 14 or later" : "Linux";
 
