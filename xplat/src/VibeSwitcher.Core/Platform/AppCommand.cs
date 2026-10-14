@@ -53,8 +53,12 @@ public sealed record AppCommand(AppCommandKind Kind, string? Argument = null)
 //   vibeswitcher --open             open Settings
 //   vibeswitcher --mini             show or hide Mini Mode
 //   vibeswitcher --help | --version
+//   vibeswitcher --selftest | --diagnostics [file]   (run on their own, beside a running app)
 // (Linux desktop shortcuts on Wayland call these, since apps can't grab global keys there.)
-public sealed record CommandLine(AppCommand? Command, bool ShowHelp, bool ShowVersion, string? Error)
+public enum LocalTool { None, SelfTest, Diagnostics }
+
+public sealed record CommandLine(AppCommand? Command, bool ShowHelp, bool ShowVersion, string? Error,
+    LocalTool Tool = LocalTool.None, string? ToolPath = null)
 {
     public const string Usage =
         """
@@ -66,6 +70,9 @@ public sealed record CommandLine(AppCommand? Command, bool ShowHelp, bool ShowVe
                                  Toggle mute, like the mute shortcuts
           --open                 Open Settings
           --mini                 Show or hide Mini Mode
+          --selftest             Check what VibeSwitcher needs on this computer, and print a report
+          --diagnostics [file]   Save a zip with that report, the logs, the settings and pictures
+                                 of the windows (to send when asking for help)
           --version              Print the version
           --help                 Show this help
         """;
@@ -109,6 +116,11 @@ public sealed record CommandLine(AppCommand? Command, bool ShowHelp, bool ShowVe
                 return Only(args, AppCommand.Open);
             case "--mini":
                 return Only(args, new AppCommand(AppCommandKind.MiniMode));
+            case "--selftest":
+                return args.Count > 1 ? Fail($"Unexpected '{args[1]}'.") : new(null, false, false, null, LocalTool.SelfTest);
+            case "--diagnostics":
+                if (args.Count > 2) return Fail($"Unexpected '{args[2]}'.");
+                return new(null, false, false, null, LocalTool.Diagnostics, args.Count > 1 ? args[1] : null);
             case "--switch":
                 if (args.Count < 2 || string.IsNullOrWhiteSpace(args[1])) return Fail("--switch needs a profile name or id.");
                 return Only(args, new AppCommand(AppCommandKind.Switch, args[1]), 2);

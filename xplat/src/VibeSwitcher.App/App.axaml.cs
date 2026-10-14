@@ -20,7 +20,12 @@ public partial class App : Application
         Imaging.AppImages.Install();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            if (AppHost.Current is { } host)
+            if (Diagnostics.DiagnosticsRun.Path != null)
+            {
+                desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+                _ = Diagnostics.DiagnosticsRun.RunAsync(desktop);
+            }
+            else if (AppHost.Current is { } host)
             {
                 // The running app (Program has made it the one copy): no main window — the tray /
                 // menu-bar icon and Settings — until Quit, which disposes it.

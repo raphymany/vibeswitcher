@@ -12,6 +12,10 @@ internal sealed class AppWindowManager(Func<SettingsWindow> create)
 
     internal SettingsWindow? Window => _window;
 
+    // False on a desktop with no tray: the toggle minimizes instead of hiding (hidden, it couldn't
+    // be found again).
+    internal bool CanHide { get; set; } = true;
+
     private SettingsWindow GetOrCreate()
     {
         if (_window != null) return _window;
@@ -30,7 +34,8 @@ internal sealed class AppWindowManager(Func<SettingsWindow> create)
             // maximized — Windows resets it to normal.)
             if (existing.IsVisible && existing.IsActive && !expandSettings)
             {
-                existing.Hide();
+                if (CanHide) existing.Hide();
+                else existing.WindowState = WindowState.Minimized;
                 return;
             }
             Bring(existing);

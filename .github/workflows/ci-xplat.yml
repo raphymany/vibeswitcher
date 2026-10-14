@@ -211,6 +211,15 @@ jobs:
           # (liblttng-ust is optional: .NET only uses it for tracing when it's there.)
           if ldd /opt/vibeswitcher/VibeSwitcher /opt/vibeswitcher/*.so | grep "not found" | grep -v liblttng-ust; then exit 1; fi
           rc=0; xvfb-run -a timeout 15 vibeswitcher || rc=$?; test "$rc" -eq 124
+          # The friend-test tools: the self-test runs (its result isn't judged: a runner has no sound
+          # devices), and the diagnostics zip has the report and pictures of the windows.
+          # (The self-test may report problems — no sound devices — but must run to the end.)
+          vibeswitcher --selftest > "$RUNNER_TEMP/selftest.txt" || true
+          cat "$RUNNER_TEMP/selftest.txt"
+          grep -q "Settings folder" "$RUNNER_TEMP/selftest.txt"
+          timeout 180 xvfb-run -a vibeswitcher --diagnostics "$RUNNER_TEMP/diag.zip"
+          unzip -l "$RUNNER_TEMP/diag.zip" | grep -q report.txt
+          unzip -l "$RUNNER_TEMP/diag.zip" | grep -q screenshots/settings-profiles.png
           dpkg -L vibeswitcher | grep -q /usr/lib/udev/rules.d/70-vibeswitcher-headsets.rules
           dpkg -L vibeswitcher | grep -q /usr/share/applications/com.raphymany.vibeswitcher.desktop
           desktop-file-validate /usr/share/applications/com.raphymany.vibeswitcher.desktop
@@ -256,11 +265,20 @@ jobs:
       - name: Install the .deb and start the app
         run: |
           apt-get update -q
-          apt-get install -y -q xvfb xauth ./out/*.deb
+          apt-get install -y -q xvfb xauth unzip ./out/*.deb
           vibeswitcher --version
           # (liblttng-ust is optional: .NET only uses it for tracing when it's there.)
           if ldd /opt/vibeswitcher/VibeSwitcher /opt/vibeswitcher/*.so | grep "not found" | grep -v liblttng-ust; then exit 1; fi
           rc=0; xvfb-run -a timeout 15 vibeswitcher || rc=$?; test "$rc" -eq 124
+          # The friend-test tools: the self-test runs (its result isn't judged: a runner has no sound
+          # devices), and the diagnostics zip has the report and pictures of the windows.
+          # (The self-test may report problems — no sound devices — but must run to the end.)
+          vibeswitcher --selftest > "$RUNNER_TEMP/selftest.txt" || true
+          cat "$RUNNER_TEMP/selftest.txt"
+          grep -q "Settings folder" "$RUNNER_TEMP/selftest.txt"
+          timeout 180 xvfb-run -a vibeswitcher --diagnostics "$RUNNER_TEMP/diag.zip"
+          unzip -l "$RUNNER_TEMP/diag.zip" | grep -q report.txt
+          unzip -l "$RUNNER_TEMP/diag.zip" | grep -q screenshots/settings-profiles.png
 
   packages-mac:
     # VibeSwitcher.app in a .dmg for each Mac architecture, built natively, then opened and started.
@@ -303,6 +321,13 @@ jobs:
           cat "$check"; echo
           grep -q "^menu opened" "$check"
           wait "$pid" || true
+          # The friend-test tools (see the Linux job).
+          "$app/Contents/MacOS/VibeSwitcher" --selftest > "$RUNNER_TEMP/selftest.txt" || true
+          cat "$RUNNER_TEMP/selftest.txt"
+          grep -q "Settings folder" "$RUNNER_TEMP/selftest.txt"
+          "$app/Contents/MacOS/VibeSwitcher" --diagnostics "$RUNNER_TEMP/diag.zip"
+          unzip -l "$RUNNER_TEMP/diag.zip" | grep -q report.txt
+          unzip -l "$RUNNER_TEMP/diag.zip" | grep -q screenshots/settings-profiles.png
           codesign --verify --deep --strict "$app"
           plutil -extract CFBundleIdentifier raw "$app/Contents/Info.plist" | grep -qx com.raphymany.vibeswitcher
           plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist"

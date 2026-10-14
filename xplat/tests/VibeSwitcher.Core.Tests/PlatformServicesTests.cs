@@ -88,6 +88,22 @@ public class CommandLineTests
     }
 
     [Fact]
+    public void SelfTestAndDiagnostics_RunOnTheirOwn()
+    {
+        var selfTest = CommandLine.Parse(["--selftest"]);
+        Assert.Equal(LocalTool.SelfTest, selfTest.Tool);
+        Assert.Null(selfTest.Command); // (not a command for the running app)
+        Assert.NotNull(CommandLine.Parse(["--selftest", "extra"]).Error);
+        Assert.Equal((LocalTool.Diagnostics, (string?)null), (CommandLine.Parse(["--diagnostics"]).Tool, CommandLine.Parse(["--diagnostics"]).ToolPath));
+        Assert.Equal("/tmp/d.zip", CommandLine.Parse(["--diagnostics", "/tmp/d.zip"]).ToolPath);
+        Assert.Equal("/tmp/d.zip", CommandLine.Parse(["--diagnostics=/tmp/d.zip"]).ToolPath);
+        Assert.NotNull(CommandLine.Parse(["--diagnostics", "a", "b"]).Error);
+        Assert.Contains("--selftest", CommandLine.Usage);
+        Assert.Contains("--diagnostics [file]", CommandLine.Usage);
+        Assert.Equal(LocalTool.None, CommandLine.Parse(["--open"]).Tool);
+    }
+
+    [Fact]
     public void Mini_TogglesMiniMode()
     {
         var cmd = new AppCommand(AppCommandKind.MiniMode);

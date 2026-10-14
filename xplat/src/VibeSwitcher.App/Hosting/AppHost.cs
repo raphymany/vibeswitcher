@@ -64,6 +64,28 @@ internal sealed class AppHost : IDisposable
     internal AppTriggerService AppTriggers { get; private set; } = null!;
 
     internal Task Ready => _ready.Task;
+    internal bool TrayAvailable { get; private set; } = true;
+    // Whether there's a tray, once it's settled (true at once when there is one).
+    internal Task<bool> TrayKnown { get; private set; } = Task.FromResult(true);
+    internal static TimeSpan TrayRecheck { get; set; } = TimeSpan.FromSeconds(2);
+    internal const int TrayRechecks = 10;
+
+    private async Task<bool> WatchForTrayAsync()
+    {
+        for (int i = 0; i < TrayRechecks && !_disposed; i++)
+        {
+            await Task.Delay(TrayRecheck);
+            if (await _platform.IsTrayAvailableAsync() == true)
+            {
+                TrayAvailable = true;
+                if (Windows?.Window is { } window) window.TrayAvailable = true;
+                if (Windows != null) Windows.CanHide = true;
+                return true;
+            }
+        }
+        if (!_disposed) Logger.Warning("App.Start", "This desktop shows no tray icons: closing Settings quits VibeSwitcher.");
+        return false;
+    }
     internal string LogPath => Path.Combine(_paths.LogDir, Path.GetFileName(AppLogger.LogPath));
 
     // Errors that escape everything else are logged and the app keeps running (Windows: the three
@@ -157,13 +179,19 @@ internal sealed class AppHost : IDisposable
             IsMiniModeActive: () => Windows?.IsMiniModeActive() ?? false, // (asked while the menu is first built)
             Quit: Quit), menuBarItem: _platform.CreateMenuBarItem());
         Theme.ThemeApplied += Tray.RebuildMenu;
+        // A Linux desktop without a tray (stock GNOME): the icon can't show, so Settings mustn't hide
+        // into it — see AfterSplash.
+        // (Started at login, the app can come up before the desktop's panel: it's looked for again
+        // for a while before deciding there's none — TrayKnown.)
+        TrayAvailable = await _platform.IsTrayAvailableAsync() != false;
+        TrayKnown = TrayAvailable ? Task.FromResult(true) : WatchForTrayAsync();
 
         // 5. The switch path, mute banners and the Settings window.
         Orchestrator = new ProfileSwitchOrchestrator(Config, Audio, Tray, new SwitchSoundService(Logger, Config.SoundsDir),
             Logger, Errors, ShowSwitchError, rebindDevices: Rebind.Reconcile);
         Mute = new MuteService(Logger, Audio);
         Mute.MuteToggled += OnMuteToggled;
-        Windows = new AppWindowManager(CreateSettingsWindow);
+        Windows = new AppWindowManager(CreateSettingsWindow) { CanHide = TrayAvailable };
         Tray.SwitchRequested = p => Orchestrator.SwitchToProfile(p);
         Orchestrator.ProfileSwitched += () => Windows.NotifyProfileSwitched();
 
@@ -258,8 +286,11 @@ internal sealed class AppHost : IDisposable
         Tray.ShowIcon();
         RunMenuBarCheck();
         OfferHeadsetAccess();
-        if (_launchCommand.Kind == AppCommandKind.Open && (Config.IsFirstRun || !Config.Current.StartMinimized))
-            Windows.OpenSettingsWindow();
+        var opened = _launchCommand.Kind == AppCommandKind.Open && (Config.IsFirstRun || !Config.Current.StartMinimized);
+        if (opened) Windows.OpenSettingsWindow();
+        // With no tray (still none once the desktop has settled), Settings is the only way in: it
+        // opens, whatever started the app — and says why, once.
+        if (!TrayAvailable) _ = WhenNoTrayAsync();
         // Only now do other launches' commands run: one arriving during the splash ("open Settings")
         // would otherwise be undone by the opening above, which hides a window that's in front.
         _ready.TrySetResult();
@@ -290,6 +321,25 @@ internal sealed class AppHost : IDisposable
         }, TimeSpan.FromSeconds(2));
     }
 
+    internal string NoTrayMarker => Path.Combine(_paths.ConfigDir, "no-tray-explained");
+
+    private async Task WhenNoTrayAsync()
+    {
+        if (await TrayKnown || _disposed) return;
+        Windows.ShowSettingsWindow();
+        ExplainNoTray();
+    }
+
+    private void ExplainNoTray()
+    {
+        if (File.Exists(NoTrayMarker)) return;
+        try { File.WriteAllText(NoTrayMarker, ""); }
+        catch (Exception ex) { Logger.Warning("App.NoTray", ex.Message); }
+        _ = new DialogService(() => Windows.Window is { IsVisible: true } w ? w : null).ShowAlertAsync("No Tray on This Desktop",
+            "This desktop doesn't show tray icons, so VibeSwitcher's icon can't appear. On GNOME, install the \"AppIndicator and KStatusNotifierItem Support\" extension and log in again (Ubuntu has it already).\n\n"
+            + "Until then, closing this window quits VibeSwitcher — start it again to come back. Your hotkeys, schedules and auto-switching work while it's open.");
+    }
+
     // Linux: when a profile switches on a headset's power and its receiver can't be read, explain it
     // once (the same dialog turning auto-switch on offers it again). Remembered in a file beside the
     // config — the config itself is shared with the Windows app.
@@ -311,7 +361,7 @@ internal sealed class AppHost : IDisposable
     }
 
     private SettingsWindow CreateSettingsWindow() =>
-        new(Config, Audio, Hotkeys, Startup, Logger, Errors, Theme.Apply,
+        new SettingsWindow(Config, Audio, Hotkeys, Startup, Logger, Errors, Theme.Apply,
             onProfilesChanged: () =>
             {
                 Tray.ClearIconCache();
@@ -327,7 +377,7 @@ internal sealed class AppHost : IDisposable
                 Tray.ShowBalloon("Hotkey Conflict", $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             },
             switchProfile: profile => Orchestrator.SwitchToProfile(profile),
-            onAppTriggersChanged: () => AppTriggers.RefreshWatchList());
+            onAppTriggersChanged: () => AppTriggers.RefreshWatchList()) { TrayAvailable = TrayAvailable };
 
     // The "Profile Switch Failed" dialog, on Settings when it's showing, else on its own.
     private void ShowSwitchError(string message)

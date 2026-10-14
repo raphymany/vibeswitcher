@@ -33,6 +33,17 @@ internal static class Cli
             output.WriteLine(CommandLine.Usage);
             return 0;
         }
+        if (cl.Tool == LocalTool.SelfTest)
+        {
+            if (!OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
+            {
+                error.WriteLine("The self-test is for VibeSwitcher on macOS and Linux.");
+                return 2;
+            }
+            var report = Diagnostics.SelfTest.RunAsync(Hosting.IHostPlatform.Current(), AppPaths.Current()).GetAwaiter().GetResult();
+            output.Write(report.Format());
+            return report.ExitCode;
+        }
         return null;
     }
 

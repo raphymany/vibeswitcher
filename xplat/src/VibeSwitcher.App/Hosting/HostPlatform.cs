@@ -20,7 +20,8 @@ internal interface IHostPlatform
     IPlatformAudioService CreateAudio(IAppLogger logger, ISessionErrorTracker errorTracker);
     IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker);
     // Global shortcuts; never null (a grabber that registers nothing when the system offers none).
-    Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger);
+    // lookOnly: the self-test — nothing the running app set up is changed.
+    Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false);
     // Notification banners (null: none — banners are only logged).
     IDesktopNotifier? CreateNotifier(IAppLogger logger);
     IRunningProcessSource CreateProcesses();
@@ -32,6 +33,8 @@ internal interface IHostPlatform
     // macOS: the app's own menu-bar item, which opens the Windows-styled menu. Null: Avalonia's tray
     // icon with the system's own menu (Linux — and macOS if the item can't be made). UI thread.
     IMenuBarItem? CreateMenuBarItem() => null;
+    // Whether the desktop shows tray icons (null: can't tell). macOS: always (the menu bar).
+    Task<bool?> IsTrayAvailableAsync() => Task.FromResult<bool?>(true);
 
     static IHostPlatform Current() =>
         OperatingSystem.IsMacOS() ? new MacHostPlatform()
@@ -46,9 +49,9 @@ internal sealed class LinuxHostPlatform : IHostPlatform
 
     // X11, the desktop's Global Shortcuts portal, or (GNOME before 48) nothing until the user agrees
     // to GNOME custom shortcuts — that choice is offered in Settings (a later step).
-    public async Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger)
+    public async Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false)
     {
-        var setup = await Task.Run(() => LinuxHotkeys.CreateAsync(logger, gnomeShortcutsAllowed: false));
+        var setup = await Task.Run(() => LinuxHotkeys.CreateAsync(logger, gnomeShortcutsAllowed: false, cleanUp: !lookOnly));
         logger.Info("Hotkeys", $"Global shortcuts: {setup.Backend}{(setup.Explanation is { } why ? $" ({why})" : "")}");
         return setup.Grabber;
     }
@@ -57,6 +60,7 @@ internal sealed class LinuxHostPlatform : IHostPlatform
     public IRunningProcessSource CreateProcesses() => new LinuxProcesses();
     public IWavPlayer? CreateWavPlayer() => new PulseWavPlayer();
     public HeadsetAccessHooks? HeadsetAccess() => PlatformApps.HeadsetAccess();
+    public Task<bool?> IsTrayAvailableAsync() => LinuxTrayCheck.IsTrayAvailableAsync();
 }
 
 internal sealed class MacHostPlatform : IHostPlatform
@@ -64,7 +68,7 @@ internal sealed class MacHostPlatform : IHostPlatform
     public IPlatformAudioService CreateAudio(IAppLogger logger, ISessionErrorTracker errorTracker) => new MacAudioService(logger, errorTracker);
     public IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker) => new MacStartupService(logger, errorTracker);
 
-    public Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger)
+    public Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false)
     {
         try { return Task.FromResult<IGlobalKeyGrabber>(new CarbonKeyGrabber()); }
         catch (Exception ex)
