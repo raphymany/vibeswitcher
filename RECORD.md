@@ -572,7 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–6 done (PR #116, #118, #120, #122, #124, #126, #128, #130, #132, #134) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–6 and 7 part 1 done (PR #116, #118, #120, #122, #124, #126, #128, #130, #132, #134, #136) |
 
 ---
 
@@ -1603,3 +1603,13 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | App — `Cli`: `--version` (`2.0.1-preview`, csproj `VersionPrefix`/`VersionSuffix`) and `--help`, bad option → exit 2; `LinuxAppIdentity` shared by the portal, notifications and the autostart entry's icon | ✅ Done |
 | CI — `packages-linux` (build, install, `ldd`, start under Xvfb for 15 s, desktop-file-validate, remove), `packages-linux-distros` (install + start on Debian 12/13, Ubuntu 22.04/26.04), `packages-mac` (Apple Silicon + Intel: open the dmg, start the app, verify the signature and Info.plist) | ✅ Done |
 | Tests — 6 command-line tests; 694 passing on Windows. One QA round (ICU names for newer distros, per-file Mac signing, real start-up checks, extra X11 libraries, xz, macOS 14 minimum) | ✅ Done |
+
+### Branch 65: `xplat/settings-logic` ✅ Done — PR #136
+**Theme:** F46 phase 7, part 1 (issue #135). The logic behind the Settings window, shared with Windows instead of rewritten. No file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Merged into `xplat/dev`. Phase 7 is now four parts (logic, window + Profiles, Settings sections + About + FAQ, Mini Mode).
+
+| Item | Status |
+|------|--------|
+| Linked unchanged: `SettingsViewModel`, `ProfileCardViewModel`, `IDialogService`. Public WPF stand-ins `System.Windows.Visibility` and `System.Windows.Media.ImageSource`; forks `Helpers/IconHelper` (same folder check and fallbacks, .ico validation, 16 MB cap, embedded Windows `vs-icon.ico` as default, `ImageFactory` from the app), `Helpers/GalleryIconHelper` (same gallery and .ico writer, `GlyphRenderer` from the app), `Controls/LogoAnimator` (mode only) — all in `forks.txt` | ✅ Done |
+| `DialogService` implements `IDialogService`: synchronous calls wait in a nested message loop (`Dispatcher.PushFrame`) like WPF's `ShowDialog`; the app's other windows ignore input meanwhile; dialogs opened from a dialog are owned by it; ownerless dialogs centred and topmost; quitting answers "cancelled" instead of hanging; `.ico` file picker; dialogs still to port log and answer "cancelled". ADR updated (first planned as async forks) | ✅ Done |
+| App: `AppImages` (icon bytes → bitmap, gallery emoji drawn and colour-masked as on Windows, `ToBitmap` converter), `Wpf.Visibility` attached property (Hidden keeps space, subtree unfocusable, own values restored) | ✅ Done |
+| Tests — 81 Windows tests linked (Settings, profile card, search, device aliases, icons); 23 new (forks, dialog waits, ownership, input blocking, glyph colours, visibility); 798 passing on Windows and Linux. One QA round (quit-while-waiting hang, other windows' input, nested owners, visibility values, default-icon copies) | ✅ Done |
