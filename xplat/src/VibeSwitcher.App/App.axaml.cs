@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using VibeSwitcher.App.Hosting;
 using VibeSwitcher.App.Theming;
 
 namespace VibeSwitcher.App;
@@ -17,10 +18,53 @@ public partial class App : Application
     {
         Threading.AvaloniaUiThread.Install();
         Imaging.AppImages.Install();
-        // The real start-up (tray/menu-bar icon, services, Settings) comes with the app wiring; for
-        // now the app shows its dialog preview so the look can be checked by hand.
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            desktop.MainWindow = new Dialogs.DialogPreviewWindow();
+        {
+            if (AppHost.Current is { } host)
+            {
+                // The running app (Program has made it the one copy): no main window — the tray /
+                // menu-bar icon and Settings — until Quit, which disposes it.
+                host.InstallCrashLogging();
+                desktop.Exit += (_, _) => host.Dispose();
+                // Logging out, `kill` or a service manager end the app the way Quit does (pending
+                // settings saved), not abruptly.
+                _sigterm = System.Runtime.InteropServices.PosixSignalRegistration.Create(System.Runtime.InteropServices.PosixSignal.SIGTERM, context =>
+                {
+                    context.Cancel = true;
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() => desktop.Shutdown());
+                });
+                _ = StartAsync(host, desktop);
+            }
+            else
+            {
+                // (Windows, for development: the dialog preview.)
+                desktop.MainWindow = new Dialogs.DialogPreviewWindow();
+            }
+        }
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private IDisposable? _sigterm;
+
+    // A start-up that fails is logged, explained in a dialog (an app started from the desktop has no
+    // terminal to read), and the app quits rather than running with no icon to reach it.
+    private static async Task StartAsync(AppHost host, IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        try
+        {
+            await host.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            host.Logger?.Error("App.Start", ex);
+            Console.Error.WriteLine($"VibeSwitcher couldn't start: {ex.Message}");
+            try
+            {
+                await new Dialogs.DialogService(() => null).ShowAlertAsync("VibeSwitcher Couldn't Start",
+                    $"Something went wrong while starting: {ex.Message}\n\nThe details are in the log in VibeSwitcher's settings folder.");
+            }
+            catch (Exception) { /* nothing more to show */ }
+            desktop.Shutdown(1);
+        }
     }
 }

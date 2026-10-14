@@ -12,7 +12,7 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | Global hotkeys | ✅ (Option-only combos are blocked by macOS 15) | ✅ | Through the system "Global Shortcuts" prompt (KDE, GNOME 48+). The desktop asks the user to approve, the user may pick a different key, and there's no conflict test. Older GNOME: VibeSwitcher adds GNOME keyboard shortcuts with the user's consent. |
 | Hotkey labels | ⌃⌥⇧⌘ glyphs (Mac convention) | "Super" instead of "Win" | Same as X11 |
 | Window buttons | Native traffic lights; everything inside the window is identical | Windows-style buttons | Same as X11 |
-| Tray menu | Menu-bar icon opens the **same styled dark menu** | Native desktop menu: can't be styled | Same as X11. **Stock GNOME (e.g. Fedora) has no tray** without the AppIndicator extension; VibeSwitcher detects this, explains it, and won't hide on close. |
+| Tray menu | Menu-bar icon opens the **same styled dark menu** | Native desktop menu: can't be styled — each profile is one line with its icon (pinned ones marked ★, the active one ticked); the shortcuts are listed in the icon's hover text as on Windows. The last item is "Quit" (Windows: "Exit") | Same as X11. **Stock GNOME (e.g. Fedora) has no tray** without the AppIndicator extension; VibeSwitcher detects this, explains it, and won't hide on close. |
 | Notification banners | Styled in-app banner (native once the app is signed) | ✅ Native | ✅ Native |
 | Mini Mode (always on top, translucent, remembers position) | ✅ | ✅ | ✅ via XWayland |
 | Start at login | ✅ (macOS shows a "background item added" notice) | ✅ | ✅ |
