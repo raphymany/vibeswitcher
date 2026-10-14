@@ -18,6 +18,9 @@
     <PackageReference Include="Avalonia" Version="11.3.22" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+    <!-- Linux app icons that come only as SVG (most GNOME apps), drawn for the app picker. 3.0.x is
+         the line built on Avalonia 11.3's SkiaSharp 2.88. -->
+    <PackageReference Include="Svg.Skia" Version="3.0.6" />
   </ItemGroup>
 
   <ItemGroup>

@@ -100,7 +100,18 @@ public sealed class LinuxAppCatalog : IAppCatalog
             try { return DesktopEntry.Parse(File.ReadAllText(path), null)?.Trigger(Resolve); }
             catch (Exception) { return null; }
         }
-        return File.Exists(path) ? RealPath(Path.GetFullPath(path)) : null;
+        return File.Exists(path) && IsProgram(path) ? RealPath(Path.GetFullPath(path)) : null;
+    }
+
+    // Something that can run: an executable file, or an AppImage / Windows program (a download may
+    // not be marked executable yet). Not a document or a picture.
+    private static bool IsProgram(string path)
+    {
+        if (path.EndsWith(".AppImage", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (OperatingSystem.IsWindows()) return false;
+        try { return (File.GetUnixFileMode(path) & (UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute)) != 0; }
+        catch (Exception) { return false; }
     }
 
     // A Windows program under Wine/Proton (a game, say): its "Game.exe" name, which is what Wine names

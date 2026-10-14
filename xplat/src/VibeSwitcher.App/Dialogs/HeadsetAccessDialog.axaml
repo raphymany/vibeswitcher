@@ -1,0 +1,47 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            x:Class="VibeSwitcher.App.Dialogs.HeadsetAccessDialog"
+            Width="440">
+    <!-- Linux only (no Windows original: Windows needs no permission): wireless-headset detection
+         needs a permission rule for the headset's USB receiver. Laid out like the other dialogs. -->
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoHeadphones}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5" StrokeJoin="Round" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Headset Detection" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Name="Subtitle" FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Name="Message" TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource PrimaryText}"
+                       LineHeight="18" Margin="0,0,0,8" />
+            <TextBlock Name="Note" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                       LineHeight="17" Margin="0,0,0,8"
+                       Text="Only the USB receiver counts: a headset connected over Bluetooth can't be detected this way." />
+            <TextBlock Name="Status" TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold" IsVisible="False"
+                       Foreground="{DynamicResource PrimaryText}" LineHeight="18" Margin="0,0,0,8" />
+
+            <!-- Action buttons: Allow Access / Not Now, or OK once there's nothing to do here -->
+            <Grid Name="AskButtons" ColumnDefinitions="*,8,*" Margin="0,8,0,0">
+                <Button Name="AllowBtn" Grid.Column="0" Content="Allow Access" Theme="{StaticResource PrimaryButton}"
+                        HorizontalAlignment="Stretch" IsDefault="True" Click="Allow_Click" />
+                <Button Grid.Column="2" Content="Not Now" Theme="{StaticResource ActionButton}"
+                        HorizontalAlignment="Stretch" Click="Close_Click" />
+            </Grid>
+            <Button Name="OkBtn" Content="OK" Theme="{StaticResource PrimaryButton}" IsVisible="False"
+                    HorizontalAlignment="Center" Width="80" Margin="0,8,0,0" Click="Close_Click" />
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

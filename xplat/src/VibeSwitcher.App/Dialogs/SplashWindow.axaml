@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="VibeSwitcher.App.Dialogs.SplashWindow"
+        Title="VibeSwitcher"
+        Width="360" Height="300"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Focusable="False"
+        IsHitTestVisible="False"
+        Topmost="False">
+    <!-- Port of Views/SplashWindow.xaml; the animation is SplashTimeline. The card's shadow needs a
+         see-through window: where the system has none, the card fills the window instead. -->
+    <Border Name="ShadowSpace" Margin="20">
+        <!-- Theme-aware card; the icon puck inside stays dark on purpose: it's the app icon. -->
+        <Border Name="Card" Background="{DynamicResource AppBg}" CornerRadius="20"
+                BorderBrush="#66F5820A" BorderThickness="1" BoxShadow="0 0 20 0 #B3000000">
+            <StackPanel Name="RootPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0" Margin="0,32,0,32">
+
+                <!-- The app icon -->
+                <Border HorizontalAlignment="Center" Margin="0,0,0,16" Width="96" Height="96" CornerRadius="22"
+                        Background="#13131E" BoxShadow="0 0 16 0 #14F5820A">
+                    <Border BorderBrush="#3D2908" BorderThickness="1" CornerRadius="22">
+                        <Canvas Width="80" Height="80" Margin="8">
+                            <Path Name="VChevron" Data="M 19,22 L 40,54 L 61,22" Stroke="#F5820A" StrokeThickness="4"
+                                  StrokeJoin="Round" StrokeLineCap="Round" Fill="Transparent">
+                                <Path.RenderTransform>
+                                    <TranslateTransform />
+                                </Path.RenderTransform>
+                            </Path>
+
+                            <!-- The bars, clipped at y = 62 -->
+                            <Border Canvas.Left="14" Canvas.Top="62" Width="54" Height="18" ClipToBounds="True" Background="Transparent">
+                                <Canvas Width="54" Height="18">
+                                    <Rectangle Name="Bar1" Canvas.Left="8" Canvas.Top="9" Width="4.5" Height="5" RadiusX="2.25" RadiusY="2.25"
+                                               Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="50%,100%">
+                                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle Name="Bar2" Canvas.Left="15.5" Canvas.Top="7" Width="4.5" Height="7" RadiusX="2.25" RadiusY="2.25"
+                                               Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="50%,100%">
+                                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle Name="Bar3" Canvas.Left="23.75" Canvas.Top="6" Width="4.5" Height="8" RadiusX="2.25" RadiusY="2.25"
+                                               Fill="#F5820A" RenderTransformOrigin="50%,100%">
+                                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle Name="Bar4" Canvas.Left="32" Canvas.Top="7" Width="4.5" Height="7" RadiusX="2.25" RadiusY="2.25"
+                                               Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="50%,100%">
+                                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                    <Rectangle Name="Bar5" Canvas.Left="39.5" Canvas.Top="9" Width="4.5" Height="5" RadiusX="2.25" RadiusY="2.25"
+                                               Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="50%,100%">
+                                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                                    </Rectangle>
+                                </Canvas>
+                            </Border>
+                        </Canvas>
+                    </Border>
+                </Border>
+
+                <!-- The text (rises in once the V settles) -->
+                <StackPanel Name="TextGroup" HorizontalAlignment="Center" Opacity="0">
+                    <StackPanel.RenderTransform>
+                        <TranslateTransform Y="6" />
+                    </StackPanel.RenderTransform>
+                    <TextBlock Text="VibeSwitcher" FontSize="26" FontWeight="Bold" Foreground="#F5820A"
+                               HorizontalAlignment="Center" Margin="0,0,0,6" />
+                    <TextBlock Text="Switch between your audios seamlessly" FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Border>
+</Window>

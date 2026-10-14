@@ -306,6 +306,9 @@ public sealed class LinuxAppCatalogTests : IDisposable
         var path = Path.Combine(_root, relative);
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         File.WriteAllText(path, "#!/bin/sh\n");
+        // (A program is executable: picking a file in the app picker checks it.)
+        if (!OperatingSystem.IsWindows())
+            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.OtherRead);
         return path;
     }
 
@@ -406,6 +409,13 @@ public sealed class LinuxAppCatalogTests : IDisposable
         var link = Path.Combine(Dir("bin"), "app-link");
         File.CreateSymbolicLink(link, app);
         Assert.Equal(app, cat.TriggerForFile(link));
+        // Only something that runs: not a document; an AppImage even before it's marked executable.
+        var notes = Path.Combine(_root, "notes.txt");
+        File.WriteAllText(notes, "");
+        Assert.Null(cat.TriggerForFile(notes));
+        var appImage = Path.Combine(_root, "Tool.AppImage");
+        File.WriteAllText(appImage, "");
+        Assert.Equal(appImage, cat.TriggerForFile(appImage));
     }
 
     public void Dispose()
