@@ -65,6 +65,32 @@ public sealed class LinuxStartupServiceTests : IDisposable
     }
 
     [Fact]
+    public void ADevelopmentBuild_StartedWithTheDotnetCommand_RunsTheAppsAssembly()
+    {
+        _path = "/usr/share/dotnet/dotnet";
+        var svc = new LinuxStartupService(new FakeAppLogger(), _errors, _dir, () => _path, () => "/home/ann/src/My Build/VibeSwitcher.dll");
+        svc.Enable();
+        Assert.Contains("\nExec=/usr/share/dotnet/dotnet \"/home/ann/src/My Build/VibeSwitcher.dll\"\n", File.ReadAllText(EntryFile));
+        Assert.Empty(_errors.Errors);
+
+        // Run that way while an installed copy has start at login on: its entry is left alone.
+        _path = "/home/ann/Apps/VibeSwitcher.AppImage";
+        Service().Enable();
+        _path = "/usr/share/dotnet/dotnet";
+        svc.RefreshRegistryPath();
+        Assert.Contains("\nExec=/home/ann/Apps/VibeSwitcher.AppImage\n", File.ReadAllText(EntryFile));
+
+        // An assembly path with a line break can't be written into an entry.
+        var errors = new FakeSessionErrorTracker();
+        new LinuxStartupService(new FakeAppLogger(), errors, _dir, () => _path, () => "/home/ann/odd\nbuild/VibeSwitcher.dll").Enable();
+        Assert.Equal(ErrorCode.StartupPathResolutionFailed, Assert.Single(errors.Errors).Code);
+
+        // The app itself, or a host without an assembly: just the program.
+        Assert.Equal(["/opt/vibeswitcher/VibeSwitcher"], LinuxStartupService.Command("/opt/vibeswitcher/VibeSwitcher", "/opt/vibeswitcher/VibeSwitcher.dll"));
+        Assert.Equal(["/usr/bin/dotnet"], LinuxStartupService.Command("/usr/bin/dotnet", null));
+    }
+
+    [Fact]
     public void NoPath_RecordsTheWindowsErrorCode()
     {
         _path = null;

@@ -68,6 +68,26 @@ public sealed class MacStartupServiceTests : IDisposable
     }
 
     [Fact]
+    public void DevelopmentBuild_StartedWithTheDotnetCommand_RunsTheAppsAssembly()
+    {
+        _path = "/usr/local/share/dotnet/dotnet";
+        var svc = new MacStartupService(new FakeAppLogger(), _errors, _dir, () => _path, () => "/Users/ann/src/bin/VibeSwitcher.dll");
+        svc.Enable();
+        Assert.Equal(["/usr/local/share/dotnet/dotnet", "/Users/ann/src/bin/VibeSwitcher.dll"], ReadPlist(AgentFile).Args);
+        // Run that way while an installed copy has its login item: that one is left alone.
+        _path = "/Applications/VibeSwitcher.app/Contents/MacOS/VibeSwitcher";
+        Service().Enable();
+        _path = "/usr/local/share/dotnet/dotnet";
+        svc.RefreshRegistryPath();
+        Assert.Equal(["/usr/bin/open", "-a", "/Applications/VibeSwitcher.app"], ReadPlist(AgentFile).Args);
+        // (A program merely named like the host isn't treated as one without an assembly to run; an
+        // app bundle is opened as one whatever the assembly.)
+        Assert.Equal(["/opt/dotnet"], MacStartupService.ProgramArguments("/opt/dotnet", null));
+        Assert.Equal(["/usr/bin/open", "-a", "/Applications/VibeSwitcher.app"],
+            MacStartupService.ProgramArguments("/Applications/VibeSwitcher.app/Contents/MacOS/VibeSwitcher", "/x/VibeSwitcher.dll"));
+    }
+
+    [Fact]
     public void Refresh_RepointsAMovedApp()
     {
         var svc = Service();

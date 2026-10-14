@@ -110,6 +110,17 @@ public class AppHostTests : IDisposable
         public bool NotifierFails { get; set; }
         public IDesktopNotifier? CreateNotifier(IAppLogger logger) => NotifierFails ? throw new DllNotFoundException("libX11") : Notifier;
         public IRunningProcessSource CreateProcesses() => new NoProcesses();
+        // The system's wake signal (Linux: logind): the app's handler, and whether it stopped listening.
+        public Action? Wake { get; private set; }
+        public bool WakeWatchStopped { get; private set; }
+        public Task? WakeWatchDelay { get; set; } // (the system bus takes this long to answer)
+        public async Task<IDisposable?> WatchWakeAsync(IAppLogger logger, Action woke)
+        {
+            if (WakeWatchDelay != null) await WakeWatchDelay;
+            Wake = woke;
+            return new Stop(() => WakeWatchStopped = true);
+        }
+        private sealed class Stop(Action stop) : IDisposable { public void Dispose() => stop(); }
         public IWavPlayer? CreateWavPlayer() => null;
         public Dialogs.HeadsetAccessHooks? HeadsetAccess() => Headsets;
         public bool WatchesHeadsets => false;
@@ -571,6 +582,68 @@ public class AppHostTests : IDisposable
     }
 
     // ── Wake and quit ──────────────────────────────────────────────────────────────────────────────
+
+    [AvaloniaFact]
+    public async Task TheSystemsWakeSignal_ReappliesTheProfile_AfterAMoment_OncePerWake()
+    {
+        var (host, platform) = await Start(change: c => c.StartMinimized = true);
+        await Until(() => platform.Audio.Applied.Count == 1);
+        await Until(() => platform.Wake != null);
+        host.WakeSettle = TimeSpan.FromMilliseconds(300); // (3 s in the app: the sound system finds its devices again)
+        platform.Wake!(); // (logind, on its own thread)
+        await Task.Delay(100);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(1, platform.Audio.Applied.Count); // (not yet)
+        await Until(() => platform.Audio.Applied.Count == 2);
+        host.OnResumed(); // (the clock-based detector noticing the same wake, seconds later)
+        Assert.Equal(2, platform.Audio.Applied.Count);
+        Close(host);
+        Assert.True(platform.WakeWatchStopped);
+    }
+
+    [AvaloniaFact]
+    public async Task SameWakeOrNot_GoesByBothClocks()
+    {
+        var (host, platform) = await Start(change: c => c.StartMinimized = true);
+        await Until(() => platform.Audio.Applied.Count == 1);
+        var wall = new DateTime(2026, 10, 15, 8, 0, 0, DateTimeKind.Utc);
+        var awake = TimeSpan.FromHours(1);
+        host.WallClock = () => wall;
+        host.AwakeTime = () => awake;
+        int Applied() => platform.Audio.Applied.Count;
+
+        host.OnResumed();
+        await Until(() => Applied() == 2);
+        // Seconds later, the time server having set the clock back a little: the same wake.
+        (wall, awake) = (wall.AddSeconds(3), awake + TimeSpan.FromSeconds(5));
+        host.OnResumed();
+        await Task.Delay(50);
+        Dispatcher.UIThread.RunJobs();
+        Assert.Equal(2, Applied());
+        // Asleep again for 15 s, then awake: another wake, though little awake time passed.
+        (wall, awake) = (wall.AddSeconds(20), awake + TimeSpan.FromSeconds(5));
+        host.OnResumed();
+        await Until(() => Applied() == 3);
+        Assert.Equal(3, Applied());
+        // Awake for a minute since: a new wake.
+        (wall, awake) = (wall.AddSeconds(60), awake + TimeSpan.FromSeconds(60));
+        host.OnResumed();
+        await Until(() => Applied() == 4);
+        Assert.Equal(4, Applied());
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task QuittingBeforeTheSystemAnswers_StillStopsTheWakeWatch()
+    {
+        var answer = new TaskCompletionSource();
+        var platform = new FakePlatform { WakeWatchDelay = answer.Task };
+        var (host, _) = await Start(platform: platform);
+        Close(host);
+        answer.SetResult();
+        await Until(() => platform.WakeWatchStopped);
+        Assert.True(platform.WakeWatchStopped);
+    }
 
     [AvaloniaFact]
     public async Task WakingUp_ReappliesTheProfile_AndQuittingSavesAndLetsGo()

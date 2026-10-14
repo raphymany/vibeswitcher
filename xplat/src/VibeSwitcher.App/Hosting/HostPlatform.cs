@@ -48,6 +48,9 @@ internal interface IHostPlatform
     IMenuBarItem? CreateMenuBarItem() => null;
     // Whether the desktop shows tray icons (null: can't tell). macOS: always (the menu bar).
     Task<bool?> IsTrayAvailableAsync() => Task.FromResult<bool?>(true);
+    // The system's own word that the computer woke up (Linux: logind), called on any thread; null:
+    // none — the app's clock-based ResumeDetector notices instead (it runs everywhere, as the fallback).
+    Task<IDisposable?> WatchWakeAsync(IAppLogger logger, Action woke) => Task.FromResult<IDisposable?>(null);
 
     static IHostPlatform Current() =>
         OperatingSystem.IsMacOS() ? new MacHostPlatform()
@@ -82,6 +85,13 @@ internal sealed class LinuxHostPlatform : IHostPlatform
     public IWavPlayer? CreateWavPlayer() => new PulseWavPlayer();
     public HeadsetAccessHooks? HeadsetAccess() => PlatformApps.HeadsetAccess();
     public Task<bool?> IsTrayAvailableAsync() => LinuxTrayCheck.IsTrayAvailableAsync();
+
+    public async Task<IDisposable?> WatchWakeAsync(IAppLogger logger, Action woke)
+    {
+        if (await LogindSleepWatcher.TryStartAsync(logger) is not { } watcher) return null;
+        watcher.Woke += woke;
+        return watcher;
+    }
 }
 
 internal sealed class MacHostPlatform : IHostPlatform
