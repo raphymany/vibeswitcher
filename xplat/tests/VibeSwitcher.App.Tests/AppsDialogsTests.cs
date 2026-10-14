@@ -380,7 +380,9 @@ public class AppsDialogsTests
             using var fromSvg = AppIcons.FromFile(svg, AppIcons.Pixels)!;
             Assert.Equal(AppIcons.Pixels, fromSvg.PixelSize.Width);
             var middle = Pixel(fromSvg, AppIcons.Pixels / 2, AppIcons.Pixels / 2);
-            Assert.True(middle[2] > 200 && middle[1] < 50 && middle[3] > 200, "the middle should be red");
+            // (The bytes are blue-green-red on Windows and Linux, red-first on macOS.)
+            var (red, blue) = fromSvg.Format == Avalonia.Platform.PixelFormat.Rgba8888 ? (middle[0], middle[2]) : (middle[2], middle[0]);
+            Assert.True(red > 200 && middle[1] < 50 && blue < 50 && middle[3] > 200, $"the middle should be red ({string.Join(",", middle)}, {fromSvg.Format})");
             Assert.Equal(0, Pixel(fromSvg, 1, AppIcons.Pixels / 2)[3]);
 
             var png = System.IO.Path.Combine(dir, "app.png");
@@ -416,7 +418,7 @@ public class AppsDialogsTests
         var handle = System.Runtime.InteropServices.GCHandle.Alloc(bytes, System.Runtime.InteropServices.GCHandleType.Pinned);
         try { bitmap.CopyPixels(new PixelRect(x, y, 1, 1), handle.AddrOfPinnedObject(), 4, 4); }
         finally { handle.Free(); }
-        return bytes; // B G R A
+        return bytes; // in the bitmap's own channel order
     }
 
     // ── Splash ─────────────────────────────────────────────────────────────────────────────────────
