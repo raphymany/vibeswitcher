@@ -22,6 +22,20 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
 
+## Install notes
+
+- **macOS:** a `.dmg` per Mac type (Apple Silicon or Intel) with `VibeSwitcher.app`, dragged to Applications. Until the
+  app is signed with an Apple developer account it's "ad-hoc" signed: the first launch needs **System Settings ›
+  Privacy & Security › Open Anyway** once (the notarisation script is ready for when an account exists). macOS asks for
+  microphone permission the first time the mic meter runs, with VibeSwitcher's own explanation. While it's ad-hoc
+  signed, macOS treats every update as a new app: the microphone permission is asked again, and the Login Items entry
+  may show a generic name. Needs **macOS 14 (Sonoma) or newer** (what .NET 10 supports).
+- **Linux:** an AppImage (download, make executable, run — nothing to install) or a `.deb` for Ubuntu, Debian, Mint and
+  similar (`sudo apt install ./vibeswitcher_….deb`). The `.deb` adds the app-menu entry and icon, the `vibeswitcher`
+  command, and the wireless-headset permission rule, and pulls in what the app needs (the sound tools and a few X11
+  libraries every desktop has). 64-bit PCs for now.
+- **Version:** `vibeswitcher --version` (or `VibeSwitcher.app/Contents/MacOS/VibeSwitcher --version`).
+
 ## Look notes
 
 - **Same colours, icons and controls.** The Mac/Linux app reads the Windows app's own theme colours (light and dark)

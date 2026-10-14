@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!-- CFBundleIdentifier must match the start-at-login entry's AssociatedBundleIdentifiers (MacStartupService). -->
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.raphymany.vibeswitcher</string>
+    <key>CFBundleName</key>
+    <string>VibeSwitcher</string>
+    <key>CFBundleDisplayName</key>
+    <string>VibeSwitcher</string>
+    <key>CFBundleExecutable</key>
+    <string>VibeSwitcher</string>
+    <key>CFBundleIconFile</key>
+    <string>VibeSwitcher</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>@SHORT_VERSION@</string>
+    <key>CFBundleVersion</key>
+    <string>@SHORT_VERSION@</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>VibeSwitcher shows a live level meter so you can test your microphone. Nothing is recorded or sent anywhere.</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Copyright © 2026 Raphael Mansour. MIT License.</string>
+</dict>
+</plist>

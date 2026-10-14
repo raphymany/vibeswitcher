@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=VibeSwitcher
+GenericName=Audio Device Switcher
+Comment=Switch audio devices with profiles and hotkeys
+Exec=vibeswitcher
+Icon=com.raphymany.vibeswitcher
+Terminal=false
+Categories=AudioVideo;Audio;Utility;
+Keywords=audio;sound;headset;speakers;microphone;switch;hotkey;
+StartupWMClass=VibeSwitcher
+X-GNOME-UsesNotifications=true

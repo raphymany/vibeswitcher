@@ -1,0 +1,11 @@
+#!/bin/sh
+# After installing: apply the wireless-headset permission rule to dongles already plugged in.
+# Best-effort: it may not stop the install. (The app menu and icon caches refresh themselves.)
+set -e
+if [ "$1" = "configure" ]; then
+  if command -v udevadm >/dev/null 2>&1; then
+    udevadm control --reload-rules 2>/dev/null || true
+    udevadm trigger --subsystem-match=hidraw --action=change 2>/dev/null || true
+  fi
+fi
+exit 0

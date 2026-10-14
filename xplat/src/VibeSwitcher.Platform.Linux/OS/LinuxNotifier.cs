@@ -127,13 +127,13 @@ public sealed class LinuxNotifier : IDesktopNotifier, IDisposable
             member: "Notify", signature: "susssasa{sv}i", flags: MessageFlags.None);
         writer.WriteString("VibeSwitcher");
         writer.WriteUInt32(replaces);
-        writer.WriteString("vibeswitcher"); // the icon installed with the app (falls back to none)
+        writer.WriteString(LinuxAppIdentity.AppId); // the app icon the packages install (falls back to none)
         writer.WriteString(title);
         writer.WriteString(body);
         writer.WriteArray(Array.Empty<string>());
         writer.WriteDictionary(new Dictionary<string, VariantValue>
         {
-            ["desktop-entry"] = VariantValue.String("vibeswitcher"),
+            ["desktop-entry"] = VariantValue.String(LinuxAppIdentity.AppId), // the packages' com.raphymany.vibeswitcher.desktop
             ["transient"] = VariantValue.Bool(true),
         });
         writer.WriteInt32(TimeoutMs);

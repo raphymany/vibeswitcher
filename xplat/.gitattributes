@@ -7,3 +7,5 @@ AppRun     text eol=lf
 forks.txt  text eol=lf
 # Recorded tool output used as test fixtures: byte-for-byte what Linux prints.
 tests/**/Fixtures/** text eol=lf
+postinst   text eol=lf
+postrm     text eol=lf

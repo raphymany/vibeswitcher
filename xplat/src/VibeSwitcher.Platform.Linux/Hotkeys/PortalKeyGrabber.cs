@@ -33,7 +33,7 @@ public sealed class PortalKeyGrabber : IGlobalKeyGrabber
     internal const string RequestInterface = "org.freedesktop.portal.Request";
     internal const string SessionInterface = "org.freedesktop.portal.Session";
     // How the desktop knows which app is asking (matches the installed .desktop file's name).
-    public const string AppId = "com.raphymany.vibeswitcher";
+    public const string AppId = OS.LinuxAppIdentity.AppId;
 
     private static readonly TimeSpan CallTimeout = TimeSpan.FromSeconds(10);
     // Binding shows the user a dialog; give them time to read it.
