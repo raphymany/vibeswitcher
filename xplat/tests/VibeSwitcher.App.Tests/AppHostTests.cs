@@ -257,7 +257,9 @@ public class AppHostTests : IDisposable
     [Fact]
     public async Task ASecondLaunch_HandsItsCommandToTheFirst()
     {
-        var paths = new AppPaths(_dir);
+        // (macOS's temp folder is too deep for a command socket's path: a short folder, as the app's own is.)
+        var dir = new AppPaths(_dir).SocketPathFits ? _dir : Directory.CreateDirectory($"/tmp/vs-{Guid.NewGuid():N}"[..16]).FullName;
+        var paths = new AppPaths(dir);
         using var first = new SingleInstance(paths);
         string reply = "ok";
         var output = new StringWriter();
@@ -273,7 +275,7 @@ public class AppHostTests : IDisposable
         reply = "error: No profile named 'X'.";
         Assert.Equal(1, Cli.AcquireOrForward(second, paths, new AppCommand(AppCommandKind.Switch, "X"), _ => Task.FromResult(""), output, error));
         Assert.Contains("No profile named 'X'.", error.ToString());
-        await Task.CompletedTask;
+        if (dir != _dir) await DeleteSoon(dir);
     }
 
     // ── Tray / menu bar ────────────────────────────────────────────────────────────────────────────
