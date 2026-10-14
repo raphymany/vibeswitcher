@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!-- Port of the SettingsWindow.xaml <Window.Resources>: the same keys, as control themes
          (Style="{StaticResource X}" → Theme="{StaticResource X}"); WPF triggers become states in the
-         same order. The Settings-panel styles (sidebar, segments, link chips) come with that panel. -->
+         same order. -->
 
     <!-- ── Filter chip icons (16-unit geometry) ── -->
     <StreamGeometry x:Key="IcoPlayback">M2,6.5 H4.5 L8,3.5 V12.5 L4.5,9.5 H2 Z M11,6 Q12.8,8 11,10</StreamGeometry>
@@ -333,5 +333,193 @@
         <Style Selector="^:pointerover /template/ Border#bg">
             <Setter Property="Background" Value="#1AF5820A" />
         </Style>
+    </ControlTheme>
+
+    <!-- ── Settings section card (About / FAQ) ── -->
+    <ControlTheme x:Key="CardBorder" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource CardBg}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+        <Setter Property="Padding" Value="16,14" />
+    </ControlTheme>
+
+    <!-- ── Panel header title text ── -->
+    <ControlTheme x:Key="PanelTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="12,0,0,0" />
+    </ControlTheme>
+
+    <!-- ── About / external link chip ── -->
+    <ControlTheme x:Key="LinkChipStyle" TargetType="Button">
+        <Setter Property="Background" Value="{DynamicResource VSInsetBg}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Foreground" Value="{DynamicResource VSLabel}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Padding" Value="14,7" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="20" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+            <Style Selector="^ /template/ Border#bg">
+                <Setter Property="Background" Value="#12F5820A" />
+                <Setter Property="BorderBrush" Value="#55F5820A" />
+            </Style>
+        </Style>
+    </ControlTheme>
+
+    <!-- ── Settings sidebar ── -->
+    <ControlTheme x:Key="SettingsNavLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="9" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{DynamicResource SectionLabelText}" />
+        <Setter Property="Margin" Value="10,8,10,5" />
+    </ControlTheme>
+
+    <!-- (.selected: the page shown — WPF's IsXxxSelected DataTriggers. A style trigger there, so it
+         keeps its colour while hovered.) -->
+    <ControlTheme x:Key="SettingsNavItemStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource VSLabel}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Width" Value="152" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="bd" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalAlignment="Center" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Style Selector="^ /template/ Border#bd">
+                <Setter Property="Background" Value="{DynamicResource VSSurface}" />
+            </Style>
+        </Style>
+        <Style Selector="^.selected">
+            <Setter Property="Background" Value="#0FF5820A" />
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+        </Style>
+    </ControlTheme>
+
+    <!-- Segmented radio button (theme and logo-animation pickers). -->
+    <ControlTheme x:Key="SegmentRadio" TargetType="RadioButton">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="Padding" Value="10,4" />
+        <Setter Property="Foreground" Value="{DynamicResource VSLabel}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="Bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                    <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Margin="{TemplateBinding Padding}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Style Selector="^ /template/ Border#Bg">
+                <Setter Property="BorderBrush" Value="{DynamicResource VSBorderStrong}" />
+            </Style>
+        </Style>
+        <Style Selector="^:checked">
+            <Setter Property="Background" Value="#1DF5820A" />
+            <Setter Property="BorderBrush" Value="#38F5820A" />
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+        </Style>
+    </ControlTheme>
+
+    <!-- Compact bell (silent) toggle for the Shortcuts mute rows — the profile card's silent toggle.
+         Checked (accent) = no notification banner for that shortcut. -->
+    <ControlTheme x:Key="MuteBannerToggle" TargetType="ToggleButton">
+        <Setter Property="Width" Value="30" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Foreground" Value="{DynamicResource VSLabel}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="True" />
+        <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Name="bg" CornerRadius="7" Background="{DynamicResource VSGlassFill}"
+                        BorderBrush="{DynamicResource VSGlassBorder}" BorderThickness="1">
+                    <Viewbox Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Canvas Width="16" Height="16">
+                            <Path Data="M8,2 A5,5 0 0 0 3,7 V10 L2,12 H14 L13,10 V7 A5,5 0 0 0 8,2 Z" Fill="Transparent"
+                                  Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6"
+                                  StrokeLineCap="Round" StrokeJoin="Round" />
+                            <Path Data="M6.5,13.5 A1.5,1.5 0 0 0 9.5,13.5" Fill="Transparent"
+                                  Stroke="{TemplateBinding Foreground}" StrokeThickness="1.6" StrokeLineCap="Round" />
+                            <Path Data="M2,2 L14,14" Stroke="{TemplateBinding Foreground}" StrokeThickness="1.8"
+                                  StrokeLineCap="Round" />
+                        </Canvas>
+                    </Viewbox>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+        <Style Selector="^:checked">
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+            <Style Selector="^ /template/ Border#bg">
+                <Setter Property="Background" Value="#1FF5820A" />
+                <Setter Property="BorderBrush" Value="#40F5820A" />
+            </Style>
+        </Style>
+        <Style Selector="^:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Style Selector="^ /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource VSSurfaceHover}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource VSBorderStrong}" />
+            </Style>
+        </Style>
+        <Style Selector="^:checked:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+            <Style Selector="^ /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource VSSurfaceHover}" />
+                <Setter Property="BorderBrush" Value="#40F5820A" />
+            </Style>
+        </Style>
+    </ControlTheme>
+
+    <!-- A link inside FAQ text (WPF Hyperlink: accent, underlined). -->
+    <ControlTheme x:Key="FaqLink" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <TextBlock Text="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                           Background="Transparent" TextDecorations="Underline" />
+            </ControlTemplate>
+        </Setter>
     </ControlTheme>
 </ResourceDictionary>
