@@ -17,7 +17,9 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | Mini Mode (always on top, translucent, remembers position) | ✅ | ✅ | ✅ via XWayland |
 | Start at login | ✅ (macOS shows a "background item added" notice) | ✅ | ✅ |
 | App launch triggers | ✅ (`.app` bundles) | ✅ (+ Flatpak / Snap apps) | ✅ |
-| Wireless headset power on/off detection | ✅ | Needs a permission rule: installed automatically by the `.deb`, one click for the AppImage | Same as X11 |
+| Wireless headset power on/off detection | ✅ | Needs a permission rule: installed automatically by the `.deb`, one click for the AppImage. When auto-switch is turned on and a supported receiver can't be read, VibeSwitcher explains it and offers "Allow Access" (one password prompt); Windows has no such step | Same as X11 |
+| App-trigger picker | Installed = the app bundles in the Applications folders; Running = running apps; icons from each app's `.icns` (an app that keeps its icon only in an asset catalog shows none); "Browse for an app..." picks an `.app` | Installed = the app menu's apps (including Flatpak and Snap); Running adds AppImages, programs under `/opt` or the home folder and Windows games under Wine; icons from the icon theme (PNG or SVG); "Browse for a program..." takes a program, AppImage or `.desktop` file. "Fully ended in System Monitor" instead of Task Manager | Same as X11 |
+| Start-up splash | ✅ | ✅ (with no compositor — plain X11 — the card fills its window, square and without a shadow, as the system can't show see-through windows) | Same as X11 |
 | Gallery emoji icons | The same single-colour outline style as Windows, from the bundled Noto Emoji font (slightly different artwork; no system emoji font needed) | Same as macOS | Same as macOS |
 | Supported-headsets badges | ✅ (the ✅ / ⚠️ after "Tested" / "Untested" are drawn as the same single-colour outlines WPF shows, instead of relying on an emoji font) | ✅ (also where Linux has no emoji font) | Same as X11 |
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |

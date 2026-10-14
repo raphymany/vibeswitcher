@@ -111,7 +111,9 @@ internal static class Program
         var visual = new DrawingVisual();
         using (var dc = visual.RenderOpen())
         {
-            dc.PushClip(new RectangleGeometry(new Rect(0, 0, width, height), 8, 8));
+            // (A frameless window — the splash — has square corners.)
+            var corner = window.WindowStyle == WindowStyle.None ? 0 : 8;
+            dc.PushClip(new RectangleGeometry(new Rect(0, 0, width, height), corner, corner));
             dc.DrawRectangle(window.Background, null, new Rect(0, 0, width, height));
             // Unstretched, top-left: drawn 1:1 even when the layout size has a fraction.
             var brush = new VisualBrush(content)
@@ -142,7 +144,8 @@ internal static class Dialogs
         "alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup",
         // (Not the mic test: it would open a real microphone here.)
         "hotkey-capture", "profile-type", "device-aliases", "session-log", "supported-headsets",
-        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound",
+        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound", "app-trigger", "splash",
+        // (Not the headset permission: Windows has no such dialog.)
     ];
 
     public static Window Create(string name) => name switch
@@ -189,8 +192,59 @@ internal static class Dialogs
             use12Hour: false, isEditing: true),
         "switch-sound" => new SwitchSoundDialog(true, "Chime", null, 60, new NullLogger(),
             Path.Combine(Path.GetTempPath(), "vs-no-sound-library"), showBanner: true, isEditing: true),
+        "app-trigger" => AppTrigger(),
+        "splash" => Splash(),
         _ => throw new ArgumentException(name),
     };
+
+    // The app picker with a fixed list in place of this computer's apps (the same apps as the
+    // macOS/Linux screenshot, as Windows programs): its own loading is cancelled and the list set
+    // through its private fields.
+    private static Window AppTrigger()
+    {
+        var dialog = new AppTriggerDialog([@"C:\Apps\steam.exe"], new Dictionary<string, string>());
+        const System.Reflection.BindingFlags Private = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        var type = typeof(AppTriggerDialog);
+        ((CancellationTokenSource)type.GetField("_loadCts", Private)!.GetValue(dialog)!).Cancel();
+        var entryType = type.GetNestedType("ProcessEntry", System.Reflection.BindingFlags.NonPublic)!;
+        var icon = new BitmapImage(new Uri("pack://application:,,,/Resources/Icons/vs-icon-32.png"));
+        System.Collections.IList List(params (string Path, string Name, bool Icon, string? UsedBy, bool Running)[] apps)
+        {
+            var list = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(entryType))!;
+            foreach (var a in apps)
+                list.Add(entryType.GetConstructors()[0].Invoke([a.Path, Path.GetFileName(a.Path), a.Name, a.Icon ? icon : null, a.UsedBy, a.Running]));
+            return list;
+        }
+        type.GetField("_runningEntries", Private)!.SetValue(dialog, List(
+            (@"C:\Apps\firefox.exe", "Firefox", true, null, true),
+            (@"C:\Games\Game.exe", "Game", false, null, true)));
+        type.GetField("_installedEntries", Private)!.SetValue(dialog, List(
+            (@"C:\Apps\Discord.exe", "Discord", true, null, false),
+            (@"C:\Apps\Spotify.exe", "Spotify", true, "Music", false),
+            (@"C:\Apps\steam.exe", "Steam", true, null, false)));
+        type.GetMethod("RebuildAllEntries", Private)!.Invoke(dialog, null);
+        type.GetMethod("ApplyFilter", Private)!.Invoke(dialog, [""]);
+        ((FrameworkElement)dialog.FindName("LoadingLabel")).Visibility = Visibility.Collapsed;
+        return dialog;
+    }
+
+    // The splash still, everything in place (its storyboard only starts when it's shown, so its
+    // content is moved to a plain window), on a grey "desktop" as in the macOS/Linux screenshot.
+    private static Window Splash()
+    {
+        var splash = new SplashWindow();
+        var content = (UIElement)splash.Content;
+        ((UIElement)splash.FindName("RootPanel")).Opacity = 1;
+        ((UIElement)splash.FindName("TextGroup")).Opacity = 1;
+        ((TranslateTransform)splash.FindName("TextTranslate")).Y = 0;
+        splash.Content = null;
+        return new Window
+        {
+            Width = 360, Height = 300, WindowStyle = WindowStyle.None, AllowsTransparency = true, ShowInTaskbar = false,
+            Background = new SolidColorBrush(Color.FromRgb(0x80, 0x80, 0x80)),
+            Content = new System.Windows.Controls.Grid { Children = { content } }, // (the whole window: the card keeps its 20 px margin)
+        };
+    }
 
     // Two errors at fixed times (as the macOS/Linux screenshot).
     private sealed class FixedErrors : ISessionErrorTracker

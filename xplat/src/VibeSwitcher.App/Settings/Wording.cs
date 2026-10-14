@@ -72,6 +72,13 @@ public static class Wording
         ? "Black works best on light menu bars · White works best on dark menu bars"
         : "Black works best on light panels · White works best on dark panels";
 
+    // ── App launch triggers ── (Windows: Task Manager, an .exe file)
+    public static string AppTriggerBackgroundNote => Mac
+        ? "⚠ Apps that keep a background process after closing (e.g. Spotify, Discord) must be fully quit (in Activity Monitor if needed) and reopened to trigger a switch."
+        : "⚠ Apps that keep a background process after closing (e.g. Spotify, Discord) must be fully ended in System Monitor and relaunched to trigger a switch.";
+    public static string BrowseApp => Mac ? "Browse for an app..." : "Browse for a program...";
+    public static string BrowseAppTitle => Mac ? "Select App" : "Select Program";
+
     // ── About ──
     public static string Platform => Mac ? "macOS 14 or later" : "Linux";
 

@@ -1,0 +1,139 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            x:Class="VibeSwitcher.App.Dialogs.AppTriggerDialog"
+            Width="500" MaxHeight="760">
+    <!-- Port of Views/AppTriggerDialog.xaml (the rows are built in code, as on Windows). -->
+    <c:VsDialog.Resources>
+        <!-- A filter chip (WPF: a focusable Border): accent when on. -->
+        <ControlTheme x:Key="FilterChip" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bg" CornerRadius="4" BorderThickness="1" Padding="{TemplateBinding Padding}"
+                            Background="Transparent" BorderBrush="{DynamicResource CardBorderBrush}">
+                        <TextBlock Text="{TemplateBinding Content}" FontSize="{TemplateBinding FontSize}"
+                                   FontWeight="{TemplateBinding FontWeight}" Foreground="{TemplateBinding Foreground}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^.on">
+                <Setter Property="Foreground" Value="White" />
+                <Style Selector="^ /template/ Border#Bg">
+                    <Setter Property="Background" Value="{DynamicResource Accent}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                </Style>
+            </Style>
+        </ControlTheme>
+    </c:VsDialog.Resources>
+    <c:VsDialog.Styles>
+        <!-- The search field: plain text in its box (WPF: transparent, no border). -->
+        <Style Selector="TextBox.bare">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="TextBox.bare:pointerover /template/ Border#PART_BorderElement, TextBox.bare:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="TextBlock.section">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+    </c:VsDialog.Styles>
+
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Viewbox Width="11" Height="13" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0">
+                        <Polygon Points="0,0 11,6.5 0,13" Fill="Black" />
+                    </Viewbox>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="App Launch Triggers" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Switch to this profile automatically when a linked app opens" FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Description -->
+            <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource PrimaryText}" LineHeight="18" Margin="0,0,0,6"
+                       Text="When a linked app launches, VibeSwitcher switches to this profile — but only if you're not already on it. Switching back manually at any time is fine; closing the app does nothing." />
+            <TextBlock Name="BackgroundNote" TextWrapping="Wrap" FontSize="11" LineHeight="17"
+                       Foreground="{DynamicResource SecondaryText}" Margin="0,0,0,16" />
+
+            <!-- Linked apps -->
+            <TextBlock Classes="section" Text="LINKED APPS" />
+            <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,16" Padding="0,4">
+                <StackPanel>
+                    <TextBlock Name="EmptyLabel" Text="No apps linked yet. Add one from the list below." FontSize="12"
+                               Foreground="{DynamicResource SecondaryText}" Margin="12,8" HorizontalAlignment="Center" />
+                    <StackPanel Name="LinkedPanel" />
+                </StackPanel>
+            </Border>
+
+            <!-- Apps -->
+            <TextBlock Classes="section" Text="APPS" />
+            <Border BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,6" Padding="8,6">
+                <Grid>
+                    <TextBlock Name="SearchPlaceholder" Text="Search apps..." FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               IsHitTestVisible="False" VerticalAlignment="Center" />
+                    <TextBox Name="SearchBox" Classes="bare" FontSize="12" Foreground="{DynamicResource PrimaryText}"
+                             VerticalAlignment="Center" TextChanged="SearchBox_TextChanged"
+                             GotFocus="SearchBox_FocusChanged" LostFocus="SearchBox_FocusChanged" />
+                </Grid>
+            </Border>
+
+            <!-- Filter chips -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <Button Name="ChipAll" Content="All" Theme="{StaticResource FilterChip}" Tag="All" Click="FilterChip_Click"
+                        AutomationProperties.Name="Show all apps" />
+                <Button Name="ChipRunning" Content="Running" Theme="{StaticResource FilterChip}" Tag="Running" Click="FilterChip_Click"
+                        AutomationProperties.Name="Show running apps" />
+                <Button Name="ChipInstalled" Content="Installed" Theme="{StaticResource FilterChip}" Tag="Installed" Click="FilterChip_Click"
+                        AutomationProperties.Name="Show installed apps" />
+                <Button Name="ChipInUse" Content="In use" Theme="{StaticResource FilterChip}" Tag="InUse" Click="FilterChip_Click"
+                        Margin="0" AutomationProperties.Name="Show apps in use" />
+            </StackPanel>
+
+            <!-- App list: a fixed height, so the dialog doesn't grow (and jump) once the apps have
+                 loaded; the loading text sits over the empty list. -->
+            <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,8">
+                <Grid Height="220">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Name="RunningPanel" Margin="0,4,0,4" />
+                    </ScrollViewer>
+                    <TextBlock Name="LoadingLabel" Text="Loading installed apps…" FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+
+            <Button Name="BrowseButton" HorizontalAlignment="Left" Margin="0,0,0,20" Theme="{StaticResource ActionButton}"
+                    Click="Browse_Click" />
+
+            <!-- Action buttons -->
+            <Grid ColumnDefinitions="*,8,*">
+                <Button Grid.Column="0" Content="Done" Theme="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch"
+                        IsDefault="True" Click="Done_Click" />
+                <Button Grid.Column="2" Content="Cancel" Theme="{StaticResource ActionButton}" HorizontalAlignment="Stretch"
+                        Click="Cancel_Click" />
+            </Grid>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

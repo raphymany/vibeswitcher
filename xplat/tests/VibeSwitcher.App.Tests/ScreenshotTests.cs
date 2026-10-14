@@ -46,8 +46,17 @@ public class ScreenshotTests
         // (In each system's words: the dialogs created inside read them.)
         var oldWording = VibeSwitcher.App.Settings.Wording.Mac;
         VibeSwitcher.App.Settings.Wording.Mac = chrome == "mac";
-        // (The mic level is set directly: a busy test run could draw it before the meter's first reading.)
-        try { Capture(name, theme, chrome, () => DialogCatalog.Create(name), w => (w as Dialogs.MicTestDialog)?.ShowLevel(0.035f)); }
+        // (The mic level is set directly: a busy test run could draw it before the meter's first reading.
+        // The app picker's lists load in the background: they're waited for.)
+        try
+        {
+            Capture(name, theme, chrome, () => DialogCatalog.Create(name), w =>
+            {
+                (w as Dialogs.MicTestDialog)?.ShowLevel(0.035f);
+                var giveUp = DateTime.UtcNow.AddSeconds(5);
+                while (w is Dialogs.AppTriggerDialog { AppsLoaded: false } && DateTime.UtcNow < giveUp) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(5); }
+            });
+        }
         finally { VibeSwitcher.App.Settings.Wording.Mac = oldWording; }
     }
 

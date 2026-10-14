@@ -7,6 +7,8 @@ using Avalonia.Threading;
 using VibeSwitcher.App.Controls;
 using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
+using VibeSwitcher.Platform;
+using VibeSwitcher.Platform.Linux.Hid;
 using VibeSwitcher.Services;
 
 namespace VibeSwitcher.App.Dialogs;
@@ -29,6 +31,12 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
     public IAppLogger? Logger { get; init; }
     // (The icon and sound libraries: the users' earlier uploads.)
     public IConfigService? Config { get; init; }
+    // The app-trigger wizard's lists (the system's app catalog) and their icons.
+    public IAppCatalog? Apps { get; init; }
+    public Func<AppEntry, Avalonia.Media.IImage?>? AppIcon { get; init; }
+    // Linux: checking and granting wireless-headset access (LinuxHidAccess), offered when auto-switch
+    // is turned on. Null elsewhere.
+    public HeadsetAccessHooks? Headsets { get; init; }
 
     // ── IDialogService (the shared view models) ────────────────────────────────────────────────────
     public bool ShowConfirmDelete(string profileName) => Wait(ShowConfirmDeleteAsync(profileName));
@@ -43,8 +51,7 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
 
     public string? ShowBrowseIconFile() => Wait(ShowBrowseIconFileAsync());
 
-    // The rest of the Windows DialogService. Still to come (the next step): the app-trigger wizard —
-    // until then it answers "cancelled" (and logs it).
+    // The rest of the Windows DialogService.
     public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current) => ShowHotkeyCapture(current, subtitle: null);
     public DeviceProfile? ShowCloneWizard(DeviceProfile source, IReadOnlyList<AudioDeviceInfo> playbackDevices,
         IReadOnlyList<AudioDeviceInfo> recordingDevices, bool use12Hour, Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey)
@@ -88,9 +95,22 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
         var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, Logger, Config?.SoundsLibraryDir ?? "", showBanner, isEditing);
         return Wait(ShowAsync(dialog)) ? dialog.SoundResult : null;
     }
-    public bool ShowSupportedHeadsets() => Wait(ShowAsync(new SupportedHeadsetsDialog()));
-    public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers) =>
-        NotYet<List<string>>(nameof(ShowAppTriggerWizard));
+    // On Linux, turning auto-switch on also checks that VibeSwitcher can read a connected headset's
+    // receiver, and offers to set that up when it can't (the answer stays "turn it on" either way:
+    // detection starts once access is there).
+    public bool ShowSupportedHeadsets()
+    {
+        if (!Wait(ShowAsync(new SupportedHeadsetsDialog()))) return false;
+        if (Headsets is { } headsets
+            && Wait(Task.Run(headsets.Check)) is (HeadsetAccess.NeedsRule or HeadsetAccess.NeedsReconnect or HeadsetAccess.TurnedOff) and var state)
+            Wait(ShowAsync(new HeadsetAccessDialog(state, headsets.Install, headsets.Check)));
+        return true;
+    }
+    public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers)
+    {
+        var dialog = new AppTriggerDialog(currentTriggers, usedByOthers, Apps, AppIcon);
+        return Wait(ShowAsync(dialog)) ? dialog.ResultTriggers : null;
+    }
     public void ShowManageSchedules(object profileCard)
     {
         if (profileCard is not ViewModels.ProfileCardViewModel card) return;
@@ -106,12 +126,6 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
     }
     public void ShowDeviceAliases(System.Collections.ObjectModel.ObservableCollection<ViewModels.DeviceAliasItem> aliases) =>
         Wait(ShowAsync(new DeviceAliasesDialog(aliases)));
-
-    private static T? NotYet<T>(string dialog) where T : class
-    {
-        AppLog.Warning("DialogService", $"{dialog}: this dialog isn't available on macOS/Linux yet.");
-        return null;
-    }
 
     // ── The same dialogs, awaited ──────────────────────────────────────────────────────────────────
     public Task ShowAlertAsync(string title, string message) =>
@@ -307,3 +321,7 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
         return true;
     }
 }
+
+// Checking and granting wireless-headset access on Linux (LinuxHidAccess.Check / Install: both can
+// block, so they run off the UI thread).
+public sealed record HeadsetAccessHooks(Func<HeadsetAccess> Check, Func<RuleInstallResult> Install);

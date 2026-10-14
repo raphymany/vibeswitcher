@@ -16,10 +16,10 @@ internal static class DialogCatalog
     [
         "alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup",
         "hotkey-capture", "profile-type", "device-aliases", "session-log", "mic-test", "supported-headsets",
-        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound", "controls",
+        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound", "app-trigger", "headset-access", "splash", "controls",
     ];
 
-    public static VsDialog Create(string name) => name switch
+    public static Avalonia.Controls.Window Create(string name) => name switch
     {
         "alert" => new AlertDialog("Device Not Found", "The headset in this profile isn't connected. Plug it in, or pick another device."),
         "alert-info" => new AlertDialog("Mini Mode", "Mini Mode keeps your profiles one click away in a small window.", AlertKind.Info),
@@ -48,11 +48,22 @@ internal static class DialogCatalog
             new ScheduleEntry { Hour = 18, Minute = 0, Days = [DayOfWeek.Friday, DayOfWeek.Saturday], ReminderMinutes = 10 },
             use12Hour: false, isEditing: true),
         "switch-sound" => new SwitchSoundDialog(true, "Chime", null, 60, new FakeAppLogger(), "", showBanner: true, isEditing: true),
+        "app-trigger" => new AppTriggerDialog(["/usr/bin/steam"], AppsDialogsTests.UsedByOthers, new AppsDialogsTests.FakeCatalog(),
+            app => app.Icon != null ? SampleIcon.Value : null),
+        "headset-access" => new HeadsetAccessDialog(VibeSwitcher.Platform.Linux.Hid.HeadsetAccess.NeedsRule,
+            () => VibeSwitcher.Platform.Linux.Hid.RuleInstallResult.Cancelled, () => VibeSwitcher.Platform.Linux.Hid.HeadsetAccess.NeedsRule),
+        // (Still, everything in place, on a grey "desktop" so its shadow shows: screenshots have no see-through.)
+        "splash" => new SplashWindow(play: false) { CanSeeThrough = () => true, Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#808080")) },
         "controls" => new DialogPreviewWindow(),
         _ => throw new ArgumentException(name),
     };
 
-    public static IEnumerable<VsDialog> All() => Names.Select(Create);
+    // (The dialogs: not the splash.)
+    public static IEnumerable<VsDialog> All() => Names.Select(Create).OfType<VsDialog>();
+
+    // The app picker's sample icon: the app's own (each system's apps have their own).
+    private static readonly Lazy<Avalonia.Media.Imaging.Bitmap> SampleIcon = new(() =>
+        new Avalonia.Media.Imaging.Bitmap(Avalonia.Platform.AssetLoader.Open(new Uri("avares://VibeSwitcher/Assets/Icons/vs-icon-32.png"))));
 
     // A profile with something of everything to copy.
     public static DeviceProfile CloneSource() => new()

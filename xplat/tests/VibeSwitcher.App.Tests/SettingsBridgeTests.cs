@@ -141,10 +141,9 @@ public class SettingsBridgeTests
     }
 
     [AvaloniaFact]
-    public void TheAppTriggerWizard_NotPortedYet_AnswersCancelled_AndPickersNeedAWindow()
+    public void FilePickers_NeedAWindow()
     {
         IDialogService service = new DialogService(() => null);
-        Assert.Null(service.ShowAppTriggerWizard([], new Dictionary<string, string>()));
         Assert.Null(service.ShowBrowseIconFile()); // no window to show the file picker on
     }
 
