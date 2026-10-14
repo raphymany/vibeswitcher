@@ -35,6 +35,7 @@ internal static class X11
     [DllImport(Lib)] public static extern int XNextEvent(IntPtr display, IntPtr eventReturn);
     [DllImport(Lib)] public static extern int XConnectionNumber(IntPtr display);
     [DllImport(Lib)] public static extern int XRefreshKeyboardMapping(IntPtr mappingEvent);
+    [DllImport(Lib)] public static extern UIntPtr XkbKeycodeToKeysym(IntPtr display, byte keycode, int group, int level);
     [DllImport(Lib)] public static extern IntPtr XGetModifierMapping(IntPtr display);
     [DllImport(Lib)] public static extern int XFreeModifiermap(IntPtr modmap);
     [DllImport(Lib)] public static extern int XQueryPointer(IntPtr display, UIntPtr w, out UIntPtr root, out UIntPtr child,
@@ -75,7 +76,7 @@ internal static class LibC
     public static extern int poll([In, Out] PollFd[] fds, nuint nfds, int timeout);
 
     [DllImport("libc", SetLastError = true)]
-    public static extern int pipe([Out] int[] fds);
+    public static extern int pipe2([Out] int[] fds, int flags);
 
     [DllImport("libc", SetLastError = true)]
     public static extern nint write(int fd, byte[] buf, nuint count);
@@ -87,11 +88,9 @@ internal static class LibC
     public static extern int close(int fd);
 
     [DllImport("libc")]
-    public static extern int fcntl(int fd, int cmd, int arg);
-
-    [DllImport("libc")]
     public static extern void free(IntPtr ptr);
 
-    public const int F_SETFL = 4;
-    public const int O_NONBLOCK_LINUX = 0x800;
+    // Linux values (this file is Linux-only).
+    public const int O_NONBLOCK = 0x800;
+    public const int O_CLOEXEC = 0x80000;
 }

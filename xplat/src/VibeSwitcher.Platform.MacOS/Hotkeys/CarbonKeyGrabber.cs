@@ -66,9 +66,9 @@ public sealed class CarbonKeyGrabber : IGlobalKeyGrabber
 
     public CarbonKeyGrabber()
     {
+        EnsureHandler(); // first: if it throws, nothing is left registered
         _grabberId = (uint)(Interlocked.Increment(ref _nextGrabber) & 0xFFFF);
         Owners[_grabberId] = this;
-        EnsureHandler();
     }
 
     private static void EnsureHandler()

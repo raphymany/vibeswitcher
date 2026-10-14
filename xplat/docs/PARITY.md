@@ -33,7 +33,9 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 - **Linux X11:** shortcuts keep working with Caps Lock or Num Lock on, and after a keyboard-layout change.
 - **Keys a system can't use:** macOS keeps the media keys (volume, play/pause), has no Print Screen or F21–F24, and
   since macOS 15 refuses shortcuts that use only ⌥ Option (or ⌥⇧); Linux supports the usual keys including F13–F24
-  and media keys. Choosing an unusable one shows a registration error saying why, instead of silently doing nothing.
+  and media keys (GNOME and KDE already use the bare media keys themselves, so on their own those show as "in use";
+  with a modifier they're fine). Choosing an unusable one shows a registration error saying why, instead of silently
+  doing nothing.
 - **macOS needs no special permission** for shortcuts (no Accessibility prompt).
 
 ## System integration notes

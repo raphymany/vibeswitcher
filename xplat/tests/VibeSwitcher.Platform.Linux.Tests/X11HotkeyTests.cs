@@ -84,6 +84,33 @@ public sealed class X11KeyGrabberTests : IDisposable
         Assert.True(p.ExitCode == 0, "xdotool " + string.Join(' ', args) + ": " + p.StandardError.ReadToEnd());
     }
 
+    [System.Runtime.InteropServices.DllImport("libXtst.so.6")]
+    private static extern int XTestFakeKeyEvent(IntPtr display, uint keycode, int isPress, ulong delay);
+    [System.Runtime.InteropServices.DllImport("libX11.so.6")]
+    private static extern IntPtr XOpenDisplay(IntPtr name);
+    [System.Runtime.InteropServices.DllImport("libX11.so.6")]
+    private static extern int XCloseDisplay(IntPtr display);
+    [System.Runtime.InteropServices.DllImport("libX11.so.6")]
+    private static extern byte XKeysymToKeycode(IntPtr display, UIntPtr keysym);
+    [System.Runtime.InteropServices.DllImport("libX11.so.6")]
+    private static extern int XFlush(IntPtr display);
+
+    private static void PressKeycode(byte keycode, bool withCtrl)
+    {
+        Assert.NotEqual(0, keycode);
+        var d = XOpenDisplay(IntPtr.Zero);
+        try
+        {
+            byte ctrl = XKeysymToKeycode(d, (UIntPtr)0xFFE3); // Control_L
+            if (withCtrl) XTestFakeKeyEvent(d, ctrl, 1, 0);
+            XTestFakeKeyEvent(d, keycode, 1, 0);
+            XTestFakeKeyEvent(d, keycode, 0, 0);
+            if (withCtrl) XTestFakeKeyEvent(d, ctrl, 0, 0);
+            XFlush(d);
+        }
+        finally { XCloseDisplay(d); }
+    }
+
     private static async Task<bool> WaitFor(Func<bool> condition, int ms = 3000)
     {
         var until = DateTime.UtcNow.AddMilliseconds(ms);
@@ -164,27 +191,34 @@ public sealed class X11KeyGrabberTests : IDisposable
     public async Task AHandlerThatRegistersAnotherShortcut_IsFine()
     {
         var g = Grabber();
-        int second = 0;
+        int second = 0, registered = 0;
         g.Pressed += id =>
         {
-            if (id == 1) g.Register(2, Ctrl | Alt, 0x52, out _); // Ctrl+Alt+R, registered from inside the handler
+            if (id == 1 && g.Register(2, Ctrl | Alt, 0x52, out _) == GrabResult.Ok) // Ctrl+Alt+R, from inside the handler
+                Volatile.Write(ref registered, 1);
             if (id == 2) Interlocked.Increment(ref second);
         };
         g.Register(1, Ctrl | Alt, 0x51, out _); // Ctrl+Alt+Q
 
         Xdotool("key", "ctrl+alt+q");
-        await Task.Delay(300);
+        Assert.True(await WaitFor(() => Volatile.Read(ref registered) == 1), "the handler could not register");
         Xdotool("key", "ctrl+alt+r");
         Assert.True(await WaitFor(() => Volatile.Read(ref second) == 1), "the shortcut registered from the handler never worked");
     }
 
     [X11Fact]
-    public void F13ToF24_WorkOnStockLayouts()
+    public async Task F13ToF24_WorkOnStockLayouts()
     {
-        // Stock layouts put other symbols on those keys; the grabber falls back to their key codes.
+        // Stock layouts put other symbols on those keys (F13 carries XF86Tools); the grabber falls back
+        // to their key codes, so pressing the physical key fires.
         var g = Grabber();
+        int hits = 0;
+        g.Pressed += id => { if (id == 1) Interlocked.Increment(ref hits); };
         Assert.True(g.Register(1, Ctrl, 0x7C, out var e13) == GrabResult.Ok, e13); // F13
         Assert.True(g.Register(2, Ctrl, 0x87, out var e24) == GrabResult.Ok, e24); // F24
+        // Press the physical key the grab is on (by key code, as a keyboard would), with Ctrl held.
+        PressKeycode(g.GrabbedKeycode(1), withCtrl: true);
+        Assert.True(await WaitFor(() => Volatile.Read(ref hits) == 1), "F13 never arrived");
     }
 
     [X11Fact]

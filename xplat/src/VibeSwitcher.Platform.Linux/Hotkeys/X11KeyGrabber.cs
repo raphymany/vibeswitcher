@@ -19,6 +19,13 @@ namespace VibeSwitcher.Platform.Linux.Hotkeys;
 public sealed class X11KeyGrabber : IGlobalKeyGrabber
 {
     private const uint RelevantMods = X11.ShiftMask | X11.ControlMask | X11.Mod1Mask | X11.Mod4Mask;
+
+    // What stock evdev layouts put on the F13–F24 keys (or nothing), plus F13–F24 themselves.
+    private static readonly HashSet<ulong> F13To24StandIns =
+    [
+        0, 0x1008FF81, 0x1008FF45, 0x1008FF46, 0x1008FF47, 0x1008FF48, 0x1008FF49, 0x1008FFB2, 0x1008FFA9,
+        0x1008FFB0, 0x1008FFB1, .. Enumerable.Range(0xFFCA, 12).Select(k => (ulong)k),
+    ];
     private static readonly TimeSpan CallTimeout = TimeSpan.FromSeconds(5);
 
     private readonly IntPtr _display;
@@ -40,8 +47,8 @@ public sealed class X11KeyGrabber : IGlobalKeyGrabber
         _display = display;
         _xcb = X11.XGetXCBConnection(display);
         _root = X11.XDefaultRootWindow(display);
-        if (LibC.pipe(_wake) != 0) throw new InvalidOperationException("pipe() failed");
-        LibC.fcntl(_wake[0], LibC.F_SETFL, LibC.O_NONBLOCK_LINUX);
+        // Close-on-exec: programs the app starts (pactl, launched apps) mustn't inherit it.
+        if (LibC.pipe2(_wake, LibC.O_CLOEXEC | LibC.O_NONBLOCK) != 0) throw new InvalidOperationException("pipe2() failed");
         _numLockMask = NumLockMask();
         _thread = new Thread(Run) { IsBackground = true, Name = "VibeSwitcher X11 hotkeys" };
         _thread.Start();
@@ -104,8 +111,14 @@ public sealed class X11KeyGrabber : IGlobalKeyGrabber
         if (X11Keysyms.FromVirtualKey(vk) is not uint keysym) return 0;
         byte keycode = X11.XKeysymToKeycode(_display, (UIntPtr)keysym);
         // Stock layouts put XF86 keysyms (Tools, Launch5…) on the F13–F24 keys rather than F13–F24
-        // themselves; those keys are evdev KEY_F13..KEY_F24 = X key codes 191–202.
-        if (keycode == 0 && vk is >= 0x7C and <= 0x87) keycode = (byte)(191 + vk - 0x7C);
+        // themselves; those keys are evdev KEY_F13..KEY_F24 = X key codes 191–202. Only used when that
+        // key code really carries one of those stand-in symbols (other servers number keys differently).
+        if (keycode == 0 && vk is >= 0x7C and <= 0x87)
+        {
+            byte candidate = (byte)(191 + vk - 0x7C);
+            ulong sym = (ulong)X11.XkbKeycodeToKeysym(_display, candidate, 0, 0);
+            if (F13To24StandIns.Contains(sym)) keycode = candidate;
+        }
         return keycode;
     }
 
@@ -163,10 +176,13 @@ public sealed class X11KeyGrabber : IGlobalKeyGrabber
         var wanted = _grabs.ToList();
         foreach (var (id, _) in wanted) UngrabOnThread(id);
         _numLockMask = NumLockMask();
+        // (A shortcut whose key no longer exists on the new layout, or that now lands on the same key as
+        // another one, stays off until the app registers its shortcuts again.)
         foreach (var (id, g) in wanted)
         {
             byte keycode = KeycodeFor(g.Vk);
-            if (keycode != 0 && Grab(keycode, g.Mods).Item1 == GrabResult.Ok) _grabs[id] = (g.Vk, g.Mods, keycode);
+            if (keycode == 0 || _grabs.Values.Any(o => o.Keycode == keycode && o.Mods == g.Mods)) continue;
+            if (Grab(keycode, g.Mods).Item1 == GrabResult.Ok) _grabs[id] = (g.Vk, g.Mods, keycode);
         }
     }
 
@@ -179,37 +195,62 @@ public sealed class X11KeyGrabber : IGlobalKeyGrabber
 
     internal uint NumLockModifier => _numLockMask;
 
+    // For tests: the key code a registration grabbed (0 if none).
+    internal byte GrabbedKeycode(ushort id) => Invoke(() => _grabs.TryGetValue(id, out var g) ? g.Keycode : (byte)0, onLate: null, fallback: (byte)0);
+
     // Runs `work` on the X thread and waits for it. If the caller gives up (timeout) or the grabber is
     // gone, the work is skipped — or, if it already ran, `onLate` undoes it — and `fallback` is returned.
     private T Invoke<T>(Func<T> work, Action<T>? onLate, T fallback)
     {
         if (Volatile.Read(ref _disposed) != 0) return fallback;
         if (Thread.CurrentThread == _thread) return work();
-        var done = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-        int abandoned = 0;
+        // 0 = pending, 1 = the worker finished it, 2 = the caller gave up. Whoever moves it first owns
+        // the outcome: a result the caller no longer wants is undone by the worker (onLate).
+        int state = 0;
+        T result = fallback;
+        using var finished = new ManualResetEventSlim();
         _requests.Enqueue(() =>
         {
-            if (Volatile.Read(ref abandoned) != 0 || Volatile.Read(ref _disposed) != 0) { done.TrySetCanceled(); return; }
-            try
+            if (Volatile.Read(ref state) != 0 || Volatile.Read(ref _disposed) != 0)
             {
-                var r = work();
-                if (!done.TrySetResult(r) || Volatile.Read(ref abandoned) != 0) onLate?.Invoke(r);
+                Interlocked.CompareExchange(ref state, 2, 0);
+                SetQuietly(finished);
+                return;
             }
-            catch (Exception ex) { done.TrySetException(ex); }
+            T r;
+            try { r = work(); }
+            catch (Exception) { r = fallback; }
+            if (Interlocked.CompareExchange(ref state, 1, 0) == 0)
+            {
+                result = r;
+                SetQuietly(finished);
+            }
+            else onLate?.Invoke(r);
         });
-        Wake();
-        try
-        {
-            if (done.Task.Wait(CallTimeout)) return done.Task.Result;
-        }
-        catch (AggregateException) { }
-        Volatile.Write(ref abandoned, 1);
-        return fallback;
+        // Disposed meanwhile? The worker may already have drained the queue and left.
+        if (Volatile.Read(ref _disposed) != 0) Interlocked.CompareExchange(ref state, 2, 0);
+        else Wake();
+        if (Volatile.Read(ref state) == 0) finished.Wait(CallTimeout);
+        return Interlocked.CompareExchange(ref state, 2, 0) == 1 ? result : fallback;
     }
+
+    private static void SetQuietly(ManualResetEventSlim e)
+    {
+        try { e.Set(); } catch (ObjectDisposedException) { /* the caller already returned */ }
+    }
+
+    // Writes to the wake pipe only while it's open (closing happens under the same lock), so a late
+    // caller can never write into a reused file descriptor.
+    private readonly object _wakeGate = new();
+    private bool _pipeClosed;
 
     private void Wake()
     {
-        try { LibC.write(_wake[1], [1], 1); } catch (Exception) { }
+        lock (_wakeGate)
+        {
+            if (_pipeClosed) return;
+            try { LibC.write(_wake[1], [1], 1); } catch (Exception) { }
+        }
     }
 
     private void Run()
@@ -245,13 +286,11 @@ public sealed class X11KeyGrabber : IGlobalKeyGrabber
                         foreach (var (id, g) in _grabs)
                             if (g.Keycode == keycode && g.Mods == (state & RelevantMods)) fired.Add(id);
                     }
-                    // App code runs off this thread: it may call back into the grabber, or block.
-                    foreach (var id in fired)
-                        ThreadPool.QueueUserWorkItem(_ =>
-                        {
-                            if (Volatile.Read(ref _disposed) != 0) return;
-                            try { Pressed?.Invoke(id); } catch (Exception) { /* the app logs its own handler errors */ }
-                        });
+                    // App code runs off this thread (it may call back into the grabber, or block), one
+                    // press after another in the order they happened.
+                    foreach (var id in fired) _presses.Enqueue(id);
+                    if (fired.Count > 0 && Interlocked.Exchange(ref _delivering, 1) == 0)
+                        ThreadPool.QueueUserWorkItem(_ => DeliverPresses());
 
                     fds[0].Revents = fds[1].Revents = 0;
                     LibC.poll(fds, 2, 1000);
@@ -267,8 +306,30 @@ public sealed class X11KeyGrabber : IGlobalKeyGrabber
             while (_requests.TryDequeue(out var pending)) { try { pending(); } catch (Exception) { } }
             Marshal.FreeHGlobal(buffer);
             X11.XCloseDisplay(_display); // releases every grab
-            LibC.close(_wake[0]);
-            LibC.close(_wake[1]);
+            lock (_wakeGate)
+            {
+                _pipeClosed = true;
+                LibC.close(_wake[0]);
+                LibC.close(_wake[1]);
+            }
+        }
+    }
+
+    private readonly ConcurrentQueue<ushort> _presses = new();
+    private int _delivering;
+
+    private void DeliverPresses()
+    {
+        while (true)
+        {
+            while (_presses.TryDequeue(out var id))
+            {
+                if (Volatile.Read(ref _disposed) != 0) continue;
+                try { Pressed?.Invoke(id); } catch (Exception) { /* the app logs its own handler errors */ }
+            }
+            Volatile.Write(ref _delivering, 0);
+            // A press queued while we were finishing up: carry on (unless another delivery took over).
+            if (_presses.IsEmpty || Interlocked.Exchange(ref _delivering, 1) == 1) return;
         }
     }
 
