@@ -18,6 +18,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **macOS/Linux: side-by-side comparison with Windows** — every change now produces a page showing each ported dialog as the Windows app draws it, next to its Linux and macOS versions *(PR #132)*
 - **macOS/Linux: downloadable packages** — the Mac/Linux app is now packaged as a `.dmg` for Apple Silicon and Intel Macs, a `.deb` for Ubuntu, Debian, Mint and similar (with the app-menu entry, icon, `vibeswitcher` command and wireless-headset permission), and an AppImage that runs without installing. Every change builds, installs and starts each one on several Linux versions and both kinds of Mac. `vibeswitcher --version` and `--help` work from a terminal *(PR #134)*
 - **macOS/Linux groundwork: Settings logic shared with Windows** — the Mac/Linux app now uses the Windows app's own Settings logic (profiles, devices, hotkeys, schedules, sounds, app triggers, search) unchanged, so a fix to it lands on every system, and its tests run on all three. Dialogs wait for an answer the way they do on Windows. Not yet user-visible *(PR #136)*
+- **macOS/Linux: the Settings window and Profiles page** — the profile cards, search and filters, the profile popup, the animated logo, and closing to the tray, looking and working as on Windows, with each system's own window frame. The Settings, About and FAQ pages and Mini Mode follow *(PR #138)*
 
 ---
 

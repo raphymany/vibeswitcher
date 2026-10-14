@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VibeSwitcher.App.Controls.LogoIcon"
+             Width="28" Height="28">
+    <!-- Port of Controls/NavLogoIcon.xaml and AboutLogoIcon.xaml (the same drawing; About has a
+         stronger outline and glow): the V that breathes and the five level bars. The animation is in
+         LogoIcon.axaml.cs. -->
+    <Viewbox Stretch="Uniform">
+        <Grid Width="80" Height="80">
+            <Border Background="#13131E" CornerRadius="20">
+                <Border Name="Outline" BorderBrush="#38F5820A" BorderThickness="1.5" CornerRadius="19" />
+            </Border>
+            <!-- The orange glow at the bottom (its brush is set in code: Nav or About strength). -->
+            <Border Name="Glow" CornerRadius="20" />
+            <Canvas Width="80" Height="80">
+                <Path Name="VChevron" Data="M 19,22 L 40,54 L 61,22"
+                      Stroke="#F5820A" StrokeThickness="4" StrokeLineCap="Round" StrokeJoin="Round">
+                    <Path.RenderTransform>
+                        <TranslateTransform />
+                    </Path.RenderTransform>
+                </Path>
+            </Canvas>
+            <!-- The bars are clipped so they never overlap the V. -->
+            <Border Margin="14,62,12,0" Width="54" Height="18" ClipToBounds="True"
+                    HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Canvas Width="54" Height="18">
+                    <Rectangle Name="Bar1" Canvas.Left="8" Canvas.Top="9" Width="4.5" Height="5"
+                               RadiusX="2.25" RadiusY="2.25" Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="50%,100%">
+                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Rectangle Name="Bar2" Canvas.Left="15.5" Canvas.Top="7" Width="4.5" Height="7"
+                               RadiusX="2.25" RadiusY="2.25" Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="50%,100%">
+                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Rectangle Name="Bar3" Canvas.Left="23.75" Canvas.Top="6" Width="4.5" Height="8"
+                               RadiusX="2.25" RadiusY="2.25" Fill="#F5820A" RenderTransformOrigin="50%,100%">
+                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Rectangle Name="Bar4" Canvas.Left="32" Canvas.Top="7" Width="4.5" Height="7"
+                               RadiusX="2.25" RadiusY="2.25" Fill="#F5820A" Opacity="0.62" RenderTransformOrigin="50%,100%">
+                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                    </Rectangle>
+                    <Rectangle Name="Bar5" Canvas.Left="39.5" Canvas.Top="9" Width="4.5" Height="5"
+                               RadiusX="2.25" RadiusY="2.25" Fill="#F5820A" Opacity="0.38" RenderTransformOrigin="50%,100%">
+                        <Rectangle.RenderTransform><ScaleTransform /></Rectangle.RenderTransform>
+                    </Rectangle>
+                </Canvas>
+            </Border>
+        </Grid>
+    </Viewbox>
+</UserControl>

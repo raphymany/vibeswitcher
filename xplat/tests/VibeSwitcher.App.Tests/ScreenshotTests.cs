@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -27,9 +28,63 @@ public class ScreenshotTests
         return data;
     }
 
+    public static TheoryData<string, string, string> SettingsCases()
+    {
+        var data = new TheoryData<string, string, string>();
+        foreach (var name in SettingsCatalog.Names)
+            foreach (var theme in new[] { "light", "dark" })
+                foreach (var chrome in new[] { "linux", "mac" })
+                    data.Add(name, theme, chrome);
+        return data;
+    }
+
     [AvaloniaTheory]
     [MemberData(nameof(Cases))]
-    public void Dialog(string name, string theme, string chrome)
+    public void Dialog(string name, string theme, string chrome) =>
+        Capture(name, theme, chrome, () => DialogCatalog.Create(name), _ => { });
+
+    // The Settings window: the Profiles page, with the filter bar open, with a profile's popup open,
+    // and with no profiles. (The logo is shown at rest, so every run draws the same picture.)
+    [AvaloniaTheory]
+    [MemberData(nameof(SettingsCases))]
+    public void Settings(string name, string theme, string chrome)
+    {
+        var oldMode = VibeSwitcher.Controls.LogoAnimator.Mode;
+        var oldLabels = VibeSwitcher.Models.HotkeyDefinition.LabelStyle;
+        VibeSwitcher.Controls.LogoAnimator.Mode = VibeSwitcher.Controls.LogoAnimator.AnimMode.Static;
+        VibeSwitcher.Models.HotkeyDefinition.LabelStyle = chrome == "mac"
+            ? VibeSwitcher.Models.HotkeyLabelStyle.MacOS : VibeSwitcher.Models.HotkeyLabelStyle.Linux;
+        try
+        {
+            var setup = name == "settings-empty" ? new SettingsCatalog.Setup() : SettingsCatalog.WithProfiles();
+            setup.Config.Current.CloseToTray = false;
+            Capture(name, theme, chrome, setup.Window, window =>
+            {
+                var settings = (VibeSwitcher.App.Settings.SettingsWindow)window;
+                SettingsCatalog.WaitForDevices(settings);
+                if (name == "settings-filters")
+                {
+                    settings.FindControl<Avalonia.Controls.Button>("FiltersToggleBtn")!
+                        .RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Avalonia.Controls.Button.ClickEvent));
+                    var vm = settings.ViewModel;
+                    vm.PinnedFilter = true;
+                    vm.ScheduledFilter = true;
+                    // (Let the slide finish.)
+                    var until = DateTime.UtcNow.AddMilliseconds(400);
+                    while (DateTime.UtcNow < until) { Dispatcher.UIThread.RunJobs(); Thread.Sleep(10); }
+                    AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                }
+                if (name == "settings-popup") settings.OpenProfileDetail(settings.ViewModel.Profiles[0]);
+            });
+        }
+        finally
+        {
+            VibeSwitcher.Controls.LogoAnimator.Mode = oldMode;
+            VibeSwitcher.Models.HotkeyDefinition.LabelStyle = oldLabels;
+        }
+    }
+
+    private static void Capture(string name, string theme, string chrome, Func<Avalonia.Controls.Window> create, Action<Avalonia.Controls.Window> prepare)
     {
         var app = Application.Current!;
         var oldChrome = WindowChrome.Style;
@@ -37,8 +92,19 @@ public class ScreenshotTests
         app.RequestedThemeVariant = theme == "dark" ? ThemeVariant.Dark : ThemeVariant.Light;
         try
         {
-            var window = DialogCatalog.Create(name);
+            var window = create();
             window.Show();
+            Dispatcher.UIThread.RunJobs();
+            prepare(window);
+            // Let every transition finish (e.g. Fluent's colour fades after the theme switch): without
+            // a screen, animations only advance on forced frames, so a picture could land mid-fade.
+            var settled = DateTime.UtcNow.AddMilliseconds(250);
+            while (DateTime.UtcNow < settled)
+            {
+                Dispatcher.UIThread.RunJobs();
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Thread.Sleep(16);
+            }
             Dispatcher.UIThread.RunJobs();
             using var frame = window.CaptureRenderedFrame() ?? throw new InvalidOperationException("nothing rendered");
             window.Close();

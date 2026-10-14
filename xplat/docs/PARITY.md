@@ -20,6 +20,8 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | Wireless headset power on/off detection | ✅ | Needs a permission rule: installed automatically by the `.deb`, one click for the AppImage | Same as X11 |
 | Gallery emoji icons | Slightly different artwork (a different emoji font) | Same as macOS | Same as macOS |
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
+| "Sound Settings" button | Opens System Settings › Sound | Opens the desktop's own sound settings (GNOME, KDE, Cinnamon, MATE), or the PulseAudio volume control (`pavucontrol`) where there are none; the Windows-only "legacy sound panel" option doesn't apply | Same as X11 |
+| Profile cards' drag-and-drop | Not offered (as on Windows: the Windows app has drop handlers but never starts a drag) | Same | Same |
 | Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
 
 ## Install notes
