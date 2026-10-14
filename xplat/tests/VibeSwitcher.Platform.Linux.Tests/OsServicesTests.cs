@@ -130,6 +130,29 @@ public class LinuxNotifierTests
         Assert.Equal("R&amp;B &lt;3 &gt; Rock", LinuxNotifier.Escape("R&B <3 > Rock"));
 
     [Fact]
+    public void TheSessionBus_IsFoundWithoutTheDBusLibrarysX11Lookup()
+    {
+        var runtime = Directory.CreateTempSubdirectory("vs-run-").FullName;
+        try
+        {
+            string? Env(string name, string? address = null, string? dir = null) => name switch
+            {
+                "DBUS_SESSION_BUS_ADDRESS" => address,
+                "XDG_RUNTIME_DIR" => dir,
+                _ => null,
+            };
+            Func<string?> throwing = () => throw new DllNotFoundException("libX11");
+            Assert.Equal("unix:path=/run/user/1000/bus", LinuxNotifier.SessionBusAddress(n => Env(n, "unix:path=/run/user/1000/bus"), throwing));
+            File.WriteAllText(Path.Combine(runtime, "bus"), "");
+            Assert.Equal("unix:path=" + Path.Combine(runtime, "bus"), LinuxNotifier.SessionBusAddress(n => Env(n, dir: runtime), throwing));
+            // Nothing else to go on: the library's own lookup, which mustn't take the app down.
+            Assert.Null(LinuxNotifier.SessionBusAddress(n => null, throwing));
+            Assert.Equal("unix:abstract=x", LinuxNotifier.SessionBusAddress(n => null, () => "unix:abstract=x"));
+        }
+        finally { Directory.Delete(runtime, recursive: true); }
+    }
+
+    [Fact]
     public async Task NoSessionBus_FalseAndLoggedOnce()
     {
         var log = new LinuxAudioServiceTests.RecordingLogger();

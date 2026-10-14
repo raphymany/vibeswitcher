@@ -210,7 +210,9 @@ jobs:
           vibeswitcher --version
           # (liblttng-ust is optional: .NET only uses it for tracing when it's there.)
           if ldd /opt/vibeswitcher/VibeSwitcher /opt/vibeswitcher/*.so | grep "not found" | grep -v liblttng-ust; then exit 1; fi
-          rc=0; xvfb-run -a timeout 15 vibeswitcher || rc=$?; test "$rc" -eq 124
+          # (…and didn't stop at its "couldn't start" message, which also keeps it running.)
+          rc=0; xvfb-run -a timeout 15 vibeswitcher > "$RUNNER_TEMP/start.log" 2>&1 || rc=$?; cat "$RUNNER_TEMP/start.log"
+          test "$rc" -eq 124; ! grep -q "couldn't start" "$RUNNER_TEMP/start.log"
           # The friend-test tools: the self-test runs (its result isn't judged: a runner has no sound
           # devices), and the diagnostics zip has the report and pictures of the windows.
           # (The self-test may report problems — no sound devices — but must run to the end.)
@@ -230,7 +232,8 @@ jobs:
         run: |
           chmod +x out/*.AppImage
           out/*.AppImage --appimage-extract-and-run --version
-          rc=0; xvfb-run -a timeout 15 out/*.AppImage --appimage-extract-and-run || rc=$?; test "$rc" -eq 124
+          rc=0; xvfb-run -a timeout 15 out/*.AppImage --appimage-extract-and-run > "$RUNNER_TEMP/start.log" 2>&1 || rc=$?; cat "$RUNNER_TEMP/start.log"
+          test "$rc" -eq 124; ! grep -q "couldn't start" "$RUNNER_TEMP/start.log"
 
       - name: Keep the packages
         uses: actions/upload-artifact@v4
@@ -269,7 +272,9 @@ jobs:
           vibeswitcher --version
           # (liblttng-ust is optional: .NET only uses it for tracing when it's there.)
           if ldd /opt/vibeswitcher/VibeSwitcher /opt/vibeswitcher/*.so | grep "not found" | grep -v liblttng-ust; then exit 1; fi
-          rc=0; xvfb-run -a timeout 15 vibeswitcher || rc=$?; test "$rc" -eq 124
+          # (…and didn't stop at its "couldn't start" message, which also keeps it running.)
+          rc=0; xvfb-run -a timeout 15 vibeswitcher > "$RUNNER_TEMP/start.log" 2>&1 || rc=$?; cat "$RUNNER_TEMP/start.log"
+          test "$rc" -eq 124; ! grep -q "couldn't start" "$RUNNER_TEMP/start.log"
           # The friend-test tools: the self-test runs (its result isn't judged: a runner has no sound
           # devices), and the diagnostics zip has the report and pictures of the windows.
           # (The self-test may report problems — no sound devices — but must run to the end.)
@@ -310,10 +315,12 @@ jobs:
           app="$RUNNER_TEMP/vs/VibeSwitcher.app"
           "$app/Contents/MacOS/VibeSwitcher" --version
           # Started = still running after 15 s (that needs every library the window loads).
-          "$app/Contents/MacOS/VibeSwitcher" & pid=$!
+          "$app/Contents/MacOS/VibeSwitcher" > "$RUNNER_TEMP/start.log" 2>&1 & pid=$!
           sleep 15
           kill -0 "$pid"
           kill "$pid"; wait "$pid" || true
+          cat "$RUNNER_TEMP/start.log"
+          ! grep -q "couldn't start" "$RUNNER_TEMP/start.log"
           # The menu-bar item, pressed as a user would: the app's styled menu must open under it.
           check="$RUNNER_TEMP/menubar.txt"
           VS_MENUBAR_CHECK="$check" "$app/Contents/MacOS/VibeSwitcher" & pid=$!

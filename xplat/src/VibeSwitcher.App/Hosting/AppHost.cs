@@ -169,7 +169,9 @@ internal sealed class AppHost : IDisposable
         Grabber = await _platform.CreateKeyGrabberAsync(Logger);
         Grabber.Pressed += id => Dispatcher.UIThread.Post(() => OnHotkey(id));
         Hotkeys = new HotkeyService(Grabber, Logger, Errors);
-        Notifier = _platform.CreateNotifier(Logger);
+        // (Banners are a nicety: a system without them still runs the app.)
+        try { Notifier = _platform.CreateNotifier(Logger); }
+        catch (Exception ex) { Logger.Warning("App.Start", $"Notification banners are off: {ex.Message}"); }
         Tray = new TrayService(Config, Logger, Errors, Notifier, new TrayActions(
             OpenSettings: () => Windows.OpenSettingsWindow(),
             OpenSettingsExpanded: () => Windows.OpenSettingsWindow(expandSettings: true),

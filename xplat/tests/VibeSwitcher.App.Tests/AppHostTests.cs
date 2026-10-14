@@ -98,7 +98,8 @@ public class AppHostTests : IDisposable
             AudioFails ? throw new InvalidOperationException("no sound system") : Audio;
         public IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker) => new FakeStartupService();
         public Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false) => Task.FromResult<IGlobalKeyGrabber>(Grabber);
-        public IDesktopNotifier? CreateNotifier(IAppLogger logger) => Notifier;
+        public bool NotifierFails { get; set; }
+        public IDesktopNotifier? CreateNotifier(IAppLogger logger) => NotifierFails ? throw new DllNotFoundException("libX11") : Notifier;
         public IRunningProcessSource CreateProcesses() => new NoProcesses();
         public IWavPlayer? CreateWavPlayer() => null;
         public Dialogs.HeadsetAccessHooks? HeadsetAccess() => Headsets;
@@ -190,6 +191,17 @@ public class AppHostTests : IDisposable
         await Until(() => platform.Audio.Applied.Contains("Work"));
         Assert.Equal(new[] { "Work" }, platform.Audio.Applied); // (instead of restoring Gaming)
         Assert.Null(host.Windows.Window);
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task NoBanners_DontStopTheApp()
+    {
+        // (The D-Bus library once threw while looking for the session bus: start-up stopped.)
+        var platform = new FakePlatform { NotifierFails = true };
+        var (host, _) = await Start(change: c => c.StartMinimized = true, platform: platform);
+        Assert.True(host.Ready.IsCompletedSuccessfully);
+        Assert.True(host.Tray.IsShown);
         Close(host);
     }
 
