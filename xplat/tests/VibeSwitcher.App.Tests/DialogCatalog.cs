@@ -9,7 +9,7 @@ namespace VibeSwitcher.App.Tests;
 internal static class DialogCatalog
 {
     public static readonly string[] Names =
-        ["alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "controls"];
+        ["alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup", "controls"];
 
     public static VsDialog Create(string name) => name switch
     {
@@ -21,6 +21,12 @@ internal static class DialogCatalog
         "error" => new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
             "Couldn't switch to \"Gaming\": the playback device isn't available.", "/tmp/vs.log", new FakeAppLogger(), new FakeSessionErrorTracker()),
         "uninstall" => new UninstallDialog(UninstallText.Mac),
+        "mini-setup" => new MiniModeSetupDialog("Rows",
+        [
+            new MiniModeSetupDialog.ProfileChoice { Name = "Gaming", IsSelected = true },
+            new MiniModeSetupDialog.ProfileChoice { Name = "Work", IsSelected = true },
+            new MiniModeSetupDialog.ProfileChoice { Name = "Calls" },
+        ]),
         "controls" => new DialogPreviewWindow(),
         _ => throw new ArgumentException(name),
     };

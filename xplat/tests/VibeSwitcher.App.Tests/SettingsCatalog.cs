@@ -12,7 +12,7 @@ internal static class SettingsCatalog
     public static readonly string[] Names =
     [
         "settings-profiles", "settings-filters", "settings-popup", "settings-empty",
-        .. Pages.Keys, "settings-about", "settings-faq",
+        .. Pages.Keys, "settings-about", "settings-faq", "settings-minimode-rows", "settings-minimode-grid",
     ];
 
     // The Settings pages, by screenshot name → the sidebar category that shows them.

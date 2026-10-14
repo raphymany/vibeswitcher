@@ -136,7 +136,7 @@ internal static class Program
 internal static class Dialogs
 {
     public static readonly string[] Names =
-        ["alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall"];
+        ["alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup"];
 
     public static Window Create(string name) => name switch
     {
@@ -148,6 +148,12 @@ internal static class Dialogs
         "error" => new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
             "Couldn't switch to \"Gaming\": the playback device isn't available.", new NullLogger(), new SessionErrorTracker()),
         "uninstall" => new UninstallDialog(),
+        "mini-setup" => new MiniModeSetupDialog("Rows",
+        [
+            new MiniModeSetupDialog.ProfileChoice { Name = "Gaming", IsSelected = true },
+            new MiniModeSetupDialog.ProfileChoice { Name = "Work", IsSelected = true },
+            new MiniModeSetupDialog.ProfileChoice { Name = "Calls" },
+        ]),
         _ => throw new ArgumentException(name),
     };
 
