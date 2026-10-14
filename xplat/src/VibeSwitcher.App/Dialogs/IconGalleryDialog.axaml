@@ -1,0 +1,185 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            xmlns:d="using:VibeSwitcher.App.Dialogs"
+            xmlns:s="using:VibeSwitcher.App.Settings"
+            x:Class="VibeSwitcher.App.Dialogs.IconGalleryDialog"
+            x:DataType="d:IconGalleryDialog"
+            Width="484">
+    <!-- Port of Views/IconGalleryDialog.xaml. -->
+    <c:VsDialog.Resources>
+        <!-- Neutral checkerboard tile so monochrome glyphs (black or white) are always visible. -->
+        <DrawingBrush x:Key="CheckerBrush" TileMode="Tile" Stretch="None" DestinationRect="0,0,10,10">
+            <DrawingBrush.Drawing>
+                <DrawingGroup>
+                    <GeometryDrawing Brush="#D2D2D2" Geometry="M0,0 H10 V10 H0 Z" />
+                    <GeometryDrawing Brush="#8E8E8E" Geometry="M0,0 H5 V5 H0 Z M5,5 H10 V10 H5 Z" />
+                </DrawingGroup>
+            </DrawingBrush.Drawing>
+        </DrawingBrush>
+
+        <ControlTheme x:Key="GalleryItemButton" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource GalleryItemBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource GalleryItemBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="10,10" />
+            <Setter Property="Margin" Value="4" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource SelectedBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}" />
+            </Style>
+        </ControlTheme>
+
+        <ControlTheme x:Key="ColorPill" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{DynamicResource ColorPillText}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg" Background="{DynamicResource ColorPillBg}" BorderBrush="{DynamicResource ColorPillBorder}"
+                            BorderThickness="1" CornerRadius="14" Padding="14,5">
+                        <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:checked">
+                <Setter Property="Foreground" Value="White" />
+                <Style Selector="^ /template/ Border#bg">
+                    <Setter Property="Background" Value="{DynamicResource Accent}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                </Style>
+            </Style>
+        </ControlTheme>
+
+        <!-- The "remove from your uploads" ✕ on a library icon. -->
+        <ControlTheme x:Key="RemoveUploadButton" TargetType="Button">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="#E04A4A" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="9">
+                        <TextBlock Text="✕" FontSize="9" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </ControlTheme>
+    </c:VsDialog.Resources>
+
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" Background="{DynamicResource InfoBadgeBg}" CornerRadius="18"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoImage}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="{DynamicResource InfoBadgeText}" StrokeThickness="1.5"
+                          StrokeJoin="Round" StrokeLineCap="Round" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Choose an Icon" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Select a built-in icon or browse for a custom .ico file" FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,14">
+                <TextBlock Text="Icon color:" FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                           VerticalAlignment="Center" Margin="0,0,10,0" />
+                <RadioButton Name="ColorBlack" Content="Black" GroupName="IconColor" IsChecked="True"
+                             Theme="{StaticResource ColorPill}" IsCheckedChanged="Color_Changed" />
+                <RadioButton Name="ColorWhite" Content="White" GroupName="IconColor" Margin="0"
+                             Theme="{StaticResource ColorPill}" IsCheckedChanged="Color_Changed" />
+            </StackPanel>
+
+            <ItemsControl Name="GalleryList" ItemsSource="{Binding PreviewItems}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="4" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="d:GalleryPreviewItem">
+                        <Button Tag="{Binding}" Theme="{StaticResource GalleryItemButton}" Click="GalleryItem_Click">
+                            <StackPanel>
+                                <Border Width="46" Height="46" CornerRadius="8" Background="{StaticResource CheckerBrush}"
+                                        HorizontalAlignment="Center" Margin="0,0,0,5" ClipToBounds="True">
+                                    <Image Source="{Binding Preview}" Width="30" Height="30" Stretch="Uniform"
+                                           RenderOptions.BitmapInterpolationMode="HighQuality"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Text="{Binding Label}" FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- (Windows: "…light taskbars · …dark taskbars".) -->
+            <TextBlock Text="{x:Static s:Wording.IconColorHint}" FontSize="11" Foreground="{DynamicResource DisabledText}"
+                       HorizontalAlignment="Center" TextAlignment="Center" Margin="0,10,0,0" />
+
+            <!-- ── Your uploads: custom .ico files browsed for before — re-pick without browsing again. -->
+            <StackPanel Name="LibrarySection" IsVisible="False" Margin="0,4,0,0">
+                <Separator Margin="0,12,0,10" />
+                <TextBlock Text="YOUR UPLOADS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}" Margin="2,0,0,8" />
+                <ItemsControl Name="LibraryList" ItemsSource="{Binding LibraryItems}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="4" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="d:LibraryIconItem">
+                            <Grid Margin="4">
+                                <Button Tag="{Binding}" Theme="{StaticResource GalleryItemButton}" Margin="0" Click="LibraryItem_Click"
+                                        ToolTip.Tip="{Binding Name}" AutomationProperties.Name="{Binding Name}">
+                                    <Image Source="{Binding Preview}" Width="34" Height="34" Stretch="Uniform"
+                                           RenderOptions.BitmapInterpolationMode="HighQuality" />
+                                </Button>
+                                <Button Tag="{Binding}" Theme="{StaticResource RemoveUploadButton}" Click="DeleteLibraryItem_Click"
+                                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-4,-4,0"
+                                        ToolTip.Tip="Remove from your uploads" AutomationProperties.Name="Remove from your uploads" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <Separator Margin="0,16" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Browse from disk..." Theme="{StaticResource ActionButton}" Margin="0,0,8,0" Click="BrowseFromDisk_Click" />
+                <Button Content="Cancel" Theme="{StaticResource ActionButton}" IsCancel="True" Click="Cancel_Click" />
+            </StackPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

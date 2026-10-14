@@ -32,8 +32,11 @@ public static class AppImages
 {
     public static readonly IValueConverter ToBitmap = new ImageSourceToBitmapConverter();
 
-    // Colour emoji fonts in the order each system has them (the Windows app uses Segoe UI Emoji).
-    private static readonly FontFamily EmojiFont = new("Apple Color Emoji, Noto Color Emoji, Segoe UI Emoji, Twemoji, EmojiOne Color");
+    // The gallery's emoji: the bundled single-colour Noto Emoji first — WPF draws Segoe UI Emoji the
+    // same way, as outlines — so they look the same everywhere, also where a system has no emoji
+    // font; then the system's own emoji fonts for anything it lacks.
+    internal static readonly FontFamily EmojiFont =
+        new($"{Theming.AppFonts.Emoji}, Apple Color Emoji, Noto Color Emoji, Segoe UI Emoji, Twemoji, EmojiOne Color");
 
     public static void Install()
     {

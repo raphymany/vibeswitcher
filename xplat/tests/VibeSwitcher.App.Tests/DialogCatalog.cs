@@ -15,7 +15,8 @@ internal static class DialogCatalog
     public static readonly string[] Names =
     [
         "alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup",
-        "hotkey-capture", "profile-type", "device-aliases", "session-log", "mic-test", "supported-headsets", "controls",
+        "hotkey-capture", "profile-type", "device-aliases", "session-log", "mic-test", "supported-headsets",
+        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound", "controls",
     ];
 
     public static VsDialog Create(string name) => name switch
@@ -40,11 +41,28 @@ internal static class DialogCatalog
         "session-log" => new SessionLogWindow(new FakeAppLogger(), new FixedErrors(), "/tmp/vs-no-log/error.log"),
         "mic-test" => new MicTestDialog("mic", "Arctis Nova 7 Microphone", new SteadyMic(0.035f), new FakeAppLogger()),
         "supported-headsets" => new SupportedHeadsetsDialog(),
+        "clone-profile" => new CloneProfileDialog(CloneSource(), [SettingsCatalog.Speakers, SettingsCatalog.Headset],
+            [SettingsCatalog.HeadsetMic], use12Hour: false, h => h),
+        "icon-gallery" => new IconGalleryDialog(""),
+        "schedule-wizard" => new ScheduleWizardDialog(
+            new ScheduleEntry { Hour = 18, Minute = 0, Days = [DayOfWeek.Friday, DayOfWeek.Saturday], ReminderMinutes = 10 },
+            use12Hour: false, isEditing: true),
+        "switch-sound" => new SwitchSoundDialog(true, "Chime", null, 60, new FakeAppLogger(), "", showBanner: true, isEditing: true),
         "controls" => new DialogPreviewWindow(),
         _ => throw new ArgumentException(name),
     };
 
     public static IEnumerable<VsDialog> All() => Names.Select(Create);
+
+    // A profile with something of everything to copy.
+    public static DeviceProfile CloneSource() => new()
+    {
+        Name = "Gaming", Mode = ProfileMode.Both,
+        PlaybackDeviceId = SettingsCatalog.Headset.Id, RecordingDeviceId = SettingsCatalog.HeadsetMic.Id,
+        IsPinned = true, SoundOverride = true, SoundTone = "Chime", Notes = "Evening sessions",
+        AppTriggers = ["/usr/bin/steam"],
+        Schedules = [new ScheduleEntry { Hour = 18, Minute = 0, Days = [DayOfWeek.Friday, DayOfWeek.Saturday] }],
+    };
 
     public static List<DeviceAliasItem> Aliases() =>
     [

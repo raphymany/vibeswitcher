@@ -142,6 +142,7 @@ internal static class Dialogs
         "alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup",
         // (Not the mic test: it would open a real microphone here.)
         "hotkey-capture", "profile-type", "device-aliases", "session-log", "supported-headsets",
+        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound",
     ];
 
     public static Window Create(string name) => name switch
@@ -171,6 +172,23 @@ internal static class Dialogs
         ]),
         "session-log" => new SessionLogWindow(new NullLogger(), new FixedErrors()),
         "supported-headsets" => new SupportedHeadsetsDialog(),
+        "clone-profile" => new CloneProfileDialog(
+            new DeviceProfile
+            {
+                Name = "Gaming", Mode = ProfileMode.Both, PlaybackDeviceId = "hs", RecordingDeviceId = "hs-mic",
+                IsPinned = true, SoundOverride = true, SoundTone = "Chime", Notes = "Evening sessions",
+                AppTriggers = ["/usr/bin/steam"],
+                Schedules = [new ScheduleEntry { Hour = 18, Minute = 0, Days = [DayOfWeek.Friday, DayOfWeek.Saturday] }],
+            },
+            [new("spk", "Speakers (Built-in Audio)", true), new("hs", "Arctis Nova 7 Headset", true)],
+            [new("hs-mic", "Arctis Nova 7 Microphone", false)],
+            use12Hour: false, h => h),
+        "icon-gallery" => new IconGalleryDialog(Path.Combine(Path.GetTempPath(), "vs-no-icon-library")),
+        "schedule-wizard" => new ScheduleWizardDialog(
+            new ScheduleEntry { Hour = 18, Minute = 0, Days = [DayOfWeek.Friday, DayOfWeek.Saturday], ReminderMinutes = 10 },
+            use12Hour: false, isEditing: true),
+        "switch-sound" => new SwitchSoundDialog(true, "Chime", null, 60, new NullLogger(),
+            Path.Combine(Path.GetTempPath(), "vs-no-sound-library"), showBanner: true, isEditing: true),
         _ => throw new ArgumentException(name),
     };
 

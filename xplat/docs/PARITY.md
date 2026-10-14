@@ -18,7 +18,7 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | Start at login | ✅ (macOS shows a "background item added" notice) | ✅ | ✅ |
 | App launch triggers | ✅ (`.app` bundles) | ✅ (+ Flatpak / Snap apps) | ✅ |
 | Wireless headset power on/off detection | ✅ | Needs a permission rule: installed automatically by the `.deb`, one click for the AppImage | Same as X11 |
-| Gallery emoji icons | Slightly different artwork (a different emoji font) | Same as macOS | Same as macOS |
+| Gallery emoji icons | The same single-colour outline style as Windows, from the bundled Noto Emoji font (slightly different artwork; no system emoji font needed) | Same as macOS | Same as macOS |
 | Supported-headsets badges | ✅ (the ✅ / ⚠️ after "Tested" / "Untested" are drawn as the same single-colour outlines WPF shows, instead of relying on an emoji font) | ✅ (also where Linux has no emoji font) | Same as X11 |
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | "Sound Settings" button | Opens System Settings › Sound | Opens the desktop's own sound settings (GNOME, KDE, Cinnamon, MATE), or the PulseAudio volume control (`pavucontrol`) where there are none; the Windows-only "legacy sound panel" option doesn't apply | Same as X11 |

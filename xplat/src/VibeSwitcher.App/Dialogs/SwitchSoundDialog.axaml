@@ -1,0 +1,194 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            xmlns:d="using:VibeSwitcher.App.Dialogs"
+            x:Class="VibeSwitcher.App.Dialogs.SwitchSoundDialog"
+            Width="420">
+    <!-- Port of Views/SwitchSoundDialog.xaml. -->
+    <c:VsDialog.Resources>
+        <!-- Tone chip toggle -->
+        <ControlTheme x:Key="ToneChip" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bg" CornerRadius="15" BorderThickness="1" BorderBrush="{DynamicResource InputBorder}" Background="Transparent">
+                        <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:checked">
+                <Setter Property="Foreground" Value="White" />
+                <Style Selector="^ /template/ Border#Bg">
+                    <Setter Property="Background" Value="{DynamicResource Accent}" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                </Style>
+            </Style>
+            <Style Selector="^:not(:checked):pointerover /template/ Border#Bg">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:checked:pointerover /template/ Border#Bg">
+                <Setter Property="Background" Value="{DynamicResource AccentHover}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentHover}" />
+            </Style>
+            <Style Selector="^:disabled">
+                <Setter Property="Opacity" Value="0.4" />
+            </Style>
+        </ControlTheme>
+
+        <!-- An earlier upload: its name, highlighted on hover. -->
+        <ControlTheme x:Key="UploadRow" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg" Background="Transparent" CornerRadius="6" Padding="8,5">
+                        <ContentPresenter Content="{TemplateBinding Content}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#bg">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+            </Style>
+        </ControlTheme>
+        <ControlTheme x:Key="UploadRemove" TargetType="Button">
+            <Setter Property="Width" Value="22" />
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg" Background="Transparent" CornerRadius="11">
+                        <TextBlock Text="✕" FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#bg">
+                <Setter Property="Background" Value="#E04A4A" />
+            </Style>
+        </ControlTheme>
+    </c:VsDialog.Resources>
+    <c:VsDialog.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SectionLabelText}" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+    </c:VsDialog.Styles>
+
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="28,18,28,24">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoNote}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5" StrokeJoin="Round" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Switch Sound" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Play a sound when this profile is activated" FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Tone chips -->
+            <TextBlock Classes="label" Text="Tone" />
+            <WrapPanel Margin="0,0,0,16">
+                <ToggleButton Name="ToneClick" Content="Click" Theme="{StaticResource ToneChip}" Click="ToneChip_Click" Tag="Click" />
+                <ToggleButton Name="ToneChime" Content="Chime" Theme="{StaticResource ToneChip}" Click="ToneChip_Click" Tag="Chime" />
+                <ToggleButton Name="ToneBlip" Content="Blip" Theme="{StaticResource ToneChip}" Click="ToneChip_Click" Tag="Blip" />
+                <ToggleButton Name="ToneBell" Content="Bell" Theme="{StaticResource ToneChip}" Click="ToneChip_Click" Tag="Bell" />
+                <ToggleButton Name="ToneAlert" Content="Alert" Theme="{StaticResource ToneChip}" Click="ToneChip_Click" Tag="Alert" />
+                <ToggleButton Name="ToneSoft" Content="Soft" Theme="{StaticResource ToneChip}" Click="ToneChip_Click" Tag="Soft" />
+                <ToggleButton Name="TonePing" Content="Ping" Theme="{StaticResource ToneChip}" Click="ToneChip_Click" Tag="Ping" />
+                <ToggleButton Name="ToneCustom" Content="Custom…" Theme="{StaticResource ToneChip}" Margin="0,0,0,6" Click="ToneChip_Click" Tag="Custom" />
+            </WrapPanel>
+
+            <!-- Custom file path — shown when Custom is selected -->
+            <StackPanel Name="CustomPathPanel" IsVisible="False" Margin="0,0,0,16">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                    <TextBox Name="CustomPathBox" Grid.Column="0" Padding="8,5" Margin="0,0,6,0" TextChanged="CustomPath_Changed" />
+                    <Button Grid.Column="1" Content="Browse…" Theme="{StaticResource ActionButton}" Click="Browse_Click" />
+                </Grid>
+                <TextBlock Text="Only 16-bit PCM .wav files are supported. MP3 and other formats are not compatible."
+                           FontSize="11" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" />
+
+                <!-- Your uploads: previously-browsed .wav files, re-pick without browsing again. -->
+                <StackPanel Name="LibrarySection" IsVisible="False" Margin="0,12,0,0">
+                    <TextBlock Text="YOUR UPLOADS" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,6" />
+                    <Border Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="8">
+                        <ScrollViewer MaxHeight="140" VerticalScrollBarVisibility="Auto">
+                            <!-- (WPF: Padding="6,4" on the ScrollViewer — Avalonia leaves that out of its height.) -->
+                            <ItemsControl Name="LibraryList" Margin="6,4">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="d:LibrarySoundItem">
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                            <Button Grid.Column="0" Tag="{Binding}" Theme="{StaticResource UploadRow}" Click="LibraryItem_Click"
+                                                    ToolTip.Tip="{Binding Name}">
+                                                <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource PrimaryText}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </Button>
+                                            <Button Grid.Column="1" Tag="{Binding}" Theme="{StaticResource UploadRemove}" Click="DeleteLibraryItem_Click"
+                                                    VerticalAlignment="Center" ToolTip.Tip="Remove from your uploads"
+                                                    AutomationProperties.Name="Remove from your uploads" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Volume -->
+            <TextBlock Classes="label" Text="Volume" />
+            <Grid ColumnDefinitions="*,36" Margin="0,0,0,4">
+                <Slider Name="VolumeSliderControl" Grid.Column="0" Theme="{StaticResource VolumeSlider}" Minimum="0" Maximum="100"
+                        TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="Volume_Changed" />
+                <TextBlock Name="VolumeLabel" Grid.Column="1" FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                           VerticalAlignment="Center" HorizontalAlignment="Right" />
+            </Grid>
+
+            <!-- Show notification banner toggle -->
+            <Border Background="{DynamicResource InnerCardBg}" BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                    BorderThickness="1" CornerRadius="12" Padding="16,12" Margin="0,20,0,0">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="Don't show notification banner" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                        <!-- (Windows: "Suppress the tray banner…".) -->
+                        <TextBlock Text="Suppress the notification banner when this profile activates." FontSize="11"
+                                   Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" Margin="0,3,0,0" />
+                    </StackPanel>
+                    <CheckBox Name="BannerToggle" Grid.Column="1" Theme="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                              IsCheckedChanged="BannerToggle_Changed" />
+                </Grid>
+            </Border>
+
+            <!-- Footer buttons -->
+            <DockPanel Margin="0,16,0,0">
+                <Button Content="Cancel" DockPanel.Dock="Left" Theme="{StaticResource ActionButton}" Padding="16,0" Click="Cancel_Click" />
+                <Button Name="RemoveBtn" Content="Remove" DockPanel.Dock="Left" Theme="{StaticResource DangerButton}" Padding="16,0"
+                        Margin="8,0,0,0" IsVisible="False" Click="Remove_Click" />
+                <Button Content="Save" DockPanel.Dock="Right" Theme="{StaticResource PrimaryButton}" Padding="20,0"
+                        HorizontalAlignment="Right" Click="Save_Click" />
+                <Button Name="TestBtn" Content="Test Sound" Theme="{StaticResource ActionButton}" HorizontalAlignment="Center"
+                        Padding="14,0" Click="TestSound_Click" />
+            </DockPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

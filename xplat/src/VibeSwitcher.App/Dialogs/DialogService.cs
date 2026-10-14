@@ -24,9 +24,11 @@ namespace VibeSwitcher.App.Dialogs;
 public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>? appWindows = null) : IDialogService
 {
     // What some dialogs need from the app: the system's audio backend (the mic test's level meter)
-    // and the log (Windows passes these to its DialogService too).
+    // the log and the config (Windows passes these to its DialogService too).
     public IPlatformAudioService? Audio { get; init; }
     public IAppLogger? Logger { get; init; }
+    // (The icon and sound libraries: the users' earlier uploads.)
+    public IConfigService? Config { get; init; }
 
     // ── IDialogService (the shared view models) ────────────────────────────────────────────────────
     public bool ShowConfirmDelete(string profileName) => Wait(ShowConfirmDeleteAsync(profileName));
@@ -41,13 +43,27 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
 
     public string? ShowBrowseIconFile() => Wait(ShowBrowseIconFileAsync());
 
-    // The rest of the Windows DialogService. Still to come (the next steps): the clone, icon gallery,
-    // schedule, sound and app-trigger wizards — until then they answer "cancelled" (and log it).
+    // The rest of the Windows DialogService. Still to come (the next step): the app-trigger wizard —
+    // until then it answers "cancelled" (and logs it).
     public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current) => ShowHotkeyCapture(current, subtitle: null);
     public DeviceProfile? ShowCloneWizard(DeviceProfile source, IReadOnlyList<AudioDeviceInfo> playbackDevices,
-        IReadOnlyList<AudioDeviceInfo> recordingDevices, bool use12Hour, Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey) =>
-        NotYet<DeviceProfile>(nameof(ShowCloneWizard));
-    public GalleryPickResult? ShowIconGallery() => NotYet<GalleryPickResult>(nameof(ShowIconGallery));
+        IReadOnlyList<AudioDeviceInfo> recordingDevices, bool use12Hour, Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey)
+    {
+        var dialog = new CloneProfileDialog(source, playbackDevices, recordingDevices, use12Hour, captureHotkey);
+        return Wait(ShowAsync(dialog)) ? dialog.ClonedProfile : null;
+    }
+    public GalleryPickResult? ShowIconGallery()
+    {
+        var dialog = new IconGalleryDialog(Config?.IconsLibraryDir ?? "");
+        if (!Wait(ShowAsync(dialog))) return null;
+        return new GalleryPickResult
+        {
+            Item = dialog.SelectedItem,
+            BrowseFromDisk = dialog.BrowseFromDisk,
+            IconColor = dialog.SelectedColor,
+            CustomIconPath = dialog.CustomIconPath,
+        };
+    }
     public ProfileMode? ShowProfileTypeDialog()
     {
         var dialog = new ProfileTypeDialog();
@@ -60,11 +76,18 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
     }
     public ScheduleWizardOutcome ShowScheduleWizard(ScheduleEntry source, bool use12Hour, bool isEditing = false)
     {
-        NotYet<object>(nameof(ShowScheduleWizard));
-        return ScheduleWizardOutcome.Cancelled;
+        var dialog = new ScheduleWizardDialog(source, use12Hour, isEditing);
+        if (!Wait(ShowAsync(dialog))) return ScheduleWizardOutcome.Cancelled;
+        if (dialog.RemoveRequested) return ScheduleWizardOutcome.RemovedOutcome;
+        return dialog.ScheduleResult != null
+            ? ScheduleWizardOutcome.Saved(dialog.ScheduleResult)
+            : ScheduleWizardOutcome.Cancelled;
     }
-    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false, bool isEditing = false) =>
-        NotYet<SoundOverrideResult>(nameof(ShowSoundWizard));
+    public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false, bool isEditing = false)
+    {
+        var dialog = new SwitchSoundDialog(enabled, tone, customPath, volume, Logger, Config?.SoundsLibraryDir ?? "", showBanner, isEditing);
+        return Wait(ShowAsync(dialog)) ? dialog.SoundResult : null;
+    }
     public bool ShowSupportedHeadsets() => Wait(ShowAsync(new SupportedHeadsetsDialog()));
     public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers) =>
         NotYet<List<string>>(nameof(ShowAppTriggerWizard));
@@ -129,7 +152,7 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
                 },
             ],
         });
-        return files.Count == 1 ? files[0].TryGetLocalPath() : null;
+        return files.Count == 1 ? LocalPath(files[0]) : null;
     }
 
     // Backup & Restore: the system's save and open pickers for a .json config file (Windows:
@@ -161,7 +184,7 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
 
     // The picked file's path — null (and logged) for one that isn't on this computer's disk (e.g. a
     // network location the picker offers), which the config can't be written to or read from.
-    private static string? LocalPath(IStorageItem item)
+    internal static string? LocalPath(IStorageItem item)
     {
         var path = item.TryGetLocalPath();
         if (path == null) AppLog.Warning("DialogService", $"'{item.Name}' isn't a file on this computer, so it can't be used.");
