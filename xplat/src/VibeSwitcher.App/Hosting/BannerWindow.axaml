@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="VibeSwitcher.App.Hosting.BannerWindow"
+        Title="VibeSwitcher"
+        SizeToContent="WidthAndHeight"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        CanResize="False"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True">
+    <!-- A notification banner the app draws itself (macOS: system banners need a signed app): the
+         app icon, the title and the message on a card in the menu's colours, at the top right. -->
+    <Border Name="Card" Margin="12" Width="320" CornerRadius="12" Padding="14,12"
+            Background="{DynamicResource MenuBg}" BorderBrush="{DynamicResource MenuBorder}" BorderThickness="1"
+            BoxShadow="0 4 18 0 #40000000" Cursor="Hand">
+        <Grid ColumnDefinitions="Auto,*">
+            <Image Name="AppIcon" Width="32" Height="32" VerticalAlignment="Top" Margin="0,1,12,0" />
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Name="TitleText" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Name="MessageText" FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap"
+                           Margin="0,2,0,0" MaxLines="3" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

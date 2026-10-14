@@ -33,6 +33,13 @@ public partial class App : Application
                     context.Cancel = true;
                     Avalonia.Threading.Dispatcher.UIThread.Post(() => desktop.Shutdown());
                 });
+                // macOS: opening the app again from Finder or Launchpad while it runs ("reopen") shows
+                // Settings — what a second launch does on Linux and Windows.
+                if (TryGetFeature(typeof(IActivatableLifetime)) is IActivatableLifetime activatable)
+                    activatable.Activated += (_, e) =>
+                    {
+                        if (e.Kind == ActivationKind.Reopen) host.Reopen();
+                    };
                 _ = StartAsync(host, desktop);
             }
             else

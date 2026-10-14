@@ -21,7 +21,7 @@ internal interface IHostPlatform
     IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker);
     // Global shortcuts; never null (a grabber that registers nothing when the system offers none).
     Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger);
-    // Notification banners; null where the app shows its own (macOS, next step) — banners are logged.
+    // Notification banners (null: none — banners are only logged).
     IDesktopNotifier? CreateNotifier(IAppLogger logger);
     IRunningProcessSource CreateProcesses();
     IWavPlayer? CreateWavPlayer();
@@ -29,6 +29,9 @@ internal interface IHostPlatform
     HeadsetAccessHooks? HeadsetAccess();
     // Whether to watch for supported wireless headsets (HidSharp); tests leave real devices alone.
     bool WatchesHeadsets => true;
+    // macOS: the app's own menu-bar item, which opens the Windows-styled menu. Null: Avalonia's tray
+    // icon with the system's own menu (Linux — and macOS if the item can't be made). UI thread.
+    IMenuBarItem? CreateMenuBarItem() => null;
 
     static IHostPlatform Current() =>
         OperatingSystem.IsMacOS() ? new MacHostPlatform()
@@ -71,8 +74,10 @@ internal sealed class MacHostPlatform : IHostPlatform
         }
     }
 
-    public IDesktopNotifier? CreateNotifier(IAppLogger logger) => null;
+    // (The system's banners need a signed app: the app draws its own.)
+    public IDesktopNotifier? CreateNotifier(IAppLogger logger) => new BannerNotifier();
     public IRunningProcessSource CreateProcesses() => new MacProcesses();
     public IWavPlayer? CreateWavPlayer() => new MacWavPlayer();
     public HeadsetAccessHooks? HeadsetAccess() => null;
+    public IMenuBarItem? CreateMenuBarItem() => MacStatusItem.TryCreate() is { } item ? new MacMenuBarItem(item) : null;
 }

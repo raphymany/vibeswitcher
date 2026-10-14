@@ -33,6 +33,8 @@ public static class Wording
 
     // ── Tray ──
     public static string LeftClickCycles => Mac ? "Left-click menu bar icon cycles profiles" : "Left-click tray icon cycles profiles";
+    // (A menu-bar icon's click always opens its menu: there's no other click to choose for.)
+    public static bool LeftClickOption => !Mac;
     public static string TrayMenuHeader => Mac ? "MENU ITEMS" : "TRAY MENU ITEMS";
     public static string TrayMenuDetail => Mac
         ? "Choose which items show in the menu bar icon's menu. Settings and Quit are always shown."
@@ -118,8 +120,11 @@ public static class Wording
         return home.Length > 0 && path.StartsWith(home + "/", StringComparison.Ordinal) ? "~" + path[home.Length..] : path;
     }
     public static string LivesIn => Mac
-        ? "VibeSwitcher lives in the menu bar. Left-click the icon to cycle to the next profile (or open the window instead — choose in "
+        ? "VibeSwitcher lives in the menu bar. Click the icon for the menu with all your profiles and quick actions (choose its items in "
         : "VibeSwitcher lives in the system tray. Left-click the icon to cycle to the next profile (or open the window instead — choose in ";
+    public static string LivesInRest => Mac
+        ? "). Hover the icon to see the active profile and your hotkey cheat sheet."
+        : "), and right-click for the full menu with all profiles and quick actions. Hover the icon to see the active profile and your hotkey cheat sheet.";
     public static string TrayFaqHeader => Mac ? "MENU BAR ICON BASICS" : "TRAY ICON BASICS";
     public static string HotkeysWorkWhen => Mac
         ? "Hotkeys work globally — even when VibeSwitcher's window is closed. "

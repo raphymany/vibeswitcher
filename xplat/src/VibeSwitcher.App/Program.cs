@@ -42,6 +42,8 @@ internal static class Program
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            // (macOS: a menu-bar app has no Dock icon — also when not started from its .app.)
+            .With(new MacOSPlatformOptions { ShowInDock = false })
             .WithVibeSwitcherFonts()
             .LogToTrace();
 }
