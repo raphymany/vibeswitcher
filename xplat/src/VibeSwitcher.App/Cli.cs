@@ -4,8 +4,8 @@ using VibeSwitcher.Platform;
 namespace VibeSwitcher.App;
 
 // The command line, before any window: --version and --help answer and exit, a bad option is
-// explained and exits; anything else starts the app (sending --switch/--mute/--open/--mini to an
-// already-running VibeSwitcher comes with the app wiring).
+// explained and exits; anything else starts the app — or, when VibeSwitcher is already running,
+// hands the command (--switch / --mute / --open / --mini, or a plain launch: open Settings) to it.
 internal static class Cli
 {
     public static string Version =>
@@ -34,5 +34,37 @@ internal static class Cli
             return 0;
         }
         return null;
+    }
+
+    // Takes the single-instance lock (null: this is the running copy now, go on starting), or sends
+    // the command to the copy that has it and returns the exit code: 0 done, 1 refused or no answer.
+    internal static int? AcquireOrForward(SingleInstance instance, AppPaths paths, AppCommand command,
+        Func<AppCommand, Task<string>> handle, TextWriter output, TextWriter error)
+    {
+        try
+        {
+            if (instance.TryAcquire(handle)) return null;
+        }
+        catch (InvalidOperationException ex)
+        {
+            error.WriteLine($"VibeSwitcher can't start: {ex.Message}");
+            return 1;
+        }
+        var reply = SingleInstance.SendAsync(paths, command).GetAwaiter().GetResult();
+        if (reply == null)
+        {
+            // (Its folder's path can be too long for the command channel: then no waiting will help.)
+            error.WriteLine(paths.SocketPathFits
+                ? "VibeSwitcher is already running but didn't answer. Try again in a moment."
+                : "VibeSwitcher is already running, but it can't take commands from here: its settings folder's path is too long.");
+            return 1;
+        }
+        if (reply.StartsWith("error:", StringComparison.Ordinal))
+        {
+            error.WriteLine(reply["error:".Length..].Trim());
+            return 1;
+        }
+        if (reply != "ok") output.WriteLine(reply);
+        return 0;
     }
 }

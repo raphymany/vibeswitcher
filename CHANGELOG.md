@@ -24,6 +24,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **macOS/Linux: the first of the remaining dialogs** — setting a hotkey (with each system's key names), choosing a new profile's type, device aliases, the session error log, managing a profile's schedules, the microphone test and the supported-headsets list, looking and working as on Windows *(PR #144)*
 - **macOS/Linux: the profile wizards** — cloning a profile, the icon gallery (its emoji now look the same on every system), adding and editing schedules, and choosing a switch sound (built-in tones or your own `.wav`, kept for re-use), looking and working as on Windows *(PR #146)*
 - **macOS/Linux: app launch triggers, the splash and headset access** — linking apps to a profile from each system's installed and running apps (with their icons, Flatpak and Snap apps on Linux, `.app` bundles on macOS), the start-up animation, and on Linux a one-click way to let VibeSwitcher see when a wireless headset turns on and off. Every Windows dialog now has its Mac/Linux version *(PR #148)*
+- **macOS/Linux: the app runs** — it now starts like the Windows app: one copy at a time (launching again opens Settings, and `vibeswitcher --switch`, `--mute`, `--open` and `--mini` work from a terminal or desktop shortcut), hotkeys, schedules, wake from sleep, device and app auto-switching, wireless headsets, switch sounds and notification banners, the splash, and a tray / menu-bar icon with the profiles, About, Help, Settings, Mini Mode, Sound Settings and Quit *(PR #150)*
 
 ---
 

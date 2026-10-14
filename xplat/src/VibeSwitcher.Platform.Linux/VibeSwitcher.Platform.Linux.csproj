@@ -18,6 +18,6 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="VibeSwitcher.Platform.Linux.Tests" />
-    <InternalsVisibleTo Include="VibeSwitcher.App" />
+    <InternalsVisibleTo Include="VibeSwitcher" /><!-- the app (VibeSwitcher.App builds as VibeSwitcher) -->
   </ItemGroup>
 </Project>
