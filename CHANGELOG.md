@@ -11,6 +11,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **macOS/Linux groundwork: Linux audio engine** — the Linux version can now list, switch, mute and watch audio devices, play the test tone and switch sounds, and run the microphone meter, with the same behaviour as Windows. Works with both PipeWire and PulseAudio, and is tested against real sound servers. Not yet user-visible *(PR #118)*
 - **macOS/Linux groundwork: macOS audio engine** — the Mac version can now list, switch (including where alert sounds play), mute and watch audio devices, play the test tone and switch sounds, and run the microphone meter, with the same behaviour as Windows. Built on Apple's own Core Audio and tested on real Apple Silicon and Intel Macs. Not yet user-visible *(PR #120)*
 - **macOS/Linux groundwork: system services** — file locations matching Windows, one running copy at a time (launching again opens Settings), a command line for scripts and Linux desktop shortcuts (`--switch`, `--mute`, `--open`), wake-from-sleep detection, start at login, Linux desktop notifications, and the Windows mute hotkey logic and sounds on both systems. Not yet user-visible *(PR #122)*
+- **macOS/Linux groundwork: global hotkeys (macOS and Linux X11)** — the Windows hotkey logic (profile, Settings, Mini Mode and mute shortcuts, conflict reporting) now runs on macOS (no special permission needed) and on Linux X11 desktops, with taken shortcuts reported like on Windows. Wayland follows next. Not yet user-visible *(PR #124)*
 
 ---
 

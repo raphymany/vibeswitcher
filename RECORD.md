@@ -572,7 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4a done (PR #116, #118, #120, #122) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4a and 4b part 1 done (PR #116, #118, #120, #122, #124) |
 
 ---
 
@@ -1537,3 +1537,14 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | `LinuxNotifier` (Tmds.DBus.Protocol 0.21.3 = Avalonia's version) — replaces the previous banner, 5 s call timeout, markup escaping only when the server renders markup, `$XDG_RUNTIME_DIR/bus` fallback | ✅ Done |
 | `MuteService` forked into Core onto `IPlatformAudioService` (same toggle rules and sounds); `InstallInfo` (macOS app incl. translocation, AppImage, .deb, development) | ✅ Done |
 | Tests — 454 passing on Windows and Linux (WSL); D-Bus notification test on a private session bus in CI (`VS_DBUS_IT=1`); follow-ups for app wiring logged in BACKLOG (SMAppService, macOS reopen event, dev-build autostart, logind) | ✅ Done |
+
+### Branch 59: `xplat/hotkeys` ✅ Done — PR #124
+**Theme:** F46 phase 4b, part 1 (issue #123). Global hotkeys on macOS and Linux X11 (Wayland follows in part 2, `xplat/hotkeys-wayland`). No visible app yet; no file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Merged into `xplat/dev`.
+
+| Item | Status |
+|------|--------|
+| `IGlobalKeyGrabber` (Core) — Windows-form keys/modifiers, never throws, Pressed off the system thread; `HotkeyService` forked from Windows onto it (atoms → ids; TestHotkey blames another app only for a real conflict — documented) | ✅ Done |
+| `CarbonKeyGrabber` (macOS) — exclusive `RegisterEventHotKey` (conflicts reported, no Accessibility prompt), VK → kVK table, Win↔⌘ / Alt↔⌥, macOS 15 Option-only rule reported, disposed guard, `SimulatePress` test hook through the real handler | ✅ Done |
+| `X11KeyGrabber` (Linux) — XCB checked grabs (no global error handler), dedicated thread woken by a pipe, Pressed via the thread pool, Caps/Num Lock variants with the real Num Lock modifier, MappingNotify re-grab, F13–F24 evdev fallback, quiet after dispose; Wayland-session detection for the selector | ✅ Done |
+| CI — new `linux-desktop` job (Xvfb + xdotool, 12 real-X tests: presses, lock keys, conflicts, re-entrancy, speed, F13/F24, shutdown, end to end); macOS job also runs Carbon tests (registration, conflicts, event delivery) | ✅ Done |
+| Tests — 499 passing on Windows and Linux; PARITY hotkey notes | ✅ Done |

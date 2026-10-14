@@ -22,6 +22,22 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
 
+## Hotkey notes
+
+- **Same shortcuts everywhere.** Shortcuts are saved in the Windows form, so a config moves between systems unchanged.
+  On a Mac, Ctrl/Alt/Shift/Win are ⌃ Control / ⌥ Option / ⇧ Shift / ⌘ Command (Win ↔ ⌘, the usual mapping).
+- **Taken shortcuts are reported** on macOS and on Linux X11 the same way as on Windows (including the "is it in use by
+  another app?" check), and the same shortcut twice inside VibeSwitcher is a conflict, as on Windows. One macOS
+  caveat: the system's own shortcuts (⌘Space, ⌘⇧3, Mission Control's ⌃↑…) aren't reported as taken — they register
+  fine but macOS keeps the key press, so avoid them.
+- **Linux X11:** shortcuts keep working with Caps Lock or Num Lock on, and after a keyboard-layout change.
+- **Keys a system can't use:** macOS keeps the media keys (volume, play/pause), has no Print Screen or F21–F24, and
+  since macOS 15 refuses shortcuts that use only ⌥ Option (or ⌥⇧); Linux supports the usual keys including F13–F24
+  and media keys (GNOME and KDE already use the bare media keys themselves, so on their own those show as "in use";
+  with a modifier they're fine). Choosing an unusable one shows a registration error saying why, instead of silently
+  doing nothing.
+- **macOS needs no special permission** for shortcuts (no Accessibility prompt).
+
 ## System integration notes
 
 - **Files** live in `~/Library/Application Support/VibeSwitcher` (macOS) or `~/.config/VibeSwitcher` (Linux, or
