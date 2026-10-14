@@ -29,5 +29,8 @@
     <Compile Include="$(WinTests)FakeAppLogger.cs"           Link="Linked\FakeAppLogger.cs" />
     <Compile Include="$(WinTests)FakeSessionErrorTracker.cs" Link="Linked\FakeSessionErrorTracker.cs" />
     <Compile Include="$(WinTests)FakeConfigService.cs"       Link="Linked\FakeConfigService.cs" />
+    <Compile Include="$(WinTests)FakeAudioService.cs"        Link="Linked\FakeAudioService.cs" />
+    <Compile Include="$(WinTests)FakeHotkeyService.cs"       Link="Linked\FakeHotkeyService.cs" />
+    <Compile Include="$(WinTests)FakeStartupService.cs"      Link="Linked\FakeStartupService.cs" />
   </ItemGroup>
 </Project>

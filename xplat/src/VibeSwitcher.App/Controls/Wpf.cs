@@ -1,8 +1,11 @@
 using System.Runtime.CompilerServices;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
 using WpfVisibility = System.Windows.Visibility;
 
 namespace VibeSwitcher.App.Controls;
@@ -21,6 +24,14 @@ public static class Wpf
 
     static Wpf()
     {
+        RereadIsCheckedProperty.Changed.AddClassHandler<ToggleButton>((toggle, e) =>
+        {
+            // On Click: a toggle raises it after the change has gone through — including the view
+            // model's setter and any question it asked — so the re-read sees the final answer.
+            toggle.RemoveHandler(Button.ClickEvent, OnToggled);
+            if (e.GetNewValue<bool>()) toggle.AddHandler(Button.ClickEvent, OnToggled, RoutingStrategies.Bubble, handledEventsToo: true);
+        });
+
         VisibilityProperty.Changed.AddClassHandler<Control>((control, e) =>
         {
             var overrides = Applied.GetOrCreateValue(control);
@@ -48,4 +59,36 @@ public static class Wpf
 
     public static WpfVisibility GetVisibility(Control control) => control.GetValue(VisibilityProperty);
     public static void SetVisibility(Control control, WpfVisibility value) => control.SetValue(VisibilityProperty, value);
+
+    // WPF reads a two-way bound value back after writing it, so the shared view models can refuse a
+    // change (e.g. auto-switch when its confirmation is declined) by raising PropertyChanged inside
+    // their setter. Avalonia ignores that echo; c:Wpf.RereadIsChecked="True" on a toggle reads the
+    // view model's value again right after each click, so a refused change flips the toggle back.
+    public static readonly AttachedProperty<bool> RereadIsCheckedProperty =
+        AvaloniaProperty.RegisterAttached<ToggleButton, ToggleButton, bool>("RereadIsChecked");
+
+    public static bool GetRereadIsChecked(ToggleButton toggle) => toggle.GetValue(RereadIsCheckedProperty);
+    public static void SetRereadIsChecked(ToggleButton toggle, bool value) => toggle.SetValue(RereadIsCheckedProperty, value);
+
+    private static bool _rereading;
+
+    private static void OnToggled(object? sender, RoutedEventArgs e)
+    {
+        if (_rereading || sender is not ToggleButton toggle || !ReferenceEquals(e.Source, toggle)) return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            // Briefly unhooking the toggle from its view model and hooking it back makes every
+            // binding on it read the view model afresh.
+            var context = toggle.DataContext;
+            if (context == null) return;
+            _rereading = true;
+            try
+            {
+                toggle.DataContext = null;
+                toggle.DataContext = context;
+                toggle.ClearValue(StyledElement.DataContextProperty); // back to the inherited one (the same)
+            }
+            finally { _rereading = false; }
+        });
+    }
 }

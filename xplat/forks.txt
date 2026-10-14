@@ -49,3 +49,10 @@ src/VibeSwitcher.App/Dialogs/DialogService.cs            VibeSwitcher/Services/D
 src/VibeSwitcher.Core/Helpers/IconHelper.cs              VibeSwitcher/Helpers/IconHelper.cs               dd48fb081b8779d07931d95b9b115df9535e7b3b
 src/VibeSwitcher.Core/Helpers/GalleryIconHelper.cs       VibeSwitcher/Helpers/GalleryIconHelper.cs        1c76f05a9fe050866a9b83fe51a62bb61fc64d85
 src/VibeSwitcher.Core/Controls/LogoAnimator.cs           VibeSwitcher/Controls/LogoAnimator.cs            619bd409c2d5e1fdf13d86e77d90036d551f2236
+src/VibeSwitcher.App/Settings/SettingsWindow.axaml       VibeSwitcher/Views/SettingsWindow.xaml           52011df549f5e5175c7a0471a2214fd4cc94e565
+src/VibeSwitcher.App/Settings/SettingsWindow.axaml.cs    VibeSwitcher/Views/SettingsWindow.xaml.cs        b06a430fd8cd21ae2cb220e0672b125e019cf1e4
+src/VibeSwitcher.App/Settings/SettingsStyles.axaml       VibeSwitcher/Views/SettingsWindow.xaml           52011df549f5e5175c7a0471a2214fd4cc94e565
+src/VibeSwitcher.App/Controls/CenteredWrapPanel.cs       VibeSwitcher/Views/CenteredWrapPanel.cs          e5480c998e2947cbee12bcf43f538e86f02e524f
+src/VibeSwitcher.App/Controls/LogoIcon.axaml             VibeSwitcher/Controls/NavLogoIcon.xaml           5be2e51e899eda3f20b6c05f7e8aa9d168f8e9c8
+src/VibeSwitcher.App/Controls/LogoIcon.axaml             VibeSwitcher/Controls/AboutLogoIcon.xaml         6140e4dcafa5308eca3e3e0d02a4dcdd7ceec245
+src/VibeSwitcher.App/Controls/LogoIcon.axaml.cs          VibeSwitcher/Controls/LogoAnimator.cs            619bd409c2d5e1fdf13d86e77d90036d551f2236

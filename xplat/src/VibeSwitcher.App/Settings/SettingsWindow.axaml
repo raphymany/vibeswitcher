@@ -1,0 +1,799 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:VibeSwitcher.ViewModels"
+        xmlns:svc="using:VibeSwitcher.Services"
+        xmlns:c="using:VibeSwitcher.App.Controls"
+        xmlns:img="using:VibeSwitcher.App.Imaging"
+        x:Class="VibeSwitcher.App.Settings.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="VibeSwitcher"
+        Width="920" Height="720" MinWidth="700" MinHeight="500"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBg}">
+    <!-- Port of Views/SettingsWindow.xaml: the window frame, the top bar, the filter bar, the
+         Profiles page and the profile popup. The Settings / About / FAQ pages and Mini Mode fill
+         their panels in the next steps. -->
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://VibeSwitcher/Settings/SettingsStyles.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Window.Styles>
+        <!-- Path icons drawn in their button's text colour. -->
+        <Style Selector="Button Path.fg, Button Rectangle.fg">
+            <Setter Property="Stroke" Value="{Binding $parent[Button].Foreground}" />
+        </Style>
+        <Style Selector="ToggleButton Path.fg">
+            <Setter Property="Stroke" Value="{Binding $parent[ToggleButton].Foreground}" />
+        </Style>
+        <Style Selector="Button Path.fill">
+            <Setter Property="Fill" Value="{Binding $parent[Button].Foreground}" />
+        </Style>
+        <Style Selector="ToggleButton Path.fill">
+            <Setter Property="Fill" Value="{Binding $parent[ToggleButton].Foreground}" />
+        </Style>
+        <Style Selector="Path.fg">
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+        </Style>
+        <!-- Filter chip icon (stroke follows the chip's text colour). -->
+        <Style Selector="Path.chipIcon">
+            <Setter Property="Width" Value="13" />
+            <Setter Property="Height" Value="13" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="Stroke" Value="{Binding $parent[ToggleButton].Foreground}" />
+            <Setter Property="StrokeThickness" Value="1.3" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+        </Style>
+        <Style Selector="Path.chipIcon.solid">
+            <Setter Property="Fill" Value="{Binding $parent[ToggleButton].Foreground}" />
+            <Setter Property="Stroke" Value="{x:Null}" />
+        </Style>
+
+        <!-- ── Profile card ── -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{DynamicResource CardBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+        </Style>
+        <Style Selector="Border.card.active">
+            <Setter Property="BorderBrush" Value="#4DF5820A" />
+            <Setter Property="Background">
+                <LinearGradientBrush StartPoint="50%,0%" EndPoint="50%,100%">
+                    <GradientStop Color="{DynamicResource VSActiveGradTop}" Offset="0" />
+                    <GradientStop Color="{DynamicResource VSActiveGradBot}" Offset="0.4" />
+                </LinearGradientBrush>
+            </Setter>
+        </Style>
+        <Style Selector="Border.card:pointerover">
+            <Setter Property="BorderBrush" Value="{DynamicResource InnerCardBorderBrush}" />
+            <Setter Property="Background" Value="{DynamicResource InnerCardBg}" />
+        </Style>
+        <Style Selector="Border.iconArea">
+            <Setter Property="Background" Value="{DynamicResource VSSurface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource VSBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="Border.iconArea.active">
+            <Setter Property="BorderBrush" Value="#47F5820A" />
+            <Setter Property="BoxShadow" Value="0 0 18 0 #1AF5820A" />
+        </Style>
+        <!-- Card chips: the same pill everywhere (orange for mode/schedule/sound, neutral for devices
+             and the hotkey). -->
+        <Style Selector="Border.neutralChip">
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Background" Value="{DynamicResource HotkeyBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8,3" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+        </Style>
+        <Style Selector="Border.hairline">
+            <Setter Property="Height" Value="1" />
+            <Setter Property="Width" Value="220" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="Background" Value="{DynamicResource VSHairline}" />
+        </Style>
+        <!-- A card button that's off for this profile (auto-switch on a recording-only profile; silent
+             while the profile has its own sound). -->
+        <Style Selector="ToggleButton.dim28">
+            <Setter Property="IsEnabled" Value="False" />
+            <Setter Property="Opacity" Value="0.28" />
+        </Style>
+        <Style Selector="ToggleButton.dim35">
+            <Setter Property="IsEnabled" Value="False" />
+            <Setter Property="Opacity" Value="0.35" />
+        </Style>
+
+        <!-- The popup's name field: plain text on the popup, no box (WPF: transparent, no border). -->
+        <Style Selector="TextBox.bare">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="TextBox.bare:pointerover /template/ Border#PART_BorderElement, TextBox.bare:focus /template/ Border#PART_BorderElement">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+
+        <Style Selector="TextBlock.sectionLabel">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SectionLabelText}" />
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+        <Style Selector="Ellipse.dot">
+            <Setter Property="Fill" Value="{DynamicResource SuccessDot}" />
+        </Style>
+        <Style Selector="Ellipse.dot.disconnected">
+            <Setter Property="Fill" Value="{DynamicResource ErrorDot}" />
+        </Style>
+    </Window.Styles>
+
+    <Grid Name="Root" RowDefinitions="30,54,Auto,*" Background="{DynamicResource AppBg}">
+
+        <!-- ══ ROW 0 — Title bar ══ -->
+        <Border Grid.Row="0" Background="{DynamicResource VSTitleBarBg}"
+                BorderBrush="{DynamicResource VSSurface}" BorderThickness="0,0,0,1">
+            <Grid Name="TitleBarGrid" ColumnDefinitions="*,Auto" Background="Transparent">
+                <StackPanel Name="FullTitleGroup" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
+                    <Image Source="avares://VibeSwitcher/Assets/Icons/vs-icon-32.png" Width="16" Height="16"
+                           Stretch="Uniform" Margin="0,0,6,0" RenderOptions.BitmapInterpolationMode="HighQuality" />
+                    <TextBlock Text="VibeSwitcher" FontSize="11.5" FontWeight="SemiBold"
+                               Foreground="{DynamicResource Accent}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- (Mini Mode: the logo and the Mini Mode shortcut.) -->
+                <StackPanel Name="MiniTitleGroup" Orientation="Horizontal" VerticalAlignment="Center"
+                            Margin="10,0,0,0" IsVisible="False">
+                    <c:LogoIcon Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center" />
+                    <Border Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
+                            BorderThickness="1" CornerRadius="4" Padding="6,1" VerticalAlignment="Center"
+                            ToolTip.Tip="Mini Mode shortcut"
+                            IsVisible="{Binding CompactHotkeyDisplay, Converter={x:Static c:Converters.IsNotNotSet}}">
+                        <TextBlock Text="{Binding CompactHotkeyDisplay}" FontFamily="fonts:VibeSwitcher#Cousine"
+                                   FontSize="9.5" Foreground="{DynamicResource VSLabel}" />
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Name="TitleShrinkBtn" Theme="{StaticResource TitleBarBtn}" Click="TitleShrink_Click"
+                            ToolTip.Tip="Switch to Mini Mode" AutomationProperties.Name="Switch to Mini Mode">
+                        <Path Classes="fg" Data="{DynamicResource IcoCompact}" Stretch="Uniform" Width="11" Height="11" StrokeThickness="1.6" />
+                    </Button>
+                    <Button Name="TitlePinBtn" Theme="{StaticResource TitleBarBtn}" Click="TitlePin_Click" IsVisible="False"
+                            Classes.on="{Binding CompactAlwaysOnTop}"
+                            ToolTip.Tip="Keep mini window on top" AutomationProperties.Name="Keep mini window on top">
+                        <Path Classes="fg" Data="M5.5,2 H10.5 M6.5,2 V6 L4,8.5 H12 L9.5,6 V2 M8,8.5 V13.5"
+                              Stretch="Uniform" Width="11" Height="11" StrokeThickness="1.6" />
+                    </Button>
+                    <Button Name="TitleExpandBtn" Theme="{StaticResource TitleBarBtn}" Click="TitleExpand_Click" IsVisible="False"
+                            ToolTip.Tip="Back to full window" AutomationProperties.Name="Back to full window">
+                        <Path Classes="fg" Data="{DynamicResource IcoExpand}" Stretch="Uniform" Width="11" Height="11" StrokeThickness="1.6" />
+                    </Button>
+                    <!-- The window buttons (macOS uses its own, on the left). -->
+                    <StackPanel Name="WindowButtons" Orientation="Horizontal">
+                        <Button Theme="{StaticResource TitleBarBtn}" Click="TitleMinimize_Click"
+                                ToolTip.Tip="Minimize" AutomationProperties.Name="Minimize">
+                            <Path Classes="fg" Data="M0,0.5 H10" Width="10" Height="1" StrokeThickness="1" />
+                        </Button>
+                        <Button Name="TitleMaxBtn" Theme="{StaticResource TitleBarBtn}" Click="TitleMaximize_Click"
+                                ToolTip.Tip="Maximize" AutomationProperties.Name="Maximize">
+                            <Path Name="MaxGlyph" Classes="fg" Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" Width="10" Height="10" StrokeThickness="1" />
+                        </Button>
+                        <Button Theme="{StaticResource TitleBarCloseBtn}" Click="TitleClose_Click"
+                                ToolTip.Tip="Close" AutomationProperties.Name="Close">
+                            <Path Classes="fg" Data="M0,0 L10,10 M10,0 L0,10" Width="10" Height="10" StrokeThickness="1" />
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══ ROW 1 — Top navigation bar ══ -->
+        <Border Name="NavBar" Grid.Row="1" Background="{DynamicResource VSNavBg}"
+                BorderBrush="{DynamicResource VSNavBorder}" BorderThickness="0,0,0,1">
+            <Grid Margin="18,0" ColumnDefinitions="Auto,*,Auto">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Theme="{StaticResource NavLogoBtn}" Click="NavLogo_Click" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <c:LogoIcon Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <TextBlock Text="VibeSwitcher" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Accent}" />
+                        </StackPanel>
+                    </Button>
+                    <Border Width="1" Height="22" Background="{DynamicResource InputBorder}" Margin="12,0" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Search + Filters -->
+                <Grid Name="SearchFiltersPanel" Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" MaxWidth="280" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid Margin="0,0,8,0">
+                        <TextBox Name="NavSearchBox" MinWidth="110" Height="32" HorizontalAlignment="Stretch"
+                                 Text="{Binding SearchText}" FontSize="13" VerticalContentAlignment="Center" Padding="10,0" />
+                        <TextBlock Text="Search profiles..." FontSize="12.5" FontStyle="Italic"
+                                   Foreground="{DynamicResource DisabledText}" VerticalAlignment="Center"
+                                   Margin="12,0,0,0" IsHitTestVisible="False">
+                            <TextBlock.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="SearchText" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                                    <Binding ElementName="NavSearchBox" Path="IsFocused" Converter="{x:Static BoolConverters.Not}" />
+                                </MultiBinding>
+                            </TextBlock.IsVisible>
+                        </TextBlock>
+                    </Grid>
+                    <Button Name="FiltersToggleBtn" Grid.Column="1" Height="32" Padding="10,0"
+                            Theme="{StaticResource ActionButton}" Click="FiltersBtn_Click">
+                        <StackPanel Orientation="Horizontal">
+                            <Viewbox Width="13" Height="13" Margin="0,0,6,0" VerticalAlignment="Center">
+                                <Canvas Width="16" Height="16">
+                                    <Path Classes="fill" Data="M2.5,3.5 H13.5 L9,8.5 V12.5 L7,11 V8.5 Z" />
+                                </Canvas>
+                            </Viewbox>
+                            <TextBlock Text="Filters" FontSize="12" VerticalAlignment="Center" />
+                            <Border Name="FilterCountBadge" Width="18" Height="18" CornerRadius="9"
+                                    Background="{DynamicResource Accent}" Margin="6,0,0,0" VerticalAlignment="Center"
+                                    IsVisible="{Binding IsAnyFilterActive}">
+                                <TextBlock Text="{Binding ActiveFilterCount}" FontSize="10" FontWeight="Bold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource AppBg}" />
+                            </Border>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Name="NavAboutBtn" Theme="{StaticResource NavIconBtn}" Margin="0,0,4,0"
+                            ToolTip.Tip="About VibeSwitcher" AutomationProperties.Name="About VibeSwitcher" Click="NavAbout_Click">
+                        <Path Classes="fg" Data="{DynamicResource IcoInfo}" Width="17" Height="17" Stretch="Uniform" StrokeThickness="1.5" />
+                    </Button>
+                    <Button Name="NavFaqBtn" Theme="{StaticResource NavIconBtn}" Margin="0,0,4,0"
+                            ToolTip.Tip="Help &amp; FAQ" AutomationProperties.Name="Help and FAQ" Click="NavFaq_Click">
+                        <Path Classes="fg" Data="{DynamicResource IcoHelp}" Width="17" Height="17" Stretch="Uniform" StrokeThickness="1.5" />
+                    </Button>
+                    <Button Name="NavSettingsBtn" Theme="{StaticResource NavIconBtn}" Margin="0,0,12,0"
+                            ToolTip.Tip="Settings" AutomationProperties.Name="Settings" Click="NavSettings_Click">
+                        <Path Classes="fg" Data="{DynamicResource IcoSettings}" Width="17" Height="17" Stretch="Uniform" StrokeThickness="1.5" />
+                    </Button>
+                    <Border Width="1" Height="22" Background="{DynamicResource InputBorder}" Margin="0,0,12,0" VerticalAlignment="Center" />
+                    <Button Theme="{StaticResource PrimaryButton}" Command="{Binding AddProfileCommand}" Padding="10,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="+" FontSize="16" FontWeight="Light" Margin="0,-3,5,0" VerticalAlignment="Center" />
+                            <TextBlock Text="New Profile" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    <Button Name="LogsButton" IsVisible="False" Margin="8,0,0,0" Theme="{StaticResource ActionButton}" Click="LogsButton_Click">
+                        <TextBlock Name="LogsButtonText" FontSize="11" Foreground="{DynamicResource WarningText}" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ══ ROW 2 — Filter bar (slides open / closed) ══ -->
+        <Border Name="FilterBarBorder" Grid.Row="2" MaxHeight="0" ClipToBounds="True" IsEnabled="False"
+                Background="{DynamicResource AppBg}" BorderBrush="{DynamicResource VSSurface}" BorderThickness="0,0,0,1">
+            <StackPanel Margin="18,9">
+                <c:CenteredWrapPanel>
+                    <ToggleButton IsChecked="{Binding ModePlayback}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoPlayback}" />
+                            <TextBlock Text="Playback only" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ModeRecording}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoRecording}" />
+                            <TextBlock Text="Recording only" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ModeBoth}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoBoth}" />
+                            <TextBlock Text="Both devices" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding PinnedFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon solid" Data="{StaticResource IcoPin}" />
+                            <TextBlock Text="Pinned" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ActiveFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoActive}" />
+                            <TextBlock Text="Active" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding SilentFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoSilent}" />
+                            <TextBlock Text="Silent" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding HotkeyFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoHotkey}" />
+                            <TextBlock Text="Has hotkey" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding NotesFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoNotes}" />
+                            <TextBlock Text="Has notes" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding IconFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoImage}" />
+                            <TextBlock Text="Has icon" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ScheduledFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoSchedule}" />
+                            <TextBlock Text="Scheduled" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding ReminderFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoReminder}" />
+                            <TextBlock Text="Has reminder" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding SoundFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoSound}" />
+                            <TextBlock Text="Has sound" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <ToggleButton IsChecked="{Binding WarningFilter}" Theme="{StaticResource FilterChip}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path Classes="chipIcon" Data="{StaticResource IcoWarning}" />
+                            <TextBlock Text="Has warning" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </ToggleButton>
+                    <Button Content="✕ Clear" Command="{Binding ClearFiltersCommand}" Margin="4,0,0,0"
+                            Theme="{StaticResource ClearFilterButton}" IsVisible="{Binding IsAnyFilterActive}" />
+                </c:CenteredWrapPanel>
+                <!-- Day chips (with "Scheduled") -->
+                <ItemsControl ItemsSource="{Binding DayChips}" Margin="0,6,0,0" IsVisible="{Binding ScheduledFilter}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <c:CenteredWrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:DayChip">
+                            <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsSelected}"
+                                          Theme="{StaticResource FilterChip}" Margin="0,0,4,0" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- ══ ROW 3 — Main content (the pages share this grid) ══ -->
+        <Grid Name="MainGrid" Grid.Row="3">
+
+            <!-- ── Profiles ── -->
+            <ScrollViewer Name="ProfilesPanel" Focusable="True" IsTabStop="False" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="18">
+                    <Grid Margin="0,0,0,13">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Text="PROFILES" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SectionLabelText}" VerticalAlignment="Center" />
+                            <Border Background="{DynamicResource VSSurface}" CornerRadius="10" Margin="8,0,0,0"
+                                    Padding="7,2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Profiles.Count}" FontSize="11" Foreground="{DynamicResource SecondaryText}" />
+                            </Border>
+                        </StackPanel>
+                        <Button Content="Sound Settings" HorizontalAlignment="Right" Theme="{StaticResource ActionButton}"
+                                FontSize="11" Click="OpenSoundSettings_Click" />
+                    </Grid>
+
+                    <ItemsControl Name="ProfileCards" ItemsSource="{Binding Profiles}"
+                                 >
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <c:CenteredWrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProfileCardViewModel">
+                                <Grid Width="310" Margin="0,0,14,14" VerticalAlignment="Top" IsVisible="{Binding IsVisible}">
+                                    <Border Classes="card" Classes.active="{Binding IsActive}"
+                                            CornerRadius="14" ClipToBounds="True" BorderThickness="1" Cursor="Hand">
+                                        <Grid RowDefinitions="*,Auto">
+                                            <!-- Active bar (top accent line) -->
+                                            <Border Grid.RowSpan="2" Height="2" VerticalAlignment="Top" Margin="12,0"
+                                                    ZIndex="5" IsVisible="{Binding IsActive}">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                                        <GradientStop Color="Transparent" Offset="0" />
+                                                        <GradientStop Color="{DynamicResource AccentColor}" Offset="0.5" />
+                                                        <GradientStop Color="Transparent" Offset="1" />
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                            </Border>
+
+                                            <!-- Main content — opens the profile popup -->
+                                            <Button Grid.Row="0" Theme="{StaticResource CardMainButton}"
+                                                    ToolTip.Tip="Open profile settings" Click="ProfileCard_Click">
+                                                <StackPanel Margin="0,20,0,10" HorizontalAlignment="Center">
+                                                    <Border Classes="iconArea" Classes.active="{Binding IsActive}"
+                                                            Width="90" Height="90" CornerRadius="20" HorizontalAlignment="Center">
+                                                        <Grid>
+                                                            <c:LogoIcon IsAbout="True" Width="80" Height="80"
+                                                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                        IsVisible="{Binding !HasCustomIcon}" />
+                                                            <Image Source="{Binding IconPreview, Converter={x:Static img:AppImages.ToBitmap}}"
+                                                                   Width="72" Height="72" Stretch="Uniform"
+                                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   IsVisible="{Binding HasCustomIcon}" />
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource PrimaryText}" HorizontalAlignment="Center"
+                                                               MaxWidth="220" TextTrimming="CharacterEllipsis" Margin="0,10,0,0" />
+
+                                                    <Border Margin="0,8,0,0" CornerRadius="6" Padding="8,3" HorizontalAlignment="Center"
+                                                            Background="#1FF5820A" BorderBrush="#40F5820A" BorderThickness="1">
+                                                        <TextBlock Text="{Binding ModeLabel}" FontSize="10" FontWeight="SemiBold"
+                                                                   Foreground="{DynamicResource Accent}" />
+                                                    </Border>
+
+                                                    <!-- Every chip and separator has the same 8 px top margin, so gaps stay
+                                                         even whichever chips are hidden. -->
+                                                    <Border Classes="hairline" />
+
+                                                    <StackPanel IsVisible="{Binding HasVisibilityChips}">
+                                                        <Button Theme="{StaticResource CardChipButton}" Command="{Binding ManageSchedulesCommand}"
+                                                                HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                                ToolTip.Tip="Click to view or edit schedules" IsVisible="{Binding HasSchedules}">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                    <Canvas Width="16" Height="16">
+                                                                        <Path Classes="fg" Stroke="{DynamicResource Accent}" StrokeThickness="1.4"
+                                                                              Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7" />
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                                <TextBlock Text="{Binding ScheduleSummaryText}" FontFamily="fonts:VibeSwitcher#Cascadia Mono"
+                                                                           FontSize="10" Foreground="{DynamicResource Accent}" VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                        <Button Theme="{StaticResource CardChipButton}" Command="{Binding ConfigureSoundCommand}"
+                                                                HorizontalAlignment="Center" Margin="0,8,0,0"
+                                                                ToolTip.Tip="Click to configure switch sound" IsVisible="{Binding SoundOverride}">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Viewbox Width="9" Height="9" Margin="0,0,5,0">
+                                                                    <Canvas Width="16" Height="16">
+                                                                        <Path Classes="fg" Stroke="{DynamicResource Accent}" StrokeThickness="1.7"
+                                                                              Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7" />
+                                                                    </Canvas>
+                                                                </Viewbox>
+                                                                <TextBlock Text="{Binding SoundSummary}" FontFamily="fonts:VibeSwitcher#Cascadia Mono"
+                                                                           FontSize="10" Foreground="{DynamicResource Accent}" VerticalAlignment="Center"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                        <Border Classes="hairline" />
+                                                    </StackPanel>
+
+                                                    <Border Classes="neutralChip" c:Wpf.Visibility="{Binding PlaybackVisible}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Viewbox Width="10" Height="10" Margin="0,0,5,0">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fg" Stroke="{DynamicResource VSLabel}" StrokeThickness="1.4"
+                                                                          Data="M2.5,6 H5.5 L9.5,2.5 V13.5 L5.5,10 H2.5 Z M11.5,5.5 A3.6,3.6 0 0 1 11.5,10.5" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                            <TextBlock Text="{Binding SelectedPlaybackDevice.FriendlyName}" FontSize="10"
+                                                                       Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"
+                                                                       MaxWidth="180" TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <Border Classes="neutralChip" c:Wpf.Visibility="{Binding RecordingVisible}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <Viewbox Width="10" Height="10" Margin="0,0,5,0">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Rectangle Canvas.Left="6" Canvas.Top="1.5" Width="4" Height="7.5" RadiusX="2" RadiusY="2"
+                                                                               Fill="Transparent" Stroke="{DynamicResource VSLabel}" StrokeThickness="1.4" />
+                                                                    <Path Classes="fg" Stroke="{DynamicResource VSLabel}" StrokeThickness="1.4"
+                                                                          Data="M4,7.5 A4,4 0 0 0 12,7.5 M8,11.5 V14 M5.5,14 H10.5" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                            <TextBlock Text="{Binding SelectedRecordingDevice.FriendlyName}" FontSize="10"
+                                                                       Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center"
+                                                                       MaxWidth="180" TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+                                                    </Border>
+
+                                                    <Border Classes="neutralChip" IsVisible="{Binding IsHotkeySet}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="&#x2328;" FontSize="9" Foreground="{DynamicResource VSLabel}"
+                                                                       VerticalAlignment="Center" Margin="0,-4,5,0" />
+                                                            <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="fonts:VibeSwitcher#Cascadia Mono"
+                                                                       FontSize="10" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Action strip. Its bottom corners follow the card's (14 minus the 1 px
+                                                 border) so its fill doesn't cut the card's rounded border. -->
+                                            <Border Grid.Row="1" BorderBrush="{DynamicResource VSHairline}" BorderThickness="0,1,0,0"
+                                                    CornerRadius="0,0,13,13" Padding="10,7,10,9" Background="{DynamicResource VSStripOverlay}">
+                                                <StackPanel>
+                                                    <Grid Margin="0,0,0,14" ColumnDefinitions="*,*,*,*">
+                                                        <ToggleButton HorizontalAlignment="Center" IsChecked="{Binding IsPinned}"
+                                                                      Theme="{StaticResource CardActionToggle}" c:Wpf.RereadIsChecked="True"
+                                                                      ToolTip.Tip="Pin to top of list" AutomationProperties.Name="Pin to top of list">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fill" Data="M8,1.5 L10.2,5.8 L15,6.4 L11.5,9.8 L12.4,14.5 L8,12.1 L3.6,14.5 L4.5,9.8 L1,6.4 L5.8,5.8 Z" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </ToggleButton>
+                                                        <Button Grid.Column="1" HorizontalAlignment="Center" Command="{Binding OpenAppTriggersCommand}"
+                                                                Theme="{StaticResource CardActionBtn}" Classes.on="{Binding HasAppTriggers}"
+                                                                ToolTip.Tip="App launch triggers" AutomationProperties.Name="App launch triggers">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fill" Data="M10,1.5 L3.5,9.5 H7.5 L6,14.5 L13.5,6.5 H9.5 Z" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                        <ToggleButton Grid.Column="2" HorizontalAlignment="Center" IsChecked="{Binding TriggerOnConnect}"
+                                                                      Theme="{StaticResource CardActionToggle}" c:Wpf.RereadIsChecked="True"
+                                                                      Classes.dim28="{Binding TriggerOnConnectVisible, Converter={x:Static c:Converters.IsCollapsed}}"
+                                                                      ToolTip.Tip="Auto-switch on device connect" AutomationProperties.Name="Auto-switch on device connect">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fg" StrokeThickness="1.6"
+                                                                          Data="M6,1.5 L6,5 M10,1.5 L10,5 M3.5,5 H12.5 V7.5 A4.5,4.5 0 0 1 8,12 A4.5,4.5 0 0 1 3.5,7.5 Z M8,12 L8,14.5 M6,14.5 L10,14.5" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </ToggleButton>
+                                                        <Button Grid.Column="3" HorizontalAlignment="Center" Command="{Binding ActivateCommand}"
+                                                                Theme="{StaticResource CardActionBtn}" Classes.active="{Binding IsActive}"
+                                                                ToolTip.Tip="Activate this profile" AutomationProperties.Name="Activate this profile">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fg" StrokeThickness="1.7" Data="M11.2,4.1 A5.4,5.4 0 1 1 4.8,4.1 M8,1.2 L8,7.6" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                    </Grid>
+                                                    <Grid ColumnDefinitions="*,*,*,*">
+                                                        <ToggleButton HorizontalAlignment="Center" IsChecked="{Binding Silent}"
+                                                                      Theme="{StaticResource CardActionToggle}" c:Wpf.RereadIsChecked="True" Classes.dim35="{Binding SoundOverride}"
+                                                                      ToolTip.Tip="Toggle silent mode" AutomationProperties.Name="Toggle silent mode">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fg" StrokeThickness="1.6" Data="M8,2 A5,5 0 0 0 3,7 V10 L2,12 H14 L13,10 V7 A5,5 0 0 0 8,2 Z" />
+                                                                    <Path Classes="fg" StrokeThickness="1.6" Data="M6.5,13.5 A1.5,1.5 0 0 0 9.5,13.5" />
+                                                                    <Path Classes="fg" StrokeThickness="1.8" Data="M2,2 L14,14" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </ToggleButton>
+                                                        <Button Grid.Column="1" HorizontalAlignment="Center" Command="{Binding AddScheduleCommand}"
+                                                                Theme="{StaticResource CardActionBtn}" Classes.on="{Binding HasSchedules}"
+                                                                ToolTip.Tip="Schedule this profile" AutomationProperties.Name="Schedule this profile">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fg" StrokeThickness="1.4"
+                                                                          Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                        <Button Grid.Column="2" HorizontalAlignment="Center" Command="{Binding ConfigureSoundCommand}"
+                                                                Theme="{StaticResource CardActionBtn}" Classes.on="{Binding SoundOverride}"
+                                                                ToolTip.Tip="Configure switch sound" AutomationProperties.Name="Configure switch sound">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fg" StrokeThickness="1.7"
+                                                                          Data="M2.4,12.5 A1.6,1.6 0 1 0 5.6,12.5 A1.6,1.6 0 1 0 2.4,12.5 M5.6,12.5 V4 M8.4,11 A1.6,1.6 0 1 0 11.6,11 A1.6,1.6 0 1 0 8.4,11 M11.6,11 V2.7 M5.6,4 L11.6,2.7" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                        <Button Grid.Column="3" HorizontalAlignment="Center" Command="{Binding DeleteCommand}"
+                                                                Theme="{StaticResource CardActionBtn}" Classes="delete"
+                                                                ToolTip.Tip="Delete this profile" AutomationProperties.Name="Delete this profile">
+                                                            <Viewbox Width="18" Height="18">
+                                                                <Canvas Width="16" Height="16">
+                                                                    <Path Classes="fg" StrokeThickness="1.7" Data="M2,4 H14 M5.5,4 V2.5 H10.5 V4 M3.5,4 L4.3,13.5 H11.7 L12.5,4" />
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Button>
+                                                    </Grid>
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Save flash -->
+                                    <Border c:SaveFlash.IsOn="{Binding SaveFlash}" Opacity="0" CornerRadius="14"
+                                            Background="{DynamicResource SaveFlashBg}" IsHitTestVisible="False" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource DisabledText}" FontSize="13"
+                               Margin="0,32,0,8" Text="No profiles match your filters." IsVisible="{Binding HasNoFilterResults}" />
+                    <TextBlock HorizontalAlignment="Center" Foreground="{DynamicResource DisabledText}" FontSize="13"
+                               Margin="0,32,0,24" Text="No profiles yet — click + New Profile to get started."
+                               IsVisible="{Binding HasNoProfiles}" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ── Settings / About / FAQ / Mini Mode (next steps) ── -->
+            <Grid Name="SettingsBodyScrollViewer" IsVisible="False" />
+            <Grid Name="AboutPanel" IsVisible="False" />
+            <Grid Name="FaqPanel" IsVisible="False" />
+            <Grid Name="MiniPanel" IsVisible="False" />
+
+            <!-- ══ Profile popup ══ -->
+            <Grid Name="ProfileDetailOverlay" IsVisible="False" ZIndex="10">
+                <Border Name="OverlayBackdrop" Background="{DynamicResource VSScrim}" />
+                <Border Name="ProfileDetailCard" MaxWidth="500" MinWidth="400" HorizontalAlignment="Center"
+                        VerticalAlignment="Center" Margin="20" Background="{DynamicResource VSModalBg}"
+                        CornerRadius="18" BorderBrush="#66F5820A" BorderThickness="1">
+                    <Grid Name="ProfileDetailContent" RowDefinitions="Auto,*,Auto" x:DataType="vm:ProfileCardViewModel">
+                        <!-- Header -->
+                        <Border Grid.Row="0" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,0,0,1"
+                                Padding="22,18,22,14">
+                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                <Border Width="54" Height="54" CornerRadius="13" Background="{DynamicResource VSInsetBg}"
+                                        BorderBrush="{DynamicResource VSBorder}" BorderThickness="1" Margin="0,0,14,0">
+                                    <Grid>
+                                        <c:LogoIcon Width="46" Height="46" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                    IsVisible="{Binding !HasCustomIcon}" />
+                                        <Image Source="{Binding IconPreview, Converter={x:Static img:AppImages.ToBitmap}}"
+                                               Width="52" Height="52" Stretch="Uniform" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" IsVisible="{Binding HasCustomIcon}" />
+                                    </Grid>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBox Name="ProfileNameBox" Text="{Binding Name}" MaxLength="20" FontSize="16" FontWeight="Bold"
+                                             Foreground="{DynamicResource PrimaryText}" Classes="bare" Margin="0,0,0,6" />
+                                    <Border CornerRadius="6" Padding="8,3" HorizontalAlignment="Left"
+                                            Background="#1FF5820A" BorderBrush="#40F5820A" BorderThickness="1">
+                                        <TextBlock Text="{Binding ModeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Accent}" />
+                                    </Border>
+                                </StackPanel>
+                                <Button Grid.Column="2" Width="30" Height="30" Content="✕" FontSize="13" VerticalAlignment="Top"
+                                        Theme="{StaticResource BackButton}" Click="OverlayClose_Click"
+                                        ToolTip.Tip="Close" AutomationProperties.Name="Close" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Body -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MaxHeight="440">
+                            <StackPanel Margin="22,14">
+                                <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,10"
+                                           c:Wpf.Visibility="{Binding SuggestionsVisibility}">
+                                    <Button Content="Gaming" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Gaming" />
+                                    <Button Content="Work" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Work" />
+                                    <Button Content="Music" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Music" />
+                                    <Button Content="Headset" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Headset" />
+                                    <Button Content="Streaming" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Streaming" />
+                                    <Button Content="Calls" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Calls" />
+                                    <Button Content="Mic" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Mic" />
+                                    <Button Content="Home" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Home" />
+                                    <Button Content="Speakers" Theme="{StaticResource ChipButton}" Command="{Binding ApplyNameSuggestionCommand}" CommandParameter="Speakers" />
+                                </WrapPanel>
+
+                                <TextBlock Classes="sectionLabel" Text="NOTES" />
+                                <Grid Margin="0,0,0,14">
+                                    <TextBox Text="{Binding Notes}" MaxLength="61" />
+                                    <TextBlock Text="Add a note about this profile..." IsHitTestVisible="False"
+                                               Foreground="{DynamicResource TertiaryText}" FontStyle="Italic"
+                                               VerticalAlignment="Center" Margin="9,0,0,0"
+                                               IsVisible="{Binding Notes, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                </Grid>
+
+                                <StackPanel c:Wpf.Visibility="{Binding PlaybackVisible}" Margin="0,0,0,14">
+                                    <TextBlock Classes="sectionLabel" Text="PLAYBACK DEVICE" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <ComboBox ItemsSource="{Binding PlaybackDevices}" SelectedItem="{Binding SelectedPlaybackDevice}"
+                                                  HorizontalAlignment="Stretch">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate x:DataType="svc:AudioDeviceInfo">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Classes="dot" Classes.disconnected="{Binding !IsConnected}" Width="7" Height="7"
+                                                                 Margin="0,0,6,0" VerticalAlignment="Center" IsVisible="{Binding ShowDot}" />
+                                                        <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <Button Grid.Column="1" Content="Test" Margin="8,0,0,0" Theme="{StaticResource ActionButton}"
+                                                Command="{Binding TestSoundCommand}" IsEnabled="{Binding IsPlaybackDeviceSet}" />
+                                    </Grid>
+                                </StackPanel>
+
+                                <StackPanel c:Wpf.Visibility="{Binding RecordingVisible}" Margin="0,0,0,14">
+                                    <TextBlock Classes="sectionLabel" Text="RECORDING DEVICE" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <ComboBox ItemsSource="{Binding RecordingDevices}" SelectedItem="{Binding SelectedRecordingDevice}"
+                                                  HorizontalAlignment="Stretch">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate x:DataType="svc:AudioDeviceInfo">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Classes="dot" Classes.disconnected="{Binding !IsConnected}" Width="7" Height="7"
+                                                                 Margin="0,0,6,0" VerticalAlignment="Center" IsVisible="{Binding ShowDot}" />
+                                                        <TextBlock Text="{Binding FriendlyName}" VerticalAlignment="Center" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                        <Button Grid.Column="1" Content="Test" Margin="8,0,0,0" Theme="{StaticResource ActionButton}"
+                                                Command="{Binding TestMicCommand}" IsEnabled="{Binding IsRecordingDeviceSet}" />
+                                    </Grid>
+                                </StackPanel>
+
+                                <TextBlock Classes="sectionLabel" Text="HOTKEY" />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                    <TextBox Text="{Binding HotkeyDisplay, Mode=OneWay}" IsReadOnly="True" IsTabStop="False" Width="120" Margin="0,0,8,0" />
+                                    <Button Theme="{StaticResource ActionButton}" Content="Set Hotkey" Command="{Binding CaptureHotkeyCommand}" />
+                                    <Button Content="✕" Margin="6,0,0,0" Theme="{StaticResource ActionButton}" Command="{Binding ClearHotkeyCommand}"
+                                            ToolTip.Tip="Clear hotkey" AutomationProperties.Name="Clear hotkey" IsVisible="{Binding IsHotkeySet}" />
+                                </StackPanel>
+
+                                <TextBlock Classes="sectionLabel" Text="ICON" />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                    <TextBox Text="{Binding IconPath, Mode=OneWay}" IsReadOnly="True" IsTabStop="False" Width="160" Margin="0,0,8,0" />
+                                    <Button Content="Pick Icon" Theme="{StaticResource ActionButton}" Command="{Binding PickIconCommand}" />
+                                    <Button Content="✕" Margin="6,0,0,0" Theme="{StaticResource ActionButton}" Command="{Binding ResetIconCommand}"
+                                            ToolTip.Tip="Reset to default icon" AutomationProperties.Name="Reset to default icon"
+                                            IsVisible="{Binding HasCustomIcon}" />
+                                </StackPanel>
+
+                                <Border Padding="10,7" CornerRadius="5" Background="{DynamicResource WarningBg}"
+                                        BorderBrush="{DynamicResource WarningBorder}" BorderThickness="1" Margin="0,0,0,10"
+                                        IsVisible="{Binding HasValidationWarning}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⚠" FontSize="12" Margin="0,0,8,0" Foreground="{DynamicResource WarningText}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding ValidationWarning}" FontSize="11" TextWrapping="Wrap"
+                                                   Foreground="{DynamicResource WarningText}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Footer -->
+                        <Border Grid.Row="2" BorderBrush="{DynamicResource SeparatorBrush}" BorderThickness="0,1,0,0" Padding="22,14,22,18">
+                            <Grid>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Theme="{StaticResource ActionButton}" Content="Clone" Command="{Binding CloneCommand}" Margin="0,0,6,0" />
+                                    <Button Theme="{StaticResource DangerButton}" Content="Delete" Command="{Binding DeleteCommand}" />
+                                </StackPanel>
+                                <Button Content="Done" Theme="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Click="OverlayClose_Click" />
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- The window's resize grip (bottom-right), as WPF's CanResizeWithGrip draws it. -->
+        <c:ResizeGrip Name="Grip" Grid.Row="3" HorizontalAlignment="Right" VerticalAlignment="Bottom" ZIndex="20" />
+
+        <c:AccentFrame Grid.RowSpan="4" />
+    </Grid>
+</Window>
