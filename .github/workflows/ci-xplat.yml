@@ -190,7 +190,10 @@ jobs:
 
       - name: Get appimagetool
         # The standard AppImage builder, pinned (it fetches the matching AppImage runtime itself).
+        # (It checks the desktop file with desktop-file-validate, which the runner lacks.)
         run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q desktop-file-utils
           curl -fsSL -o "$RUNNER_TEMP/appimagetool" \
             "https://github.com/AppImage/appimagetool/releases/download/$APPIMAGETOOL_VERSION/appimagetool-x86_64.AppImage"
           chmod +x "$RUNNER_TEMP/appimagetool"
@@ -203,8 +206,7 @@ jobs:
         # "Started" = still running after 15 s on a virtual screen (timeout's exit code 124): that
         # needs every library the window loads, which --version alone doesn't.
         run: |
-          sudo apt-get update -q
-          sudo apt-get install -y -q xvfb desktop-file-utils ./out/*.deb
+          sudo apt-get install -y -q xvfb ./out/*.deb
           vibeswitcher --version
           # (liblttng-ust is optional: .NET only uses it for tracing when it's there.)
           if ldd /opt/vibeswitcher/VibeSwitcher /opt/vibeswitcher/*.so | grep "not found" | grep -v liblttng-ust; then exit 1; fi
