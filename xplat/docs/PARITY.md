@@ -36,7 +36,8 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
   and shadow. Linux: the Windows app's title bar and buttons, drawn by the app (Linux desktops differ too much for one
   native look), with square corners and the orange outline.
 - **Screenshots** of every dialog in both themes and both frames are taken on every change and checked against saved
-  ones, so the look can't drift unnoticed.
+  ones, so the look can't drift unnoticed. CI also builds a side-by-side page (the "ui-parity" download: open
+  `parity.html`) with each dialog as the Windows app draws it next to its Linux and macOS versions.
 
 ## Hotkey notes
 
