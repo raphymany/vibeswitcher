@@ -1105,6 +1105,16 @@ public partial class SettingsWindow : Window
     // Close hides to the tray / menu bar when that's on; otherwise it quits the app (Windows).
     private bool _quitAfterClose;
 
+    // False on a Linux desktop that shows no tray icons (stock GNOME without the AppIndicator
+    // extension): hidden in a tray that isn't there, the app couldn't be reached.
+    internal bool TrayAvailable { get; set; } = true;
+
+    // Closing just closes this window — no hiding, no quitting (the diagnostics' pictures).
+    internal bool ClosesForGood { get; set; }
+
+    // (For tests: whether closing this window is quitting the app.)
+    internal bool QuitsWhenClosed => _quitAfterClose;
+
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         base.OnClosing(e);
@@ -1115,7 +1125,9 @@ public partial class SettingsWindow : Window
         // The app or the system is quitting (Quit, logging out): let it (WPF ignores a cancel then).
         if (e.CloseReason is WindowCloseReason.ApplicationShutdown or WindowCloseReason.OSShutdown) return;
 
-        if (_viewModel.CloseToTray)
+        // (Only where there's a tray to come back from: on a desktop without one, closing quits.)
+        if (ClosesForGood) return;
+        if (_viewModel.CloseToTray && TrayAvailable)
         {
             e.Cancel = true;
             Hide();

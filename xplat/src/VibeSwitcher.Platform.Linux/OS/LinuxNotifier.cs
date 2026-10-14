@@ -31,14 +31,18 @@ public sealed class LinuxNotifier : IDesktopNotifier, IDisposable
     }
 
     // $DBUS_SESSION_BUS_ADDRESS, or — as libdbus and GDBus also do — the per-user bus socket in
-    // $XDG_RUNTIME_DIR, which some systemd-user and compositor setups rely on.
-    internal static string? SessionBusAddress()
+    // $XDG_RUNTIME_DIR, which some systemd-user and compositor setups rely on; last, the D-Bus
+    // library's own way (it asks the X server, loading libX11 under a name only the development
+    // package provides — so that may fail, and must never take the app down).
+    internal static string? SessionBusAddress() => SessionBusAddress(Environment.GetEnvironmentVariable, () => Address.Session);
+
+    internal static string? SessionBusAddress(Func<string, string?> env, Func<string?> libraryLookup)
     {
-        if (Address.Session is { Length: > 0 } a) return a;
-        var runtime = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
-        return !string.IsNullOrEmpty(runtime) && File.Exists(Path.Combine(runtime, "bus"))
-            ? "unix:path=" + Path.Combine(runtime, "bus")
-            : null;
+        if (env("DBUS_SESSION_BUS_ADDRESS") is { Length: > 0 } a) return a;
+        var runtime = env("XDG_RUNTIME_DIR");
+        if (!string.IsNullOrEmpty(runtime) && File.Exists(Path.Combine(runtime, "bus"))) return "unix:path=" + Path.Combine(runtime, "bus");
+        try { return libraryLookup() is { Length: > 0 } found ? found : null; }
+        catch (Exception) { return null; }
     }
 
     public async Task<bool> ShowAsync(string title, string message)

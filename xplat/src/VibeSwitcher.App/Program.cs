@@ -16,9 +16,34 @@ internal static class Program
         if (!OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux())
             return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
+        // The diagnostics zip runs on its own (beside a running VibeSwitcher), drawing the windows if
+        // there's a screen.
+        var commandLine = CommandLine.Parse(args);
+        if (commandLine.Tool == LocalTool.Diagnostics)
+        {
+            var zip = Path.GetFullPath(commandLine.ToolPath ?? Diagnostics.DiagnosticsBundle.DefaultPath());
+            Diagnostics.DiagnosticsRun.Path = zip;
+            try
+            {
+                BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, ShutdownMode.OnExplicitShutdown);
+                return Diagnostics.DiagnosticsRun.ExitCode;
+            }
+            catch (Exception ex) when (!Diagnostics.DiagnosticsRun.Started)
+            {
+                // (No screen to draw on: everything but the pictures.)
+                Console.Error.WriteLine($"VibeSwitcher: no screen to draw the windows on ({ex.Message}).");
+                return Diagnostics.DiagnosticsRun.RunWithoutScreen(zip);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"VibeSwitcher couldn't make the diagnostics zip: {ex.Message}");
+                return 1;
+            }
+        }
+
         // One copy at a time: a later launch hands its command to the running one and exits. The lock
         // is taken before anything else starts (a second copy must not even open the log).
-        var command = CommandLine.Parse(args).Command ?? AppCommand.Open;
+        var command = commandLine.Command ?? AppCommand.Open;
         var paths = AppPaths.Current();
         var host = new AppHost(IHostPlatform.Current(), paths, command);
         using var instance = new SingleInstance(paths, warn: message => Console.Error.WriteLine($"VibeSwitcher: {message}"));

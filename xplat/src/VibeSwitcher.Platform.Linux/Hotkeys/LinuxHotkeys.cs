@@ -24,13 +24,14 @@ public sealed record LinuxHotkeySetup(LinuxHotkeyBackend Backend, IGlobalKeyGrab
 // Call it off the UI thread's critical path: it may run gsettings.
 public static class LinuxHotkeys
 {
-    public static Task<LinuxHotkeySetup> CreateAsync(IAppLogger logger, bool gnomeShortcutsAllowed) =>
+    // cleanUp: false for a look only (the self-test) — the running app's GNOME shortcuts are left be.
+    public static Task<LinuxHotkeySetup> CreateAsync(IAppLogger logger, bool gnomeShortcutsAllowed, bool cleanUp = true) =>
         CreateAsync(gnomeShortcutsAllowed, Environment.GetEnvironmentVariable,
             () => X11KeyGrabber.TryCreate(),
             () => PortalKeyGrabber.TryCreateAsync(logger),
             () => GnomeShortcutBridge.IsAvailable(),
             () => GnomeShortcutBridge.DefaultLaunchPath() is { } path ? new GnomeShortcutBridge(logger, path) : null,
-            () => GnomeShortcutBridge.RemoveAllEntries(logger));
+            cleanUp ? () => GnomeShortcutBridge.RemoveAllEntries(logger) : () => false);
 
     // gnomeBridge: null when GNOME couldn't keep running this copy (see GnomeShortcutBridge.DefaultLaunchPath).
     internal static async Task<LinuxHotkeySetup> CreateAsync(bool gnomeShortcutsAllowed,

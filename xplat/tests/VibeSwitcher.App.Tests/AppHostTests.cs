@@ -42,8 +42,10 @@ public class AppHostTests : IDisposable
 
         public event Action? DevicesChanged { add { } remove { } }
         public event Action<string>? DevicePropertyChanged { add { } remove { } }
-        public IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices() => [];
-        public IReadOnlyList<AudioDeviceInfo> GetRecordingDevices() => [];
+        public List<AudioDeviceInfo> Playback { get; } = [];
+        public List<AudioDeviceInfo> Recording { get; } = [];
+        public IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices() => Playback;
+        public IReadOnlyList<AudioDeviceInfo> GetRecordingDevices() => Recording;
         public Task<ProfileSwitchResult> ApplyProfileAsync(DeviceProfile profile)
         {
             lock (Applied) Applied.Add(profile.Name);
@@ -95,12 +97,15 @@ public class AppHostTests : IDisposable
         public IPlatformAudioService CreateAudio(IAppLogger logger, ISessionErrorTracker errorTracker) =>
             AudioFails ? throw new InvalidOperationException("no sound system") : Audio;
         public IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker) => new FakeStartupService();
-        public Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger) => Task.FromResult<IGlobalKeyGrabber>(Grabber);
-        public IDesktopNotifier? CreateNotifier(IAppLogger logger) => Notifier;
+        public Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false) => Task.FromResult<IGlobalKeyGrabber>(Grabber);
+        public bool NotifierFails { get; set; }
+        public IDesktopNotifier? CreateNotifier(IAppLogger logger) => NotifierFails ? throw new DllNotFoundException("libX11") : Notifier;
         public IRunningProcessSource CreateProcesses() => new NoProcesses();
         public IWavPlayer? CreateWavPlayer() => null;
         public Dialogs.HeadsetAccessHooks? HeadsetAccess() => Headsets;
         public bool WatchesHeadsets => false;
+        public bool? Tray { get; set; } = true;
+        public Task<bool?> IsTrayAvailableAsync() => Task.FromResult(Tray);
     }
 
     private sealed class NoProcesses : IRunningProcessSource
@@ -186,6 +191,17 @@ public class AppHostTests : IDisposable
         await Until(() => platform.Audio.Applied.Contains("Work"));
         Assert.Equal(new[] { "Work" }, platform.Audio.Applied); // (instead of restoring Gaming)
         Assert.Null(host.Windows.Window);
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task NoBanners_DontStopTheApp()
+    {
+        // (The D-Bus library once threw while looking for the session bus: start-up stopped.)
+        var platform = new FakePlatform { NotifierFails = true };
+        var (host, _) = await Start(change: c => c.StartMinimized = true, platform: platform);
+        Assert.True(host.Ready.IsCompletedSuccessfully);
+        Assert.True(host.Tray.IsShown);
         Close(host);
     }
 
