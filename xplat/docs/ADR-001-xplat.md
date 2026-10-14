@@ -68,6 +68,6 @@ xplat/
 | Hover fades (Storyboards) | `Transitions` |
 | `DropShadowEffect` | `BoxShadow` |
 | `WindowChrome` + `TitleBar` | `VsWindow` (custom chrome; macOS keeps native traffic lights, Linux uses the Windows-style buttons) |
-| Synchronous `ShowDialog` | async dialogs: still centred on the owner, no taskbar entry, global button styles (CLAUDE.md §6) |
+| Synchronous `ShowDialog` | Avalonia dialogs (centred on the owner, no taskbar entry, global button styles — CLAUDE.md §6), awaited by the app's own code. The shared view models keep calling `IDialogService` synchronously: `DialogService` waits in a nested message loop (`Dispatcher.PushFrame`), exactly what WPF's `ShowDialog` does, so `SettingsViewModel` / `ProfileCardViewModel` are linked unchanged instead of rewritten as async (decided in phase 7; first planned as async forks) |
 | Negative `BeginTime` logo phases | a single-clock `LogoAnimator` |
 | Segoe UI / Consolas / Courier New | bundled Selawik / Cascadia Mono / Cousine (metric-compatible, OFL) |
