@@ -63,7 +63,7 @@ public partial class SupportedHeadsetsDialog : VsDialog
 
             var badgeLabel = new TextBlock
             {
-                Text = group.Tested ? "Tested ✅" : "Untested ⚠️",
+                Text = group.Tested ? "Tested" : "Untested",
                 FontSize = 11,
                 VerticalAlignment = VerticalAlignment.Center,
             };
@@ -73,7 +73,11 @@ public partial class SupportedHeadsetsDialog : VsDialog
             {
                 CornerRadius = new CornerRadius(4),
                 Padding = new Thickness(6, 2, 6, 2),
-                Child = badgeLabel,
+                Child = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Children = { badgeLabel, group.Tested ? CheckMark("SuccessBadgeText") : WarningSign("WarningBadgeText") },
+                },
             };
             Res.Bind(badge, Border.BackgroundProperty, group.Tested ? "SuccessBadgeBg" : "WarningBadgeBg");
             Grid.SetColumn(badge, 1);
@@ -100,6 +104,32 @@ public partial class SupportedHeadsetsDialog : VsDialog
                 panel.Children.Add(sep);
             }
         }
+    }
+
+    // Windows writes "Tested ✅" / "Untested ⚠️", which WPF draws as single-colour outlines in the
+    // badge's text colour. Emoji fonts differ between Macs and Linux systems (and some Linux
+    // installs have none, showing empty boxes), so the two symbols are drawn the same way here.
+    private static Control CheckMark(string inkKey) => Symbol(inkKey,
+        "M2.5,1 H9.5 A1.5,1.5 0 0 1 11,2.5 V9.5 A1.5,1.5 0 0 1 9.5,11 H2.5 A1.5,1.5 0 0 1 1,9.5 V2.5 A1.5,1.5 0 0 1 2.5,1 Z M3.4,6.2 L5.3,8.1 L8.8,4.1");
+
+    private static Control WarningSign(string inkKey) => Symbol(inkKey,
+        "M6,1.2 L11.2,10.6 H0.8 Z M6,4.6 V7.2 M6,8.9 V9");
+
+    private static Control Symbol(string inkKey, string data)
+    {
+        var path = new Avalonia.Controls.Shapes.Path
+        {
+            Data = Geometry.Parse(data),
+            StrokeThickness = 1,
+            StrokeJoin = PenLineJoin.Round,
+            StrokeLineCap = PenLineCap.Round,
+            Width = 12,
+            Height = 12,
+            Margin = new Thickness(4, 0, 0, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+        };
+        Res.Bind(path, Avalonia.Controls.Shapes.Shape.StrokeProperty, inkKey);
+        return path;
     }
 
     private void Good_Click(object? sender, RoutedEventArgs e) => CloseWith(true);

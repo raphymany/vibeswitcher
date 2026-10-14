@@ -404,7 +404,7 @@ public class SmallDialogsTests
             var texts = Texts(dialog).ToList();
             Assert.Contains(texts, t => t?.Contains("macOS notifies VibeSwitcher") == true);
             Assert.DoesNotContain(texts, t => t?.Contains("Windows") == true);
-            Assert.Contains("Tested ✅", texts);
+            Assert.Contains("Tested", texts); // (its ✅ is drawn, as no emoji font is certain)
             Click(dialog, "Enable Auto-Switch");
             Assert.True(dialog.Result);
         }

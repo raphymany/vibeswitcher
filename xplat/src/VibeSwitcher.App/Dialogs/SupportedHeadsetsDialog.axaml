@@ -42,7 +42,8 @@
                 <Grid ColumnDefinitions="*,8,*" Margin="0,0,0,8">
                     <Button Grid.Column="0" Content="Enable Auto-Switch" Theme="{StaticResource PrimaryButton}"
                             HorizontalAlignment="Stretch" IsDefault="True" Click="Good_Click" />
-                    <Button Grid.Column="2" Content="Request wireless headset support" Theme="{StaticResource ActionButton}"
+                    <!-- (Tighter padding than Windows: Open Sans runs a little wider than Segoe UI.) -->
+                    <Button Grid.Column="2" Content="Request wireless headset support" Theme="{StaticResource ActionButton}" Padding="4,0"
                             HorizontalAlignment="Stretch" Click="Request_Click" />
                 </Grid>
                 <Button Content="Close" Theme="{StaticResource ActionButton}" IsCancel="True"
