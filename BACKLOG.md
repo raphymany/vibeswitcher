@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-10-14 — Branch 62 (`xplat/ui-foundation`) — PR #130 (F46 phase 5 part 1: the Avalonia app shell — themes from the Windows files, ported styles, bundled fonts, window frame, first six dialogs, screenshot tests). Previous: Branch 61 (`xplat/triggers-hid`) — PR #128.
+**Last updated:** 2026-10-14 — Branch 63 (`xplat/ui-parity`) — PR #132 (F46 phase 5 part 2: side-by-side comparison of the Mac/Linux dialogs with the Windows ones). Previous: Branch 62 (`xplat/ui-foundation`) — PR #130.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -134,7 +134,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for redesigned UI — profile cards, action strips, overlays, and icon frames use hardcoded dark hex values from the G HUB-inspired redesign; needs theme-aware resource keys for each~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4 and 5 part 1 done (PR #116, #118, #120, #122, #124, #126, #128, #130) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–5 done (PR #116, #118, #120, #122, #124, #126, #128, #130, #132) |
 
 ---
 
@@ -170,7 +170,7 @@ Phase PRs merge into the holding branch `xplat/dev`, not `main`; one final PR br
 | 4b-2 | `xplat/hotkeys-wayland` | Part 2: Wayland GlobalShortcuts portal + GNOME custom-shortcut bridge (via the command line), grabber selection | ✅ PR #126 |
 | 4c | `xplat/triggers-hid` | App-launch triggers + app pickers, HID headsets, Linux udev rule | ✅ PR #128 |
 | 5 | `xplat/ui-foundation` | Part 1: Avalonia app, themes (read from the Windows files), styles, fonts, window frame, async dialogs + first 6 dialogs, screenshot tests | ✅ PR #130 |
-| 5-2 | `xplat/ui-parity` | Part 2: a Windows tool that renders the same WPF dialogs, and a side-by-side parity report (WPF vs Mac/Linux screenshots) | Planned |
+| 5-2 | `xplat/ui-parity` | Part 2: a Windows tool that renders the same WPF dialogs, and a side-by-side parity report (WPF vs Mac/Linux screenshots) | ✅ PR #132 |
 | 6 | `xplat/packaging` | `.dmg`, AppImage, `.deb`, package smoke tests, prerelease workflow. Carried over: install the Linux desktop file as `com.raphymany.vibeswitcher.desktop` (the portal app id; newer portals reject the id without it) and use that name in the notification `desktop-entry` hint; install `packaging/linux/70-vibeswitcher-headsets.rules` to `/usr/lib/udev/rules.d/` in the `.deb`; the `.deb` depends on `libice6`, `libsm6` and `libfontconfig1` (Avalonia on X11 needs them; minimal installs lack the first two); ship the font licences (`Assets/Fonts/*LICENSE*`, `*OFL*`) in every package | Planned |
 | 7 | `xplat/ui-settings` | Settings window, view models, Mini Mode. Carried over: port the Windows ScrollBar (always visible, 20 px, rounded thumb) with a ScrollViewer that leaves room for it, and the ContextMenu/MenuItem/Separator styles (only their colours are mapped so far); the rest of `IDialogService` as async methods | Planned |
 | 8 | `xplat/ui-dialogs` | Remaining dialogs, splash, animated logo. Carried over: the app picker on `IAppCatalog` (Installed off the UI thread, Running, Browse via `TriggerForFile`; show stored triggers with `AppTriggerMatch.DisplayName`), app icons (Linux icon-theme names, Mac `.icns`), the Linux headset-permission prompt on `LinuxHidAccess` (Check → Install off the UI thread; explain TurnedOff / Bluetooth) | Planned |

@@ -572,7 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4 and 5 part 1 done (PR #116, #118, #120, #122, #124, #126, #128, #130) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–5 done (PR #116, #118, #120, #122, #124, #126, #128, #130, #132) |
 
 ---
 
@@ -1583,3 +1583,11 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | Window frame — `WindowChrome` (Linux: frameless + drawn Windows title bar with drag/maximize; macOS: system buttons, title shifted), `TitleBar`, `AccentFrame`, `VsDialog` base (CenterOwner, no taskbar, app icon) | ✅ Done |
 | Dialogs — Alert, Confirm, ConfirmDelete, ConflictRetry, Error (selectable message), Uninstall (per-system wording); async `DialogService` subset (hidden owner → centred on screen); preview window as the temporary main window; ported files in `forks.txt` | ✅ Done |
 | Tests — 45 headless (themes, dialogs, focus, frames) incl. 32 screenshots compared with Linux baselines; CI keeps the screenshots of every OS; 688 passing on Windows | ✅ Done |
+
+### Branch 63: `xplat/ui-parity` ✅ Done — PR #132
+**Theme:** F46 phase 5, part 2 (issue #131). A side-by-side comparison of the Mac/Linux dialogs with the Windows originals. The Windows app is only read. Merged into `xplat/dev`.
+
+| Item | Status |
+|------|--------|
+| `xplat/tools/WpfSnapshots` (net8.0-windows) — renders the Windows dialogs (light/dark, 8 px rounded corners) from an already-built app; App.xaml resources parsed as XAML into a plain `Application` (the Windows `App` class is never created, so its start-up never runs); writes `parity.html` (Windows \| Linux \| macOS with sizes and size differences) | ✅ Done |
+| CI — "Look vs Windows" job (after build-and-test; Linux and macOS images from those systems' runs; "ui-parity" artifact) | ✅ Done |
