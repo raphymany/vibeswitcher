@@ -13,8 +13,8 @@
         Background="{DynamicResource AppBg}">
     <!-- Port of Views/SettingsWindow.xaml: the window frame, the top bar, the filter bar, the
          Profiles page, the Settings / About / FAQ pages and the profile popup. Texts that name
-         Windows things come from Wording (each system's words). Mini Mode fills its panel in the
-         next step. -->
+         Windows things come from Wording (each system's words). Mini Mode reuses the window: the
+         MiniPanel list, a smaller title bar and no top bar. -->
 
     <Window.Resources>
         <ResourceDictionary>
@@ -1496,7 +1496,71 @@
                 </StackPanel>
             </ScrollViewer>
 
-            <Grid Name="MiniPanel" IsVisible="False" />
+            <!-- ══ PANEL M: Mini Mode profile list ══ -->
+            <!-- (The profiles in tray order — pinned first, then the user's order — filtered to Mini Mode's
+                 own selection: SettingsWindow.RefreshMiniList.) -->
+            <ScrollViewer Name="MiniPanel" IsVisible="False" VerticalScrollBarVisibility="Auto"
+                          Focusable="True" IsTabStop="False">
+                <!-- (WPF: Padding="10,8,10,4" on the ScrollViewer, which Avalonia leaves out of its height.) -->
+                <Grid Margin="10,8,10,4">
+                    <ItemsControl Name="MiniList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProfileCardViewModel">
+                                <Button Theme="{StaticResource MiniRowBtn}" Classes.active="{Binding IsActive}"
+                                        Command="{Binding ActivateCommand}"
+                                        ToolTip.Tip="{Binding HotkeyDisplay}" ToolTip.ServiceEnabled="{Binding IsHotkeySet}"
+                                        ToolTip.ShowOnDisabled="True">
+                                    <Grid ColumnDefinitions="Auto,*,Auto">
+                                        <Grid Grid.Column="0" Width="24" Height="24" Margin="0,0,10,0">
+                                            <Image Source="{Binding IconPreview, Converter={x:Static img:AppImages.ToBitmap}}" Stretch="Uniform"
+                                                   RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding HasCustomIcon}" />
+                                            <c:LogoIcon IsAbout="True" Width="22" Height="22" IsVisible="{Binding !HasCustomIcon}" />
+                                        </Grid>
+                                        <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12.5" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <!-- This profile's activation hotkey -->
+                                        <Border Grid.Column="2" Background="{DynamicResource VSInsetBg}" BorderBrush="{DynamicResource InputBorder}"
+                                                BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="8,0,2,0"
+                                                VerticalAlignment="Center" IsVisible="{Binding IsHotkeySet}">
+                                            <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="fonts:VibeSwitcher#Cousine"
+                                                       FontSize="9.5" Foreground="{DynamicResource VSLabel}" />
+                                        </Border>
+                                    </Grid>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Grid layout: icon buttons, name on hover -->
+                    <ItemsControl Name="MiniGrid" IsVisible="False" HorizontalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel HorizontalAlignment="Center" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProfileCardViewModel">
+                                <Button Theme="{StaticResource MiniGridBtn}" Classes.active="{Binding IsActive}"
+                                        Command="{Binding ActivateCommand}" ToolTip.Tip="{Binding Name}" ToolTip.ShowOnDisabled="True">
+                                    <StackPanel VerticalAlignment="Center">
+                                        <Grid Width="26" Height="26" HorizontalAlignment="Center">
+                                            <Image Source="{Binding IconPreview, Converter={x:Static img:AppImages.ToBitmap}}" Stretch="Uniform"
+                                                   RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding HasCustomIcon}" />
+                                            <c:LogoIcon IsAbout="True" Width="24" Height="24" IsVisible="{Binding !HasCustomIcon}" />
+                                        </Grid>
+                                        <!-- This profile's activation hotkey -->
+                                        <TextBlock Text="{Binding HotkeyDisplay}" FontFamily="fonts:VibeSwitcher#Cousine" FontSize="8"
+                                                   Foreground="{DynamicResource VSLabel}" HorizontalAlignment="Center"
+                                                   Margin="0,2,0,0" TextTrimming="CharacterEllipsis" MaxWidth="52"
+                                                   IsVisible="{Binding IsHotkeySet}" />
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
 
             <!-- ══ Profile popup ══ -->
             <Grid Name="ProfileDetailOverlay" IsVisible="False" ZIndex="10">

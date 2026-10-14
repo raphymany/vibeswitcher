@@ -26,8 +26,7 @@ namespace VibeSwitcher.App.Settings;
 
 // Port of Views/SettingsWindow.xaml.cs: the window around the shared SettingsViewModel — panel
 // navigation, the title bar, the sliding filter bar, the profile popup, remembering the window's
-// size and place, and closing to the tray. The Settings / About / FAQ pages and Mini Mode follow
-// in the next steps.
+// size and place, closing to the tray, the Settings / About / FAQ pages, and Mini Mode.
 public partial class SettingsWindow : Window
 {
     private readonly SettingsViewModel _viewModel;
@@ -80,6 +79,8 @@ public partial class SettingsWindow : Window
         _errorTracker = errorTracker;
         _dialogs = new DialogService(() => this);
         CaptureHotkey = _dialogs.ShowHotkeyCapture;
+        HasFocus = () => IsActive;
+        CanFade = () => ActualTransparencyLevel != WindowTransparencyLevel.None;
         PickExportPath = () => _dialogs.PickSaveJsonAsync("Export VibeSwitcher Config", "vibeswitcher-backup.json");
         PickImportPath = () => _dialogs.PickOpenJsonAsync("Import VibeSwitcher Config");
         Icon = new WindowIcon(Avalonia.Platform.AssetLoader.Open(new Uri("avares://VibeSwitcher/Assets/Icons/vs-icon-256.png")));
@@ -120,6 +121,14 @@ public partial class SettingsWindow : Window
         // (The Install page is filled in each time the window shows, below.)
         DataFolder = System.IO.Path.GetDirectoryName(configService.IconsDir) ?? "";
         Loaded += (_, _) => AlignFaqLinks();
+
+        WatchMiniList();
+        Activated += (_, _) => OnActivated();
+        Deactivated += (_, _) => OnDeactivated();
+        PointerEntered += (_, _) => OnPointerEnteredWindow();
+        PointerExited += (_, _) => OnPointerExitedWindow();
+        if (configService.Current.CompactMode)
+            EnterCompact();
 
         _errorAddedHandler = (_, _) => Dispatcher.UIThread.Post(UpdateLogsButton);
         this.GetObservable(IsVisibleProperty).Subscribe(new Observer<bool>(visible =>
@@ -176,12 +185,13 @@ public partial class SettingsWindow : Window
 
     public void ExpandSettings()
     {
+        if (IsCompact) ExitCompact();
         _viewModel.SettingsCardExpanded = true;
         ShowPanel("SettingsBodyScrollViewer");
     }
 
-    public void OpenAboutPanel() => ShowPanel("AboutPanel");
-    public void OpenFaqPanel() => ShowPanel("FaqPanel");
+    public void OpenAboutPanel() { if (IsCompact) ExitCompact(); ShowPanel("AboutPanel"); }
+    public void OpenFaqPanel() { if (IsCompact) ExitCompact(); ShowPanel("FaqPanel"); }
 
     private void NavProfiles_Click(object? sender, RoutedEventArgs e) => ShowPanel("ProfilesPanel");
     private void NavLogo_Click(object? sender, RoutedEventArgs e) => ShowPanel("ProfilesPanel");
@@ -219,15 +229,317 @@ public partial class SettingsWindow : Window
     private void OnWindowStateChanged(WindowState state)
     {
         this.FindControl<Path>("MaxGlyph")!.Data = state == WindowState.Maximized ? RestoreGlyph : MaximizeGlyph;
-        // (macOS windows are resized from their edges by the system, with no grip.)
-        this.FindControl<ResizeGrip>("Grip")!.IsVisible = state == WindowState.Normal && WindowChrome.Style != ChromeStyle.Mac;
+        UpdateGrip();
     }
 
-    // Mini Mode (next step).
-    private void TitleShrink_Click(object? sender, RoutedEventArgs e) { }
-    private void TitleExpand_Click(object? sender, RoutedEventArgs e) { }
+    // (macOS windows are resized from their edges by the system, with no grip; Mini Mode doesn't resize.)
+    private void UpdateGrip() =>
+        this.FindControl<ResizeGrip>("Grip")!.IsVisible =
+            WindowState == WindowState.Normal && WindowChrome.Style != ChromeStyle.Mac && !IsCompact;
+
+    // ── Mini Mode ──────────────────────────────────────────────────────────────────────────────────
+
+    // The window shrinks into a small profile switcher: 300 px wide, as tall as its list (at most
+    // 85% of the screen), no top bar, no resizing; it keeps a place of its own, separate from the
+    // full window's, and can stay on top and fade while another app is in front.
+    public bool IsCompact { get; private set; }
+    private double _fullWidth, _fullHeight, _fullMinWidth, _fullMinHeight;
+    private const double CompactWidth = 300;
+
+    public void ToggleCompact()
+    {
+        if (IsCompact) ExitCompact();
+        else EnterCompact();
+    }
+
+    public void EnterCompact()
+    {
+        if (IsCompact) return;
+
+        // First-time guidance and empty-state guard. Skipped during the start-up restore (window
+        // not shown yet) — CompactMode=true implies prior use.
+        if (IsLoaded)
+        {
+            if (_viewModel.Profiles.Count == 0)
+            {
+                ((IDialogService)_dialogs).ShowAlert("Mini Mode needs a profile",
+                    "Mini Mode shrinks VibeSwitcher into a compact profile switcher. " +
+                    "Create at least one profile first, then come back to set it up.");
+                return;
+            }
+
+            var cfg0 = _configService.Current;
+            if (!cfg0.CompactIntroShown)
+            {
+                cfg0.CompactIntroShown = true;
+                _configService.SaveDeferred();
+
+                bool customize = DialogService.Wait(_dialogs.ShowAsync(new ConfirmDialog(
+                    "Welcome to Mini Mode",
+                    "Mini Mode shrinks VibeSwitcher into a small, always-handy profile switcher. " +
+                    "You can choose which profiles appear and pick between a row list or an icon grid — " +
+                    "or skip this and start with the defaults.",
+                    "Customize First",
+                    subtitle: "You can change all of this later in Settings → Mini Window.",
+                    iconGeometry: "IcoCompact",
+                    iconBgResource: "Accent")));
+                if (customize)
+                    CompactCustomize_Click(this, new RoutedEventArgs());
+            }
+
+            // The dialogs above keep the app running — the global hotkey may have already toggled
+            // Mini Mode while one of them was open.
+            if (IsCompact) return;
+        }
+
+        // Flush the full-window bounds before any geometry changes so nothing mini leaks into them.
+        _boundsTimer?.Stop();
+        if (WindowState != WindowState.Normal)
+        {
+            // Maximized, or full screen on macOS. Avalonia's Width/Height are the maximized size until
+            // the system has restored the window (later, on macOS and Linux), so the full window's
+            // size comes from its last saved normal bounds (never saved while maximized) instead.
+            _restoringBounds = true;
+            try { WindowState = WindowState.Normal; }
+            finally { _restoringBounds = false; }
+            var saved = _configService.Current;
+            _fullWidth = saved.WindowWidth >= 200 ? saved.WindowWidth : Width;
+            _fullHeight = saved.WindowHeight >= 200 ? saved.WindowHeight : Height;
+        }
+        else
+        {
+            if (IsLoaded) SaveWindowBounds();
+            _fullWidth = Width;
+            _fullHeight = Height;
+        }
+        _fullMinWidth = MinWidth;
+        _fullMinHeight = MinHeight;
+
+        IsCompact = true;
+
+        RefreshMiniList();
+        ShowPanel("MiniPanel");
+        SetCompactChrome(true);
+
+        _restoringBounds = true; // (the size and place below aren't the full window's)
+        try
+        {
+            CanResize = false;
+            MaxHeight = WorkAreaHeight() * 0.85;
+            MinHeight = 0;
+            MinWidth = CompactWidth;
+            MaxWidth = CompactWidth;
+            Width = CompactWidth;
+            // (In Avalonia a set Height wins over SizeToContent; in WPF it doesn't.)
+            Height = double.NaN;
+            SizeToContent = SizeToContent.Height;
+
+            var cfg = _configService.Current;
+            if (cfg.CompactWindowLeft.HasValue && cfg.CompactWindowTop.HasValue)
+            {
+                var scale = Scaling;
+                var area = VirtualScreen(scale);
+                WindowStartupLocation = WindowStartupLocation.Manual; // keep the pre-show restore from being recentred
+                var left = Math.Clamp(cfg.CompactWindowLeft.Value, area.X, Math.Max(area.X, area.Right - CompactWidth));
+                var top = Math.Clamp(cfg.CompactWindowTop.Value, area.Y, Math.Max(area.Y, area.Bottom - 200));
+                Position = new PixelPoint((int)Math.Round(left * scale), (int)Math.Round(top * scale));
+            }
+
+            Topmost = cfg.CompactAlwaysOnTop;
+            // (So the fade below can show what's behind the window, not just darken it.)
+            TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
+
+            if (!cfg.CompactMode)
+            {
+                cfg.CompactMode = true;
+                _configService.SaveDeferred();
+            }
+        }
+        finally { _restoringBounds = false; }
+    }
+
+    public void ExitCompact()
+    {
+        if (!IsCompact) return;
+
+        _boundsTimer?.Stop(); // (a save started by moving the mini window mustn't run after this)
+        var cfg = _configService.Current;
+        cfg.CompactWindowLeft = Position.X / Scaling;
+        cfg.CompactWindowTop = Position.Y / Scaling;
+
+        IsCompact = false;
+
+        _restoringBounds = true;
+        try
+        {
+            SizeToContent = SizeToContent.Manual;
+            MaxWidth = double.PositiveInfinity;
+            MaxHeight = double.PositiveInfinity;
+            MinWidth = _fullMinWidth;
+            MinHeight = _fullMinHeight;
+            Width = _fullWidth;
+            Height = _fullHeight;
+            CanResize = true;
+            Topmost = false;
+            SetOpacityNow(1.0); // (any fade released)
+            TransparencyLevelHint = [];
+
+            SetCompactChrome(false);
+            ShowPanel("ProfilesPanel");
+
+            // Put the full window back where it last lived (clamped to the visible screen).
+            if (cfg.WindowLeft.HasValue && cfg.WindowTop.HasValue)
+            {
+                var scale = Scaling;
+                var area = VirtualScreen(scale);
+                var left = Math.Clamp(cfg.WindowLeft.Value, area.X, Math.Max(area.X, area.Right - Width));
+                var top = Math.Clamp(cfg.WindowTop.Value, area.Y, Math.Max(area.Y, area.Bottom - Height));
+                Position = new PixelPoint((int)Math.Round(left * scale), (int)Math.Round(top * scale));
+            }
+        }
+        finally { _restoringBounds = false; }
+
+        if (cfg.CompactMode)
+        {
+            cfg.CompactMode = false;
+            _configService.SaveDeferred();
+        }
+    }
+
+    // The title bar and top bar for Mini Mode (logo + shortcut, pin and expand) or the full window.
+    private void SetCompactChrome(bool compact)
+    {
+        this.FindControl<Border>("NavBar")!.IsVisible = !compact;
+        // (The fixed 54 px row itself collapses, not just its content.)
+        this.FindControl<Grid>("Root")!.RowDefinitions[1].Height = new GridLength(compact ? 0 : 54);
+        this.FindControl<StackPanel>("FullTitleGroup")!.IsVisible = !compact;
+        this.FindControl<StackPanel>("MiniTitleGroup")!.IsVisible = compact;
+        this.FindControl<Button>("TitleShrinkBtn")!.IsVisible = !compact;
+        this.FindControl<Button>("TitleMaxBtn")!.IsVisible = !compact;
+        this.FindControl<Button>("TitlePinBtn")!.IsVisible = compact;
+        this.FindControl<Button>("TitleExpandBtn")!.IsVisible = compact;
+        UpdateGrip();
+    }
+
+    // The height of the screen the window is on, without the taskbar / Dock / panels (WPF's
+    // SystemParameters.WorkArea), in device-independent pixels.
+    private double WorkAreaHeight()
+    {
+        var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+        return screen == null ? 720 : screen.WorkingArea.Height / (screen.Scaling > 0 ? screen.Scaling : 1);
+    }
+
+    private void TitleShrink_Click(object? sender, RoutedEventArgs e) => EnterCompact();
+    private void TitleExpand_Click(object? sender, RoutedEventArgs e) => ExitCompact();
     private void TitlePin_Click(object? sender, RoutedEventArgs e) =>
         _viewModel.CompactAlwaysOnTop = !_viewModel.CompactAlwaysOnTop;
+
+    // Translucent when inactive: the mini window fades to 65% while another app has focus and the
+    // pointer isn't over it; it's solid again as soon as the pointer comes back or it's activated.
+    internal void OnActivated()
+    {
+        FadeOpacityTo(1.0);
+    }
+
+    internal void OnDeactivated()
+    {
+        if (IsCompact && _configService.Current.CompactTranslucent && !IsPointerOver) FadeOpacityTo(0.65);
+    }
+
+    internal void OnPointerEnteredWindow()
+    {
+        if (IsCompact) FadeOpacityTo(1.0);
+    }
+
+    internal void OnPointerExitedWindow()
+    {
+        if (IsCompact && !HasFocus() && _configService.Current.CompactTranslucent) FadeOpacityTo(0.65);
+    }
+
+    // Whether this window is the one in front (tests stand in for it: a headless window always is).
+    internal Func<bool> HasFocus { get; set; }
+
+    // Whether the system shows this window see-through (Mini Mode asks for it). Where it can't — e.g.
+    // Linux without a desktop compositor — a faded window would only look darker, so it stays solid.
+    internal Func<bool> CanFade { get; set; }
+
+    // Where the fade is heading (Opacity itself is mid-fade for a moment).
+    internal double OpacityTarget { get; private set; } = 1.0;
+
+    private readonly DoubleTransition _fade =
+        new() { Property = OpacityProperty, Duration = TimeSpan.FromMilliseconds(180), Easing = new CubicEaseInOut() };
+
+    private void FadeOpacityTo(double target)
+    {
+        if (target == OpacityTarget) return;
+        if (target < 1.0 && !CanFade()) return;
+        Transitions ??= [];
+        if (!Transitions.Contains(_fade)) Transitions.Add(_fade);
+        OpacityTarget = target;
+        Opacity = target;
+    }
+
+    private void SetOpacityNow(double value)
+    {
+        Transitions?.Remove(_fade);
+        OpacityTarget = value;
+        Opacity = value;
+    }
+
+    // Mini Mode lists the profiles in tray order: pinned first, then the user's order — only those
+    // picked in Customize, while at least one of them still exists (otherwise, or with none picked,
+    // every profile). Rebuilt whenever profiles come, go, move or are pinned.
+    private readonly HashSet<ProfileCardViewModel> _miniWatched = [];
+
+    private void WatchMiniList()
+    {
+        _viewModel.Profiles.CollectionChanged += OnProfilesChanged;
+        RefreshMiniList();
+    }
+
+    private void OnProfilesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) =>
+        RefreshMiniList();
+
+    private void OnCardChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ProfileCardViewModel.IsPinned) or nameof(ProfileCardViewModel.SortOrder) or null or "")
+            RefreshMiniList();
+    }
+
+    internal IReadOnlyList<ProfileCardViewModel> MiniItems { get; private set; } = [];
+
+    internal void RefreshMiniList()
+    {
+        // Follow the cards that exist now (and only those).
+        foreach (var gone in _miniWatched.Except(_viewModel.Profiles).ToList())
+        {
+            gone.PropertyChanged -= OnCardChanged;
+            _miniWatched.Remove(gone);
+        }
+        foreach (var card in _viewModel.Profiles.Where(_miniWatched.Add))
+            card.PropertyChanged += OnCardChanged;
+
+        var cfg = _configService.Current;
+        var ids = cfg.CompactProfileIds;
+        bool filtered = ids.Count > 0 && _viewModel.Profiles.Any(p => ids.Contains(p.Id));
+        MiniItems = _viewModel.Profiles
+            .Where(p => !filtered || ids.Contains(p.Id))
+            .OrderByDescending(p => p.IsPinned).ThenBy(p => p.SortOrder)
+            .ToList();
+
+        // Only the list on show, and only in Mini Mode (entering refreshes it): a reorder changes
+        // every card's place, one at a time.
+        if (!IsCompact) return;
+        bool grid = cfg.CompactLayout == "Grid";
+        var rows = this.FindControl<ItemsControl>("MiniList")!;
+        var icons = this.FindControl<ItemsControl>("MiniGrid")!;
+        rows.ItemsSource = grid ? null : MiniItems;
+        icons.ItemsSource = grid ? MiniItems : null;
+        rows.IsVisible = !grid;
+        icons.IsVisible = grid;
+        // The window fits the list again (Avalonia keeps the height it last measured otherwise).
+        Height = double.NaN;
+    }
 
     // ── Filter bar ─────────────────────────────────────────────────────────────────────────────────
 
@@ -462,8 +774,31 @@ public partial class SettingsWindow : Window
         return null;
     }
 
-    // Mini Mode's profiles and layout (next step).
-    private void CompactCustomize_Click(object? sender, RoutedEventArgs e) { }
+    // Mini Mode's profiles and layout.
+    private void CompactCustomize_Click(object? sender, RoutedEventArgs e)
+    {
+        var cfg = _configService.Current;
+        var selected = cfg.CompactProfileIds.ToHashSet();
+
+        var choices = _viewModel.Profiles
+            .OrderByDescending(p => p.IsPinned).ThenBy(p => p.SortOrder)
+            .Select(p => new MiniModeSetupDialog.ProfileChoice
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Icon = p.IconPreview,
+                IsSelected = selected.Contains(p.Id),
+            })
+            .ToList();
+
+        var dialog = new MiniModeSetupDialog(cfg.CompactLayout, choices);
+        if (!DialogService.Wait(_dialogs.ShowAsync(dialog))) return;
+
+        cfg.CompactLayout = dialog.SelectedLayout;
+        cfg.CompactProfileIds = dialog.SelectedProfileIds;
+        _configService.SaveDeferred();
+        RefreshMiniList();
+    }
 
     // ── Settings › Devices ─────────────────────────────────────────────────────────────────────────
 
@@ -677,8 +1012,18 @@ public partial class SettingsWindow : Window
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded) && _viewModel.SettingsCardExpanded)
-            ShowPanel("SettingsBodyScrollViewer");
+        if (e.PropertyName == nameof(SettingsViewModel.SettingsCardExpanded))
+        {
+            if (_viewModel.SettingsCardExpanded) ShowPanel("SettingsBodyScrollViewer");
+        }
+        else if (e.PropertyName == nameof(SettingsViewModel.CompactAlwaysOnTop))
+        {
+            if (IsCompact) Topmost = _viewModel.CompactAlwaysOnTop;
+        }
+        else if (e.PropertyName == nameof(SettingsViewModel.CompactTranslucent))
+        {
+            if (!_viewModel.CompactTranslucent) FadeOpacityTo(1.0);
+        }
     }
 
     private void OnBoundsChanged()
@@ -733,10 +1078,19 @@ public partial class SettingsWindow : Window
     {
         if (WindowState != WindowState.Normal || _viewModel == null) return;
         var cfg = _configService.Current;
-        cfg.WindowWidth = Width;
-        cfg.WindowHeight = Height;
-        cfg.WindowLeft = Position.X / Scaling;
-        cfg.WindowTop = Position.Y / Scaling;
+        if (IsCompact)
+        {
+            // Never let mini geometry overwrite the full-window slots.
+            cfg.CompactWindowLeft = Position.X / Scaling;
+            cfg.CompactWindowTop = Position.Y / Scaling;
+        }
+        else
+        {
+            cfg.WindowWidth = Width;
+            cfg.WindowHeight = Height;
+            cfg.WindowLeft = Position.X / Scaling;
+            cfg.WindowTop = Position.Y / Scaling;
+        }
         _configService.SaveDeferred();
     }
 
@@ -773,6 +1127,9 @@ public partial class SettingsWindow : Window
         {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
             _viewModel.ProfileDeletedOrCloned -= CloseProfileDetailOverlay;
+            _viewModel.Profiles.CollectionChanged -= OnProfilesChanged;
+            foreach (var card in _miniWatched) card.PropertyChanged -= OnCardChanged;
+            _miniWatched.Clear();
             _errorTracker.ErrorAdded -= _errorAddedHandler;
             _viewModel.Dispose();
         }

@@ -1,0 +1,131 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            xmlns:d="using:VibeSwitcher.App.Dialogs"
+            xmlns:img="using:VibeSwitcher.App.Imaging"
+            x:Class="VibeSwitcher.App.Dialogs.MiniModeSetupDialog"
+            Width="400">
+    <!-- Port of Views/MiniModeSetupDialog.xaml: Mini Mode's layout and which profiles it shows. -->
+    <c:VsDialog.Resources>
+        <ControlTheme x:Key="LayoutChoiceBtn" TargetType="ToggleButton">
+            <Setter Property="Background" Value="{DynamicResource CardBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <!-- (WPF template triggers, in order: checked wins over hover.) -->
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+            </Style>
+            <Style Selector="^:checked">
+                <Setter Property="Background" Value="#14F5820A" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+        </ControlTheme>
+    </c:VsDialog.Resources>
+
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="20,14,20,20">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoCompact}" Width="15" Height="15" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Customize Mini Mode" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Choose the layout and which profiles appear." FontSize="11" Foreground="{DynamicResource SecondaryText}"
+                               TextWrapping="Wrap" MaxWidth="280" HorizontalAlignment="Left" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Layout choice -->
+            <TextBlock Text="LAYOUT" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,6" />
+            <Grid ColumnDefinitions="*,8,*" Margin="0,0,0,16">
+                <ToggleButton Name="LayoutRows" Grid.Column="0" Theme="{StaticResource LayoutChoiceBtn}"
+                              HorizontalAlignment="Stretch" Click="LayoutRows_Click">
+                    <StackPanel>
+                        <Canvas Width="26" Height="20" HorizontalAlignment="Center" Margin="0,0,0,5">
+                            <Rectangle Canvas.Left="0" Canvas.Top="0" Width="26" Height="5" RadiusX="2" RadiusY="2" Fill="{DynamicResource SecondaryText}" />
+                            <Rectangle Canvas.Left="0" Canvas.Top="7.5" Width="26" Height="5" RadiusX="2" RadiusY="2" Fill="{DynamicResource SecondaryText}" />
+                            <Rectangle Canvas.Left="0" Canvas.Top="15" Width="26" Height="5" RadiusX="2" RadiusY="2" Fill="{DynamicResource SecondaryText}" />
+                        </Canvas>
+                        <TextBlock Text="Rows" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" HorizontalAlignment="Center" />
+                        <TextBlock Text="Names always visible" FontSize="10" Foreground="{DynamicResource SecondaryText}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </ToggleButton>
+                <ToggleButton Name="LayoutGrid" Grid.Column="2" Theme="{StaticResource LayoutChoiceBtn}"
+                              HorizontalAlignment="Stretch" Click="LayoutGrid_Click">
+                    <StackPanel>
+                        <Canvas Width="20" Height="20" HorizontalAlignment="Center" Margin="0,0,0,5">
+                            <Rectangle Canvas.Left="0" Canvas.Top="0" Width="9" Height="9" RadiusX="2" RadiusY="2" Fill="{DynamicResource SecondaryText}" />
+                            <Rectangle Canvas.Left="11" Canvas.Top="0" Width="9" Height="9" RadiusX="2" RadiusY="2" Fill="{DynamicResource SecondaryText}" />
+                            <Rectangle Canvas.Left="0" Canvas.Top="11" Width="9" Height="9" RadiusX="2" RadiusY="2" Fill="{DynamicResource SecondaryText}" />
+                            <Rectangle Canvas.Left="11" Canvas.Top="11" Width="9" Height="9" RadiusX="2" RadiusY="2" Fill="{DynamicResource SecondaryText}" />
+                        </Canvas>
+                        <TextBlock Text="Icon grid" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" HorizontalAlignment="Center" />
+                        <TextBlock Text="Fits many more profiles" FontSize="10" Foreground="{DynamicResource SecondaryText}" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </ToggleButton>
+            </Grid>
+
+            <!-- Profile selection -->
+            <TextBlock Text="PROFILES" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource SectionLabelText}" Margin="0,0,0,6" />
+            <Grid Margin="0,0,0,8">
+                <TextBlock Text="Show all profiles" FontSize="12.5" Foreground="{DynamicResource VSLabel}" VerticalAlignment="Center" />
+                <CheckBox Name="AllToggle" Theme="{StaticResource ToggleSwitchStyle}"
+                          HorizontalAlignment="Right" VerticalAlignment="Center" IsCheckedChanged="AllToggle_Changed" />
+            </Grid>
+            <Border Name="ChecklistHost" Background="{DynamicResource VSInsetBg}"
+                    BorderBrush="{DynamicResource InputBorder}" BorderThickness="1" CornerRadius="8">
+                <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto">
+                    <!-- (WPF: Padding="10,6" on the ScrollViewer, which Avalonia leaves out of its height.) -->
+                    <ItemsControl Name="ProfileChecklist" Margin="10,6">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="d:MiniModeSetupDialog+ProfileChoice">
+                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="0,5"
+                                          Theme="{StaticResource ThemedCheckBox}" VerticalContentAlignment="Center"
+                                          IsCheckedChanged="ProfileCheck_Changed">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Grid Width="20" Height="20" Margin="6,0,8,0">
+                                            <Image Source="{Binding Icon, Converter={x:Static img:AppImages.ToBitmap}}" Stretch="Uniform"
+                                                   RenderOptions.BitmapInterpolationMode="HighQuality" IsVisible="{Binding HasIcon}" />
+                                            <c:LogoIcon IsAbout="True" Width="18" Height="18" IsVisible="{Binding !HasIcon}" />
+                                        </Grid>
+                                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource PrimaryText}"
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="240" />
+                                    </StackPanel>
+                                </CheckBox>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+            <TextBlock Text="Nothing checked means every profile is shown." FontSize="10"
+                       Foreground="{DynamicResource SecondaryText}" Margin="2,5,0,0" />
+
+            <!-- Footer -->
+            <Grid Margin="0,18,0,0">
+                <Button Content="Cancel" Theme="{StaticResource ActionButton}" IsCancel="True"
+                        HorizontalAlignment="Left" MinWidth="90" Click="Cancel_Click" />
+                <Button Content="Save" Theme="{StaticResource PrimaryButton}" IsDefault="True"
+                        HorizontalAlignment="Right" MinWidth="90" Click="Save_Click" />
+            </Grid>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

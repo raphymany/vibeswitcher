@@ -62,6 +62,12 @@ public class ScreenshotTests
         {
             var setup = name == "settings-empty" ? new SettingsCatalog.Setup() : SettingsCatalog.WithProfiles();
             setup.Config.Current.CloseToTray = false;
+            if (name.StartsWith("settings-minimode-"))
+            {
+                // Mini Mode as the app restores it at start-up (rows / icon grid).
+                setup.Config.Current.CompactMode = true;
+                setup.Config.Current.CompactLayout = name.EndsWith("grid") ? "Grid" : "Rows";
+            }
             if (name == "settings-shortcuts")
             {
                 // One shortcut of each kind set (one with its banner silenced), the others not.
