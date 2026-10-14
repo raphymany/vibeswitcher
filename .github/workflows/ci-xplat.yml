@@ -46,7 +46,8 @@ jobs:
         run: dotnet test VibeSwitcher.XPlat.sln -c Release --no-build --logger "console;verbosity=normal"
 
       - name: Desktop-bus tests (Linux)
-        # Notifications against a stand-in notification service on a real, private D-Bus session.
+        # Notifications and Wayland global shortcuts against stand-in desktop services (a notification
+        # server, the Global Shortcuts portal) on a real, private D-Bus session.
         if: runner.os == 'Linux'
         working-directory: xplat
         run: |
@@ -137,8 +138,9 @@ jobs:
         run: dotnet test tests/VibeSwitcher.Platform.MacOS.Tests/VibeSwitcher.Platform.MacOS.Tests.csproj --filter "Category=MacAudio|Category=MacOS" --logger "console;verbosity=normal"
 
   linux-desktop:
-    # Desktop integration on a virtual X server: global hotkeys grabbed for real and pressed with xdotool.
-    name: Linux desktop (X11)
+    # Desktop integration: global hotkeys grabbed for real on a virtual X server and pressed with
+    # xdotool, and the older-GNOME shortcut fallback against GNOME's real settings tool and schemas.
+    name: Linux desktop (X11, GNOME shortcuts)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
@@ -150,14 +152,16 @@ jobs:
         with:
           global-json-file: xplat/global.json
 
-      - name: Install a virtual X server
+      - name: Install a virtual X server and GNOME's keyboard-shortcut settings
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q --no-install-recommends xvfb xauth xdotool libx11-6 libx11-xcb1 libxcb1
+          sudo apt-get install -y -q --no-install-recommends xvfb xauth xdotool libx11-6 libx11-xcb1 libxcb1 \
+            libglib2.0-bin gnome-settings-daemon-common
 
       - name: Integration tests
         working-directory: xplat
-        run: VS_X11_IT=1 xvfb-run -a dotnet test tests/VibeSwitcher.Platform.Linux.Tests/VibeSwitcher.Platform.Linux.Tests.csproj --filter "Category=X11" --logger "console;verbosity=normal"
+        # (The GNOME tests write to a throwaway settings file, never a real desktop's settings.)
+        run: VS_X11_IT=1 VS_GSETTINGS_IT=1 xvfb-run -a dotnet test tests/VibeSwitcher.Platform.Linux.Tests/VibeSwitcher.Platform.Linux.Tests.csproj --filter "Category=X11|Category=Gnome" --logger "console;verbosity=normal"
 
   fork-drift:
     name: Forked files in sync with Windows originals

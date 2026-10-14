@@ -8,6 +8,7 @@ public enum AppCommandKind
     Open,       // show the Settings window (what launching the app again does on Windows)
     Switch,     // switch to a profile by name or id
     Mute,       // toggle mute: mic, speakers or both
+    MiniMode,   // show or hide Mini Mode (what the Mini Mode shortcut does)
 }
 
 // One instruction for the running app, from the command line or a second launch.
@@ -50,6 +51,7 @@ public sealed record AppCommand(AppCommandKind Kind, string? Argument = null)
 //   vibeswitcher --switch <profile> switch the running app to a profile (name or id)
 //   vibeswitcher --mute mic|speakers|both
 //   vibeswitcher --open             open Settings
+//   vibeswitcher --mini             show or hide Mini Mode
 //   vibeswitcher --help | --version
 // (Linux desktop shortcuts on Wayland call these, since apps can't grab global keys there.)
 public sealed record CommandLine(AppCommand? Command, bool ShowHelp, bool ShowVersion, string? Error)
@@ -63,6 +65,7 @@ public sealed record CommandLine(AppCommand? Command, bool ShowHelp, bool ShowVe
           --mute <mic|speakers|both>
                                  Toggle mute, like the mute shortcuts
           --open                 Open Settings
+          --mini                 Show or hide Mini Mode
           --version              Print the version
           --help                 Show this help
         """;
@@ -104,6 +107,8 @@ public sealed record CommandLine(AppCommand? Command, bool ShowHelp, bool ShowVe
                 return new(null, false, true, null);
             case "--open":
                 return Only(args, AppCommand.Open);
+            case "--mini":
+                return Only(args, new AppCommand(AppCommandKind.MiniMode));
             case "--switch":
                 if (args.Count < 2 || string.IsNullOrWhiteSpace(args[1])) return Fail("--switch needs a profile name or id.");
                 return Only(args, new AppCommand(AppCommandKind.Switch, args[1]), 2);

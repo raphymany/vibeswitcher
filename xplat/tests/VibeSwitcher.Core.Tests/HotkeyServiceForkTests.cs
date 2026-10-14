@@ -15,12 +15,21 @@ public class HotkeyServiceForkTests
         public readonly HashSet<(int Mods, int Vk)> TakenByOtherApps = [];
         public readonly HashSet<int> Unsupported = [];
         public readonly Dictionary<ushort, (int Mods, int Vk)> Registered = [];
+        public readonly Dictionary<ushort, string> Names = [];
+        public readonly List<string> UndescribedRegistrations = [];
         public int Calls;
         public event Action<ushort>? Pressed;
+
+        public void Describe(ushort id, string name, string description)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(description));
+            Names[id] = name;
+        }
 
         public GrabResult Register(ushort id, int modifiers, int virtualKey, out string? error)
         {
             Calls++;
+            if (!Names.ContainsKey(id)) UndescribedRegistrations.Add($"{id}");
             error = null;
             if (Unsupported.Contains(virtualKey)) { error = "no such key here"; return GrabResult.Unsupported; }
             if (TakenByOtherApps.Contains((modifiers, virtualKey)) || Registered.ContainsValue((modifiers, virtualKey)))
@@ -110,6 +119,28 @@ public class HotkeyServiceForkTests
         Assert.Equal(before, _grabber.Registered.ToDictionary()); // same ids, same keys
         Assert.Same(a, _svc.HandleHotkey(_grabber.IdOf(a.Hotkey)));
         Assert.True(_svc.IsSettingsHotkey(_grabber.IdOf(Key(0x53))));
+    }
+
+    [Fact]
+    public void EveryShortcut_IsDescribedWithItsStableName_BeforeRegistering()
+    {
+        var a = Profile("A", Key(0x41));
+        _svc.RegisterAll([a]);
+        _svc.RegisterSettingsHotkey(Key(0x53));
+        _svc.RegisterCompactHotkey(Key(0x43));
+        _svc.RegisterMuteHotkey(MuteScope.Mic, Key(0x4D));
+
+        Assert.Equal(ShortcutNames.Profile(a.Id), _grabber.Names[_grabber.IdOf(a.Hotkey)]);
+        Assert.Equal(ShortcutNames.Settings, _grabber.Names[_grabber.IdOf(Key(0x53))]);
+        Assert.Equal(ShortcutNames.MiniMode, _grabber.Names[_grabber.IdOf(Key(0x43))]);
+        Assert.Equal(ShortcutNames.Mute(MuteScope.Mic), _grabber.Names[_grabber.IdOf(Key(0x4D))]);
+
+        // TestHotkey's check is marked as a probe (so a desktop-owned grabber can skip it), and the
+        // shortcuts it re-takes afterwards keep their names.
+        _svc.TestHotkey(Key(0x48));
+        Assert.Contains(ShortcutNames.Probe, _grabber.Names.Values);
+        Assert.Empty(_grabber.UndescribedRegistrations);
+        Assert.Equal(ShortcutNames.Profile(a.Id), _grabber.Names[_grabber.IdOf(a.Hotkey)]);
     }
 
     [Fact]

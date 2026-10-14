@@ -20,6 +20,11 @@ public interface IGlobalKeyGrabber : IDisposable
     GrabResult Register(ushort id, int modifiers, int virtualKey, out string? error);
     void Unregister(ushort id);
 
+    // What an id stands for, given just before it's registered: a stable name (ShortcutNames) and a
+    // human description. Systems where the desktop owns the shortcuts (Wayland) need these to keep the
+    // user's approved shortcuts across saves; X11 and macOS ignore them.
+    void Describe(ushort id, string name, string description) { }
+
     // Raised with the registration id when the shortcut is pressed — on whatever thread the system
     // delivers it (the app marshals to its UI thread, as the Windows app does for WM_HOTKEY). Handlers
     // may call back into the grabber; they should post their work rather than block.

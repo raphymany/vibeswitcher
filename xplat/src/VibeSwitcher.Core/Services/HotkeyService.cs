@@ -15,6 +15,8 @@ namespace VibeSwitcher.Services;
 //     counts any failure, but here a key can also be one this system can't use at all (a media key
 //     on macOS…), which registration then reports as such instead of blaming another app.
 //   - Its UI-thread Debug.Assert passes when no UI dispatcher exists (unit tests).
+// Added: before each registration it tells the grabber what the shortcut is for (Describe), which
+// Wayland needs so the desktop keeps the user's approved shortcuts across saves.
 public class HotkeyService : IHotkeyService
 {
     // Maps id → profile Guid
@@ -86,6 +88,7 @@ public class HotkeyService : IHotkeyService
     private void RegisterOne(DeviceProfile profile)
     {
         ushort atom = NewId();
+        _grabber.Describe(atom, ShortcutNames.Profile(profile.Id), $"Switch to {profile.Name}");
         var result = _grabber.Register(atom, profile.Hotkey.GetModifierFlags(), profile.Hotkey.VirtualKeyCode, out var error);
         if (result != GrabResult.Ok)
         {
@@ -121,6 +124,12 @@ public class HotkeyService : IHotkeyService
         if (hotkey.IsEmpty || !hotkey.IsValid) return null;
 
         ushort atom = NewId();
+        _grabber.Describe(atom, ShortcutNames.Mute(scope), scope switch
+        {
+            MuteScope.Mic => "Mute or unmute the microphone",
+            MuteScope.Speakers => "Mute or unmute the speakers",
+            _ => "Mute or unmute the microphone and speakers",
+        });
         var result = _grabber.Register(atom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode, out var error);
         if (result != GrabResult.Ok)
         {
@@ -163,6 +172,7 @@ public class HotkeyService : IHotkeyService
         if (hotkey.IsEmpty || !hotkey.IsValid) return null;
 
         ushort atom = NewId();
+        _grabber.Describe(atom, ShortcutNames.Settings, "Open VibeSwitcher settings");
         var result = _grabber.Register(atom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode, out var error);
         if (result != GrabResult.Ok)
         {
@@ -195,6 +205,7 @@ public class HotkeyService : IHotkeyService
         if (hotkey.IsEmpty || !hotkey.IsValid) return null;
 
         ushort atom = NewId();
+        _grabber.Describe(atom, ShortcutNames.MiniMode, "Show or hide VibeSwitcher Mini Mode");
         var result = _grabber.Register(atom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode, out var error);
         if (result != GrabResult.Ok)
         {
@@ -244,6 +255,7 @@ public class HotkeyService : IHotkeyService
             _grabber.Unregister(atom);
 
         ushort testAtom = NewId();
+        _grabber.Describe(testAtom, ShortcutNames.Probe, "Checking whether a shortcut is free");
         var result = _grabber.Register(testAtom, hotkey.GetModifierFlags(), hotkey.VirtualKeyCode, out _);
         bool inUseByOther = result == GrabResult.InUse;
         if (result == GrabResult.Ok) _grabber.Unregister(testAtom);

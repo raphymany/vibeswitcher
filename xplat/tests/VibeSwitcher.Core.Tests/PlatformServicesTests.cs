@@ -88,6 +88,16 @@ public class CommandLineTests
     }
 
     [Fact]
+    public void Mini_TogglesMiniMode()
+    {
+        var cmd = new AppCommand(AppCommandKind.MiniMode);
+        Assert.Equal(cmd, CommandLine.Parse(["--mini"]).Command);
+        Assert.NotNull(CommandLine.Parse(["--mini", "extra"]).Error);
+        Assert.Contains("--mini", CommandLine.Usage);
+        Assert.Equal(cmd, AppCommand.Deserialize(cmd.Serialize()));
+    }
+
+    [Fact]
     public void MacOSLaunchArguments_AreIgnored()
     {
         Assert.Equal(AppCommand.Open, CommandLine.Parse(["-psn_0_1234567"]).Command);
@@ -122,6 +132,33 @@ public class CommandLineTests
         // Same rules as the command line, whoever sends them.
         Assert.Null(AppCommand.Deserialize(new AppCommand(AppCommandKind.Switch, " ").Serialize()));
         Assert.Null(AppCommand.Deserialize(new AppCommand(AppCommandKind.Mute, "loud").Serialize()));
+    }
+}
+
+public class ShortcutNamesTests
+{
+    [Fact]
+    public void EachNameMapsToTheCommandItsShortcutRuns()
+    {
+        var id = Guid.NewGuid();
+        Assert.Equal(new AppCommand(AppCommandKind.Switch, id.ToString("D")), ShortcutNames.ToCommand(ShortcutNames.Profile(id)));
+        Assert.Equal(AppCommand.Open, ShortcutNames.ToCommand(ShortcutNames.Settings));
+        Assert.Equal(new AppCommand(AppCommandKind.MiniMode), ShortcutNames.ToCommand(ShortcutNames.MiniMode));
+        foreach (var scope in Enum.GetValues<MuteScope>())
+            Assert.Equal(new AppCommand(AppCommandKind.Mute, scope.ToString()), ShortcutNames.ToCommand(ShortcutNames.Mute(scope)));
+        Assert.Null(ShortcutNames.ToCommand(ShortcutNames.Probe));
+        Assert.Null(ShortcutNames.ToCommand("profile-not-a-guid"));
+        Assert.Null(ShortcutNames.ToCommand("mute-loud"));
+    }
+
+    [Fact]
+    public void Names_AreSafeAsDesktopIds_AndStable()
+    {
+        var id = Guid.Parse("0f8fad5b-d9cb-469f-a165-70867728950e");
+        string[] names = [ShortcutNames.Profile(id), ShortcutNames.Settings, ShortcutNames.MiniMode, ShortcutNames.Mute(MuteScope.Both), ShortcutNames.Probe];
+        Assert.All(names, n => Assert.Matches("^[a-z0-9-]+$", n));
+        Assert.Equal("profile-0f8fad5b-d9cb-469f-a165-70867728950e", names[0]);
+        Assert.Equal("mute-both", names[3]);
     }
 }
 
