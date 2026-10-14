@@ -25,3 +25,4 @@ src/VibeSwitcher.Core/Services/MuteService.cs            VibeSwitcher/Services/M
 src/VibeSwitcher.Core/Platform/SingleInstance.cs         VibeSwitcher/Helpers/SingleInstanceHelper.cs     513b7b75ac0c60ae1e9369016a259d9d92e78ee3
 src/VibeSwitcher.Platform.Linux/OS/LinuxStartupService.cs VibeSwitcher/Services/StartupService.cs          d3207ef4200497c3ba171c48cf0e43c8474fb818
 src/VibeSwitcher.Platform.MacOS/OS/MacStartupService.cs  VibeSwitcher/Services/StartupService.cs          d3207ef4200497c3ba171c48cf0e43c8474fb818
+src/VibeSwitcher.Core/Services/HotkeyService.cs          VibeSwitcher/Services/HotkeyService.cs           792e244bc1f39eb8b46f19a0fe8fb16adf2cdd91

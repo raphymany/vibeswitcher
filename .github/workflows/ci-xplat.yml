@@ -92,10 +92,10 @@ jobs:
           fi
 
   macos-audio:
-    # The macOS audio engine against real Core Audio, on Apple Silicon and Intel. BlackHole is a free
+    # The macOS audio engine (real Core Audio) and global hotkeys (real Carbon), on Apple Silicon and Intel. BlackHole is a free
     # virtual audio driver: each device is an output and an input that loops back, so a played tone
     # can be measured.
-    name: macOS audio (${{ matrix.os }})
+    name: macOS audio + hotkeys (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -129,11 +129,35 @@ jobs:
             sudo sqlite3 "$db" "select client, auth_value from access where service='kTCCServiceMicrophone'" 2>&1 || true
           done
 
-      - name: Integration tests
+      - name: Integration tests (audio, hotkeys)
         working-directory: xplat
         env:
           VS_MAC_AUDIO_IT: "1"
-        run: dotnet test tests/VibeSwitcher.Platform.MacOS.Tests/VibeSwitcher.Platform.MacOS.Tests.csproj --filter "Category=MacAudio" --logger "console;verbosity=normal"
+          VS_MAC_IT: "1"
+        run: dotnet test tests/VibeSwitcher.Platform.MacOS.Tests/VibeSwitcher.Platform.MacOS.Tests.csproj --filter "Category=MacAudio|Category=MacOS" --logger "console;verbosity=normal"
+
+  linux-desktop:
+    # Desktop integration on a virtual X server: global hotkeys grabbed for real and pressed with xdotool.
+    name: Linux desktop (X11)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: xplat/global.json
+
+      - name: Install a virtual X server
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends xvfb xauth xdotool libx11-6 libx11-xcb1 libxcb1
+
+      - name: Integration tests
+        working-directory: xplat
+        run: VS_X11_IT=1 xvfb-run -a dotnet test tests/VibeSwitcher.Platform.Linux.Tests/VibeSwitcher.Platform.Linux.Tests.csproj --filter "Category=X11" --logger "console;verbosity=normal"
 
   fork-drift:
     name: Forked files in sync with Windows originals
