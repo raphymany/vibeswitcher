@@ -1,0 +1,36 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            x:Class="VibeSwitcher.App.Dialogs.ConfirmDeleteDialog"
+            Width="360">
+    <!-- Port of Views/ConfirmDeleteDialog.xaml. -->
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                <Border Width="36" Height="36" Background="{DynamicResource Accent}" CornerRadius="18"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource IcoTrash}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5" StrokeJoin="Round" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Delete Profile" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="This action cannot be undone." FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Name="MessageText" TextWrapping="Wrap" FontSize="12"
+                       Foreground="{DynamicResource PrimaryText}" LineHeight="18" Margin="0,0,0,20" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Name="CancelBtn" Content="Cancel" Theme="{StaticResource ActionButton}"
+                        IsDefault="True" IsCancel="True" Margin="0,0,8,0" Click="Cancel_Click" />
+                <Button Content="Delete" Theme="{StaticResource DeleteButton}" Click="Delete_Click" />
+            </StackPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

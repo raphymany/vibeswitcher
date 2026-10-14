@@ -1,0 +1,41 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            x:Class="VibeSwitcher.App.Dialogs.ErrorDialog"
+            Width="400">
+    <!-- Port of Views/ErrorDialog.xaml. The message is selectable read-only text, as on Windows (there
+         a borderless read-only text box), scrolling past 200 px. The error code uses the bundled
+         monospaced font in place of Consolas. -->
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource ErrorIconBg}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource IcoClose}" Width="16" Height="16" Stretch="Uniform"
+                          Fill="Transparent" Stroke="{DynamicResource ErrorText}" StrokeThickness="1.9"
+                          StrokeLineCap="Round" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Name="TitleText" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Name="CodeText" FontSize="10" Foreground="{DynamicResource SecondaryText}"
+                               Margin="0,1,0,0" FontFamily="fonts:VibeSwitcher#Cascadia Mono" />
+                </StackPanel>
+            </StackPanel>
+
+            <ScrollViewer MaxHeight="200" Margin="0,0,0,20" HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <SelectableTextBlock Name="MessageText" TextWrapping="Wrap" FontSize="12"
+                                     Foreground="{DynamicResource PrimaryText}" />
+            </ScrollViewer>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Open Log File" Theme="{StaticResource ActionButton}" Margin="0,0,10,0" Click="OpenLog_Click" />
+                <Button Content="OK" Theme="{StaticResource PrimaryButton}" IsDefault="True" IsCancel="True" Click="OK_Click" />
+            </StackPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

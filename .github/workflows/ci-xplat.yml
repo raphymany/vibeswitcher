@@ -45,6 +45,16 @@ jobs:
         working-directory: xplat
         run: dotnet test VibeSwitcher.XPlat.sln -c Release --no-build --logger "console;verbosity=normal"
 
+      - name: Keep the screenshots
+        # Every dialog in light and dark, with the Linux and macOS frames, as this OS renders them (on
+        # Linux they're also checked against the saved baselines). For reviewing the look.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ matrix.os }}
+          path: xplat/tests/VibeSwitcher.App.Tests/bin/Release/net10.0/screenshots/
+          if-no-files-found: ignore
+
       - name: Desktop-bus tests (Linux)
         # Notifications and Wayland global shortcuts against stand-in desktop services (a notification
         # server, the Global Shortcuts portal) on a real, private D-Bus session.

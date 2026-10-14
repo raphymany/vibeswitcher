@@ -22,6 +22,22 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
 
+## Look notes
+
+- **Same colours, icons and controls.** The Mac/Linux app reads the Windows app's own theme colours (light and dark)
+  and icon shapes at start-up, so changes to those carry over by themselves. Its buttons, switches, check boxes and
+  dialogs are ported one for one, and a change to any of their Windows originals is flagged so the port follows.
+- **Light/dark** follows the system on macOS and on Linux desktops that publish their setting (GNOME, KDE), or the
+  user's choice, as on Windows.
+- **Fonts are bundled** so text looks the same on every system: Open Sans in place of Segoe UI (Windows' own font,
+  which can't be shipped), Cascadia Mono in place of Consolas, Cousine in place of Courier New. Open Sans is a touch
+  wider than Segoe UI; Selawik (Microsoft's open font with Segoe UI's exact measurements) can replace it in one place.
+- **Window frame.** macOS: the native red/yellow/green buttons over the window's own title bar, native rounded corners
+  and shadow. Linux: the Windows app's title bar and buttons, drawn by the app (Linux desktops differ too much for one
+  native look), with square corners and the orange outline.
+- **Screenshots** of every dialog in both themes and both frames are taken on every change and checked against saved
+  ones, so the look can't drift unnoticed.
+
 ## Hotkey notes
 
 - **Same shortcuts everywhere.** Shortcuts are saved in the Windows form, so a config moves between systems unchanged.

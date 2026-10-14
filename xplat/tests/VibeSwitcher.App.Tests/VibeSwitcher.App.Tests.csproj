@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The app's look and dialogs, rendered without a screen (Avalonia headless + Skia) on every OS.
+       Screenshots of every dialog land in screenshots/ next to the test binaries (CI keeps them);
+       on Linux they're also compared against Baselines/ (VS_UPDATE_SCREENSHOTS=1 rewrites those). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RootNamespace>VibeSwitcher.App.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Skia" Version="11.3.22" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VibeSwitcher.App\VibeSwitcher.App.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(WinTests)FakeAppLogger.cs"           Link="Linked\FakeAppLogger.cs" />
+    <Compile Include="$(WinTests)FakeSessionErrorTracker.cs" Link="Linked\FakeSessionErrorTracker.cs" />
+    <Compile Include="$(WinTests)FakeConfigService.cs"       Link="Linked\FakeConfigService.cs" />
+  </ItemGroup>
+</Project>

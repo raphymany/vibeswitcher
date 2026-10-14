@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="VibeSwitcher.App.Controls.TitleBar"
+             Height="32">
+    <!-- Port of Views/TitleBar.xaml: a 32 px bar with the app icon and window title on the left and
+         the window buttons on the right. The button symbols are drawn (not font glyphs), so they look
+         the same on every system. On macOS the system's own buttons are used instead (WindowChrome). -->
+    <UserControl.Styles>
+        <Style Selector="Button.title">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="RenderTransform" Value="none" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="bg" Background="{TemplateBinding Background}">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.title:pointerover">
+            <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+        </Style>
+        <Style Selector="Button.title:pressed">
+            <Setter Property="Background" Value="{DynamicResource PressedBg}" />
+        </Style>
+        <Style Selector="Button.close:pointerover">
+            <Setter Property="Background" Value="#C42B1C" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.close:pressed">
+            <Setter Property="Background" Value="#9A1B12" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="Button.title Path">
+            <Setter Property="Stroke" Value="{Binding $parent[Button].Foreground}" />
+            <Setter Property="StrokeThickness" Value="1" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="{DynamicResource AppBg}"
+            BorderBrush="{DynamicResource SeparatorBrush}"
+            BorderThickness="0,0,0,1">
+        <Grid Name="Bar" Background="Transparent">
+            <StackPanel Name="TitlePanel" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                <Image Name="IconImage" Width="16" Height="16" Margin="0,0,6,0"
+                       Source="avares://VibeSwitcher/Assets/Icons/vs-icon-32.png"
+                       RenderOptions.BitmapInterpolationMode="HighQuality" />
+                <TextBlock Name="TitleLabel" FontSize="12" Foreground="{DynamicResource SecondaryText}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+
+            <StackPanel Name="Buttons" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Name="MinBtn" Classes="title" IsVisible="False" ToolTip.Tip="Minimize"
+                        AutomationProperties.Name="Minimize" Click="Minimize_Click">
+                    <Path Data="M0,0.5 H10" Width="10" Height="1" />
+                </Button>
+                <Button Name="MaxBtn" Classes="title" IsVisible="False" ToolTip.Tip="Maximize"
+                        AutomationProperties.Name="Maximize" Click="Maximize_Click">
+                    <Path Name="MaxGlyph" Data="M0.5,0.5 H9.5 V9.5 H0.5 Z" Width="10" Height="10" />
+                </Button>
+                <Button Name="CloseBtn" Classes="title close" ToolTip.Tip="Close"
+                        AutomationProperties.Name="Close" Click="Close_Click">
+                    <Path Data="M0,0 L10,10 M10,0 L0,10" Width="10" Height="10" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

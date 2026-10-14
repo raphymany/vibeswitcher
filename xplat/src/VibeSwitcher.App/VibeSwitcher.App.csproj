@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The macOS + Linux app (Avalonia). The look comes from the Windows app itself: its theme
+       colours and icon shapes are read from the Windows files at startup (embedded below, never
+       copied), and its styles and dialogs are ported one for one. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>VibeSwitcher</AssemblyName>
+    <RootNamespace>VibeSwitcher.App</RootNamespace>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>$(WinSrc)Resources\Icons\vs-icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VibeSwitcher.Core\VibeSwitcher.Core.csproj" />
+    <ProjectReference Include="..\VibeSwitcher.Platform.Linux\VibeSwitcher.Platform.Linux.csproj" />
+    <ProjectReference Include="..\VibeSwitcher.Platform.MacOS\VibeSwitcher.Platform.MacOS.csproj" />
+  </ItemGroup>
+
+  <!-- The Windows app's own theme colours and icon shapes (read at startup: one source of truth). -->
+  <ItemGroup>
+    <EmbeddedResource Include="$(WinSrc)Themes\LightTheme.xaml" LogicalName="Wpf.LightTheme.xaml" Link="Linked\LightTheme.xaml" />
+    <EmbeddedResource Include="$(WinSrc)Themes\DarkTheme.xaml" LogicalName="Wpf.DarkTheme.xaml" Link="Linked\DarkTheme.xaml" />
+    <EmbeddedResource Include="$(WinSrc)Controls\Icons.xaml" LogicalName="Wpf.Icons.xaml" Link="Linked\Icons.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+    <AvaloniaResource Include="$(WinSrc)Resources\Icons\vs-icon-16.png" Link="Assets\Icons\vs-icon-16.png" />
+    <AvaloniaResource Include="$(WinSrc)Resources\Icons\vs-icon-32.png" Link="Assets\Icons\vs-icon-32.png" />
+    <AvaloniaResource Include="$(WinSrc)Resources\Icons\vs-icon-256.png" Link="Assets\Icons\vs-icon-256.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="VibeSwitcher.App.Tests" />
+  </ItemGroup>
+</Project>

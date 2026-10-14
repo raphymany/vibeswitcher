@@ -1,0 +1,36 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            x:Class="VibeSwitcher.App.Dialogs.ConflictRetryDialog"
+            Width="380">
+    <!-- Port of Views/ConflictRetryDialog.xaml. -->
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource WarningBg}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource IcoWarning}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="{DynamicResource WarningText}" StrokeThickness="1.5"
+                          StrokeJoin="Round" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Name="TitleText" FontSize="15" FontWeight="SemiBold"
+                           Foreground="{DynamicResource PrimaryText}" VerticalAlignment="Center"
+                           TextWrapping="Wrap" MaxWidth="280" />
+            </StackPanel>
+
+            <TextBlock Name="MessageText" TextWrapping="Wrap" FontSize="12"
+                       Foreground="{DynamicResource PrimaryText}" LineHeight="18" Margin="0,0,0,20" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Try Again" Theme="{StaticResource PrimaryButton}"
+                        IsDefault="True" Margin="0,0,8,0" Click="TryAgain_Click" />
+                <Button Content="Close" Theme="{StaticResource ActionButton}" IsCancel="True" Click="Close_Click" />
+            </StackPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>
