@@ -399,7 +399,7 @@ public class SettingsSectionsTests
             Assert.True(Named<Button>(window, "UninstallBtn").IsEnabled);
             Assert.False(Named<TextBlock>(window, "UninstallBlockedNote").IsVisible);
             Assert.Contains("asked for your password", Named<TextBlock>(window, "UninstallDetailText").Text);
-            Assert.Equal("Version 2.0.1-preview — Linux", Named<TextBlock>(window, "AboutVersionText").Text);
+            Assert.Equal($"Version 2.0.1-preview — {Wording.Platform}", Named<TextBlock>(window, "AboutVersionText").Text);
 
             window.Install = new InstallInfo(InstallKind.Development, dir, "2.0.1");
             window.RefreshStorageInfo();
