@@ -37,6 +37,19 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
   with a modifier they're fine). Choosing an unusable one shows a registration error saying why, instead of silently
   doing nothing.
 - **macOS needs no special permission** for shortcuts (no Accessibility prompt).
+- **Linux on Wayland** doesn't let apps listen for keys, so VibeSwitcher asks the desktop instead:
+  - **KDE Plasma, GNOME 48+ and others with the "Global Shortcuts" service:** the desktop shows its own dialog listing
+    VibeSwitcher's shortcuts with the suggested keys. The user approves them there and may choose different keys. The
+    dialog only comes back when the set of shortcuts changes (a new or renamed profile shortcut, say), not on every
+    save. If the user declines, VibeSwitcher doesn't ask again until its shortcuts change or it's restarted.
+  - **Older GNOME:** with the user's permission, VibeSwitcher adds its shortcuts to GNOME's own keyboard settings
+    (Settings › Keyboard › Custom Shortcuts, named "VibeSwitcher: …"). They run VibeSwitcher's command line, so they
+    work the same, and pressing one while VibeSwitcher is closed starts it. Only VibeSwitcher's own entries are ever
+    changed. They're removed again when this is turned off, when VibeSwitcher is uninstalled from its own settings,
+    and whenever it uses another way (logging into "GNOME on Xorg", or after upgrading to GNOME 48).
+  - **Anywhere else:** shortcuts are off, and VibeSwitcher explains how to bind keys to its command line in the
+    desktop's own settings.
+  - In all three cases there's no "is it used by another app?" check: the desktop decides.
 
 ## System integration notes
 
@@ -44,8 +57,8 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
   `$XDG_CONFIG_HOME/VibeSwitcher`) with the same layout as `%APPDATA%\VibeSwitcher` on Windows, so a config exported
   on one system imports on another (devices then need re-picking, since device ids differ per system).
 - **Launching it again** brings the running VibeSwitcher's Settings forward, as on Windows.
-- **Command line (new on macOS/Linux).** `vibeswitcher --switch "<profile>"`, `--mute mic|speakers|both` and
-  `--open` drive the running app. Linux needs this so keyboard shortcuts set up in the desktop's own settings can
+- **Command line (new on macOS/Linux).** `vibeswitcher --switch "<profile>"`, `--mute mic|speakers|both`,
+  `--open` and `--mini` (show or hide Mini Mode) drive the running app. Linux needs this so keyboard shortcuts set up in the desktop's own settings can
   control VibeSwitcher on Wayland, where apps can't listen for global keys themselves. Windows doesn't need it.
 - **Waking from sleep** re-checks schedules and re-applies the active profile, as on Windows.
 - **Start at login** is a login item on macOS (a LaunchAgent) and an autostart entry on Linux. Like the Windows
