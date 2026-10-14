@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Renders the Windows app's own dialogs to PNG (light and dark), exactly as the Windows app
+       draws them, and builds a side-by-side page with the macOS/Linux screenshots (parity.html).
+       Windows only; not part of VibeSwitcher.XPlat.sln. Run: see Program.cs.
+
+       It uses an already-built Windows app (it never builds it, so the Windows app's own build
+       folders and SDK are left alone). Build that first from the repo root — CI does:
+         dotnet build VibeSwitcher/VibeSwitcher.csproj -c Release
+       and point WpfAppDir at its output if it isn't the Release one. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>WpfSnapshots</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <WpfAppDir Condition="'$(WpfAppDir)' == ''">$(WinSrc)bin\Release\net8.0-windows\</WpfAppDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="VibeSwitcher">
+      <HintPath>$(WpfAppDir)VibeSwitcher.dll</HintPath>
+    </Reference>
+    <!-- App.xaml's styles, read as XAML: the Windows App class itself must never be created here
+         (its start-up would run — single instance, tray, logging). -->
+    <EmbeddedResource Include="$(WinSrc)App.xaml" LogicalName="Wpf.App.xaml" Link="Linked\App.xaml" />
+    <!-- The dialogs load the app icon from "pack://application:,,,/Resources/Icons/…", which means the
+         running program's own resources: the same files at the same paths. -->
+    <Resource Include="$(WinSrc)Resources\Icons\*.png;$(WinSrc)Resources\Icons\*.ico" Link="Resources\Icons\%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <Target Name="CheckWpfApp" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(WpfAppDir)VibeSwitcher.dll')"
+           Text="The Windows app isn't built at $(WpfAppDir). Build it first: dotnet build VibeSwitcher/VibeSwitcher.csproj -c Release (from the repo root), or set WpfAppDir." />
+  </Target>
+</Project>

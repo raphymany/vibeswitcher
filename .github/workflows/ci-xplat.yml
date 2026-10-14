@@ -173,6 +173,51 @@ jobs:
         # (The GNOME tests write to a throwaway settings file, never a real desktop's settings.)
         run: VS_X11_IT=1 VS_GSETTINGS_IT=1 xvfb-run -a dotnet test tests/VibeSwitcher.Platform.Linux.Tests/VibeSwitcher.Platform.Linux.Tests.csproj --filter "Category=X11|Category=Gnome" --logger "console;verbosity=normal"
 
+  ui-parity:
+    # The look side by side: each ported dialog as the Windows app draws it (rendered by the Windows
+    # app itself, via xplat/tools/WpfSnapshots) next to the macOS/Linux app's versions. For review —
+    # download the "ui-parity" artifact and open parity.html.
+    name: Look vs Windows (side by side)
+    # The Linux and macOS images are the ones those systems rendered in build-and-test.
+    needs: build-and-test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Build the Windows app
+        # With its own SDK (the repo root's global.json), exactly as its own CI builds it.
+        run: dotnet build VibeSwitcher/VibeSwitcher.csproj -c Release
+
+      - name: Get the Linux screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshots-ubuntu-24.04
+          path: shots/linux
+
+      - name: Get the macOS screenshots
+        uses: actions/download-artifact@v4
+        with:
+          name: screenshots-macos-15
+          path: shots/mac
+
+      - name: Windows renders and the side-by-side page
+        working-directory: xplat
+        run: dotnet run --project tools/WpfSnapshots -c Release -- ../ui-parity ../shots/linux ../shots/mac
+
+      - name: Keep the page
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-parity
+          path: ui-parity/
+          if-no-files-found: error
+
   fork-drift:
     name: Forked files in sync with Windows originals
     runs-on: ubuntu-24.04
