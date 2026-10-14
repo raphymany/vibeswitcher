@@ -6,6 +6,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using VibeSwitcher.Helpers;
+using VibeSwitcher.Models;
+using VibeSwitcher.ViewModels;
 using VibeSwitcher.Views;
 
 namespace WpfSnapshots;
@@ -136,7 +138,11 @@ internal static class Program
 internal static class Dialogs
 {
     public static readonly string[] Names =
-        ["alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup"];
+    [
+        "alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup",
+        // (Not the mic test: it would open a real microphone here.)
+        "hotkey-capture", "profile-type", "device-aliases", "session-log", "supported-headsets",
+    ];
 
     public static Window Create(string name) => name switch
     {
@@ -154,8 +160,35 @@ internal static class Dialogs
             new MiniModeSetupDialog.ProfileChoice { Name = "Work", IsSelected = true },
             new MiniModeSetupDialog.ProfileChoice { Name = "Calls" },
         ]),
+        "hotkey-capture" => new HotkeyCaptureDialog(new HotkeyDefinition { VirtualKeyCode = 0x47, UseCtrl = true, UseAlt = true }),
+        "profile-type" => new ProfileTypeDialog(),
+        "device-aliases" => new DeviceAliasesDialog(
+        [
+            new("hs", "Arctis Nova 7 Headset", "Headset", isPlayback: true, isConnected: true, isDisabled: false, profileUsage: "Gaming"),
+            new("spk", "Speakers (Built-in Audio)", "", isPlayback: true, isConnected: true, isDisabled: false, profileUsage: ""),
+            new("hdmi", "LG HDR 4K (HDMI)", "", isPlayback: true, isConnected: false, isDisabled: false, profileUsage: ""),
+            new("mic", "Arctis Nova 7 Microphone", "", isPlayback: false, isConnected: true, isDisabled: false, profileUsage: "Gaming, Calls"),
+        ]),
+        "session-log" => new SessionLogWindow(new NullLogger(), new FixedErrors()),
+        "supported-headsets" => new SupportedHeadsetsDialog(),
         _ => throw new ArgumentException(name),
     };
+
+    // Two errors at fixed times (as the macOS/Linux screenshot).
+    private sealed class FixedErrors : ISessionErrorTracker
+    {
+        public IReadOnlyList<SessionError> Errors { get; } =
+        [
+            new(new DateTime(2026, 10, 14, 9, 41, 7), ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                "Couldn't switch to \"Gaming\": the playback device isn't available."),
+            new(new DateTime(2026, 10, 14, 9, 42, 30), ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                "Could not register 'Ctrl+Alt+G' — another app is using it."),
+        ];
+        public bool HasErrors => true;
+        public int Count => Errors.Count;
+        public event EventHandler? ErrorAdded { add { } remove { } }
+        public void Record(ErrorCode code, string title, string message) { }
+    }
 
     private sealed class NullLogger : IAppLogger
     {

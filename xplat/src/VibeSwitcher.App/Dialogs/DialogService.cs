@@ -23,6 +23,11 @@ namespace VibeSwitcher.App.Dialogs;
 // (appWindows: the app's open windows, the desktop lifetime's by default.)
 public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>? appWindows = null) : IDialogService
 {
+    // What some dialogs need from the app: the system's audio backend (the mic test's level meter)
+    // and the log (Windows passes these to its DialogService too).
+    public IPlatformAudioService? Audio { get; init; }
+    public IAppLogger? Logger { get; init; }
+
     // ── IDialogService (the shared view models) ────────────────────────────────────────────────────
     public bool ShowConfirmDelete(string profileName) => Wait(ShowConfirmDeleteAsync(profileName));
 
@@ -36,14 +41,23 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
 
     public string? ShowBrowseIconFile() => Wait(ShowBrowseIconFileAsync());
 
-    // Ported with the remaining dialogs (next step).
-    public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current) => NotYet<HotkeyDefinition>(nameof(ShowHotkeyCapture));
+    // The rest of the Windows DialogService. Still to come (the next steps): the clone, icon gallery,
+    // schedule, sound and app-trigger wizards — until then they answer "cancelled" (and log it).
+    public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current) => ShowHotkeyCapture(current, subtitle: null);
     public DeviceProfile? ShowCloneWizard(DeviceProfile source, IReadOnlyList<AudioDeviceInfo> playbackDevices,
         IReadOnlyList<AudioDeviceInfo> recordingDevices, bool use12Hour, Func<HotkeyDefinition, HotkeyDefinition?> captureHotkey) =>
         NotYet<DeviceProfile>(nameof(ShowCloneWizard));
     public GalleryPickResult? ShowIconGallery() => NotYet<GalleryPickResult>(nameof(ShowIconGallery));
-    public ProfileMode? ShowProfileTypeDialog() { NotYet<object>(nameof(ShowProfileTypeDialog)); return null; }
-    public void ShowMicTest(string deviceId, string deviceName) => NotYet<object>(nameof(ShowMicTest));
+    public ProfileMode? ShowProfileTypeDialog()
+    {
+        var dialog = new ProfileTypeDialog();
+        return Wait(ShowAsync(dialog)) ? dialog.ChosenMode : null;
+    }
+    public void ShowMicTest(string deviceId, string deviceName)
+    {
+        if (Audio == null) Logger?.Warning("DialogService.ShowMicTest", "No audio backend to read the microphone level from.");
+        Wait(ShowAsync(new MicTestDialog(deviceId, deviceName, Audio, Logger)));
+    }
     public ScheduleWizardOutcome ShowScheduleWizard(ScheduleEntry source, bool use12Hour, bool isEditing = false)
     {
         NotYet<object>(nameof(ShowScheduleWizard));
@@ -51,16 +65,24 @@ public sealed class DialogService(Func<Window?> owner, Func<IEnumerable<Window>>
     }
     public SoundOverrideResult? ShowSoundWizard(bool enabled, string? tone, string? customPath, int volume, bool showBanner = false, bool isEditing = false) =>
         NotYet<SoundOverrideResult>(nameof(ShowSoundWizard));
-    public bool ShowSupportedHeadsets() { NotYet<object>(nameof(ShowSupportedHeadsets)); return false; }
+    public bool ShowSupportedHeadsets() => Wait(ShowAsync(new SupportedHeadsetsDialog()));
     public List<string>? ShowAppTriggerWizard(List<string> currentTriggers, IReadOnlyDictionary<string, string> usedByOthers) =>
         NotYet<List<string>>(nameof(ShowAppTriggerWizard));
-    public void ShowManageSchedules(object profileCard) => NotYet<object>(nameof(ShowManageSchedules));
+    public void ShowManageSchedules(object profileCard)
+    {
+        if (profileCard is not ViewModels.ProfileCardViewModel card) return;
+        Wait(ShowAsync(new ManageSchedulesDialog(card)));
+    }
 
     // Settings' own dialogs (the Windows window opens these itself): an app shortcut with the row's
-    // wording, and the device aliases. Ported with the remaining dialogs (next step).
-    public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current, string subtitle) => NotYet<HotkeyDefinition>(nameof(ShowHotkeyCapture));
+    // wording, and the device aliases.
+    public HotkeyDefinition? ShowHotkeyCapture(HotkeyDefinition current, string? subtitle)
+    {
+        var dialog = new HotkeyCaptureDialog(current, subtitle);
+        return Wait(ShowAsync(dialog)) ? dialog.CapturedHotkey : null;
+    }
     public void ShowDeviceAliases(System.Collections.ObjectModel.ObservableCollection<ViewModels.DeviceAliasItem> aliases) =>
-        NotYet<object>(nameof(ShowDeviceAliases));
+        Wait(ShowAsync(new DeviceAliasesDialog(aliases)));
 
     private static T? NotYet<T>(string dialog) where T : class
     {

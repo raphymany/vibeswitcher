@@ -1,0 +1,65 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            xmlns:vm="using:VibeSwitcher.ViewModels"
+            x:Class="VibeSwitcher.App.Dialogs.ManageSchedulesDialog"
+            x:DataType="vm:ProfileCardViewModel"
+            x:Name="Root"
+            Width="460">
+    <!-- Port of Views/ManageSchedulesDialog.xaml. -->
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Viewbox Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Canvas Width="16" Height="16">
+                            <!-- (Black on the accent, as on Windows.) -->
+                            <Path Data="M12.5,9 A4.5,4.5 0 1 1 3.5,9 A4.5,4.5 0 1 1 12.5,9 M8,6 V9 L10.2,10.2 M4,5 A2.2,2.2 0 0 1 6.4,2.8 M12,5 A2.2,2.2 0 0 1 9.6,2.8 M5,13.2 L3.8,14.7 M11,13.2 L12.2,14.7"
+                                  Fill="Transparent" Stroke="Black" StrokeThickness="1.4" StrokeLineCap="Round" StrokeJoin="Round" />
+                        </Canvas>
+                    </Viewbox>
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Manage Schedules" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Text="Every schedule on this profile. Edit one to change its time, days, or reminder — or remove the ones you no longer need."
+                       TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource SecondaryText}" LineHeight="18" Margin="0,0,0,12" />
+
+            <!-- Schedule rows -->
+            <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Margin="0,0,0,18">
+                <ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <!-- (WPF: Padding="0,4" on the Border; on the list here, as Avalonia's ScrollViewer
+                         leaves padding out of its height.) -->
+                    <ItemsControl Name="ScheduleList" ItemsSource="{Binding Schedules}" Margin="0,4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ScheduleEntryViewModel">
+                                <Grid Margin="12,5" ColumnDefinitions="*,Auto,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Summary}" FontSize="12" Foreground="{DynamicResource PrimaryText}"
+                                               VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,10,0" />
+                                    <Button Grid.Column="1" Content="Edit" Theme="{StaticResource ActionButton}" VerticalAlignment="Center"
+                                            Margin="0,0,6,0" CommandParameter="{Binding}"
+                                            Command="{Binding #Root.((vm:ProfileCardViewModel)DataContext).EditScheduleEntryCommand}" />
+                                    <Button Grid.Column="2" Content="Remove" Theme="{StaticResource DeleteButton}" VerticalAlignment="Center"
+                                            CommandParameter="{Binding}"
+                                            Command="{Binding #Root.((vm:ProfileCardViewModel)DataContext).DeleteScheduleEntryCommand}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
+
+            <Button Content="Done" Theme="{StaticResource PrimaryButton}" IsDefault="True" IsCancel="True"
+                    HorizontalAlignment="Center" Click="Done_Click" />
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

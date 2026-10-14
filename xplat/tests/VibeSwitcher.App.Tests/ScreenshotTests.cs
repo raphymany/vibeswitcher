@@ -41,8 +41,15 @@ public class ScreenshotTests
 
     [AvaloniaTheory]
     [MemberData(nameof(Cases))]
-    public void Dialog(string name, string theme, string chrome) =>
-        Capture(name, theme, chrome, () => DialogCatalog.Create(name), _ => { });
+    public void Dialog(string name, string theme, string chrome)
+    {
+        // (In each system's words: the dialogs created inside read them.)
+        var oldWording = VibeSwitcher.App.Settings.Wording.Mac;
+        VibeSwitcher.App.Settings.Wording.Mac = chrome == "mac";
+        // (The mic level is set directly: a busy test run could draw it before the meter's first reading.)
+        try { Capture(name, theme, chrome, () => DialogCatalog.Create(name), w => (w as Dialogs.MicTestDialog)?.ShowLevel(0.035f)); }
+        finally { VibeSwitcher.App.Settings.Wording.Mac = oldWording; }
+    }
 
     // The Settings window: the Profiles page, with the filter bar open, with a profile's popup open,
     // and with no profiles; each Settings page, About and the FAQ — in the system's own words (the

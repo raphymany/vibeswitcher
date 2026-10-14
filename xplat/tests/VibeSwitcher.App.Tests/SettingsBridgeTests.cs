@@ -144,12 +144,9 @@ public class SettingsBridgeTests
     public void DialogsNotPortedYet_AnswerCancelled()
     {
         IDialogService service = new DialogService(() => null);
-        Assert.Null(service.ShowHotkeyCapture(new HotkeyDefinition()));
         Assert.Null(service.ShowIconGallery());
-        Assert.Null(service.ShowProfileTypeDialog());
         Assert.Equal(ScheduleWizardOutcome.Cancelled, service.ShowScheduleWizard(new ScheduleEntry(), use12Hour: false));
         Assert.Null(service.ShowSoundWizard(true, null, null, 50));
-        Assert.False(service.ShowSupportedHeadsets());
         Assert.Null(service.ShowAppTriggerWizard([], new Dictionary<string, string>()));
         Assert.Null(service.ShowBrowseIconFile()); // no window to show the file picker on
     }

@@ -55,4 +55,7 @@ public static class VirtualKeyMap
         Names.TryGetValue(virtualKeyCode, out var name) ? name : null;
 
     public static int Count => Names.Count;
+
+    // Every (code, name) pair, by code.
+    public static IEnumerable<KeyValuePair<int, string>> All => Names.OrderBy(p => p.Key);
 }

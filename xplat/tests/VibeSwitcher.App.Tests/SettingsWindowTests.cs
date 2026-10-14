@@ -169,10 +169,11 @@ public class SettingsWindowTests
         Dispatcher.UIThread.RunJobs();
         Assert.True(setup.Config.Current.Profiles.Single(p => p.Name == "Work").IsPinned);
 
-        // Auto-switch asks first (the supported-headsets dialog); until that dialog is ported the
-        // answer is "no", and the toggle must flip back — the shared view model's revert works here.
+        // Auto-switch asks first (the supported-headsets dialog). Answered "no", the toggle must flip
+        // back — the shared view model's revert works here.
         var auto = work.GetVisualDescendants().OfType<ToggleButton>().Single(b => ToolTip.GetTip(b) as string == "Auto-switch on device connect");
         Assert.NotNull(Avalonia.Data.BindingOperations.GetBindingExpressionBase(auto, ToggleButton.IsCheckedProperty));
+        Ui.ClickLater(window, "Close");
         auto.IsChecked = true; // (what a click does, then Click — after the view model has answered)
         auto.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         Dispatcher.UIThread.RunJobs();
@@ -180,6 +181,15 @@ public class SettingsWindowTests
         Assert.False(cardVm.TriggerOnConnect);
         Assert.False(auto.IsChecked);
         Assert.False(setup.Config.Current.Profiles.Single(p => p.Name == "Work").TriggerOnConnect);
+
+        // Answered "yes", it's on.
+        Ui.ClickLater(window, "Enable Auto-Switch");
+        auto.IsChecked = true;
+        auto.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(cardVm.TriggerOnConnect);
+        Assert.True(auto.IsChecked);
+        Assert.True(setup.Config.Current.Profiles.Single(p => p.Name == "Work").TriggerOnConnect);
 
         // Recording-only profiles can't auto-switch: the button is dimmed and off.
         var calls = Cards(window).ElementAt(2);

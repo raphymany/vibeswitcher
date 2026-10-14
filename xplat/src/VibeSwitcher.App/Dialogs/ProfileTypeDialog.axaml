@@ -1,0 +1,150 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            x:Class="VibeSwitcher.App.Dialogs.ProfileTypeDialog"
+            Width="380">
+    <!-- Port of Views/ProfileTypeDialog.xaml: Playback, Recording or Both for a new profile. -->
+    <c:VsDialog.Resources>
+        <ControlTheme x:Key="TypeButton" TargetType="Button">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="Background" Value="{DynamicResource CardBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource PressedBg}" />
+            </Style>
+        </ControlTheme>
+        <ControlTheme x:Key="CancelBtn" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Padding" Value="20,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+            <Setter Property="Background" Value="{DynamicResource CardBg}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource HoverBg}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="Background" Value="{DynamicResource PressedBg}" />
+            </Style>
+        </ControlTheme>
+    </c:VsDialog.Resources>
+    <c:VsDialog.Styles>
+        <Style Selector="Border.typeIcon">
+            <Setter Property="Width" Value="34" />
+            <Setter Property="Height" Value="34" />
+            <Setter Property="CornerRadius" Value="17" />
+            <Setter Property="Background" Value="{DynamicResource Accent}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Margin" Value="0,0,12,0" />
+        </Style>
+        <Style Selector="Border.typeIcon > Path">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="Stroke" Value="White" />
+            <Setter Property="StrokeThickness" Value="1.5" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="TextBlock.typeName">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryText}" />
+        </Style>
+        <Style Selector="TextBlock.typeDetail">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+    </c:VsDialog.Styles>
+
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="20,14,20,20">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoPlus}" Width="16" Height="16" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.8" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="What kind of profile?" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Choose what this profile will control when activated." FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" MaxWidth="270"
+                               HorizontalAlignment="Left" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <Button Name="PlaybackBtn" Theme="{StaticResource TypeButton}" Click="Playback_Click">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Border Classes="typeIcon"><Path Data="{DynamicResource IcoSpeaker}" /></Border>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Classes="typeName" Text="Playback Only" />
+                        <TextBlock Classes="typeDetail" Text="Switch your speaker or headphone output" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+
+            <Button Name="RecordingBtn" Theme="{StaticResource TypeButton}" Click="Recording_Click" Margin="0,8,0,0">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Border Classes="typeIcon"><Path Data="{DynamicResource IcoMic}" /></Border>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Classes="typeName" Text="Recording Only" />
+                        <TextBlock Classes="typeDetail" Text="Switch your microphone or audio input" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+
+            <Button Name="BothBtn" Theme="{StaticResource TypeButton}" Click="Both_Click" Margin="0,8,0,0">
+                <Grid ColumnDefinitions="Auto,*">
+                    <Border Classes="typeIcon"><Path Data="{DynamicResource IcoHeadphones}" /></Border>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Classes="typeName" Text="Both Devices" />
+                        <TextBlock Classes="typeDetail" Text="Switch speaker and microphone together" />
+                    </StackPanel>
+                </Grid>
+            </Button>
+
+            <!-- (No IsCancel, as on Windows: Escape doesn't close this one.) -->
+            <Button Content="Cancel" Click="Cancel_Click" Theme="{StaticResource CancelBtn}"
+                    HorizontalAlignment="Center" Margin="0,16,0,0" />
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>
