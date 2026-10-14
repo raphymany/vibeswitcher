@@ -1,0 +1,8 @@
+#!/bin/sh
+# After removing: the headset rule is gone, so tell udev (a dongle that's plugged in keeps access
+# until it's replugged). Best-effort.
+set -e
+if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
+  command -v udevadm >/dev/null 2>&1 && udevadm control --reload-rules 2>/dev/null || true
+fi
+exit 0

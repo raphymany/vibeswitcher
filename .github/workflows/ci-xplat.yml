@@ -173,6 +173,140 @@ jobs:
         # (The GNOME tests write to a throwaway settings file, never a real desktop's settings.)
         run: VS_X11_IT=1 VS_GSETTINGS_IT=1 xvfb-run -a dotnet test tests/VibeSwitcher.Platform.Linux.Tests/VibeSwitcher.Platform.Linux.Tests.csproj --filter "Category=X11|Category=Gnome" --logger "console;verbosity=normal"
 
+  packages-linux:
+    # The .deb and the AppImage, built from a self-contained publish, then installed / run.
+    name: Packages (Linux)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      APPIMAGETOOL_VERSION: "1.9.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: xplat/global.json
+
+      - name: Get appimagetool
+        # The standard AppImage builder, pinned (it fetches the matching AppImage runtime itself).
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/appimagetool" \
+            "https://github.com/AppImage/appimagetool/releases/download/$APPIMAGETOOL_VERSION/appimagetool-x86_64.AppImage"
+          chmod +x "$RUNNER_TEMP/appimagetool"
+          echo "APPIMAGETOOL=$RUNNER_TEMP/appimagetool" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: bash xplat/packaging/linux/build-linux.sh out
+
+      - name: Install the .deb and start the app
+        # "Started" = still running after 15 s on a virtual screen (timeout's exit code 124): that
+        # needs every library the window loads, which --version alone doesn't.
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb desktop-file-utils ./out/*.deb
+          vibeswitcher --version
+          # (liblttng-ust is optional: .NET only uses it for tracing when it's there.)
+          if ldd /opt/vibeswitcher/VibeSwitcher /opt/vibeswitcher/*.so | grep "not found" | grep -v liblttng-ust; then exit 1; fi
+          rc=0; xvfb-run -a timeout 15 vibeswitcher || rc=$?; test "$rc" -eq 124
+          dpkg -L vibeswitcher | grep -q /usr/lib/udev/rules.d/70-vibeswitcher-headsets.rules
+          dpkg -L vibeswitcher | grep -q /usr/share/applications/com.raphymany.vibeswitcher.desktop
+          desktop-file-validate /usr/share/applications/com.raphymany.vibeswitcher.desktop
+          sudo apt-get remove -y -q vibeswitcher
+          test ! -e /usr/lib/udev/rules.d/70-vibeswitcher-headsets.rules
+
+      - name: Start the AppImage
+        run: |
+          chmod +x out/*.AppImage
+          out/*.AppImage --appimage-extract-and-run --version
+          rc=0; xvfb-run -a timeout 15 out/*.AppImage --appimage-extract-and-run || rc=$?; test "$rc" -eq 124
+
+      - name: Keep the packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-linux
+          path: |
+            out/*.deb
+            out/*.AppImage
+          if-no-files-found: error
+
+  packages-linux-distros:
+    # The .deb installed and started on the other Linux versions it's meant for (its library
+    # dependencies are named differently on each).
+    name: Package on ${{ matrix.image }}
+    needs: packages-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["debian:12", "debian:13", "ubuntu:22.04", "ubuntu:26.04"]
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.image }}
+    timeout-minutes: 15
+    env:
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Get the packages
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-linux
+          path: out
+
+      - name: Install the .deb and start the app
+        run: |
+          apt-get update -q
+          apt-get install -y -q xvfb xauth ./out/*.deb
+          vibeswitcher --version
+          # (liblttng-ust is optional: .NET only uses it for tracing when it's there.)
+          if ldd /opt/vibeswitcher/VibeSwitcher /opt/vibeswitcher/*.so | grep "not found" | grep -v liblttng-ust; then exit 1; fi
+          rc=0; xvfb-run -a timeout 15 vibeswitcher || rc=$?; test "$rc" -eq 124
+
+  packages-mac:
+    # VibeSwitcher.app in a .dmg for each Mac architecture, built natively, then opened and started.
+    name: Packages (${{ matrix.rid }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            rid: osx-arm64
+          - os: macos-15-intel
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: xplat/global.json
+
+      - name: Build
+        run: bash xplat/packaging/macos/build-macos.sh ${{ matrix.rid }} out
+
+      - name: Open the .dmg and start the app from it
+        run: |
+          hdiutil attach -nobrowse -readonly -mountpoint "$RUNNER_TEMP/vs" out/*.dmg
+          app="$RUNNER_TEMP/vs/VibeSwitcher.app"
+          "$app/Contents/MacOS/VibeSwitcher" --version
+          # Started = still running after 15 s (that needs every library the window loads).
+          "$app/Contents/MacOS/VibeSwitcher" & pid=$!
+          sleep 15
+          kill -0 "$pid"
+          kill "$pid"; wait "$pid" || true
+          codesign --verify --deep --strict "$app"
+          plutil -extract CFBundleIdentifier raw "$app/Contents/Info.plist" | grep -qx com.raphymany.vibeswitcher
+          plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist"
+          test -f "$app/Contents/Resources/VibeSwitcher.icns"
+          hdiutil detach "$RUNNER_TEMP/vs"
+
+      - name: Keep the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-${{ matrix.rid }}
+          path: out/*.dmg
+          if-no-files-found: error
+
   ui-parity:
     # The look side by side: each ported dialog as the Windows app draws it (rendered by the Windows
     # app itself, via xplat/tools/WpfSnapshots) next to the macOS/Linux app's versions. For review —

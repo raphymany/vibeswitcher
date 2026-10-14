@@ -145,7 +145,7 @@ public sealed class LinuxStartupService : IStartupService
         Name=VibeSwitcher
         Comment=Switch audio devices with profiles and hotkeys
         Exec={ExecValue(path)}
-        Icon=vibeswitcher
+        Icon={LinuxAppIdentity.AppId}
         Terminal=false
         X-GNOME-Autostart-enabled=true
 

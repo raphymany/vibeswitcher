@@ -7,7 +7,7 @@ public enum InstallKind
 {
     MacApp,      // a VibeSwitcher.app bundle (Applications or elsewhere)
     AppImage,    // a single-file AppImage
-    Package,     // installed by the .deb package (/usr/lib/vibeswitcher)
+    Package,     // installed by the .deb package (/opt/vibeswitcher)
     Development, // run from a build folder
 }
 
