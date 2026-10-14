@@ -51,7 +51,8 @@ public sealed class ProcessRunner : IProcessRunner
         }
         // The output pipes close when every process holding them exits — a child it spawned (e.g. an
         // autospawned sound server) can keep them open, so the reads get the remaining time too.
-        var remaining = timeout - started.Elapsed;
+        // (No time limit — a password prompt — still bounds this part.)
+        var remaining = timeout == Timeout.InfiniteTimeSpan ? TimeSpan.FromSeconds(30) : timeout - started.Elapsed;
         if (!Task.WaitAll([stdout, stderr], remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero))
             throw TimedOut(file, args, timeout);
         return new ProcessResult(p.ExitCode, stdout.Result, stderr.Result);

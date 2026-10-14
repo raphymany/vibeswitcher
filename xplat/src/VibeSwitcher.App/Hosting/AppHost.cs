@@ -287,6 +287,7 @@ internal sealed class AppHost : IDisposable
         _afterSplashDone = true;
         Tray.ShowIcon();
         RunMenuBarCheck();
+        RunUninstallCheck();
         OfferHeadsetAccess();
         var opened = _launchCommand.Kind == AppCommandKind.Open && (Config.IsFirstRun || !Config.Current.StartMinimized);
         if (opened) Windows.OpenSettingsWindow();
@@ -379,7 +380,11 @@ internal sealed class AppHost : IDisposable
                 Tray.ShowBalloon("Hotkey Conflict", $"Could not register '{ex.Hotkey.ToDisplayString()}' — another app is using it.");
             },
             switchProfile: profile => Orchestrator.SwitchToProfile(profile),
-            onAppTriggersChanged: () => AppTriggers.RefreshWatchList()) { TrayAvailable = TrayAvailable };
+            onAppTriggersChanged: () => AppTriggers.RefreshWatchList())
+        {
+            TrayAvailable = TrayAvailable,
+            Uninstall = UninstallAsync,
+        };
 
     // The "Profile Switch Failed" dialog, on Settings when it's showing, else on its own.
     private void ShowSwitchError(string message)
@@ -537,11 +542,79 @@ internal sealed class AppHost : IDisposable
             ?? (Guid.TryParse(nameOrId, out var id) ? profiles.FirstOrDefault(p => p.Id == id) : null);
     }
 
+    // ── Uninstalling (Settings › Install & Updates) ────────────────────────────────────────────────
+
+    // The system's side of it (tests stand in for it).
+    internal IUninstallSystem? UninstallSystem { get; set; }
+
+    // The settings folder to delete once the app has fully stopped (Program does it, so no last
+    // save or log line can bring it back); null to keep it.
+    public string? DataToDelete { get; private set; }
+
+    // While it runs (a password prompt can stay open for minutes) a second one is ignored, and a
+    // Quit waits for it — the app must not end half-way, or skip deleting the data.
+    internal bool Uninstalling { get; private set; }
+    private bool _quitWhenUninstalled;
+
+    internal async Task UninstallAsync(InstallInfo install, bool deleteData)
+    {
+        if (Uninstalling || _disposed) return;
+        Uninstalling = true;
+        string? why;
+        try
+        {
+            var system = UninstallSystem ??= new SystemUninstall(Logger, () => Grabber);
+            why = await Task.Run(() => Uninstaller.Run(install, Startup, system, Logger));
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("AppHost.Uninstall", ex);
+            why = $"Uninstalling stopped part-way: {ex.Message}";
+        }
+        finally { Uninstalling = false; }
+        if (_disposed) return; // (the app was ended some other way meanwhile: logging out, say)
+        if (why == null && deleteData) DataToDelete = _paths.ConfigDir;
+        if (why == null) { Quit(); return; }
+        if (_quitWhenUninstalled)
+        {
+            // Quit was chosen while it ran: the app goes as asked, but says it's still installed
+            // (a notification outlives the app).
+            Tray.ShowBalloon("VibeSwitcher Wasn't Uninstalled", why);
+            Quit();
+            return;
+        }
+        _ = new DialogService(() => Windows.Window is { IsVisible: true } w ? w : null).ShowAlertAsync("VibeSwitcher Wasn't Uninstalled", why);
+    }
+
+    // CI on a real Mac and Linux (VS_UNINSTALL_CHECK=<file>): this copy uninstalls itself — a copy
+    // made for the purpose, with its data in a scratch folder — to show that what's left of the run
+    // and quitting work once the app's files are gone. Program writes "uninstalled" to the file at
+    // the very end. (On Linux the folder is deleted directly: the package manager would need a password.)
+    private void RunUninstallCheck()
+    {
+        // (Only on a CI runner, and only for a folder holding the app: it deletes it without asking.)
+        if (Environment.GetEnvironmentVariable("VS_UNINSTALL_CHECK") is not { Length: > 0 }
+            || Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true") return;
+        var appFolder = AppContext.BaseDirectory.TrimEnd('/');
+        if (!File.Exists(Path.Combine(appFolder, "VibeSwitcher")) || appFolder.Count(c => c == '/') < 2) return; // (never a top-level folder)
+        var install = OperatingSystem.IsMacOS()
+            ? new InstallInfo(InstallKind.MacApp, Path.GetFullPath(Path.Combine(appFolder, "../..")), "check")
+            : new InstallInfo(InstallKind.Package, appFolder, "check");
+        UninstallSystem = new UninstallCheckSystem(new SystemUninstall(Logger, () => Grabber));
+        DispatcherTimer.RunOnce(() => _ = UninstallAsync(install, deleteData: true), TimeSpan.FromSeconds(2));
+    }
+
     // ── Quitting ───────────────────────────────────────────────────────────────────────────────────
 
-    // The menu's Quit: the app's lifetime ends, which disposes the host.
+    // The menu's Quit: the app's lifetime ends, which disposes the host. (During an uninstall, once
+    // it's finished.)
     private void Quit()
     {
+        if (Uninstalling)
+        {
+            _quitWhenUninstalled = true;
+            return;
+        }
         if (Avalonia.Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) desktop.Shutdown();
         else Dispose();
     }

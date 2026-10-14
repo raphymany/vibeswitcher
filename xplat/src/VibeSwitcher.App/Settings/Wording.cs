@@ -52,7 +52,7 @@ public static class Wording
     {
         InstallKind.MacApp => "Moves VibeSwitcher to the Trash — no password needed. Your profiles and settings are kept unless you choose to delete them too.",
         InstallKind.Package => "Removes the VibeSwitcher package from this computer — you'll be asked for your password. Your profiles and settings are kept unless you choose to delete them too.",
-        _ => "Removes VibeSwitcher from this computer — no password needed. Your profiles and settings are kept unless you choose to delete them too.",
+        _ => "Removes VibeSwitcher from this computer — no password needed, unless it set up wireless-headset access. Your profiles and settings are kept unless you choose to delete them too.",
     };
 
     public static string? UninstallBlocked(InstallInfo install) =>

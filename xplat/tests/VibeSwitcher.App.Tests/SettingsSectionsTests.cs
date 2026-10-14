@@ -392,7 +392,8 @@ public class SettingsSectionsTests
         window.Install = install;
         window.RefreshStorageInfo();
         (InstallInfo Install, bool DeleteData)? asked = null;
-        window.Uninstall = (i, deleteData) => asked = (i, deleteData);
+        var running = new TaskCompletionSource();
+        window.Uninstall = (i, deleteData) => { asked = (i, deleteData); return running.Task; };
 
         ClickLater(window, "Cancel");
         Click(Named<Button>(window, "UninstallBtn"));
@@ -407,6 +408,15 @@ public class SettingsSectionsTests
         Click(Named<Button>(window, "UninstallBtn"));
         await Until(() => asked != null);
         Assert.Equal((install, true), asked);
+        // Off while it runs (a password prompt can stay open for minutes).
+        var button = Named<Button>(window, "UninstallBtn");
+        Assert.False(button.IsEnabled);
+        Assert.Equal("Uninstalling…", button.Content);
+        window.RefreshStorageInfo(); // (as when Settings is reopened meanwhile)
+        Assert.False(button.IsEnabled);
+        running.SetResult();
+        await Until(() => button.IsEnabled);
+        Assert.Equal("Uninstall VibeSwitcher…", button.Content);
         window.Close();
     }
 

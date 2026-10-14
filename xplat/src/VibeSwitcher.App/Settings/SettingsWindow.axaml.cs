@@ -45,7 +45,7 @@ public partial class SettingsWindow : Window
 
     // Uninstalling this copy (and its data, when asked) once the user has confirmed — set by the
     // app (next steps); until then it only logs.
-    internal Action<InstallInfo, bool>? Uninstall { get; set; }
+    internal Func<InstallInfo, bool, Task>? Uninstall { get; set; }
 
     // The shortcut capture and the backup file pickers (tests stand in for them).
     internal Func<HotkeyDefinition, string, HotkeyDefinition?> CaptureHotkey { get; set; }
@@ -876,7 +876,7 @@ public partial class SettingsWindow : Window
         var note = this.FindControl<TextBlock>("UninstallBlockedNote")!;
         note.Text = blocked;
         note.IsVisible = blocked != null;
-        this.FindControl<Button>("UninstallBtn")!.IsEnabled = blocked == null;
+        this.FindControl<Button>("UninstallBtn")!.IsEnabled = blocked == null && !_uninstalling;
     }
 
     // A folder's (or a single file's: the AppImage) size on disk. Links aren't followed, so a link
@@ -924,6 +924,7 @@ public partial class SettingsWindow : Window
 
     private async void UninstallButton_Click(object? sender, RoutedEventArgs e)
     {
+        var button = this.FindControl<Button>("UninstallBtn")!;
         try
         {
             if (Wording.UninstallBlocked(Install) != null) return;
@@ -933,16 +934,36 @@ public partial class SettingsWindow : Window
                 InstallKind.AppImage => UninstallText.LinuxAppImage,
                 _ => UninstallText.LinuxPackage,
             };
-            var dialog = new UninstallDialog(text);
+            var dialog = new UninstallDialog(text.WithDataFolder(DataFolder));
             if (!await _dialogs.ShowAsync(dialog)) return;
-            if (Uninstall != null) Uninstall(Install, dialog.DeleteData);
-            else _logger.Warning("SettingsWindow.Uninstall", "Uninstalling from the app isn't available on macOS/Linux yet.");
+            if (Uninstall == null)
+            {
+                _logger.Warning("SettingsWindow.Uninstall", "Uninstalling from the app isn't available here.");
+                return;
+            }
+            // (Off while it runs — also when Settings is reopened: a password prompt can stay open
+            // for minutes.)
+            _uninstalling = true;
+            button.IsEnabled = false;
+            button.Content = "Uninstalling…";
+            await Uninstall(Install, dialog.DeleteData);
         }
         catch (Exception ex)
         {
             _logger.Warning("SettingsWindow.Uninstall", ex.Message);
         }
+        finally
+        {
+            if (_uninstalling)
+            {
+                _uninstalling = false;
+                button.IsEnabled = Wording.UninstallBlocked(Install) == null;
+                button.Content = "Uninstall VibeSwitcher…";
+            }
+        }
     }
+
+    private bool _uninstalling;
 
     // ── About and FAQ ──────────────────────────────────────────────────────────────────────────────
 

@@ -170,10 +170,13 @@ public sealed class GnomeShortcutBridge : IGlobalKeyGrabber
 
     // Removes every VibeSwitcher shortcut from GNOME's settings (including ones from earlier runs), e.g.
     // when the user turns this off or uninstalls from inside the app. Runs gsettings: keep it off the UI thread.
+    // The bridge then holds none either: a pending update can't write them back.
     public bool RemoveAll()
     {
         lock (_applyLock)
         {
+            try { _timer.Change(Timeout.Infinite, Timeout.Infinite); } catch (ObjectDisposedException) { }
+            lock (_lock) _registered.Clear();
             _applied = null;
             return RemoveAllEntries(_logger, _runner);
         }
