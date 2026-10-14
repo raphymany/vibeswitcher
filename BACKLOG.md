@@ -1,6 +1,6 @@
 # VibeSwitcher — Open Items (extracted from RECORD.md)
 
-**Last updated:** 2026-10-14 — Branch 60 (`xplat/hotkeys-wayland`) — PR #126 (F46 phase 4b part 2: global hotkeys on Linux Wayland — desktop shortcut portal, GNOME custom-shortcut fallback, method selection). Previous: Branch 59 (`xplat/hotkeys`) — PR #124.
+**Last updated:** 2026-10-14 — Branch 61 (`xplat/triggers-hid`) — PR #128 (F46 phase 4c: app launch triggers, app picker lists, Linux wireless-headset access). Previous: Branch 60 (`xplat/hotkeys-wayland`) — PR #126.
 
 Only items **not yet marked ✅ Done** are listed here. Section numbers, letters, and titles match RECORD.md exactly.
 
@@ -134,7 +134,7 @@ Run before each release: first-run flow, corrupted config recovery, single-insta
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; the whole card fades when the feature is disabled~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for redesigned UI — profile cards, action strips, overlays, and icon frames use hardcoded dark hex values from the G HUB-inspired redesign; needs theme-aware resource keys for each~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4b done (PR #116, #118, #120, #122, #124, #126) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4 done (PR #116, #118, #120, #122, #124, #126, #128) |
 
 ---
 
@@ -168,12 +168,12 @@ Phase PRs merge into the holding branch `xplat/dev`, not `main`; one final PR br
 | 4a | `xplat/os-services` | Paths, single instance + CLI, resume detection, start at login, notifications, mute, install info | ✅ PR #122 |
 | 4b | `xplat/hotkeys` | Part 1: hotkey logic on a per-system grabber, macOS Carbon, Linux X11 | ✅ PR #124 |
 | 4b-2 | `xplat/hotkeys-wayland` | Part 2: Wayland GlobalShortcuts portal + GNOME custom-shortcut bridge (via the command line), grabber selection | ✅ PR #126 |
-| 4c | `xplat/triggers-hid` | App-launch triggers + app pickers, HID headsets, Linux udev rule | Planned |
+| 4c | `xplat/triggers-hid` | App-launch triggers + app pickers, HID headsets, Linux udev rule | ✅ PR #128 |
 | 5 | `xplat/ui-foundation` | Avalonia shell, themes, styles, fonts, window chrome, async dialogs, screenshot parity harness | Planned |
-| 6 | `xplat/packaging` | `.dmg`, AppImage, `.deb`, package smoke tests, prerelease workflow. Carried over: install the Linux desktop file as `com.raphymany.vibeswitcher.desktop` (the portal app id; newer portals reject the id without it) and use that name in the notification `desktop-entry` hint | Planned |
+| 6 | `xplat/packaging` | `.dmg`, AppImage, `.deb`, package smoke tests, prerelease workflow. Carried over: install the Linux desktop file as `com.raphymany.vibeswitcher.desktop` (the portal app id; newer portals reject the id without it) and use that name in the notification `desktop-entry` hint; install `packaging/linux/70-vibeswitcher-headsets.rules` to `/usr/lib/udev/rules.d/` in the `.deb` | Planned |
 | 7 | `xplat/ui-settings` | Settings window, view models, Mini Mode | Planned |
-| 8 | `xplat/ui-dialogs` | Remaining dialogs, splash, animated logo | Planned |
-| 9 | `xplat/app-wiring` | Startup orchestration, tray/menu bar, `--selftest`, diagnostics, per-OS install/uninstall. Carried over: macOS login item via SMAppService (reads the System Settings toggle), handle the macOS "reopen" event (relaunch from Finder/Dock → show Settings), start-at-login for dev builds run via the `dotnet` host, Linux logind `PrepareForSleep` as the primary wake signal, hotkeys via `LinuxHotkeys.CreateAsync` (store the GNOME-shortcuts consent in an xplat-only setting, show the explanation / portal state and desktop-assigned keys in Settings, call `GnomeShortcutBridge.RemoveAll` off the UI thread when consent is withdrawn or on uninstall), and `--switch`/`--mute`/`--mini` when the app isn't running start it and then apply the command | Planned |
+| 8 | `xplat/ui-dialogs` | Remaining dialogs, splash, animated logo. Carried over: the app picker on `IAppCatalog` (Installed off the UI thread, Running, Browse via `TriggerForFile`; show stored triggers with `AppTriggerMatch.DisplayName`), app icons (Linux icon-theme names, Mac `.icns`), the Linux headset-permission prompt on `LinuxHidAccess` (Check → Install off the UI thread; explain TurnedOff / Bluetooth) | Planned |
+| 9 | `xplat/app-wiring` | Startup orchestration, tray/menu bar, `--selftest`, diagnostics, per-OS install/uninstall. Carried over: macOS login item via SMAppService (reads the System Settings toggle), handle the macOS "reopen" event (relaunch from Finder/Dock → show Settings), start-at-login for dev builds run via the `dotnet` host, Linux logind `PrepareForSleep` as the primary wake signal, hotkeys via `LinuxHotkeys.CreateAsync` (store the GNOME-shortcuts consent in an xplat-only setting, show the explanation / portal state and desktop-assigned keys in Settings, call `GnomeShortcutBridge.RemoveAll` off the UI thread when consent is withdrawn or on uninstall), and `--switch`/`--mute`/`--mini` when the app isn't running start it and then apply the command, app triggers wired as on Windows (`AppWatcherService` on `LinuxProcesses` / `MacProcesses` + `AppTriggerService`; `HidHeadsetService` → `DeviceTriggerService`) | Planned |
 | 10 | `xplat/rc1` | Parity review vs Windows → friend test session 1 | Planned |
 | 11 | `xplat/rc1-fixes` | Fixes from session 1 → friend session 2 → release | Planned |
 
