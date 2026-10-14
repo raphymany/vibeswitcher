@@ -21,6 +21,7 @@ All notable changes to VibeSwitcher are documented here. Format follows [Keep a 
 - **macOS/Linux: the Settings window and Profiles page** — the profile cards, search and filters, the profile popup, the animated logo, and closing to the tray, looking and working as on Windows, with each system's own window frame. The Settings, About and FAQ pages and Mini Mode follow *(PR #138)*
 - **macOS/Linux: the Settings page, About and FAQ** — every Settings section (startup, appearance, notifications, devices, tray, shortcuts, Mini Window, logs, install and updates), with each system's own words ("Open at login" and "menu bar" on macOS, "Start at login" and "tray" on Linux). Shortcuts refuse a key combination that's already in use, as on Windows; backups export and import through the system's file pickers; the FAQ's links jump to the page they describe. The scroll bars now look like the Windows ones *(PR #140)*
 - **macOS/Linux: Mini Mode** — the Settings window shrinks into a small profile switcher (rows or an icon grid), with always on top, fading while another app is in front, its own remembered place, the first-time welcome and the Customize dialog for its layout and profiles, as on Windows. The Mac/Linux Settings window is now complete *(PR #142)*
+- **macOS/Linux: the first of the remaining dialogs** — setting a hotkey (with each system's key names), choosing a new profile's type, device aliases, the session error log, managing a profile's schedules, the microphone test and the supported-headsets list, looking and working as on Windows *(PR #144)*
 
 ---
 
