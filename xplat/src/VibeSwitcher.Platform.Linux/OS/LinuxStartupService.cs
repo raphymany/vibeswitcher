@@ -15,12 +15,15 @@ public sealed class LinuxStartupService : IStartupService
     private readonly ISessionErrorTracker _errorTracker;
     private readonly string _autostartDir;
     private readonly Func<string?> _launchPath;
+    private readonly Func<string?> _appAssembly;
 
     public LinuxStartupService(IAppLogger logger, ISessionErrorTracker errorTracker)
         : this(logger, errorTracker, DefaultAutostartDir(), DefaultLaunchPath) { }
 
-    internal LinuxStartupService(IAppLogger logger, ISessionErrorTracker errorTracker, string autostartDir, Func<string?> launchPath)
+    internal LinuxStartupService(IAppLogger logger, ISessionErrorTracker errorTracker, string autostartDir, Func<string?> launchPath,
+        Func<string?>? appAssembly = null)
     {
+        _appAssembly = appAssembly ?? (() => System.Reflection.Assembly.GetEntryAssembly()?.Location);
         _logger = logger;
         _errorTracker = errorTracker;
         _autostartDir = autostartDir;
@@ -81,7 +84,8 @@ public sealed class LinuxStartupService : IStartupService
                     "Could not determine the application path — 'Start at login' was not enabled.");
                 return;
             }
-            if (path.IndexOfAny(['\n', '\r']) >= 0)
+            var command = Command(path, _appAssembly());
+            if (command.Any(part => part.IndexOfAny(['\n', '\r']) >= 0))
             {
                 _errorTracker.Record(ErrorCode.StartupPathResolutionFailed, "Startup Path Unavailable",
                     "The application's folder name contains a line break, which an autostart entry can't hold — 'Start at login' was not enabled.");
@@ -89,7 +93,7 @@ public sealed class LinuxStartupService : IStartupService
             }
             Directory.CreateDirectory(_autostartDir);
             var tmp = EntryPath + ".tmp";
-            File.WriteAllText(tmp, Entry(path), new UTF8Encoding(false));
+            File.WriteAllText(tmp, Entry(command), new UTF8Encoding(false));
             File.Move(tmp, EntryPath, overwrite: true);
         }
         catch (Exception ex)
@@ -122,8 +126,10 @@ public sealed class LinuxStartupService : IStartupService
         {
             if (!IsStartupEnabled()) return;
             var path = _launchPath();
-            if (string.IsNullOrEmpty(path)) return;
-            var expected = "Exec=" + ExecValue(path);
+            // (A development build run with the dotnet command never takes over an installed copy's entry:
+            // only when start at login is turned on from it.)
+            if (string.IsNullOrEmpty(path) || Path.GetFileName(path) == "dotnet") return;
+            var expected = "Exec=" + ExecLine(Command(path, _appAssembly()));
             if (File.ReadAllLines(EntryPath).Any(l => l == expected)) return;
             _logger.Info("LinuxStartupService.RefreshRegistryPath", "Autostart entry outdated; updating to the current app location.");
             Enable();
@@ -138,18 +144,27 @@ public sealed class LinuxStartupService : IStartupService
 
     // (Normalised to "\n": the source may be checked out with Windows line endings, and the raw
     // string would carry them into the file.)
-    internal static string Entry(string path) =>
+    internal static string Entry(IReadOnlyList<string> command) =>
         $"""
         [Desktop Entry]
         Type=Application
         Name=VibeSwitcher
         Comment=Switch audio devices with profiles and hotkeys
-        Exec={ExecValue(path)}
+        Exec={ExecLine(command)}
         Icon={LinuxAppIdentity.AppId}
         Terminal=false
         X-GNOME-Autostart-enabled=true
 
         """.ReplaceLineEndings("\n");
+
+    // What runs at login: the app — or, for a development build started with the dotnet command
+    // (`dotnet VibeSwitcher.dll`), the dotnet host with the app's assembly (the host alone starts nothing).
+    internal static IReadOnlyList<string> Command(string path, string? appAssembly) =>
+        Path.GetFileName(path) == "dotnet" && appAssembly is { Length: > 0 } && appAssembly.EndsWith(".dll", StringComparison.Ordinal)
+            ? [path, appAssembly]
+            : [path];
+
+    internal static string ExecLine(IReadOnlyList<string> command) => string.Join(" ", command.Select(ExecValue));
 
     // The desktop-entry Exec rules: an argument with reserved characters is double-quoted, with
     // " ` $ \ backslash-escaped inside the quotes; then, because the value is also a desktop-file

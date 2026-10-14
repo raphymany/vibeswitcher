@@ -24,14 +24,17 @@ public sealed class MacStartupService : IStartupService
     private readonly ISessionErrorTracker _errorTracker;
     private readonly string _agentsDir;
     private readonly Func<string?> _launchPath;
+    private readonly Func<string?> _appAssembly;
 
     public MacStartupService(IAppLogger logger, ISessionErrorTracker errorTracker)
         : this(logger, errorTracker,
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library", "LaunchAgents"),
             () => Environment.ProcessPath) { }
 
-    internal MacStartupService(IAppLogger logger, ISessionErrorTracker errorTracker, string agentsDir, Func<string?> launchPath)
+    internal MacStartupService(IAppLogger logger, ISessionErrorTracker errorTracker, string agentsDir, Func<string?> launchPath,
+        Func<string?>? appAssembly = null)
     {
+        _appAssembly = appAssembly ?? (() => System.Reflection.Assembly.GetEntryAssembly()?.Location);
         _logger = logger;
         _errorTracker = errorTracker;
         _agentsDir = agentsDir;
@@ -88,7 +91,7 @@ public sealed class MacStartupService : IStartupService
     {
         Directory.CreateDirectory(_agentsDir);
         var tmp = AgentPath + ".tmp";
-        File.WriteAllText(tmp, Plist(path), new UTF8Encoding(false));
+        File.WriteAllText(tmp, Plist(path, _appAssembly()), new UTF8Encoding(false));
         // launchd refuses agents that others can write to ("bad permissions").
         if (!OperatingSystem.IsWindows())
             File.SetUnixFileMode(tmp, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.GroupRead | UnixFileMode.OtherRead);
@@ -115,9 +118,10 @@ public sealed class MacStartupService : IStartupService
         {
             if (!File.Exists(AgentPath)) return;
             var path = _launchPath();
-            // A temporary (translocated) copy must never replace a good path.
-            if (string.IsNullOrEmpty(path) || IsTranslocated(path)) return;
-            if (File.ReadAllText(AgentPath) == Plist(path)) return;
+            // A temporary (translocated) copy must never replace a good path, nor a development build
+            // run with the dotnet command an installed copy (it only takes over when turned on there).
+            if (string.IsNullOrEmpty(path) || IsTranslocated(path) || Path.GetFileName(path) == "dotnet") return;
+            if (File.ReadAllText(AgentPath) == Plist(path, _appAssembly())) return;
             _logger.Info("MacStartupService.RefreshRegistryPath", "Login item outdated; updating to the current app location.");
             Write(path);
         }
@@ -132,17 +136,21 @@ public sealed class MacStartupService : IStartupService
     internal static bool IsTranslocated(string path) => Platform.InstallInfo.IsTranslocatedPath(path);
 
     // An app bundle is opened through Launch Services (`open -a <bundle>`), the way the Dock or
-    // Finder start it; a bare executable (development builds) is run directly.
-    internal static string[] ProgramArguments(string path)
+    // Finder start it; a bare executable (development builds) is run directly — and one started with
+    // the dotnet command (`dotnet VibeSwitcher.dll`) is the dotnet host with the app's assembly.
+    internal static string[] ProgramArguments(string path, string? appAssembly = null)
     {
         int i = path.IndexOf(".app/Contents/MacOS/", StringComparison.Ordinal);
-        return i > 0 ? ["/usr/bin/open", "-a", path[..(i + 4)]] : [path];
+        if (i > 0) return ["/usr/bin/open", "-a", path[..(i + 4)]];
+        return Path.GetFileName(path) == "dotnet" && appAssembly is { Length: > 0 } && appAssembly.EndsWith(".dll", StringComparison.Ordinal)
+            ? [path, appAssembly]
+            : [path];
     }
 
     // LimitLoadToSessionType=Aqua: only for a real GUI login (not SSH sessions).
-    internal static string Plist(string path)
+    internal static string Plist(string path, string? appAssembly)
     {
-        var args = string.Concat(ProgramArguments(path).Select(a => $"\n        <string>{SecurityElement.Escape(a)}</string>"));
+        var args = string.Concat(ProgramArguments(path, appAssembly).Select(a => $"\n        <string>{SecurityElement.Escape(a)}</string>"));
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

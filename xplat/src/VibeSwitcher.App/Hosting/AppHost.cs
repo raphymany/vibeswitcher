@@ -225,9 +225,11 @@ internal sealed class AppHost : IDisposable
         if (!scheduleFired) Tray.UpdateIcon(activeProfile);
         Tray.RebuildMenu();
 
-        // 11. Wake from sleep: schedules first, then the active profile again.
+        // 11. Wake from sleep: schedules first, then the active profile again. The system says so
+        // where it can (Linux: logind); the clock-based detector notices everywhere else.
         Resume = new ResumeDetector();
         Resume.Resumed += _ => Dispatcher.UIThread.Post(OnResumed);
+        _ = WatchWakeAsync();
 
         // 12–14. Device auto-switch, wireless headsets, app launch triggers.
         DeviceTriggers = new DeviceTriggerService(Audio, Config, profile => Orchestrator.SwitchToProfile(profile), Logger);
@@ -414,9 +416,50 @@ internal sealed class AppHost : IDisposable
         Tray.ShowBalloon("VibeSwitcher", $"{what} {(muted ? "muted" : "unmuted")}", sound: false);
     }
 
+    private IDisposable? _wakeWatch;
+    private (DateTime Wall, TimeSpan Awake)? _lastResume;
+    private static readonly System.Diagnostics.Stopwatch AwakeClock = System.Diagnostics.Stopwatch.StartNew();
+
+    // The clocks the same-wake check reads (tests set them): the wall clock keeps counting while the
+    // machine sleeps; the awake clock doesn't.
+    internal Func<DateTime> WallClock { get; set; } = () => DateTime.UtcNow;
+    internal Func<TimeSpan> AwakeTime { get; set; } = () => AwakeClock.Elapsed;
+
+    // How long after the system's wake signal the profile is applied again: logind announces the
+    // wake before the sound system has found its devices again (USB and Bluetooth ones take a few
+    // seconds) — about when Windows reports it.
+    internal TimeSpan WakeSettle { get; set; } = TimeSpan.FromSeconds(3);
+
+    private async Task WatchWakeAsync()
+    {
+        try
+        {
+            var watch = await _platform.WatchWakeAsync(Logger,
+                () => Dispatcher.UIThread.Post(() => DispatcherTimer.RunOnce(OnResumed, WakeSettle)));
+            if (_disposed) watch?.Dispose();
+            else _wakeWatch = watch;
+        }
+        catch (Exception ex) { Logger.Warning("App.Wake", ex.Message); }
+    }
+
+    // One wake is acted on once: the system's signal and the clock-based detector both notice it, a
+    // few seconds apart. It's the same wake when little awake time has passed since the last one and
+    // the machine didn't sleep in between (the wall clock moved about as far as the awake clock — a
+    // small correction by the time server just after waking is allowed for).
+    internal static readonly TimeSpan SameWake = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan ClockSlack = TimeSpan.FromSeconds(10);
+
     internal void OnResumed()
     {
         if (_disposed) return;
+        var (wall, awake) = (WallClock(), AwakeTime());
+        if (_lastResume is var (lastWall, lastAwake))
+        {
+            var awakeGap = awake - lastAwake;
+            var slept = (wall - lastWall) - awakeGap;
+            if (awakeGap < SameWake && slept.Duration() < ClockSlack) return;
+        }
+        _lastResume = (wall, awake);
         bool fired = Scheduler.EvaluateNow();
         if (fired) return;
         var active = Config.Current.Profiles.FirstOrDefault(p => p.Id == Config.Current.ActiveProfileId);
@@ -736,6 +779,7 @@ internal sealed class AppHost : IDisposable
         try { Config?.SaveImmediate(); } catch (Exception) { /* best effort on exit */ }
         Scheduler?.Dispose();
         Resume?.Dispose();
+        _wakeWatch?.Dispose();
         Headsets?.Dispose();
         DeviceTriggers?.Dispose();
         AppTriggers?.Dispose();
