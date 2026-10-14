@@ -19,6 +19,7 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | App launch triggers | ✅ (`.app` bundles) | ✅ (+ Flatpak / Snap apps) | ✅ |
 | Wireless headset power on/off detection | ✅ | Needs a permission rule: installed automatically by the `.deb`, one click for the AppImage | Same as X11 |
 | Gallery emoji icons | Slightly different artwork (a different emoji font) | Same as macOS | Same as macOS |
+| Supported-headsets badges | ✅ (the ✅ / ⚠️ after "Tested" / "Untested" are drawn as the same single-colour outlines WPF shows, instead of relying on an emoji font) | ✅ (also where Linux has no emoji font) | Same as X11 |
 | First launch | Unsigned for now: needs "Open Anyway" once in System Settings › Privacy & Security | ✅ | ✅ |
 | "Sound Settings" button | Opens System Settings › Sound | Opens the desktop's own sound settings (GNOME, KDE, Cinnamon, MATE), or the PulseAudio volume control (`pavucontrol`) where there are none; the Windows-only "legacy sound panel" option doesn't apply | Same as X11 |
 | Settings, About and FAQ wording | Mac terms where Windows is named: "Open at login", "menu bar", "Show in Finder", the config path under `~/Library/Application Support`; About lists the Mac building blocks | "Start at login", "tray", the config path under `~/.config` (or `$XDG_CONFIG_HOME`); About lists the Linux building blocks | Same as X11 |

@@ -1,0 +1,129 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            xmlns:d="using:VibeSwitcher.App.Dialogs"
+            xmlns:vm="using:VibeSwitcher.ViewModels"
+            x:Class="VibeSwitcher.App.Dialogs.DeviceAliasesDialog"
+            x:DataType="d:DeviceAliasesDialog"
+            Width="480" MaxHeight="600">
+    <!-- Port of Views/DeviceAliasesDialog.xaml. -->
+    <c:VsDialog.Resources>
+        <!-- Playback / Recording tab button: accent while its tab is shown (.on). -->
+        <ControlTheme x:Key="TabButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryText}" />
+            <Setter Property="FocusAdorner" Value="{DynamicResource AccentFocusVisual}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="Bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6">
+                        <ContentPresenter Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^.on">
+                <Setter Property="Background" Value="{DynamicResource Accent}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+        </ControlTheme>
+
+        <DataTemplate x:Key="DeviceAliasRowTemplate" x:DataType="vm:DeviceAliasItem">
+            <Border Background="{DynamicResource InnerCardBg}" BorderBrush="{DynamicResource InnerCardBorderBrush}"
+                    BorderThickness="1" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
+                <StackPanel>
+                    <TextBlock Text="{Binding RawName}" FontSize="12" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryText}" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Margin="0,2,0,6">
+                        <TextBlock FontSize="11" Foreground="{DynamicResource SecondaryText}" IsVisible="{Binding HasProfileUsage}">
+                            <Run Text="Used in: " /><Run Text="{Binding ProfileUsage, Mode=OneWay}" FontWeight="SemiBold" />
+                        </TextBlock>
+                        <TextBlock Text="Disconnected" FontSize="11" Foreground="{DynamicResource DisabledText}"
+                                   Margin="6,0,0,0" IsVisible="{Binding !IsConnected}" />
+                        <TextBlock Text="Disabled" FontSize="11" Foreground="{DynamicResource DisabledText}"
+                                   Margin="6,0,0,0" IsVisible="{Binding IsDisabled}" />
+                        <TextBlock Text="Not used in any profile" FontSize="11" Foreground="{DynamicResource DisabledText}">
+                            <TextBlock.IsVisible>
+                                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                    <Binding Path="!HasProfileUsage" />
+                                    <Binding Path="!IsUnavailable" />
+                                </MultiBinding>
+                            </TextBlock.IsVisible>
+                        </TextBlock>
+                    </StackPanel>
+                    <Grid Classes="aliasBox">
+                        <TextBox Text="{Binding Alias, UpdateSourceTrigger=LostFocus}" FontSize="12" />
+                        <!-- "Custom alias…" while the field is empty and not being typed in. -->
+                        <Panel IsHitTestVisible="False" IsVisible="{Binding Alias, Converter={x:Static StringConverters.IsNullOrEmpty}}">
+                            <TextBlock Classes="hint" Text="Custom alias…" FontSize="12" Padding="8,0"
+                                       VerticalAlignment="Center" Foreground="{DynamicResource DisabledText}" />
+                        </Panel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </c:VsDialog.Resources>
+    <c:VsDialog.Styles>
+        <Style Selector="Grid.aliasBox:focus-within TextBlock.hint">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+    </c:VsDialog.Styles>
+
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoTag}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5" StrokeJoin="Round" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Device Aliases" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Custom names for your audio devices" FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+            <!-- (Windows: "…to use the Windows device name.") -->
+            <TextBlock Text="Custom names are shown everywhere a device appears — dropdowns, cards, and tooltips. Leave a field blank to use the device's own name."
+                       FontSize="12" Foreground="{DynamicResource SecondaryText}" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,14" />
+
+            <!-- Tab buttons: Playback / Recording -->
+            <UniformGrid Rows="1" Margin="0,0,0,12" Height="30">
+                <Button Name="PlaybackTabBtn" Theme="{StaticResource TabButton}" Classes.on="{Binding IsPlaybackTab}"
+                        Click="PlaybackTab_Click" Content="Playback" Margin="0,0,4,0" />
+                <Button Name="RecordingTabBtn" Theme="{StaticResource TabButton}" Classes.on="{Binding IsRecordingTab}"
+                        Click="RecordingTab_Click" Content="Recording" Margin="4,0,0,0" />
+            </UniformGrid>
+
+            <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <ItemsControl Name="PlaybackList" ItemsSource="{Binding PlaybackDevices}"
+                                  ItemTemplate="{StaticResource DeviceAliasRowTemplate}" IsVisible="{Binding IsPlaybackTab}" />
+                    <ItemsControl Name="RecordingList" ItemsSource="{Binding RecordingDevices}"
+                                  ItemTemplate="{StaticResource DeviceAliasRowTemplate}" IsVisible="{Binding IsRecordingTab}" />
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+                <Button Content="Close" Theme="{StaticResource ActionButton}" IsCancel="True" Width="90"
+                        Margin="0,0,8,0" Click="Close_Click" />
+                <Button Content="Save" Theme="{StaticResource PrimaryButton}" IsDefault="True" Width="90" Click="Save_Click" />
+            </StackPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

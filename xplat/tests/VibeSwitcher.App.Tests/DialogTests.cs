@@ -122,7 +122,7 @@ public class DialogTests
                     dialog.Show();
                     var bar = Assert.Single(dialog.GetVisualDescendants().OfType<TitleBar>());
                     Assert.Single(dialog.GetVisualDescendants().OfType<AccentFrame>());
-                    Assert.False(dialog.CanResize);
+                    Assert.Equal(dialog is SessionLogWindow, dialog.CanResize); // (the session log resizes, as on Windows)
                     Assert.NotNull(dialog.Icon);
                     var buttons = bar.GetVisualDescendants().OfType<StackPanel>().Single(p => p.Name == "Buttons");
                     if (style == ChromeStyle.Mac)

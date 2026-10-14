@@ -77,7 +77,7 @@ public partial class SettingsWindow : Window
         _hotkeyService = hotkeyService;
         _logger = logger;
         _errorTracker = errorTracker;
-        _dialogs = new DialogService(() => this);
+        _dialogs = new DialogService(() => this) { Audio = audioService as IPlatformAudioService, Logger = logger };
         CaptureHotkey = _dialogs.ShowHotkeyCapture;
         HasFocus = () => IsActive;
         CanFade = () => ActualTransparencyLevel != WindowTransparencyLevel.None;
@@ -651,9 +651,11 @@ public partial class SettingsWindow : Window
         if (count > 0) this.FindControl<TextBlock>("LogsButtonText")!.Text = $"⚠ {count} Error{(count == 1 ? "" : "s")} This Session";
     }
 
-    // The session log window comes with the remaining dialogs (next step).
+    // The session log (the log file sits in the data folder, under AppLogger's file name).
     private void LogsButton_Click(object? sender, RoutedEventArgs e) =>
-        _logger.Warning("SettingsWindow", "The session log isn't available on macOS/Linux yet.");
+        DialogService.Wait(_dialogs.ShowAsync(
+            new SessionLogWindow(_logger, _errorTracker,
+                System.IO.Path.Combine(DataFolder, System.IO.Path.GetFileName(AppLogger.LogPath)))));
 
     private void OpenSoundSettings_Click(object? sender, RoutedEventArgs e)
     {

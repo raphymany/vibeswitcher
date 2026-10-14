@@ -480,7 +480,7 @@ public class SettingsSectionsTests
         Assert.Equal("/usr/bin/open", reveal.Program);
         Assert.Equal(["-R", "/Applications/VibeSwitcher.app"], reveal.Args);
         Assert.Equal(["/home/a/Apps"], SystemOpener.RevealCommand(false, "/home/a/Apps/VibeSwitcher.AppImage").Args);
-        Assert.Equal("xdg-open", SystemOpener.FolderCommand(false, "/opt/vibeswitcher").Program);
+        Assert.Equal("xdg-open", SystemOpener.OpenCommand(false, "/opt/vibeswitcher").Program);
         Assert.Equal("xdg-open", SystemOpener.UrlCommand(false, "https://github.com").Program);
 
         Assert.True(SystemOpener.IsWebUrl("https://github.com/raphymany/vibeswitcher"));

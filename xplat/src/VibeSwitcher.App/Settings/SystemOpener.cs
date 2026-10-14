@@ -18,7 +18,14 @@ internal static class SystemOpener
     public static bool OpenFolder(string folder, out string error)
     {
         if (!Path.IsPathRooted(folder) || !Directory.Exists(folder)) { error = $"'{folder}' doesn't exist."; return false; }
-        return Run(FolderCommand(OperatingSystem.IsMacOS(), folder), out error);
+        return Run(OpenCommand(OperatingSystem.IsMacOS(), folder), out error);
+    }
+
+    // A document (the error log) in the system's app for it.
+    public static bool OpenFile(string file, out string error)
+    {
+        if (!Path.IsPathRooted(file) || !File.Exists(file)) { error = $"'{file}' doesn't exist."; return false; }
+        return Run(OpenCommand(OperatingSystem.IsMacOS(), file), out error);
     }
 
     // Shows a file or app in its folder: selected in Finder on macOS (opening a .app would start it);
@@ -35,8 +42,9 @@ internal static class SystemOpener
     internal static (string Program, string[] Args) UrlCommand(bool macOS, string url) =>
         macOS ? ("/usr/bin/open", [url]) : ("xdg-open", [url]);
 
-    internal static (string Program, string[] Args) FolderCommand(bool macOS, string folder) =>
-        macOS ? ("/usr/bin/open", [folder]) : ("xdg-open", [folder]);
+    // A folder or document, opened with its default app.
+    internal static (string Program, string[] Args) OpenCommand(bool macOS, string path) =>
+        macOS ? ("/usr/bin/open", [path]) : ("xdg-open", [path]);
 
     internal static (string Program, string[] Args) RevealCommand(bool macOS, string path) =>
         macOS ? ("/usr/bin/open", ["-R", path]) : ("xdg-open", [ParentOf(path)]);

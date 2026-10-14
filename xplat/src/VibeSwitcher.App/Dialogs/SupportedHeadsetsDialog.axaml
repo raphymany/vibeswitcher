@@ -1,0 +1,56 @@
+<c:VsDialog xmlns="https://github.com/avaloniaui"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:c="using:VibeSwitcher.App.Controls"
+            xmlns:s="using:VibeSwitcher.App.Settings"
+            x:Class="VibeSwitcher.App.Dialogs.SupportedHeadsetsDialog"
+            Width="480">
+    <!-- Port of Views/SupportedHeadsetsDialog.xaml (Windows named in the text → the system's name). -->
+    <Grid RowDefinitions="Auto,Auto">
+        <c:TitleBar />
+
+        <StackPanel Grid.Row="1" Margin="24,14,24,24">
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}"
+                        Margin="0,0,12,0" VerticalAlignment="Center">
+                    <Path Data="{DynamicResource IcoPlug}" Width="18" Height="18" Stretch="Uniform"
+                          Fill="Transparent" Stroke="White" StrokeThickness="1.5" StrokeJoin="Round" StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Enable Auto-Switch" FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryText}" />
+                    <TextBlock Text="Works for all devices — including wireless headsets" FontSize="11"
+                               Foreground="{DynamicResource SecondaryText}" Margin="0,2,0,0" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Explanation -->
+            <TextBlock Text="{x:Static s:Wording.HeadsetsIntro}" TextWrapping="Wrap" FontSize="12"
+                       Foreground="{DynamicResource PrimaryText}" LineHeight="18" Margin="0,0,0,12" />
+            <TextBlock Text="{x:Static s:Wording.HeadsetsDongles}" TextWrapping="Wrap" FontSize="12"
+                       Foreground="{DynamicResource PrimaryText}" LineHeight="18" Margin="0,0,0,12" />
+
+            <!-- Brand list (built in code, as on Windows) -->
+            <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6">
+                <ScrollViewer MaxHeight="460" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Name="BrandsPanel" />
+                </ScrollViewer>
+            </Border>
+
+            <!-- Action buttons -->
+            <StackPanel Margin="0,16,0,0">
+                <Grid ColumnDefinitions="*,8,*" Margin="0,0,0,8">
+                    <Button Grid.Column="0" Content="Enable Auto-Switch" Theme="{StaticResource PrimaryButton}"
+                            HorizontalAlignment="Stretch" IsDefault="True" Click="Good_Click" />
+                    <!-- (Tighter padding than Windows: Open Sans runs a little wider than Segoe UI.) -->
+                    <Button Grid.Column="2" Content="Request wireless headset support" Theme="{StaticResource ActionButton}" Padding="4,0"
+                            HorizontalAlignment="Stretch" Click="Request_Click" />
+                </Grid>
+                <Button Content="Close" Theme="{StaticResource ActionButton}" IsCancel="True"
+                        HorizontalAlignment="Center" Width="80" Click="Close_Click" />
+            </StackPanel>
+        </StackPanel>
+
+        <c:AccentFrame Grid.RowSpan="2" />
+    </Grid>
+</c:VsDialog>

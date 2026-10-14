@@ -1,15 +1,22 @@
 using VibeSwitcher.App.Controls;
 using VibeSwitcher.App.Dialogs;
 using VibeSwitcher.Helpers;
+using VibeSwitcher.Models;
+using VibeSwitcher.Services;
 using VibeSwitcher.Tests;
+using VibeSwitcher.ViewModels;
 
 namespace VibeSwitcher.App.Tests;
 
-// Every dialog, with the content the Windows app shows in it (for tests and screenshots).
+// Every dialog, with the content the Windows app shows in it (for tests and screenshots). Keep the
+// shared ones in step with xplat/tools/WpfSnapshots/Program.cs, which draws the Windows originals.
 internal static class DialogCatalog
 {
     public static readonly string[] Names =
-        ["alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup", "controls"];
+    [
+        "alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup",
+        "hotkey-capture", "profile-type", "device-aliases", "session-log", "mic-test", "supported-headsets", "controls",
+    ];
 
     public static VsDialog Create(string name) => name switch
     {
@@ -27,9 +34,60 @@ internal static class DialogCatalog
             new MiniModeSetupDialog.ProfileChoice { Name = "Work", IsSelected = true },
             new MiniModeSetupDialog.ProfileChoice { Name = "Calls" },
         ]),
+        "hotkey-capture" => new HotkeyCaptureDialog(new HotkeyDefinition { VirtualKeyCode = 0x47, UseCtrl = true, UseAlt = true }),
+        "profile-type" => new ProfileTypeDialog(),
+        "device-aliases" => new DeviceAliasesDialog(Aliases()),
+        "session-log" => new SessionLogWindow(new FakeAppLogger(), new FixedErrors(), "/tmp/vs-no-log/error.log"),
+        "mic-test" => new MicTestDialog("mic", "Arctis Nova 7 Microphone", new SteadyMic(0.035f), new FakeAppLogger()),
+        "supported-headsets" => new SupportedHeadsetsDialog(),
         "controls" => new DialogPreviewWindow(),
         _ => throw new ArgumentException(name),
     };
 
     public static IEnumerable<VsDialog> All() => Names.Select(Create);
+
+    public static List<DeviceAliasItem> Aliases() =>
+    [
+        new("hs", "Arctis Nova 7 Headset", "Headset", isPlayback: true, isConnected: true, isDisabled: false, profileUsage: "Gaming"),
+        new("spk", "Speakers (Built-in Audio)", "", isPlayback: true, isConnected: true, isDisabled: false, profileUsage: ""),
+        new("hdmi", "LG HDR 4K (HDMI)", "", isPlayback: true, isConnected: false, isDisabled: false, profileUsage: ""),
+        new("mic", "Arctis Nova 7 Microphone", "", isPlayback: false, isConnected: true, isDisabled: false, profileUsage: "Gaming, Calls"),
+    ];
+
+    // Two errors at fixed times (so every run draws the same picture).
+    public sealed class FixedErrors : ISessionErrorTracker
+    {
+        public IReadOnlyList<SessionError> Errors { get; } =
+        [
+            new(new DateTime(2026, 10, 14, 9, 41, 7), ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
+                "Couldn't switch to \"Gaming\": the playback device isn't available."),
+            new(new DateTime(2026, 10, 14, 9, 42, 30), ErrorCode.HotkeyConflict, "Hotkey Conflict",
+                "Could not register 'Ctrl+Alt+G' — another app is using it."),
+        ];
+        public bool HasErrors => true;
+        public int Count => Errors.Count;
+        public event EventHandler? ErrorAdded { add { } remove { } }
+        public void Record(ErrorCode code, string title, string message) { }
+    }
+
+    // A microphone at a steady level until the test closes the dialog.
+    public sealed class SteadyMic(float level) : IPlatformAudioService
+    {
+        public void RunMicLevelMonitor(string deviceId, CancellationToken ct, Action<float> onLevel)
+        {
+            onLevel(level);
+            ct.WaitHandle.WaitOne();
+        }
+        public bool? GetDefaultDeviceMute(bool playback) => false;
+        public bool SetDefaultDeviceMute(bool playback, bool mute) => true;
+
+        public event Action? DevicesChanged { add { } remove { } }
+        public event Action<string>? DevicePropertyChanged { add { } remove { } }
+        public IReadOnlyList<AudioDeviceInfo> GetPlaybackDevices() => [];
+        public IReadOnlyList<AudioDeviceInfo> GetRecordingDevices() => [];
+        public Task<ProfileSwitchResult> ApplyProfileAsync(DeviceProfile profile) => throw new NotSupportedException();
+        public Task TestSoundAsync(string deviceId) => Task.CompletedTask;
+        public string? GetAudioEndpointPath(string audioDeviceId) => null;
+        public void Dispose() { }
+    }
 }

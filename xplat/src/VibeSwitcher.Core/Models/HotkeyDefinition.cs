@@ -68,4 +68,18 @@ public class HotkeyDefinition
 
         return string.Join("+", parts);
     }
+
+    // The modifiers held so far while a hotkey is being pressed ("Ctrl+Alt+" — the Windows capture
+    // dialog's preview), in the same style as ToDisplayString ("⌃⌥" on macOS, "Super" on Linux).
+    public static string ModifierPreview(bool ctrl, bool alt, bool shift, bool win)
+    {
+        if (LabelStyle == HotkeyLabelStyle.MacOS)
+            return (ctrl ? "⌃" : "") + (alt ? "⌥" : "") + (shift ? "⇧" : "") + (win ? "⌘" : "");
+        var parts = new List<string>();
+        if (ctrl) parts.Add("Ctrl");
+        if (alt) parts.Add("Alt");
+        if (shift) parts.Add("Shift");
+        if (win) parts.Add(LabelStyle == HotkeyLabelStyle.Linux ? "Super" : "Win");
+        return string.Join("+", parts) + "+";
+    }
 }

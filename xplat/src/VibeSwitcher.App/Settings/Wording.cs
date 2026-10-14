@@ -60,6 +60,13 @@ public static class Wording
                 ? "You're running a development build — there's nothing to uninstall. To remove it, just delete its build folder."
                 : null;
 
+    // ── Supported headsets dialog ──
+    public static string SystemName => Mac ? "macOS" : "Linux";
+    public static string HeadsetsIntro =>
+        $"Auto-switch works for any device — USB, Bluetooth, and more. When your playback device connects, {SystemName} notifies VibeSwitcher and the switch happens automatically.";
+    public static string HeadsetsDongles =>
+        $"The list below covers wireless headsets whose USB dongle stays plugged in permanently. {SystemName} can't detect when these headsets power on or off, so VibeSwitcher reads the dongle's HID packets directly to catch the exact moment the headset turns on.";
+
     // ── About ──
     public static string Platform => Mac ? "macOS 14 or later" : "Linux";
 
