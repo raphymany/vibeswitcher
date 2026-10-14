@@ -572,7 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–5 done (PR #116, #118, #120, #122, #124, #126, #128, #130, #132) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–6 done (PR #116, #118, #120, #122, #124, #126, #128, #130, #132, #134) |
 
 ---
 
@@ -1591,3 +1591,15 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 |------|--------|
 | `xplat/tools/WpfSnapshots` (net8.0-windows) — renders the Windows dialogs (light/dark, 8 px rounded corners) from an already-built app; App.xaml resources parsed as XAML into a plain `Application` (the Windows `App` class is never created, so its start-up never runs); writes `parity.html` (Windows \| Linux \| macOS with sizes and size differences) | ✅ Done |
 | CI — "Look vs Windows" job (after build-and-test; Linux and macOS images from those systems' runs; "ui-parity" artifact) | ✅ Done |
+
+### Branch 64: `xplat/packaging` ✅ Done — PR #134
+**Theme:** F46 phase 6 (issue #133). The Mac and Linux packages people will download, built and checked by CI on every change. Packages are CI artifacts only (no GitHub releases during the port, so no prerelease workflow). No file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Merged into `xplat/dev`.
+
+| Item | Status |
+|------|--------|
+| macOS — `packaging/macos/build-macos.sh`: `VibeSwitcher.app` per architecture (Info.plist: `com.raphymany.vibeswitcher` as the login item expects, microphone usage text, macOS 14+, numeric bundle version), `.icns` from the Windows 256 px icon, licences, every file in `Contents/MacOS` ad-hoc signed then the bundle (no `--deep`), `.dmg` with an Applications link (hdiutil retried) | ✅ Done |
+| macOS — `notarize.sh` (not run until an Apple developer account exists): per-file Developer ID signing with the hardened runtime, entitlements on the main program only, notarytool via a keychain profile with the verdict checked (log printed on rejection), stapling of the app and the dmg | ✅ Done |
+| Linux — `packaging/linux/build-linux.sh`: `.deb` (`/opt/vibeswitcher`, `/usr/bin/vibeswitcher`, `com.raphymany.vibeswitcher.desktop`, hicolor icons, udev headset rule, licences + `copyright`, md5sums, xz, normalised file modes; Depends incl. libice6/libsm6/libxext6/libxfixes3 and ICU 70–80; postinst/postrm reload udev) and AppImage (appimagetool 1.9.0, static runtime) | ✅ Done |
+| App — `Cli`: `--version` (`2.0.1-preview`, csproj `VersionPrefix`/`VersionSuffix`) and `--help`, bad option → exit 2; `LinuxAppIdentity` shared by the portal, notifications and the autostart entry's icon | ✅ Done |
+| CI — `packages-linux` (build, install, `ldd`, start under Xvfb for 15 s, desktop-file-validate, remove), `packages-linux-distros` (install + start on Debian 12/13, Ubuntu 22.04/26.04), `packages-mac` (Apple Silicon + Intel: open the dmg, start the app, verify the signature and Info.plist) | ✅ Done |
+| Tests — 6 command-line tests; 694 passing on Windows. One QA round (ICU names for newer distros, per-file Mac signing, real start-up checks, extra X11 libraries, xz, macOS 14 minimum) | ✅ Done |
