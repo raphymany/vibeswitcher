@@ -572,7 +572,7 @@ Undocumented `IPolicyConfig` COM API is not available to sandboxed Store apps.
 | ~~F43~~ | ~~Card-based enable/disable — settings cards that support toggling (e.g. Shortcuts hotkey) use card-level visual state (full-opacity "live" vs. dimmed "off") instead of per-row pill toggles; clicking the card or its toggle fades the whole card; part of planned UI/UX redesign~~ | ✅ Done — PR #68 |
 | ~~F44~~ | ~~Compact / mini Settings window — condensed view that shrinks the window to a minimal layout for users with many profiles; full window restores on demand~~ | ✅ Done — PR #108 |
 | ~~F45~~ | ~~Light theme support for the redesigned UI — theme-aware resource keys for profile cards, action strips, overlays, and icon frames so the G HUB-inspired redesign adapts to light/dark~~ | ✅ Done — PR #106 |
-| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4b done (PR #116, #118, #120, #122, #124, #126) |
+| F46 | macOS + Linux support — one shared cross-platform app (Avalonia, `xplat/`) with the same function, behaviour and design as Windows; Windows app unchanged. Plan: 11 phases (foundation, Linux audio, macOS audio, OS services, hotkeys, triggers/HID, UI foundation, packaging, Settings UI, dialogs, app wiring) then two friend test sessions | 🚧 In progress — phases 1–4 done (PR #116, #118, #120, #122, #124, #126, #128) |
 
 ---
 
@@ -1560,3 +1560,14 @@ C2/C3 (installer, code signing — external tooling/money), L17 (high-contrast �
 | `LinuxHotkeys` selector — X11 / portal / GNOME (consent) / off with an explanation (`NoKeyGrabber`); leftover GNOME entries removed whenever GNOME uses another way | ✅ Done |
 | CI — Desktop-bus step runs the fake-portal tests; `linux-desktop` job also runs the GNOME tests against real gsettings + schemas (keyfile backend) | ✅ Done |
 | Tests — 537 passing on Windows + 16 Linux-only (private D-Bus, real gsettings); PARITY Wayland notes. Library quirks found: Tmds 0.21.3 writes the match key `pathNamespace` wrongly; its MessageWriter must be passed by `ref` | ✅ Done |
+
+### Branch 61: `xplat/triggers-hid` ✅ Done — PR #128
+**Theme:** F46 phase 4c (issue #127). App launch triggers, the app picker's lists, and wireless-headset access on Linux. No visible app yet; no file under `VibeSwitcher/` or `VibeSwitcher.Tests/` changes. Merged into `xplat/dev`.
+
+| Item | Status |
+|------|--------|
+| Core — trigger formats + `AppTriggerMatch` (path, Mac bundle incl. translocation/cryptex, `flatpak:`/`snap:`, AppImage, script, Wine `.exe`, desktop-entry id, name fallback with 15-char truncation), `IRunningProcessSource` (null = unreadable), `IAppCatalog`; forks of `AppWatcherService` (per-trigger state, one launch fires once — most specific claims first, unreadable list skipped) and `AppTriggerService` (exact trigger first, then name); `FilePaths.RealPath` moved to Core | ✅ Done |
+| Linux — `LinuxProcesses` (/proc, cached by pid+exe+comm, readlink P/Invoke, Flatpak/Snap from cgroup, desktop id from the app scope, AppImage via environ, interpreter scripts by real path), `DesktopEntry` (spec quoting, links/openers/inline code excluded, interpreters, Wine, `Path=`), `LinuxAppCatalog` (XDG + Flatpak/Snap dirs, hide overrides, running apps incl. Wine games, never itself) | ✅ Done |
+| macOS — `MacProcesses` (libproc, shared buffers under a lock), `MacAppCatalog` (Applications folders one level deep, real paths, translocated copies not stored) | ✅ Done |
+| Linux headsets — `LinuxHidAccess`: udev rule for the exact supported VID:PID dongles (`uaccess`), generated `packaging/linux/70-vibeswitcher-headsets.rules` (LF, drift test), check (USB only, udev file order, user's switch-off respected), pkexec install (argv, temp file + mv, settle) and remove (own file only) | ✅ Done |
+| Tests — 547 on Windows, 653 on Linux (real processes, catalogs, symlinks); real Mac processes/bundles/catalog and HidSharp smoke tests in the macOS CI job; PARITY app-trigger and headset notes. Two QA rounds | ✅ Done |

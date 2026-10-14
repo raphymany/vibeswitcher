@@ -131,43 +131,7 @@ internal sealed class UsbSysfs(string root = "/sys") : IUsbSysfs
 
     // Resolves every symlink along an absolute path, each relative target against the real
     // directory that contains the link. Null on a loop or a missing component.
-    internal static string? RealPath(string path)
-    {
-        var pending = new Stack<string>(Split(path).Reverse());
-        var resolved = new List<string>();
-        int hops = 0;
-        while (pending.Count > 0)
-        {
-            var part = pending.Pop();
-            if (part == ".") continue;
-            if (part == "..") { if (resolved.Count > 0) resolved.RemoveAt(resolved.Count - 1); continue; }
-
-            var candidate = Join(resolved, part);
-            var target = new FileInfo(candidate).LinkTarget;
-            if (target == null)
-            {
-                if (!Path.Exists(candidate)) return null;
-                resolved.Add(part);
-                continue;
-            }
-            if (++hops > 40) return null;
-            if (Path.IsPathRooted(target)) resolved.Clear();
-            foreach (var p in Split(target).Reverse()) pending.Push(p);
-        }
-        return Join(resolved, null);
-    }
-
-    private static IEnumerable<string> Split(string p) =>
-        p.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
-
-    private static string Join(List<string> parts, string? last)
-    {
-        var all = last == null ? parts : [.. parts, last];
-        // Keep the original root form: "/" on Unix, "C:\" on Windows (tests).
-        if (OperatingSystem.IsWindows() && all.Count > 0 && all[0].EndsWith(':'))
-            return Path.Combine([all[0] + Path.DirectorySeparatorChar, .. all.Skip(1)]);
-        return "/" + string.Join('/', all);
-    }
+    internal static string? RealPath(string path) => FilePaths.RealPath(path);
 
     private static string? Read(string dir, string file)
     {
