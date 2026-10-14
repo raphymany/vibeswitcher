@@ -525,4 +525,16 @@ public class AppHostTests : IDisposable
         Assert.Equal(1, checks); // offered already: not again
         Close(host);
     }
+
+    [AvaloniaFact]
+    public async Task OpeningTheAppAgain_OnMacOS_ShowsSettings_AndKeepsItShown()
+    {
+        var (host, _) = await Start(change: c => c.StartMinimized = true);
+        Assert.Null(host.Windows.Window);
+        host.Reopen();
+        Assert.True(host.Windows.Window!.IsVisible);
+        host.Reopen(); // (never hides it, unlike the shortcut)
+        Assert.True(host.Windows.Window.IsVisible);
+        Close(host);
+    }
 }

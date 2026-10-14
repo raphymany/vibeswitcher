@@ -16,7 +16,7 @@ internal static class DialogCatalog
     [
         "alert", "alert-info", "confirm", "confirm-delete", "conflict-retry", "error", "uninstall", "mini-setup",
         "hotkey-capture", "profile-type", "device-aliases", "session-log", "mic-test", "supported-headsets",
-        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound", "app-trigger", "headset-access", "splash", "controls",
+        "clone-profile", "icon-gallery", "schedule-wizard", "switch-sound", "app-trigger", "headset-access", "splash", "tray-menu", "banner", "controls",
     ];
 
     public static Avalonia.Controls.Window Create(string name) => name switch
@@ -54,9 +54,45 @@ internal static class DialogCatalog
             () => VibeSwitcher.Platform.Linux.Hid.RuleInstallResult.Cancelled, () => VibeSwitcher.Platform.Linux.Hid.HeadsetAccess.NeedsRule),
         // (Still, everything in place, on a grey "desktop" so its shadow shows: screenshots have no see-through.)
         "splash" => new SplashWindow(play: false) { CanSeeThrough = () => true, Background = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#808080")) },
+        // (The macOS menu-bar menu and banner, on the grey "desktop" too.)
+        "tray-menu" => OnDesktop(new Hosting.StyledTrayMenu(_ => SampleIcon.Value).Build(TrayEntries())),
+        "banner" => new Hosting.BannerWindow("VibeSwitcher", "Switched to Gaming", TimeSpan.Zero) { Background = Desktop },
         "controls" => new DialogPreviewWindow(),
         _ => throw new ArgumentException(name),
     };
+
+    private static readonly Avalonia.Media.IBrush Desktop = new Avalonia.Media.SolidColorBrush(Avalonia.Media.Color.Parse("#808080"));
+
+    private static Avalonia.Controls.Window OnDesktop(Avalonia.Controls.Control content) => new()
+    {
+        Background = Desktop, SizeToContent = Avalonia.Controls.SizeToContent.WidthAndHeight,
+        SystemDecorations = Avalonia.Controls.SystemDecorations.None, Content = content,
+    };
+
+    // The menu as the menu bar shows it: Gaming pinned and active, two more profiles, every item on.
+    public static List<Hosting.TrayEntry> TrayEntries()
+    {
+        var gaming = new DeviceProfile { Name = "Gaming", Mode = ProfileMode.Both, IsPinned = true, Hotkey = new HotkeyDefinition { VirtualKeyCode = 0x47, UseCtrl = true, UseAlt = true } };
+        var work = new DeviceProfile { Name = "Work", Mode = ProfileMode.Playback };
+        var calls = new DeviceProfile { Name = "Calls", Mode = ProfileMode.Recording };
+        return
+        [
+            new(Hosting.TrayEntryKind.Header, "VibeSwitcher"),
+            new(Hosting.TrayEntryKind.Separator),
+            new(Hosting.TrayEntryKind.Profile, "★ Gaming", Profile: gaming, Pinned: true, IsChecked: true),
+            new(Hosting.TrayEntryKind.Separator),
+            new(Hosting.TrayEntryKind.Profile, "Work", Profile: work),
+            new(Hosting.TrayEntryKind.Profile, "Calls", Profile: calls),
+            new(Hosting.TrayEntryKind.Separator),
+            new(Hosting.TrayEntryKind.Action, "About", IconKey: "IcoInfo"),
+            new(Hosting.TrayEntryKind.Action, "Help & FAQ", IconKey: "IcoHelp"),
+            new(Hosting.TrayEntryKind.Action, "Settings", IconKey: "IcoSettings"),
+            new(Hosting.TrayEntryKind.Action, "Mini Mode", IconKey: "IcoCompact"),
+            new(Hosting.TrayEntryKind.Action, "Open Sound Settings", IconKey: "IcoSpeaker"),
+            new(Hosting.TrayEntryKind.Separator),
+            new(Hosting.TrayEntryKind.Action, "Quit", IconKey: "IcoClose"),
+        ];
+    }
 
     // (The dialogs: not the splash.)
     public static IEnumerable<VsDialog> All() => Names.Select(Create).OfType<VsDialog>();

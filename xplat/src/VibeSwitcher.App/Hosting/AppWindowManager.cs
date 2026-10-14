@@ -43,6 +43,9 @@ internal sealed class AppWindowManager(Func<SettingsWindow> create)
         if (expandSettings) window.ExpandSettings();
     }
 
+    // Settings in front, never hidden (macOS "reopen": the app was opened again).
+    public void ShowSettingsWindow() => Bring(GetOrCreate());
+
     public void NotifyProfileSwitched() => _window?.RefreshActiveStates();
 
     // A profile was re-bound to a device's new ID — reload the cards' device lists.

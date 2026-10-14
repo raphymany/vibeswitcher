@@ -1024,7 +1024,7 @@
                         <!-- ── Tray (macOS: Menu Bar) ── -->
                         <StackPanel Name="TraySection" IsVisible="{Binding IsTraySelected}">
                             <TextBlock Classes="pageTitle" Text="{x:Static s:Wording.TrayNav}" />
-                            <Border Classes="section">
+                            <Border Classes="section" IsVisible="{x:Static s:Wording.LeftClickOption}">
                                 <Grid Margin="14,10">
                                     <TextBlock Classes="rowLabel" Text="{x:Static s:Wording.LeftClickCycles}" />
                                     <CheckBox Classes="switch" Theme="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding LeftClickCyclesProfiles}" />
@@ -1469,7 +1469,7 @@
                     <Border Theme="{StaticResource CardBorder}">
                         <StackPanel>
                             <TextBlock Classes="faqHead" Text="{x:Static s:Wording.TrayFaqHeader}" />
-                            <TextBlock Classes="faq"><Run Text="{x:Static s:Wording.LivesIn}" /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="traySettings" Click="FaqAction_Click" Content="{x:Static s:Wording.TrayLink}" /></InlineUIContainer><Run Text="), and right-click for the full menu with all profiles and quick actions. Hover the icon to see the active profile and your hotkey cheat sheet." /></TextBlock>
+                            <TextBlock Classes="faq"><Run Text="{x:Static s:Wording.LivesIn}" /><InlineUIContainer><Button Theme="{StaticResource FaqLink}" Tag="traySettings" Click="FaqAction_Click" Content="{x:Static s:Wording.TrayLink}" /></InlineUIContainer><Run Text="{x:Static s:Wording.LivesInRest}" /></TextBlock>
                         </StackPanel>
                     </Border>
 

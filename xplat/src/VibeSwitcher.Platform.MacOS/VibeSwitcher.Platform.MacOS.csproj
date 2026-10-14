@@ -4,6 +4,8 @@
   <PropertyGroup>
     <AssemblyName>VibeSwitcher.Platform.MacOS</AssemblyName>
     <RootNamespace>VibeSwitcher.Platform.MacOS</RootNamespace>
+    <!-- (The menu-bar item's click callback is a native function pointer.) -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

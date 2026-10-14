@@ -155,7 +155,7 @@ internal sealed class AppHost : IDisposable
             OpenFaq: () => Windows.OpenFaq(),
             ToggleMiniMode: () => { Windows.ToggleCompactMode(); Tray.RefreshMiniMenuItem(); },
             IsMiniModeActive: () => Windows?.IsMiniModeActive() ?? false, // (asked while the menu is first built)
-            Quit: Quit));
+            Quit: Quit), menuBarItem: _platform.CreateMenuBarItem());
         Theme.ThemeApplied += Tray.RebuildMenu;
 
         // 5. The switch path, mute banners and the Settings window.
@@ -256,12 +256,38 @@ internal sealed class AppHost : IDisposable
         if (_afterSplashDone || _disposed) return;
         _afterSplashDone = true;
         Tray.ShowIcon();
+        RunMenuBarCheck();
         OfferHeadsetAccess();
         if (_launchCommand.Kind == AppCommandKind.Open && (Config.IsFirstRun || !Config.Current.StartMinimized))
             Windows.OpenSettingsWindow();
         // Only now do other launches' commands run: one arriving during the splash ("open Settings")
         // would otherwise be undone by the opening above, which hides a window that's in front.
         _ready.TrySetResult();
+    }
+
+    // CI on a real Mac (VS_MENUBAR_CHECK=<file>): a press on the menu-bar item, as the user's, then
+    // whether the styled menu opened and where, written to the file — and the app quits.
+    private void RunMenuBarCheck()
+    {
+        if (Environment.GetEnvironmentVariable("VS_MENUBAR_CHECK") is not { Length: > 0 } file) return;
+        DispatcherTimer.RunOnce(() =>
+        {
+            string result;
+            try
+            {
+                Tray.PressMenuBarItem();
+                result = !Tray.HasMenuBarItem ? "no menu-bar item"
+                    : Tray.Styled?.OpenMenu != null ? $"menu opened at {Tray.MenuBarAnchor}"
+                    : "menu not opened";
+            }
+            catch (Exception ex) { result = $"failed: {ex.Message}"; }
+            DispatcherTimer.RunOnce(() =>
+            {
+                if (result.StartsWith("menu opened") && Tray.Styled?.OpenMenu == null) result = "menu closed by itself";
+                try { File.WriteAllText(file, result); } catch (Exception) { }
+                Quit();
+            }, TimeSpan.FromSeconds(1));
+        }, TimeSpan.FromSeconds(2));
     }
 
     // Linux: when a profile switches on a headset's power and its receiver can't be read, explain it
@@ -440,6 +466,14 @@ internal sealed class AppHost : IDisposable
                 Windows.OpenSettingsWindow();
                 return "ok";
         }
+    }
+
+    // macOS: the app was opened again while running (Finder, Launchpad, Spotlight) — Settings shows,
+    // once the app is up.
+    public void Reopen()
+    {
+        if (_disposed || !_ready.Task.IsCompletedSuccessfully) return;
+        Windows.ShowSettingsWindow();
     }
 
     // A profile by name (any case), or by id.

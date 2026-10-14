@@ -26,12 +26,15 @@ internal sealed record TrayActions(
     Action OpenSettings, Action OpenSettingsExpanded, Action OpenAbout, Action OpenFaq,
     Action ToggleMiniMode, Func<bool> IsMiniModeActive, Action Quit);
 
-// Fork of Tray/TrayService.cs on Avalonia's TrayIcon: the Linux tray (StatusNotifierItem) and, for
-// now, the macOS menu bar (the styled menu-bar popup comes next). Same behaviour as Windows: the icon
-// is the active profile's, the tooltip lists the profile shortcuts, a left click cycles profiles or
-// opens the window, and the menu has the app header, the profiles (pinned first, ★), About, Help,
-// Settings, Mini Mode, Sound Settings and Quit, following Settings › Tray. The menu is the system's
-// own, so it can't take the Windows menu's styling: each profile is one line, with its icon.
+// Fork of Tray/TrayService.cs on Avalonia's TrayIcon: the Linux tray (StatusNotifierItem) and the
+// macOS menu bar. Same behaviour as Windows: the icon is the active profile's, the tooltip lists the
+// profile shortcuts, and the menu has the app header, the profiles (pinned first, ★), About, Help,
+// Settings, Mini Mode, Sound Settings and Quit, following Settings › Tray (BuildEntries).
+//   Linux  the menu is the desktop's own (it can't take the Windows styling: each profile is one
+//          line, with its icon); a left click cycles profiles or opens Settings, as on Windows
+//   macOS  the app's own menu-bar item (Avalonia's never reports a click there): a press opens the
+//          Windows-styled menu (StyledTrayMenu) under it — the menu bar's way: there's no separate
+//          left-click action there. If that item can't be made, Avalonia's icon with the system menu.
 // Banners go to the system's notifications (IDesktopNotifier); the Windows balloon sound has no
 // counterpart (the notification server decides).
 internal sealed class TrayService : ITrayService, IDisposable
@@ -41,18 +44,22 @@ internal sealed class TrayService : ITrayService, IDisposable
     private readonly ISessionErrorTracker _errorTracker;
     private readonly IDesktopNotifier? _notifier;
     private readonly TrayActions _actions;
-    private readonly TrayIcon _trayIcon;
+    private readonly TrayIcon? _trayIcon;  // Linux (and the macOS fallback)
+    private readonly IMenuBarItem? _menuBar; // macOS
     // Each profile's icon, decoded once (RebuildMenu and UpdateIcon never read from disk again).
     private readonly Dictionary<Guid, byte[]> _iconBytes = new();
     private readonly Dictionary<Guid, Bitmap> _menuIcons = new();
     private readonly Dictionary<Guid, NativeMenuItem> _profileItems = new();
     private NativeMenuItem? _miniItem;
+    // macOS: the styled menu, and the item's pictures (PNG, decoded once per profile).
+    private readonly StyledTrayMenu? _styled;
+    private readonly Dictionary<Guid, byte[]> _menuBarPngs = new();
 
     // Wired up by the host once the orchestrator exists.
     internal Action<DeviceProfile>? SwitchRequested;
 
     public TrayService(IConfigService configService, IAppLogger logger, ISessionErrorTracker errorTracker,
-        IDesktopNotifier? notifier, TrayActions actions)
+        IDesktopNotifier? notifier, TrayActions actions, IMenuBarItem? menuBarItem = null)
     {
         _configService = configService;
         _logger = logger;
@@ -60,21 +67,49 @@ internal sealed class TrayService : ITrayService, IDisposable
         _notifier = notifier;
         _actions = actions;
 
-        _trayIcon = new TrayIcon { ToolTipText = "VibeSwitcher", IsVisible = false, Menu = new NativeMenu() };
-        _trayIcon.Clicked += (_, _) =>
+        if (menuBarItem != null)
         {
-            if (_configService.Current.LeftClickCyclesProfiles) CycleNextProfile();
-            else _actions.OpenSettings();
-        };
-        if (Application.Current is { } app) TrayIcon.SetIcons(app, [_trayIcon]); // (the app removes it on exit)
+            _menuBar = menuBarItem;
+            _styled = new StyledTrayMenu(MenuIcon);
+            _menuBar.Clicked += OpenStyledMenu;
+        }
+        else
+        {
+            _trayIcon = new TrayIcon { ToolTipText = "VibeSwitcher", IsVisible = false, Menu = new NativeMenu() };
+            _trayIcon.Clicked += (_, _) =>
+            {
+                if (_configService.Current.LeftClickCyclesProfiles) CycleNextProfile();
+                else _actions.OpenSettings();
+            };
+            if (Application.Current is { } app) TrayIcon.SetIcons(app, [_trayIcon]); // (the app removes it on exit)
+        }
 
         UpdateIcon(null);
         RebuildMenu();
     }
 
     // For tests: what the icon shows.
-    internal TrayIcon Icon => _trayIcon;
-    internal NativeMenu Menu => _trayIcon.Menu!;
+    internal TrayIcon Icon => _trayIcon!;
+    internal NativeMenu Menu => _trayIcon!.Menu!;
+    internal StyledTrayMenu? Styled => _styled;
+    internal string ToolTip { get; private set; } = "VibeSwitcher";
+
+    // macOS: the styled menu, built fresh (the Mini Mode item says what it will do now) under the
+    // item — or by the top-right corner of the screen when that can't be told. A press while it's
+    // open closes it, as menu-bar menus do.
+    internal void OpenStyledMenu() => _styled?.Toggle(BuildEntries(), _menuBar?.MenuAnchor());
+
+    // (The CI check on a real Mac: a press on the item, as the user's, and where the menu goes.)
+    internal bool HasMenuBarItem => _menuBar != null;
+    internal void PressMenuBarItem() => _menuBar?.PerformClick();
+    internal (double X, double Y)? MenuBarAnchor => _menuBar?.MenuAnchor();
+
+    private void SetToolTip(string text)
+    {
+        ToolTip = text;
+        if (_trayIcon != null) _trayIcon.ToolTipText = text;
+        _menuBar?.SetToolTip(text);
+    }
 
     // The icon appears only once the app is ready (the splash has finished), so a click can't land
     // on a half-started app; banners raised before then (start-up hotkey conflicts) wait for it.
@@ -87,7 +122,11 @@ internal sealed class TrayService : ITrayService, IDisposable
     {
         if (_iconShown) return;
         _iconShown = true;
-        try { _trayIcon.IsVisible = true; }
+        try
+        {
+            if (_trayIcon != null) _trayIcon.IsVisible = true;
+            _menuBar?.SetVisible(true);
+        }
         catch (Exception ex)
         {
             _logger.Error("TrayService.ShowIcon", ex);
@@ -103,13 +142,30 @@ internal sealed class TrayService : ITrayService, IDisposable
     {
         _iconBytes.Clear();
         _menuIcons.Clear();
+        _menuBarPngs.Clear();
     }
 
     public void UpdateIcon(DeviceProfile? activeProfile)
     {
-        try { _trayIcon.Icon = new WindowIcon(new MemoryStream(IconBytes(activeProfile), writable: false)); }
+        try
+        {
+            if (_trayIcon != null) _trayIcon.Icon = new WindowIcon(new MemoryStream(IconBytes(activeProfile), writable: false));
+            _menuBar?.SetImage(MenuBarPng(activeProfile));
+        }
         catch (Exception ex) { _logger.Warning("TrayService.UpdateIcon", ex.Message); }
-        _trayIcon.ToolTipText = BuildTooltip(activeProfile);
+        SetToolTip(BuildTooltip(activeProfile));
+    }
+
+    // The icon as a 36-pixel PNG (18 points on a Retina menu bar).
+    private byte[] MenuBarPng(DeviceProfile? profile)
+    {
+        var key = profile is { IconPath.Length: > 0 } ? profile.Id : Guid.Empty;
+        if (_menuBarPngs.TryGetValue(key, out var cached)) return cached;
+        using var source = new MemoryStream(IconBytes(profile), writable: false);
+        using var bitmap = Bitmap.DecodeToWidth(source, 36, BitmapInterpolationMode.HighQuality);
+        using var png = new MemoryStream();
+        bitmap.Save(png);
+        return _menuBarPngs[key] = png.ToArray();
     }
 
     // The profile's .ico (or the app icon), read once per profile.
@@ -161,59 +217,87 @@ internal sealed class TrayService : ITrayService, IDisposable
         SwitchRequested?.Invoke(profiles[(currentIndex + 1) % profiles.Count]);
     }
 
-    public void RebuildMenu()
+    // The menu's lines, as the Windows menu has them (Quit for Windows' "Exit", as Settings › Tray says).
+    internal List<TrayEntry> BuildEntries()
     {
-        var menu = new NativeMenu();
-        _profileItems.Clear();
-
-        var header = new NativeMenuItem("VibeSwitcher") { Icon = AppIconBitmap.Value };
-        header.Click += (_, _) => _actions.OpenSettings();
-        menu.Add(header);
-        menu.Add(new NativeMenuItemSeparator());
-
+        var entries = new List<TrayEntry>
+        {
+            new(TrayEntryKind.Header, "VibeSwitcher", _actions.OpenSettings),
+            new(TrayEntryKind.Separator),
+        };
         var activeId = _configService.Current.ActiveProfileId;
         var allProfiles = _configService.Current.Profiles.OrderBy(p => p.SortOrder).ToList();
         var pinned = allProfiles.Where(p => p.IsPinned).ToList();
         var unpinned = allProfiles.Where(p => !p.IsPinned).ToList();
+        TrayEntry Profile(DeviceProfile p, bool isPinned) =>
+            new(TrayEntryKind.Profile, isPinned ? $"★ {p.Name}" : p.Name, () => SwitchRequested?.Invoke(p), p, isPinned, activeId == p.Id);
         if (allProfiles.Count > 0)
         {
-            foreach (var profile in pinned) menu.Add(ProfileItem(profile, pinned: true, activeId));
-            if (pinned.Count > 0 && unpinned.Count > 0) menu.Add(new NativeMenuItemSeparator());
-            foreach (var profile in unpinned) menu.Add(ProfileItem(profile, pinned: false, activeId));
-            menu.Add(new NativeMenuItemSeparator());
+            entries.AddRange(pinned.Select(p => Profile(p, true)));
+            if (pinned.Count > 0 && unpinned.Count > 0) entries.Add(new(TrayEntryKind.Separator));
+            entries.AddRange(unpinned.Select(p => Profile(p, false)));
+            entries.Add(new(TrayEntryKind.Separator));
         }
-
         var cfg = _configService.Current;
-        if (cfg.TrayShowAbout) menu.Add(ActionItem("About", _actions.OpenAbout));
-        if (cfg.TrayShowFaq) menu.Add(ActionItem("Help & FAQ", _actions.OpenFaq));
-        menu.Add(ActionItem("Settings", _actions.OpenSettingsExpanded)); // always available
-        _miniItem = ActionItem("Mini Mode", _actions.ToggleMiniMode);
-        if (cfg.TrayShowMiniMode) menu.Add(_miniItem);
-        if (cfg.TrayShowSoundSettings) menu.Add(ActionItem("Open Sound Settings", OpenSoundSettings));
-        menu.Add(new NativeMenuItemSeparator());
-        menu.Add(ActionItem("Quit", _actions.Quit)); // (Windows: "Exit"; Settings › Tray names it Quit)
-
-        // The Mini Mode item says what it will do, checked each time the menu opens.
-        menu.Opening += (_, _) => RefreshMiniMenuItem();
-        RefreshMiniMenuItem();
-        _trayIcon.Menu = menu;
-
-        // The shortcut list in the tooltip follows profile changes.
-        var active = _configService.Current.Profiles.FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
-        _trayIcon.ToolTipText = BuildTooltip(active);
+        if (cfg.TrayShowAbout) entries.Add(new(TrayEntryKind.Action, "About", _actions.OpenAbout, IconKey: "IcoInfo"));
+        if (cfg.TrayShowFaq) entries.Add(new(TrayEntryKind.Action, "Help & FAQ", _actions.OpenFaq, IconKey: "IcoHelp"));
+        entries.Add(new(TrayEntryKind.Action, "Settings", _actions.OpenSettingsExpanded, IconKey: "IcoSettings")); // always available
+        if (cfg.TrayShowMiniMode)
+            entries.Add(_actions.IsMiniModeActive()
+                ? new(TrayEntryKind.Action, "Exit Mini Mode", _actions.ToggleMiniMode, IconKey: "IcoExpand")
+                : new(TrayEntryKind.Action, "Mini Mode", _actions.ToggleMiniMode, IconKey: "IcoCompact"));
+        if (cfg.TrayShowSoundSettings) entries.Add(new(TrayEntryKind.Action, "Open Sound Settings", OpenSoundSettings, IconKey: "IcoSpeaker"));
+        entries.Add(new(TrayEntryKind.Separator));
+        entries.Add(new(TrayEntryKind.Action, "Quit", _actions.Quit, IconKey: "IcoClose"));
+        return entries;
     }
 
-    private NativeMenuItem ProfileItem(DeviceProfile profile, bool pinned, Guid? activeId)
+    public void RebuildMenu()
     {
-        var item = new NativeMenuItem(pinned ? $"★ {profile.Name}" : profile.Name)
+        // The shortcut list in the tooltip follows profile changes.
+        var active = _configService.Current.Profiles.FirstOrDefault(p => p.Id == _configService.Current.ActiveProfileId);
+        SetToolTip(BuildTooltip(active));
+        if (_trayIcon == null) return; // (macOS: built each time it opens)
+
+        var menu = new NativeMenu();
+        _profileItems.Clear();
+        _miniItem = null;
+        foreach (var entry in BuildEntries())
+        {
+            switch (entry.Kind)
+            {
+                case TrayEntryKind.Separator:
+                    menu.Add(new NativeMenuItemSeparator());
+                    break;
+                case TrayEntryKind.Header:
+                    var header = new NativeMenuItem(entry.Label) { Icon = AppIconBitmap.Value };
+                    header.Click += (_, _) => entry.Run?.Invoke();
+                    menu.Add(header);
+                    break;
+                case TrayEntryKind.Profile:
+                    menu.Add(ProfileItem(entry));
+                    break;
+                default:
+                    var item = ActionItem(entry.Label, entry.Run!);
+                    if (entry.Run == _actions.ToggleMiniMode) _miniItem = item;
+                    menu.Add(item);
+                    break;
+            }
+        }
+        // The Mini Mode item says what it will do, checked each time the menu opens.
+        menu.Opening += (_, _) => RefreshMiniMenuItem();
+        _trayIcon.Menu = menu;
+    }
+    private NativeMenuItem ProfileItem(TrayEntry entry)
+    {
+        var item = new NativeMenuItem(entry.Label)
         {
             ToggleType = NativeMenuItemToggleType.Radio,
-            IsChecked = activeId == profile.Id,
-            Icon = MenuIcon(profile),
+            IsChecked = entry.IsChecked,
+            Icon = MenuIcon(entry.Profile!),
         };
-        var captured = profile;
-        item.Click += (_, _) => SwitchRequested?.Invoke(captured);
-        _profileItems[profile.Id] = item;
+        item.Click += (_, _) => entry.Run?.Invoke();
+        _profileItems[entry.Profile!.Id] = item;
         return item;
     }
 
@@ -258,7 +342,7 @@ internal sealed class TrayService : ITrayService, IDisposable
         foreach (var (id, item) in _profileItems) item.IsChecked = id == activeProfileId;
     }
 
-    public void SetSwitchingTooltip(string profileName) => _trayIcon.ToolTipText = $"Switching to {profileName}...";
+    public void SetSwitchingTooltip(string profileName) => SetToolTip($"Switching to {profileName}...");
 
     public void ShowBalloon(string title, string message, bool sound = true)
     {
@@ -283,10 +367,15 @@ internal sealed class TrayService : ITrayService, IDisposable
 
     public void Dispose()
     {
-        _trayIcon.IsVisible = false;
-        // (Taken off the app's list too, so its own exit doesn't dispose it a second time.)
-        if (Application.Current is { } app && TrayIcon.GetIcons(app) is { } icons) icons.Remove(_trayIcon);
-        _trayIcon.Dispose();
+        _styled?.Dispose();
+        _menuBar?.Dispose();
+        if (_trayIcon != null)
+        {
+            _trayIcon.IsVisible = false;
+            // (Taken off the app's list too, so its own exit doesn't dispose it a second time.)
+            if (Application.Current is { } app && TrayIcon.GetIcons(app) is { } icons) icons.Remove(_trayIcon);
+            _trayIcon.Dispose();
+        }
         ClearIconCache();
     }
 }

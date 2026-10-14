@@ -296,6 +296,13 @@ jobs:
           sleep 15
           kill -0 "$pid"
           kill "$pid"; wait "$pid" || true
+          # The menu-bar item, pressed as a user would: the app's styled menu must open under it.
+          check="$RUNNER_TEMP/menubar.txt"
+          VS_MENUBAR_CHECK="$check" "$app/Contents/MacOS/VibeSwitcher" & pid=$!
+          for i in $(seq 1 40); do [ -f "$check" ] && break; sleep 1; done
+          cat "$check"; echo
+          grep -q "^menu opened" "$check"
+          wait "$pid" || true
           codesign --verify --deep --strict "$app"
           plutil -extract CFBundleIdentifier raw "$app/Contents/Info.plist" | grep -qx com.raphymany.vibeswitcher
           plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist"

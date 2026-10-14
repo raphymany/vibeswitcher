@@ -27,6 +27,9 @@
     <string>public.app-category.utilities</string>
     <key>NSHighResolutionCapable</key>
     <true/>
+    <!-- A menu-bar app: no Dock icon or app menu (as the Windows app lives in the tray, not the taskbar). -->
+    <key>LSUIElement</key>
+    <true/>
     <key>NSMicrophoneUsageDescription</key>
     <string>VibeSwitcher shows a live level meter so you can test your microphone. Nothing is recorded or sent anywhere.</string>
     <key>NSHumanReadableCopyright</key>
