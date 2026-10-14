@@ -1062,6 +1062,17 @@
                         <!-- ── Shortcuts ── -->
                         <StackPanel Name="ShortcutsSection" IsVisible="{Binding IsShortcutsSelected}">
                             <TextBlock Classes="pageTitle" Text="Shortcuts" />
+                            <!-- Linux: how global shortcuts work on this desktop, with GNOME's Allow / Stop choice
+                                 (hidden where the system's own key grabs work: macOS, an X11 session). -->
+                            <Border Name="ShortcutsWayCard" Classes="section" Margin="0,0,0,12" IsVisible="False">
+                                <StackPanel Margin="14,12">
+                                    <TextBlock Classes="cardLabel" Text="HOW SHORTCUTS WORK HERE" />
+                                    <TextBlock Name="ShortcutsWayNote" Classes="cardHint" />
+                                    <TextBlock Name="ShortcutsWayKeys" Classes="cardHint" IsVisible="False" Foreground="{DynamicResource PrimaryText}" />
+                                    <Button Name="ShortcutsWayBtn" Theme="{StaticResource ActionButton}" HorizontalAlignment="Left" IsVisible="False"
+                                            Click="ShortcutsWayButton_Click" />
+                                </StackPanel>
+                            </Border>
                             <Border Classes="section">
                                 <StackPanel>
                                     <!-- Open / Close VibeSwitcher -->

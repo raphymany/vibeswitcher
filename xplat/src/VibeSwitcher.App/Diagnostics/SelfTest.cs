@@ -113,14 +113,23 @@ internal static class SelfTest
         await AddAsync(checks, "Global shortcuts", async () =>
         {
             var before = report.Log.Count;
-            using var grabber = await platform.CreateKeyGrabberAsync(logger, lookOnly: true);
+            var setup = await platform.CreateKeyGrabberAsync(logger, Hosting.XPlatSettings.Load(paths.ConfigDir).GnomeShortcutsAllowed, lookOnly: true);
+            using var grabber = setup.Grabber;
             // (Linux logs which way it set shortcuts up: X11, the portal, GNOME's, or none and why.)
             var how = report.Log.Skip(before)
                 .Select(l => l.IndexOf("Global shortcuts: ", StringComparison.Ordinal) is var i and >= 0 ? l[(i + 18)..] : null)
                 .LastOrDefault(s => s != null);
-            // (The desktop's shortcut service would ask the user about a test shortcut: not tried.)
-            if (grabber.GetType().Name == "PortalKeyGrabber")
-                return (CheckStatus.Pass, "the desktop's shortcut service (approve VibeSwitcher's shortcuts when it asks)");
+            // (Not tried where a test shortcut would show: the desktop's shortcut service would ask the
+            // user about it, and GNOME's keyboard settings would gain an entry.)
+            switch (setup.Way)
+            {
+                case Hosting.ShortcutsWay.DesktopService:
+                    return (CheckStatus.Pass, "the desktop's shortcut service (approve VibeSwitcher's shortcuts when it asks)");
+                case Hosting.ShortcutsWay.GnomeShortcuts:
+                    return (CheckStatus.Pass, "GNOME's keyboard settings (allowed in Settings › Shortcuts)");
+                case Hosting.ShortcutsWay.GnomeNeedsConsent:
+                    return (CheckStatus.Warn, "off until allowed in Settings › Shortcuts (they'd go in GNOME's keyboard settings)");
+            }
             var result = grabber.Register(ProbeId, ProbeModifiers, ProbeKey, out var error);
             grabber.Unregister(ProbeId);
             return result switch

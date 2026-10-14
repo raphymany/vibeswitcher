@@ -272,5 +272,6 @@ public sealed class GnomeShortcutBridge : IGlobalKeyGrabber
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         _timer.Dispose();
+        lock (_applyLock) { } // (an update already writing finishes first; none starts after this)
     }
 }

@@ -97,7 +97,16 @@ public class AppHostTests : IDisposable
         public IPlatformAudioService CreateAudio(IAppLogger logger, ISessionErrorTracker errorTracker) =>
             AudioFails ? throw new InvalidOperationException("no sound system") : Audio;
         public IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker) => new FakeStartupService();
-        public Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false) => Task.FromResult<IGlobalKeyGrabber>(Grabber);
+        // How shortcuts work for a GNOME-allowed choice (default: the system's own, with Grabber).
+        public Func<bool, KeyGrabberSetup>? Shortcuts { get; set; }
+        public List<bool> ShortcutsAsked { get; } = [];
+        public Task? ShortcutsDelay { get; set; } // (setting the way up takes this long)
+        public async Task<KeyGrabberSetup> CreateKeyGrabberAsync(IAppLogger logger, bool gnomeShortcutsAllowed = false, bool lookOnly = false)
+        {
+            ShortcutsAsked.Add(gnomeShortcutsAllowed);
+            if (ShortcutsDelay != null) await ShortcutsDelay;
+            return Shortcuts?.Invoke(gnomeShortcutsAllowed) ?? new KeyGrabberSetup(Grabber, ShortcutsWay.Native, null);
+        }
         public bool NotifierFails { get; set; }
         public IDesktopNotifier? CreateNotifier(IAppLogger logger) => NotifierFails ? throw new DllNotFoundException("libX11") : Notifier;
         public IRunningProcessSource CreateProcesses() => new NoProcesses();
@@ -211,6 +220,139 @@ public class AppHostTests : IDisposable
         var (host, platform) = await Start(change: c => c.ActiveProfileId = Guid.NewGuid());
         Assert.Null(host.Config.Current.ActiveProfileId);
         Assert.Empty(platform.Audio.Applied);
+        Close(host);
+    }
+
+    // ── GNOME keyboard shortcuts: the user's choice (Linux) ────────────────────────────────────────
+
+    private static FakePlatform GnomePlatform(FakeGrabber gnome) => new()
+    {
+        Shortcuts = allowed => allowed
+            ? new KeyGrabberSetup(gnome, ShortcutsWay.GnomeShortcuts, null)
+            : new KeyGrabberSetup(new Platform.Linux.Hotkeys.NoKeyGrabber("not allowed"), ShortcutsWay.GnomeNeedsConsent, "GNOME needs your OK."),
+    };
+
+    [AvaloniaFact]
+    public async Task GnomeShortcuts_AreOffUntilAllowed_ThenMoveOverAtOnce_AndStopTakesThemAway()
+    {
+        var gnome = new FakeGrabber();
+        var (host, platform) = await Start(change: c => c.ActiveProfileId = c.Profiles[1].Id, platform: GnomePlatform(gnome));
+        await Until(() => platform.Audio.Applied.Count == 1); // (Work restored)
+        Assert.Equal([false], platform.ShortcutsAsked);
+        var window = host.Windows.Window!;
+        Assert.True(Named<Border>(window, "ShortcutsWayCard").IsVisible);
+        Assert.StartsWith("GNOME needs your OK.", Named<TextBlock>(window, "ShortcutsWayNote").Text);
+        var button = Named<Button>(window, "ShortcutsWayBtn");
+        Assert.Equal("Add my shortcuts to GNOME", button.Content);
+
+        // Allowed: remembered, and every shortcut is registered the new way — no restart.
+        Ui.Click(button);
+        await Until(() => Equals(button.Content, "Remove my shortcuts from GNOME"));
+        Assert.Equal([false, true], platform.ShortcutsAsked);
+        Assert.True(XPlatSettings.Load(_dir).GnomeShortcutsAllowed);
+        Assert.Same(gnome, host.Grabber.Inner);
+        Assert.Contains(GamingKey.VirtualKeyCode, gnome.Keys.Values);
+        Assert.Contains(SettingsKey.VirtualKeyCode, gnome.Keys.Values);
+        var before = platform.Audio.Applied.Count;
+        gnome.Press(GamingKey.VirtualKeyCode); // (presses arrive through the new way)
+        await Until(() => platform.Audio.Applied.Count > before);
+        Assert.Equal("Gaming", platform.Audio.Applied[^1]);
+
+        // Stopped: the shortcuts leave GNOME's way, and that way is closed.
+        Ui.Click(button);
+        await Until(() => Equals(button.Content, "Add my shortcuts to GNOME"));
+        Assert.False(XPlatSettings.Load(_dir).GnomeShortcutsAllowed);
+        Assert.Empty(gnome.Keys);
+        await Until(() => gnome.Disposed);
+        Assert.True(gnome.Disposed);
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task TheGnomeChoice_IsRemembered_AndNothingIsExplained_WhereShortcutsJustWork()
+    {
+        new XPlatSettings(GnomeShortcutsAllowed: true).Save(_dir);
+        var gnome = new FakeGrabber();
+        var (host, platform) = await Start(platform: GnomePlatform(gnome));
+        Assert.Equal([true], platform.ShortcutsAsked);
+        Assert.Contains(GamingKey.VirtualKeyCode, gnome.Keys.Values);
+        Close(host);
+
+        (host, _) = await Start(); // (the system's own shortcuts: macOS, X11)
+        Assert.Null(host.ShortcutsInfo());
+        Assert.False(Named<Border>(host.Windows.Window!, "ShortcutsWayCard").IsVisible);
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task WhenTheNewWayCantBeSetUp_TheShortcutsKeepWorking()
+    {
+        var (host, platform) = await Start();
+        platform.Shortcuts = _ => throw new InvalidOperationException("no session bus");
+        await host.SetGnomeShortcutsAsync(true);
+        Assert.Same(platform.Grabber, host.Grabber.Inner);
+        Assert.Contains(GamingKey.VirtualKeyCode, platform.Grabber.Keys.Values);
+        Assert.False(platform.Grabber.Disposed);
+        Assert.False(XPlatSettings.Load(_dir).GnomeShortcutsAllowed);
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task AnOkGnomeCouldntUse_IsntKept_AndTheReasonIsShown()
+    {
+        var platform = new FakePlatform
+        {
+            Shortcuts = allowed => allowed
+                ? new KeyGrabberSetup(new Platform.Linux.Hotkeys.NoKeyGrabber("can't start"), ShortcutsWay.Off, "GNOME couldn't start this copy from where it's running.")
+                : new KeyGrabberSetup(new Platform.Linux.Hotkeys.NoKeyGrabber("not allowed"), ShortcutsWay.GnomeNeedsConsent, "GNOME needs your OK."),
+        };
+        var (host, _) = await Start(platform: platform);
+        await host.SetGnomeShortcutsAsync(true);
+        Assert.Equal("GNOME couldn't start this copy from where it's running.", Named<TextBlock>(host.Windows.Window!, "ShortcutsWayNote").Text);
+        Assert.False(Named<Button>(host.Windows.Window!, "ShortcutsWayBtn").IsVisible);
+        Assert.False(XPlatSettings.Load(_dir).GnomeShortcutsAllowed); // (asked again next time)
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task AChoiceThatCantBeSaved_IsSaidSo_AndAStoppedOneStaysStopped()
+    {
+        var gnome = new FakeGrabber();
+        var (host, platform) = await Start(platform: GnomePlatform(gnome));
+        Directory.CreateDirectory(Path.Combine(_dir, XPlatSettings.FileName + ".tmp")); // (the save's new file can't be written)
+        var window = host.Windows.Window!;
+        await host.SetGnomeShortcutsAsync(true);
+        Assert.Same(gnome, host.Grabber.Inner); // (it took effect…)
+        Assert.False(XPlatSettings.Load(_dir).GnomeShortcutsAllowed); // (…but isn't remembered)
+        await Until(() => window.OwnedWindows.Count == 1);
+        Assert.Contains(Texts(window.OwnedWindows[0]), t => t?.Contains("ask again next time") == true);
+        window.OwnedWindows[0].Close();
+
+        // Stopped while an earlier OK is on file: the file goes (no file means "not allowed").
+        Directory.Delete(Path.Combine(_dir, XPlatSettings.FileName + ".tmp"));
+        new XPlatSettings(GnomeShortcutsAllowed: true).Save(_dir);
+        Directory.CreateDirectory(Path.Combine(_dir, XPlatSettings.FileName + ".tmp"));
+        await host.SetGnomeShortcutsAsync(false);
+        Assert.False(File.Exists(Path.Combine(_dir, XPlatSettings.FileName)));
+        Assert.Empty(window.OwnedWindows);
+        Close(host);
+    }
+
+    [AvaloniaFact]
+    public async Task OneChangeAtATime_AndNotDuringAnUninstall()
+    {
+        var gnome = new FakeGrabber();
+        var (host, platform) = await Start(platform: GnomePlatform(gnome));
+        var slow = new TaskCompletionSource();
+        platform.ShortcutsDelay = slow.Task;
+        var first = host.SetGnomeShortcutsAsync(true);
+        await host.SetGnomeShortcutsAsync(false); // (ignored while the first runs)
+        await host.UninstallAsync(new InstallInfo(InstallKind.AppImage, "/x.AppImage", "2.0.1"), deleteData: false); // (likewise)
+        Assert.False(host.Uninstalling);
+        slow.SetResult();
+        await first;
+        Assert.Equal([false, true], platform.ShortcutsAsked);
+        Assert.Same(gnome, host.Grabber.Inner);
         Close(host);
     }
 

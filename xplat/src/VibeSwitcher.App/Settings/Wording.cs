@@ -1,5 +1,7 @@
 using System.IO;
+using VibeSwitcher.App.Hosting;
 using VibeSwitcher.Platform;
+using VibeSwitcher.Platform.Linux.Hotkeys;
 
 namespace VibeSwitcher.App.Settings;
 
@@ -43,6 +45,40 @@ public static class Wording
     // ── Mini Window ──
     public static string MiniDetail =>
         $"Mini Mode shrinks VibeSwitcher into a small profile switcher you can keep in a corner of your screen. Enter it with the title bar button, the {TrayMenu}, or the shortcut below.";
+
+    // ── Shortcuts (Linux: how they work on this desktop) ──
+
+    // Null when there's nothing to explain (macOS, an X11 session). portal / assigned: the desktop
+    // service's state and the keys it gave each shortcut.
+    internal static ShortcutsInfo? Shortcuts(ShortcutsWay way, string? explanation,
+        PortalShortcutState? portal = null, IReadOnlyList<(string Description, string Trigger)>? assigned = null)
+    {
+        const string Desktop = "Your desktop manages VibeSwitcher's global shortcuts.";
+        return way switch
+        {
+            ShortcutsWay.DesktopService => portal switch
+            {
+                PortalShortcutState.WaitingForUser =>
+                    new($"{Desktop} It's asking you to approve them now — look for its window.", []),
+                PortalShortcutState.Declined =>
+                    new($"{Desktop} They were turned down, so they're off; your desktop asks again when you change one.", []),
+                PortalShortcutState.Failed =>
+                    new($"{Desktop} It couldn't set them up — the session log has the details.", []),
+                PortalShortcutState.Bound when assigned is { Count: > 0 } =>
+                    new($"{Desktop} These are the keys it uses (you can change them in its keyboard settings):",
+                        assigned.Select(k => $"{k.Description}: {k.Trigger}").ToList()),
+                _ => new($"{Desktop} When you set one, it asks you to approve it, and you can change its keys in the desktop's keyboard settings.", []),
+            },
+            ShortcutsWay.GnomeShortcuts => new(
+                "VibeSwitcher's shortcuts are in GNOME's keyboard settings (Settings › Keyboard › Custom Shortcuts), where you can see them too. Removing them from there turns VibeSwitcher's shortcuts off.",
+                [], GnomeChoice.Stop),
+            ShortcutsWay.GnomeNeedsConsent => new(
+                (explanation ?? "") + " Until then, VibeSwitcher's shortcuts (on this page and on each profile) are saved but don't work.",
+                [], GnomeChoice.Allow),
+            ShortcutsWay.Off => new(explanation ?? "Global shortcuts aren't available on this desktop.", []),
+            _ => null,
+        };
+    }
 
     // ── Install & Updates ──
     public static string BrowseInstall => Mac ? "Show in Finder" : "Browse install location";
@@ -137,3 +173,17 @@ public static class Wording
         ? " you can have VibeSwitcher open when you log in, start hidden in the menu bar, and keep running in the menu bar when the window is closed — so your hotkeys, schedules, and auto-switching are always active."
         : " you can have VibeSwitcher start when you log in, begin minimized to the tray, and keep running in the tray when the window is closed — so your hotkeys, schedules, and auto-switching are always active.";
 }
+
+// What Settings › Shortcuts says about how shortcuts work on this desktop, the desktop's keys (one
+// line each), and whether it offers to allow or stop GNOME keyboard shortcuts.
+internal sealed record ShortcutsInfo(string Note, IReadOnlyList<string> Keys, GnomeChoice Choice = GnomeChoice.None)
+{
+    public string? ChoiceText => Choice switch
+    {
+        GnomeChoice.Allow => "Add my shortcuts to GNOME",
+        GnomeChoice.Stop => "Remove my shortcuts from GNOME",
+        _ => null,
+    };
+}
+
+internal enum GnomeChoice { None, Allow, Stop }

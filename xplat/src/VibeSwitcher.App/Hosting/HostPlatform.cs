@@ -14,14 +14,27 @@ using VibeSwitcher.Services;
 
 namespace VibeSwitcher.App.Hosting;
 
+// How global shortcuts work on this system.
+internal enum ShortcutsWay
+{
+    Native,             // the system's own key grabs (macOS, an X11 session): nothing to explain
+    DesktopService,     // the desktop's Global Shortcuts service (Wayland): it asks the user to approve them
+    GnomeShortcuts,     // GNOME custom keyboard shortcuts, as the user allowed
+    GnomeNeedsConsent,  // as above, not allowed (yet): shortcuts are off
+    Off,                // none: Explanation says why
+}
+
+internal sealed record KeyGrabberSetup(IGlobalKeyGrabber Grabber, ShortcutsWay Way, string? Explanation);
+
 // The system-specific services the app runs on (tests stand in for them).
 internal interface IHostPlatform
 {
     IPlatformAudioService CreateAudio(IAppLogger logger, ISessionErrorTracker errorTracker);
     IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker);
-    // Global shortcuts; never null (a grabber that registers nothing when the system offers none).
-    // lookOnly: the self-test — nothing the running app set up is changed.
-    Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false);
+    // Global shortcuts; the grabber is never null (one that registers nothing when the system offers
+    // none). gnomeShortcutsAllowed: the user's choice in Settings › Shortcuts (Linux). lookOnly: the
+    // self-test — nothing the running app set up is changed.
+    Task<KeyGrabberSetup> CreateKeyGrabberAsync(IAppLogger logger, bool gnomeShortcutsAllowed = false, bool lookOnly = false);
     // Notification banners (null: none — banners are only logged).
     IDesktopNotifier? CreateNotifier(IAppLogger logger);
     IRunningProcessSource CreateProcesses();
@@ -47,13 +60,21 @@ internal sealed class LinuxHostPlatform : IHostPlatform
     public IPlatformAudioService CreateAudio(IAppLogger logger, ISessionErrorTracker errorTracker) => new LinuxAudioService(logger, errorTracker);
     public IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker) => new LinuxStartupService(logger, errorTracker);
 
-    // X11, the desktop's Global Shortcuts portal, or (GNOME before 48) nothing until the user agrees
-    // to GNOME custom shortcuts — that choice is offered in Settings (a later step).
-    public async Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false)
+    // X11, the desktop's Global Shortcuts portal, or (GNOME before 48) GNOME custom shortcuts once the
+    // user allows them in Settings › Shortcuts.
+    public async Task<KeyGrabberSetup> CreateKeyGrabberAsync(IAppLogger logger, bool gnomeShortcutsAllowed = false, bool lookOnly = false)
     {
-        var setup = await Task.Run(() => LinuxHotkeys.CreateAsync(logger, gnomeShortcutsAllowed: false, cleanUp: !lookOnly));
+        var setup = await Task.Run(() => LinuxHotkeys.CreateAsync(logger, gnomeShortcutsAllowed, cleanUp: !lookOnly));
         logger.Info("Hotkeys", $"Global shortcuts: {setup.Backend}{(setup.Explanation is { } why ? $" ({why})" : "")}");
-        return setup.Grabber;
+        var way = setup.Backend switch
+        {
+            LinuxHotkeyBackend.X11 => ShortcutsWay.Native,
+            LinuxHotkeyBackend.Portal => ShortcutsWay.DesktopService,
+            LinuxHotkeyBackend.GnomeShortcuts => ShortcutsWay.GnomeShortcuts,
+            LinuxHotkeyBackend.GnomeNeedsConsent => ShortcutsWay.GnomeNeedsConsent,
+            _ => ShortcutsWay.Off,
+        };
+        return new(setup.Grabber, way, setup.Explanation);
     }
 
     public IDesktopNotifier? CreateNotifier(IAppLogger logger) => new LinuxNotifier(logger);
@@ -68,13 +89,14 @@ internal sealed class MacHostPlatform : IHostPlatform
     public IPlatformAudioService CreateAudio(IAppLogger logger, ISessionErrorTracker errorTracker) => new MacAudioService(logger, errorTracker);
     public IStartupService CreateStartup(IAppLogger logger, ISessionErrorTracker errorTracker) => new MacStartupService(logger, errorTracker);
 
-    public Task<IGlobalKeyGrabber> CreateKeyGrabberAsync(IAppLogger logger, bool lookOnly = false)
+    public Task<KeyGrabberSetup> CreateKeyGrabberAsync(IAppLogger logger, bool gnomeShortcutsAllowed = false, bool lookOnly = false)
     {
-        try { return Task.FromResult<IGlobalKeyGrabber>(new CarbonKeyGrabber()); }
+        try { return Task.FromResult(new KeyGrabberSetup(new CarbonKeyGrabber(), ShortcutsWay.Native, null)); }
         catch (Exception ex)
         {
             logger.Error("Hotkeys", $"Global shortcuts are unavailable: {ex.Message}");
-            return Task.FromResult<IGlobalKeyGrabber>(new NoKeyGrabber("Global shortcuts couldn't be set up on this Mac."));
+            const string why = "Global shortcuts couldn't be set up on this Mac.";
+            return Task.FromResult(new KeyGrabberSetup(new NoKeyGrabber(why), ShortcutsWay.Off, why));
         }
     }
 

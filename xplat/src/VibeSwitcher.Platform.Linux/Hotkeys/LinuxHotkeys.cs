@@ -82,7 +82,7 @@ public static class LinuxHotkeys
 
     internal const string NoX11 =
         "VibeSwitcher couldn't connect to the display server, so global shortcuts are off.";
-    internal const string GnomeConsent =
+    public const string GnomeConsent =
         "This version of GNOME doesn't let apps set global shortcuts directly. VibeSwitcher can add its shortcuts to " +
         "GNOME's keyboard settings (Settings › Keyboard › Custom Shortcuts) once you allow it.";
     internal const string GnomeCantLaunch =

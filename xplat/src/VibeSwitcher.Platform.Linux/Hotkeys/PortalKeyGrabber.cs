@@ -86,6 +86,24 @@ public sealed class PortalKeyGrabber : IGlobalKeyGrabber
     // The user may have picked a different key than VibeSwitcher's.
     public IReadOnlyDictionary<string, string> AssignedTriggers { get { lock (_lock) return _assigned; } }
 
+    // The same with what each one does, for Settings: ("Switch to Gaming", "Ctrl+Alt+G"), by description.
+    public IReadOnlyList<(string Description, string Trigger)> AssignedKeys
+    {
+        get
+        {
+            lock (_lock)
+            {
+                // (From the shortcuts registered now: a renamed profile shows its new name.)
+                var descriptions = new Dictionary<string, string>();
+                foreach (var s in _registered.Values) descriptions[s.Name] = s.Description;
+                return _assigned.Where(kv => kv.Value.Length > 0 && kv.Key != ShortcutNames.Probe)
+                    .Select(kv => (descriptions.TryGetValue(kv.Key, out var d) ? d : kv.Key, kv.Value))
+                    .OrderBy(k => k.Item1, StringComparer.CurrentCulture)
+                    .ToList();
+            }
+        }
+    }
+
     private PortalKeyGrabber(Connection connection, IAppLogger logger, TimeSpan debounce, TimeSpan approvalTimeout, TimeSpan[] retryDelays)
     {
         _connection = connection;
@@ -160,6 +178,8 @@ public sealed class PortalKeyGrabber : IGlobalKeyGrabber
     public void Unregister(ushort id)
     {
         bool removed;
+        // (Its description is kept: the hotkey service registers an id again after testing a key,
+        // without describing it again.)
         lock (_lock) removed = _registered.Remove(id);
         if (removed) Schedule();
     }

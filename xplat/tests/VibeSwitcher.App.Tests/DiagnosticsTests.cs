@@ -96,6 +96,30 @@ public class DiagnosticsTests : IDisposable
         Assert.Contains("problem", report.Format());
     }
 
+    [AvaloniaFact]
+    public async Task GnomeShortcuts_AreReported_WithoutAddingATestOne()
+    {
+        // Allowed: GNOME's keyboard settings would gain an entry for a test key — none is tried.
+        new Hosting.XPlatSettings(GnomeShortcutsAllowed: true).Save(_dir);
+        var platform = Platform();
+        var gnome = new AppHostTests.FakeGrabber();
+        platform.Shortcuts = allowed => allowed
+            ? new Hosting.KeyGrabberSetup(gnome, Hosting.ShortcutsWay.GnomeShortcuts, null)
+            : new Hosting.KeyGrabberSetup(gnome, Hosting.ShortcutsWay.GnomeNeedsConsent, "GNOME needs your OK.");
+        var report = await SelfTest.RunAsync(platform, new AppPaths(_dir), showBanner: false);
+        var check = report.Checks.Single(c => c.Name == "Global shortcuts");
+        Assert.Equal((CheckStatus.Pass, "GNOME's keyboard settings (allowed in Settings › Shortcuts)"), (check.Status, check.Detail));
+        Assert.Equal([true], platform.ShortcutsAsked);
+        Assert.Empty(gnome.Keys);
+
+        // Not allowed: a warning that says where to allow them.
+        new Hosting.XPlatSettings(GnomeShortcutsAllowed: false).Save(_dir);
+        report = await SelfTest.RunAsync(platform, new AppPaths(_dir), showBanner: false);
+        check = report.Checks.Single(c => c.Name == "Global shortcuts");
+        Assert.Equal(CheckStatus.Warn, check.Status);
+        Assert.Contains("Settings › Shortcuts", check.Detail);
+    }
+
     [Theory]
     [InlineData("WARN LinuxNotifier: Could not show a notification: no service", "Could not show a notification: no service")]
     [InlineData("ERROR Audio: pactl failed", "pactl failed")]

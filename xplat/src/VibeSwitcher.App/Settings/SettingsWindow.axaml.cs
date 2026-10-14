@@ -944,6 +944,7 @@ public partial class SettingsWindow : Window
             // (Off while it runs — also when Settings is reopened: a password prompt can stay open
             // for minutes.)
             _uninstalling = true;
+            ShowShortcutsInfo(_shortcutsInfo);
             button.IsEnabled = false;
             button.Content = "Uninstalling…";
             await Uninstall(Install, dialog.DeleteData);
@@ -957,6 +958,7 @@ public partial class SettingsWindow : Window
             if (_uninstalling)
             {
                 _uninstalling = false;
+                ShowShortcutsInfo(_shortcutsInfo);
                 button.IsEnabled = Wording.UninstallBlocked(Install) == null;
                 button.Content = "Uninstall VibeSwitcher…";
             }
@@ -964,6 +966,55 @@ public partial class SettingsWindow : Window
     }
 
     private bool _uninstalling;
+
+    // ── Shortcuts: how they work on this desktop (Linux) ───────────────────────────────────────────
+
+    // Allowing (true) or stopping GNOME keyboard shortcuts — set by the app.
+    internal Func<bool, Task>? SetGnomeShortcuts { get; set; }
+
+    // What the Shortcuts page says about it (null: nothing — the card is hidden). The app sets it
+    // again whenever it changes (an approval in the desktop's dialog, say).
+    internal ShortcutsInfo? Shortcuts
+    {
+        get => _shortcutsInfo;
+        set => ShowShortcutsInfo(value);
+    }
+
+    private ShortcutsInfo? _shortcutsInfo;
+    private bool _changingShortcuts;
+
+    internal void ShowShortcutsInfo(ShortcutsInfo? info)
+    {
+        _shortcutsInfo = info;
+        this.FindControl<Border>("ShortcutsWayCard")!.IsVisible = info != null;
+        if (info == null) return;
+        this.FindControl<TextBlock>("ShortcutsWayNote")!.Text = info.Note;
+        var keys = this.FindControl<TextBlock>("ShortcutsWayKeys")!;
+        keys.Text = string.Join("\n", info.Keys);
+        keys.IsVisible = info.Keys.Count > 0;
+        var button = this.FindControl<Button>("ShortcutsWayBtn")!;
+        button.IsVisible = info.Choice != GnomeChoice.None;
+        button.Content = info.ChoiceText;
+        button.IsEnabled = !_changingShortcuts && !_uninstalling; // (not during an uninstall: its shortcuts are going)
+        // (Allowing is the step forward: the primary style; stopping is an ordinary button.)
+        if (this.TryFindResource(info.Choice == GnomeChoice.Allow ? "PrimaryButton" : "ActionButton", out var theme) && theme is ControlTheme t)
+            button.Theme = t;
+    }
+
+    private async void ShortcutsWayButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_shortcutsInfo is not { Choice: not GnomeChoice.None } info || SetGnomeShortcuts == null || _changingShortcuts || _uninstalling) return;
+        var button = this.FindControl<Button>("ShortcutsWayBtn")!;
+        _changingShortcuts = true;
+        button.IsEnabled = false;
+        try { await SetGnomeShortcuts(info.Choice == GnomeChoice.Allow); }
+        catch (Exception ex) { _logger.Warning("SettingsWindow.Shortcuts", ex.Message); }
+        finally
+        {
+            _changingShortcuts = false;
+            button.IsEnabled = !_uninstalling;
+        }
+    }
 
     // ── About and FAQ ──────────────────────────────────────────────────────────────────────────────
 

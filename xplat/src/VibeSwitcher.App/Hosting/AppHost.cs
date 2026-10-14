@@ -9,6 +9,7 @@ using VibeSwitcher.Helpers;
 using VibeSwitcher.Models;
 using VibeSwitcher.Platform;
 using VibeSwitcher.Platform.Linux.Hid;
+using VibeSwitcher.Platform.Linux.Hotkeys;
 using VibeSwitcher.Services;
 
 namespace VibeSwitcher.App.Hosting;
@@ -49,7 +50,7 @@ internal sealed class AppHost : IDisposable
     internal IStartupService Startup { get; private set; } = null!;
     internal IPlatformAudioService Audio { get; private set; } = null!;
     internal DeviceRebindService Rebind { get; private set; } = null!;
-    internal IGlobalKeyGrabber Grabber { get; private set; } = null!;
+    internal SwitchableKeyGrabber Grabber { get; private set; } = null!;
     internal HotkeyService Hotkeys { get; private set; } = null!;
     internal IDesktopNotifier? Notifier { get; private set; }
     internal TrayService Tray { get; private set; } = null!;
@@ -166,7 +167,9 @@ internal sealed class AppHost : IDisposable
         Rebind.Reconcile();
 
         // 4. Global shortcuts (Linux may ask the desktop: off the UI thread), the icon and banners.
-        Grabber = await _platform.CreateKeyGrabberAsync(Logger);
+        _shortcuts = await _platform.CreateKeyGrabberAsync(Logger, XPlatSettings.Load(_paths.ConfigDir).GnomeShortcutsAllowed);
+        Grabber = new SwitchableKeyGrabber(_shortcuts.Grabber);
+        WatchShortcutService(_shortcuts.Grabber);
         Grabber.Pressed += id => Dispatcher.UIThread.Post(() => OnHotkey(id));
         Hotkeys = new HotkeyService(Grabber, Logger, Errors);
         // (Banners are a nicety: a system without them still runs the app.)
@@ -198,10 +201,7 @@ internal sealed class AppHost : IDisposable
         Orchestrator.ProfileSwitched += () => Windows.NotifyProfileSwitched();
 
         // 6. Hotkeys.
-        RegisterHotkeys();
-        RegisterSettingsHotkey();
-        RegisterCompactHotkey();
-        RegisterMuteHotkeys();
+        RegisterAllHotkeys();
 
         // 7. A remembered active profile that no longer exists is forgotten.
         if (Config.Current.ActiveProfileId.HasValue && !Config.Current.Profiles.Any(p => p.Id == Config.Current.ActiveProfileId))
@@ -384,6 +384,8 @@ internal sealed class AppHost : IDisposable
         {
             TrayAvailable = TrayAvailable,
             Uninstall = UninstallAsync,
+            SetGnomeShortcuts = SetGnomeShortcutsAsync,
+            Shortcuts = ShortcutsInfo(),
         };
 
     // The "Profile Switch Failed" dialog, on Settings when it's showing, else on its own.
@@ -542,6 +544,113 @@ internal sealed class AppHost : IDisposable
             ?? (Guid.TryParse(nameOrId, out var id) ? profiles.FirstOrDefault(p => p.Id == id) : null);
     }
 
+    // ── How global shortcuts work (Settings › Shortcuts, Linux) ───────────────────────────────────
+
+    private KeyGrabberSetup _shortcuts = null!;
+    private bool _changingShortcuts;
+    private (PortalKeyGrabber Service, Action Handler)? _serviceWatch;
+
+    // What Settings › Shortcuts says about it (null: nothing to say).
+    internal ShortcutsInfo? ShortcutsInfo()
+    {
+        var service = Grabber?.Inner as PortalKeyGrabber;
+        return Wording.Shortcuts(_shortcuts.Way, _shortcuts.Explanation, service?.State, service?.AssignedKeys);
+    }
+
+    // The desktop's shortcut service reports approvals and the keys it chose as they happen (only
+    // the one in use: a replaced one is no longer listened to).
+    private void WatchShortcutService(IGlobalKeyGrabber grabber)
+    {
+        if (_serviceWatch is var (old, oldHandler)) old.StateChanged -= oldHandler;
+        _serviceWatch = null;
+        if (grabber is not PortalKeyGrabber service) return;
+        Action handler = () => Dispatcher.UIThread.Post(ShowShortcutsInfo);
+        service.StateChanged += handler;
+        _serviceWatch = (service, handler);
+    }
+
+    private void ShowShortcutsInfo()
+    {
+        if (!_disposed) Windows?.Window?.ShowShortcutsInfo(ShortcutsInfo());
+    }
+
+    // Every shortcut, as at start-up — none where they can't work (GNOME without the user's OK, or no
+    // way at all: Settings › Shortcuts says why, rather than an error per shortcut in the log).
+    private void RegisterAllHotkeys()
+    {
+        if (_shortcuts.Way is ShortcutsWay.GnomeNeedsConsent or ShortcutsWay.Off) return;
+        RegisterHotkeys();
+        RegisterSettingsHotkey();
+        RegisterCompactHotkey();
+        RegisterMuteHotkeys();
+    }
+
+    // The user allows or stops GNOME keyboard shortcuts. The new way is set up first (if that fails,
+    // nothing changes); then, in one go on the UI thread, every shortcut leaves the old way and is
+    // registered the new way — no restart. Stopping removes VibeSwitcher's entries from GNOME's
+    // settings. The choice is only remembered where it took effect: an OK that GNOME's way couldn't
+    // use (this copy can't be started from where it runs, say) is asked for again next time.
+    internal async Task SetGnomeShortcutsAsync(bool allow)
+    {
+        if (_changingShortcuts || Uninstalling || _disposed) return;
+        _changingShortcuts = true;
+        try
+        {
+            var next = await _platform.CreateKeyGrabberAsync(Logger, allow);
+            if (_disposed)
+            {
+                next.Grabber.Dispose();
+                return;
+            }
+            Hotkeys.UnregisterAll();
+            var old = Grabber.Swap(next.Grabber);
+            _shortcuts = next;
+            WatchShortcutService(next.Grabber);
+            RegisterAllHotkeys();
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    if (old is GnomeShortcutBridge bridge) bridge.RemoveAll();
+                    old.Dispose();
+                }
+                catch (Exception ex) { Logger.Warning("AppHost.Shortcuts", ex.Message); }
+            });
+            RememberGnomeChoice(allow && next.Way == ShortcutsWay.GnomeShortcuts);
+            Logger.Info("AppHost.Shortcuts", allow ? $"GNOME keyboard shortcuts allowed ({next.Way})." : "GNOME keyboard shortcuts stopped.");
+        }
+        catch (Exception ex) { Logger.Error("AppHost.Shortcuts", ex); }
+        finally
+        {
+            _changingShortcuts = false;
+            ShowShortcutsInfo();
+        }
+    }
+
+    // A choice that can't be saved is said so: a stopped one would otherwise come back at the next start.
+    private void RememberGnomeChoice(bool allowed)
+    {
+        var file = Path.Combine(_paths.ConfigDir, XPlatSettings.FileName);
+        try
+        {
+            (XPlatSettings.Load(_paths.ConfigDir) with { GnomeShortcutsAllowed = allowed }).Save(_paths.ConfigDir);
+            return;
+        }
+        catch (Exception ex) { Logger.Warning("AppHost.Shortcuts", $"The choice couldn't be saved: {ex.Message}"); }
+        // (No file means "not allowed".)
+        if (!allowed)
+            try
+            {
+                File.Delete(file);
+                return;
+            }
+            catch (Exception ex) { Logger.Warning("AppHost.Shortcuts", ex.Message); }
+        _ = new DialogService(() => Windows.Window is { IsVisible: true } w ? w : null).ShowAlertAsync("Choice Not Saved",
+            allowed
+                ? "VibeSwitcher's shortcuts are in GNOME's keyboard settings now, but it couldn't save that you allowed this, so it will ask again next time it starts."
+                : $"VibeSwitcher couldn't save your choice, so its shortcuts could be added to GNOME's keyboard settings again next time it starts. Check that you can change {file}.");
+    }
+
     // ── Uninstalling (Settings › Install & Updates) ────────────────────────────────────────────────
 
     // The system's side of it (tests stand in for it).
@@ -558,12 +667,12 @@ internal sealed class AppHost : IDisposable
 
     internal async Task UninstallAsync(InstallInfo install, bool deleteData)
     {
-        if (Uninstalling || _disposed) return;
+        if (Uninstalling || _changingShortcuts || _disposed) return;
         Uninstalling = true;
         string? why;
         try
         {
-            var system = UninstallSystem ??= new SystemUninstall(Logger, () => Grabber);
+            var system = UninstallSystem ??= new SystemUninstall(Logger, () => Grabber.Inner);
             why = await Task.Run(() => Uninstaller.Run(install, Startup, system, Logger));
         }
         catch (Exception ex)
@@ -600,7 +709,7 @@ internal sealed class AppHost : IDisposable
         var install = OperatingSystem.IsMacOS()
             ? new InstallInfo(InstallKind.MacApp, Path.GetFullPath(Path.Combine(appFolder, "../..")), "check")
             : new InstallInfo(InstallKind.Package, appFolder, "check");
-        UninstallSystem = new UninstallCheckSystem(new SystemUninstall(Logger, () => Grabber));
+        UninstallSystem = new UninstallCheckSystem(new SystemUninstall(Logger, () => Grabber.Inner));
         DispatcherTimer.RunOnce(() => _ = UninstallAsync(install, deleteData: true), TimeSpan.FromSeconds(2));
     }
 

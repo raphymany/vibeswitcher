@@ -288,6 +288,13 @@ public sealed class PortalKeyGrabberTests
             shortcuts.OrderBy(s => s.Id, StringComparer.Ordinal));
         Assert.Equal(PortalShortcutState.Bound, g.State);
         Assert.Equal("Desk CTRL+ALT+g", g.AssignedTriggers[ShortcutNames.Profile(profile)]);
+        // (For Settings: what each one does, in order.)
+        Assert.Equal([("Do " + ShortcutNames.Profile(profile), "Desk CTRL+ALT+g"), ("Do settings", "Desk CTRL+ALT+s")], g.AssignedKeys);
+        // A renamed profile (registered again under a new id) shows its new name.
+        g.Unregister(7);
+        g.Describe(9, ShortcutNames.Profile(profile), "Switch to Games");
+        Assert.Equal(GrabResult.Ok, g.Register(9, CtrlAlt, 0x47, out _));
+        Assert.Equal(("Switch to Games", "Desk CTRL+ALT+g"), g.AssignedKeys[1]);
 
         var pressed = new List<ushort>();
         g.Pressed += id => { lock (pressed) pressed.Add(id); };
@@ -296,7 +303,7 @@ public sealed class PortalKeyGrabberTests
         portal.Emit(portal.Activated(session, ShortcutNames.Profile(profile)));
         await Until(() => { lock (pressed) return pressed.Count == 2; });
         await Task.Delay(100);
-        lock (pressed) Assert.Equal(new ushort[] { 7, 8 }, pressed.Order());
+        lock (pressed) Assert.Equal(new ushort[] { 8, 9 }, pressed.Order()); // (the profile now under its new id)
     }
 
     [DBusFact]
