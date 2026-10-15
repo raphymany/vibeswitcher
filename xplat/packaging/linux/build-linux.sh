@@ -24,7 +24,7 @@ version="$(dotnet msbuild "$xplat/src/VibeSwitcher.App" -getProperty:Version)"
 if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
   echo "unexpected version '$version'" >&2; exit 1
 fi
-# Debian sorts "~" before anything, so 2.0.1~preview comes before the final 2.0.1.
+# Debian sorts "~" before anything, so a pre-release (2.0.1~rc.1) comes before the final 2.0.1.
 debversion="${version//-/\~}"
 echo "Building VibeSwitcher $version for $rid"
 

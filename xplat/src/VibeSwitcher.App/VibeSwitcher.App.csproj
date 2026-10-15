@@ -8,10 +8,11 @@
     <RootNamespace>VibeSwitcher.App</RootNamespace>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationIcon>$(WinSrc)Resources\Icons\vs-icon.ico</ApplicationIcon>
-    <!-- The Windows app's version, marked as a preview until the first Mac/Linux release (the
-         packages read it from here: dotnet msbuild -getProperty:Version). -->
+    <!-- The Windows app's version, marked as a pre-release until the first Mac/Linux release: "rc.1"
+         is the build for the first friend test session (the packages read it from here:
+         dotnet msbuild -getProperty:Version). -->
     <VersionPrefix>2.0.1</VersionPrefix>
-    <VersionSuffix>preview</VersionSuffix>
+    <VersionSuffix>rc.1</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>

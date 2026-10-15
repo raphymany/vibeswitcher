@@ -28,7 +28,8 @@ internal static class DialogCatalog
         "conflict-retry" => new ConflictRetryDialog("Hotkey Already in Use", "Ctrl + Alt + G is used by another app. Try a different shortcut?"),
         "error" => new ErrorDialog(ErrorCode.ProfileSwitchFailed, "Profile Switch Failed",
             "Couldn't switch to \"Gaming\": the playback device isn't available.", "/tmp/vs.log", new FakeAppLogger(), new FakeSessionErrorTracker()),
-        "uninstall" => new UninstallDialog(UninstallText.Mac),
+        // (In the words of the system being drawn: an AppImage on Linux.)
+        "uninstall" => new UninstallDialog(Settings.Wording.Mac ? UninstallText.Mac : UninstallText.LinuxAppImage),
         "mini-setup" => new MiniModeSetupDialog("Rows",
         [
             new MiniModeSetupDialog.ProfileChoice { Name = "Gaming", IsSelected = true },

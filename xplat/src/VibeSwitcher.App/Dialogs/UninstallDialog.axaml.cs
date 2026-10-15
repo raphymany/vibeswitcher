@@ -16,7 +16,7 @@ public sealed record UninstallText(string Subtitle, string Body, string DataNote
         "Deletes the app's data folder (~/Library/Application Support/VibeSwitcher)." + KeepNote);
 
     public static readonly UninstallText LinuxAppImage = new(
-        "The app will close and its AppImage file will be deleted.",
+        "The app will close and its file will be deleted.",
         "VibeSwitcher's AppImage file will be deleted, along with its start-at-login entry, any app-menu entry for it, and the headset permission rule if it set one up (that asks for your password).",
         "Deletes the app's data folder (~/.config/VibeSwitcher)." + KeepNote);
 

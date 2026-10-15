@@ -24,7 +24,7 @@ version="$(dotnet msbuild "$xplat/src/VibeSwitcher.App" -getProperty:Version)"
 if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
   echo "unexpected version '$version'" >&2; exit 1
 fi
-short="${version%%-*}" # macOS wants plain numbers in the bundle; "-preview" stays in the file name
+short="${version%%-*}" # macOS wants plain numbers in the bundle; the pre-release mark ("-rc.1") stays in the file name
 echo "Building VibeSwitcher $version for $rid"
 
 app="$work/VibeSwitcher.app"

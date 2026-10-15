@@ -9,7 +9,7 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | Re-bind a profile when a USB device gets a new ID | ✅ | ✅ | ✅ |
 | "Show disabled devices" | Hidden: macOS has no "disabled device" state | Hidden: Linux has no "disabled" state (a sound card set to the "Off" profile simply has no devices) | Same as X11 |
 | Unplugged-jack devices listed | No: macOS hides them | ✅ | ✅ |
-| Global hotkeys | ✅ (Option-only combos are blocked by macOS 15) | ✅ | Through the system "Global Shortcuts" prompt (KDE, GNOME 48+). The desktop asks the user to approve, the user may pick a different key, and there's no conflict test. Older GNOME: VibeSwitcher adds GNOME keyboard shortcuts with the user's consent. |
+| Global hotkeys | ✅ (Option-only combos are blocked by macOS 15) | ✅ | Through the system "Global Shortcuts" prompt (KDE, GNOME 48+). The desktop asks the user to approve, the user may pick a different key, and there's no conflict test. Older GNOME: VibeSwitcher adds GNOME keyboard shortcuts once the user allows it in Settings › Shortcuts. Settings › Shortcuts says which way is in use and, with the desktop's service, which keys it gave each shortcut. |
 | Hotkey labels | ⌃⌥⇧⌘ glyphs (Mac convention) | "Super" instead of "Win" | Same as X11 |
 | Window buttons | Native traffic lights; everything inside the window is identical | Windows-style buttons | Same as X11 |
 | Tray menu | A click on the menu-bar icon opens the **same styled menu** as the Windows tray, right under the icon ("Quit" for "Exit"); a second click closes it. The icon is the app's own menu-bar item (Avalonia's doesn't report clicks on macOS); if it can't be made, the system's own menu is used. A menu-bar click always opens the menu, so the "Left-click cycles profiles" option isn't offered and the FAQ says "click". No Dock icon (a menu-bar app); opening the app again from Finder shows Settings | Native desktop menu: can't be styled — each profile is one line with its icon (pinned ones marked ★, the active one ticked); the shortcuts are listed in the icon's hover text as on Windows. The last item is "Quit" (Windows: "Exit") | Same as X11. **Stock GNOME (e.g. Fedora) has no tray** without the AppIndicator extension; VibeSwitcher detects this, explains it, and won't hide on close. |
@@ -26,7 +26,8 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 | "Sound Settings" button | Opens System Settings › Sound | Opens the desktop's own sound settings (GNOME, KDE, Cinnamon, MATE), or the PulseAudio volume control (`pavucontrol`) where there are none; the Windows-only "legacy sound panel" option doesn't apply | Same as X11 |
 | Settings, About and FAQ wording | Mac terms where Windows is named: "Open at login", "menu bar", "Show in Finder", the config path under `~/Library/Application Support`; About lists the Mac building blocks | "Start at login", "tray", the config path under `~/.config` (or `$XDG_CONFIG_HOME`); About lists the Linux building blocks | Same as X11 |
 | Profile cards' drag-and-drop | Not offered (as on Windows: the Windows app has drop handlers but never starts a drag) | Same | Same |
-| Uninstall from inside the app | Moves the app to the Trash (+ optional data) | AppImage: deletes it; `.deb`: removes the package | Same as X11 |
+| Uninstall from inside the app | Moves the app to the Trash (it can be put back) and removes its login item; no password | AppImage: deletes the file, its start-at-login entry, any app-menu entry that starts it, and the headset rule if it set one up (one password prompt for that); `.deb`: removed by the package manager after one password prompt (only a copy the package manager installed). VibeSwitcher's GNOME keyboard shortcuts go too. "Also delete my profiles and settings" removes only VibeSwitcher's own files from its folder | Same as X11 |
+| Self-test and diagnostics (new on macOS/Linux) | `--selftest` prints a check of everything the app relies on; `--diagnostics` saves one zip to send when asking for help (report, devices, settings, log, pictures of the windows; Bluetooth addresses masked) | Same | Same |
 
 ## Install notes
 
@@ -82,11 +83,14 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
   - **Older GNOME:** with the user's permission, VibeSwitcher adds its shortcuts to GNOME's own keyboard settings
     (Settings › Keyboard › Custom Shortcuts, named "VibeSwitcher: …"). They run VibeSwitcher's command line, so they
     work the same, and pressing one while VibeSwitcher is closed starts it. Only VibeSwitcher's own entries are ever
-    changed. They're removed again when this is turned off, when VibeSwitcher is uninstalled from its own settings,
-    and whenever it uses another way (logging into "GNOME on Xorg", or after upgrading to GNOME 48).
+    changed. "Add my shortcuts to GNOME" in Settings › Shortcuts turns this on, straight away; "Remove my shortcuts
+    from GNOME" takes them out again. They're also removed when VibeSwitcher is uninstalled from its own settings, and
+    whenever it uses another way (logging into "GNOME on Xorg", or after upgrading to GNOME 48).
   - **Anywhere else:** shortcuts are off, and VibeSwitcher explains how to bind keys to its command line in the
     desktop's own settings.
-  - In all three cases there's no "is it used by another app?" check: the desktop decides.
+  - In all three cases there's no "is it used by another app?" check: the desktop decides. Settings › Shortcuts has a
+    short "How shortcuts work here" card saying which of these applies (and, with the desktop's service, whether the
+    shortcuts are approved and which keys it gave them); it's hidden on macOS and X11, where nothing differs.
 
 ## App launch trigger notes
 
@@ -127,12 +131,14 @@ forces a difference**, and what we do about it. It's kept up to date as each pha
 - **Command line (new on macOS/Linux).** `vibeswitcher --switch "<profile>"`, `--mute mic|speakers|both`,
   `--open` and `--mini` (show or hide Mini Mode) drive the running app. Linux needs this so keyboard shortcuts set up in the desktop's own settings can
   control VibeSwitcher on Wayland, where apps can't listen for global keys themselves. Windows doesn't need it.
-- **Waking from sleep** re-checks schedules and re-applies the active profile, as on Windows.
+- **Waking from sleep** re-checks schedules and re-applies the active profile, as on Windows. Linux hears it from the
+  system itself (systemd-logind) and acts about 3 seconds later, once the sound devices are back; macOS (and Linux
+  without logind) notices from the clock within a few seconds. One wake is acted on once.
 - **Start at login** is a login item on macOS (a LaunchAgent) and an autostart entry on Linux. Like the Windows
   startup entry, it follows the app if it's moved (for an AppImage, the AppImage file itself is what starts).
   On macOS 13+ it appears under System Settings › General › Login Items › "Allow in the Background"; if it's switched
-  off *there*, VibeSwitcher's own setting can still read "on" (planned: use Apple's newer login-item API in the app
-  wiring step). A Mac app that hasn't been moved out of Downloads runs from a temporary copy; VibeSwitcher then asks to
+  off *there*, VibeSwitcher's own setting can still read "on" (Apple's newer login-item API, which avoids this, needs
+  a signed app). A Mac app that hasn't been moved out of Downloads runs from a temporary copy; VibeSwitcher then asks to
   be moved to Applications before it can start at login.
 
 ## macOS audio notes
