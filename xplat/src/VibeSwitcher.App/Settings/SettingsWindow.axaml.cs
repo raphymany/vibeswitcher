@@ -41,7 +41,7 @@ public partial class SettingsWindow : Window
     // (the config folder: the one holding Icons/). Settable for tests, followed by RefreshStorageInfo.
     internal InstallInfo Install { get; set; } = InstallInfo.Current();
     internal string DataFolder { get; set; } = "";
-    internal string Version { get; set; } = Cli.Version; // (with -preview, as --version prints it)
+    internal string Version { get; set; } = Cli.Version; // (with its pre-release mark, as --version prints it)
 
     // Uninstalling this copy (and its data, when asked) once the user has confirmed — set by the
     // app (next steps); until then it only logs.
